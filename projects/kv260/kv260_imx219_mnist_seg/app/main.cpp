@@ -43,9 +43,10 @@ int main(int argc, char *argv[])
     int     frame_rate  = 1000;
     int     exposure    = 1;
     int     a_gain      = 20;
-    int     d_gain      = 10;
+    int     d_gain      = 20;
     int     bayer_phase = 0;
-    int     lpf         = 0;
+    int     lpf         = 200;
+    int     bin_th      = 0;
     int     view_scale  = 1;
 
     for ( int i = 1; i < argc; ++i ) {
@@ -242,10 +243,10 @@ int main(int argc, char *argv[])
 
 
     reg_bin.WriteReg(REG_BIN_PARAM_END, 3);
-    reg_bin.WriteReg(REG_BIN_TBL(0), 0x10);
-    reg_bin.WriteReg(REG_BIN_TBL(1), 0x20);
-    reg_bin.WriteReg(REG_BIN_TBL(2), 0x30);
-    reg_bin.WriteReg(REG_BIN_TBL(3), 0x40);
+    reg_bin.WriteReg(REG_BIN_TBL(0), 0x80);
+    reg_bin.WriteReg(REG_BIN_TBL(1), 0x80);
+    reg_bin.WriteReg(REG_BIN_TBL(2), 0x80);
+    reg_bin.WriteReg(REG_BIN_TBL(3), 0x80);
 
     // video input start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
@@ -275,6 +276,8 @@ int main(int argc, char *argv[])
     cv::setTrackbarPos("bayer",    "img", bayer_phase);
     cv::createTrackbar("lpf" ,     "img", nullptr, 255);
     cv::setTrackbarPos("lpf",      "img", lpf);
+    cv::createTrackbar("bin_th" ,  "img", nullptr, 255);
+    cv::setTrackbarPos("bin_th",   "img", bin_th);
     
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
@@ -287,6 +290,7 @@ int main(int argc, char *argv[])
         d_gain      = cv::getTrackbarPos("d_gain",   "img");
         bayer_phase = cv::getTrackbarPos("bayer" ,   "img");
         lpf         = cv::getTrackbarPos("lpf",      "img");
+        bin_th      = cv::getTrackbarPos("bin_th",      "img");
 
         // 設定
         imx219.SetFrameRate(frame_rate);
@@ -298,6 +302,32 @@ int main(int argc, char *argv[])
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
         reg_lpf.WriteReg(REG_LPF_PARAM_ALPHA, lpf);
 
+        if ( bin_th == 0 ) {
+            // PWMモード(テーブルサイズ=15)
+            reg_bin.WriteReg(REG_BIN_TBL(0),  0x10);
+            reg_bin.WriteReg(REG_BIN_TBL(1),  0xf0);
+            reg_bin.WriteReg(REG_BIN_TBL(2),  0x70);
+            reg_bin.WriteReg(REG_BIN_TBL(3),  0x90);
+            reg_bin.WriteReg(REG_BIN_TBL(4),  0x30);
+            reg_bin.WriteReg(REG_BIN_TBL(5),  0xd0);
+            reg_bin.WriteReg(REG_BIN_TBL(6),  0x50);
+            reg_bin.WriteReg(REG_BIN_TBL(7),  0xb0);
+            reg_bin.WriteReg(REG_BIN_TBL(8),  0x20);
+            reg_bin.WriteReg(REG_BIN_TBL(9),  0xe0);
+            reg_bin.WriteReg(REG_BIN_TBL(10), 0x60);
+            reg_bin.WriteReg(REG_BIN_TBL(11), 0xa0);
+            reg_bin.WriteReg(REG_BIN_TBL(12), 0x40);
+            reg_bin.WriteReg(REG_BIN_TBL(13), 0xc0);
+            reg_bin.WriteReg(REG_BIN_TBL(14), 0x80);
+            reg_bin.WriteReg(REG_BIN_PARAM_END, 14);
+        }
+        else {
+            // 単純2値化(テーブルサイズ=1)
+            reg_bin.WriteReg(REG_BIN_TBL(0), bin_th);
+            reg_bin.WriteReg(REG_BIN_PARAM_END, 0);
+        }
+
+
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img;
@@ -308,6 +338,14 @@ int main(int argc, char *argv[])
         std::vector<cv::Mat> planes;
         cv::split(img, planes);
         cv::imshow("planes0", planes[3]);
+
+        cv::Mat cls = planes[3];
+        for ( int i = 0; i < 11; ++i ) {
+            cv::Mat mask = (cls == i);
+            cv::Mat cls_view = cv::Mat::zeros(cls.size(), CV_8UC1);
+            cls_view.setTo(255, mask);
+            cv::imshow("cls" + std::to_string(i), cls_view);
+        }
 
         // 表示
         view_scale = std::max(1, view_scale);
