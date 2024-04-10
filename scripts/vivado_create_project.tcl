@@ -15,7 +15,7 @@ set ip_cores    [expr {[info exists env(IP_CORES)   ] ? [split $env(IP_CORES)   
 set bd_scripts  [expr {[info exists env(BD_SCRIPTS) ] ? [split $env(BD_SCRIPTS) " "] : {}}]
 set hls_ip      [expr {[info exists env(HLS_IP)     ] ? [split $env(HLS_IP)     " "] : {}}]
 set constrains  [expr {[info exists env(CONSTRAINS) ] ? [split $env(CONSTRAINS) " "] : {}}]
-
+set synth_args_more [expr {[info exists env(SYNTH_ARGS_MORE)] ? $env(SYNTH_ARGS_MORE) : ""}]
 
 # add borad repository path
 if       { [string first "Linux"   $::tcl_platform(os)] != -1 } {
@@ -127,12 +127,10 @@ foreach fname $constrains {
 # set top module
 set_property top $top_module [current_fileset]
 
-# synth_args_more
-set synth_args_more ""
 
 # defines
 foreach define $defines {
-  append synth_args_more "-verilog_define " $define " "
+  append synth_args_more " -verilog_define " $define
 }
 
 # add option
