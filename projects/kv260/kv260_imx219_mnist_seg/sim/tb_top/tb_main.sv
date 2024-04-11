@@ -263,15 +263,17 @@ module tb_main
     logic                           axi4s_mnist_tlast;
     logic   [23:0]                  axi4s_mnist_trgb;
     logic   [10:0]                  axi4s_mnist_tclass;
+    logic   [10:0][7:0]             axi4s_mnist_tclass_u8;
     logic                           axi4s_mnist_tvalid;
     logic                           axi4s_mnist_tready;
 
-    assign axi4s_mnist_tuser  = i_top.axi4s_mnist_tuser;
-    assign axi4s_mnist_tlast  = i_top.axi4s_mnist_tlast;
-    assign axi4s_mnist_trgb   = i_top.axi4s_mnist_trgb;
-    assign axi4s_mnist_tclass = i_top.axi4s_mnist_tclass;
-    assign axi4s_mnist_tvalid = i_top.axi4s_mnist_tvalid;
-    assign axi4s_mnist_tready = i_top.axi4s_mnist_tready;
+    assign axi4s_mnist_tuser     = i_top.axi4s_mnist_tuser;
+    assign axi4s_mnist_tlast     = i_top.axi4s_mnist_tlast;
+    assign axi4s_mnist_trgb      = i_top.axi4s_mnist_trgb;
+    assign axi4s_mnist_tclass    = i_top.axi4s_mnist_tclass;
+    assign axi4s_mnist_tclass_u8 = i_top.axi4s_mnist_tclass_u8;
+    assign axi4s_mnist_tvalid    = i_top.axi4s_mnist_tvalid;
+    assign axi4s_mnist_tready    = i_top.axi4s_mnist_tready;
 
     jelly2_axi4s_slave_model
             #(
@@ -325,12 +327,39 @@ module tb_main
                     
                     .s_axi4s_tuser      (axi4s_mnist_tuser),
                     .s_axi4s_tlast      (axi4s_mnist_tlast),
-                    .s_axi4s_tdata      ({8{axi4s_mnist_tclass[i]}}),
+                    .s_axi4s_tdata      (axi4s_mnist_tclass_u8[i]),
                     .s_axi4s_tvalid     (axi4s_mnist_tvalid & axi4s_mnist_tready),
                     .s_axi4s_tready     ()
                 );
     end
 
+    jelly2_axi4s_slave_model
+            #(
+                .COMPONENTS         (1),
+                .DATA_WIDTH         (8),
+                .INIT_FRAME_NUM     (0),
+                .FORMAT             ("P2"),
+                .FILE_NAME          ({"mnist_bk_"}),
+                .FILE_EXT           (".pgm"),
+                .SEQUENTIAL_FILE    (1),
+                .ENDIAN             (1) // BGR
+            )
+        i_axi4s_slave_model_mnist_bk
+            (
+                .aresetn            (axi4s_cam_aresetn),
+                .aclk               (axi4s_cam_aclk),
+                .aclken             (1'b1),
+
+                .param_width        (X_NUM),
+                .param_height       (Y_NUM),
+                .frame_num          (),
+                
+                .s_axi4s_tuser      (axi4s_mnist_tuser),
+                .s_axi4s_tlast      (axi4s_mnist_tlast),
+                .s_axi4s_tdata      (axi4s_mnist_tclass_u8[10]),
+                .s_axi4s_tvalid     (axi4s_mnist_tvalid & axi4s_mnist_tready),
+                .s_axi4s_tready     ()
+            );
 
 
     logic   [0:0]               axi4s_max_tuser;
