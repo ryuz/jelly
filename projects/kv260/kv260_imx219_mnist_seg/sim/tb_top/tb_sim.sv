@@ -191,6 +191,7 @@ module tb_sim();
     localparam  ADR_COLMAT = WB_ADR_WIDTH'(32'h00120800) >> 3;
     localparam  ADR_VDMAW  = WB_ADR_WIDTH'(32'h00210000) >> 3;
     localparam  ADR_BIN    = WB_ADR_WIDTH'(32'h00300000) >> 3;
+    localparam  ADR_LPF    = WB_ADR_WIDTH'(32'h00320000) >> 3;
 
 `include "jelly/JellyRegs.vh"
     
@@ -215,8 +216,9 @@ module tb_sim();
 
         wb_write(ADR_BIN + `REG_BIN_PARAM_END, 3, 8'hff);
         wb_write(ADR_BIN + `REG_BIN_TBL(0), 64'h10, 8'hff);
-        wb_write(ADR_BIN + `REG_BIN_TBL(1), 64'h20, 8'hff);
-        wb_write(ADR_BIN + `REG_BIN_TBL(2), 64'h30, 8'hff);
+        wb_write(ADR_BIN + `REG_BIN_TBL(1), 64'h10, 8'hff);
+        wb_write(ADR_BIN + `REG_BIN_TBL(2), 64'h10, 8'hff);
+        wb_write(ADR_BIN + `REG_BIN_TBL(3), 64'h10, 8'hff);
 
         $display("set write DMA");
         wb_read (ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_CORE_ID       ));
@@ -228,7 +230,7 @@ module tb_sim();
         wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_PARAM_F_SIZE),                    1-1, 8'hff);
         wb_write(ADR_VDMAW + WB_ADR_WIDTH'(`REG_VDMA_WRITE_CTL_CONTROL),                       3, 8'hff);  // update & enable
 
-    #4000000;
+    #400000;
         $finish();
     end
     

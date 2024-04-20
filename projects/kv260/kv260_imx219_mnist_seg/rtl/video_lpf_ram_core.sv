@@ -45,10 +45,10 @@ module video_lpf_ram_core
     assign param_alpha1 = (1 << DATA_WIDTH) - param_alpha;
 
     // ram
-    logic   [ADDR_WIDTH-1:0]    wr_addr     ;
-    logic   [TDATA_WIDTH-1:0]   wr_din      ;
-    logic   [ADDR_WIDTH-1:0]    rd_addr     ;
-    logic   [TDATA_WIDTH-1:0]   rd_dout     ;
+    logic   [ADDR_WIDTH-1:0]            wr_addr     ;
+    logic   [TDATA_WIDTH-1:0]           wr_din      ;
+    logic   [ADDR_WIDTH-1:0]            rd_addr     ;
+    logic   [NUM-1:0][DATA_WIDTH-1:0]   rd_dout     ;
 
     jelly2_ram_simple_dualport
             #(
@@ -163,7 +163,7 @@ module video_lpf_ram_core
             st4_addr  <=  st3_addr;
             st4_tuser <=  st3_tuser;
             st4_tlast <=  st3_tlast;
-            for ( int i = 0; i < NUM; i = i + 1 ) begin
+            for ( int i = 0; i < NUM; ++i ) begin
                 st4_tdata[i] <=  DATA_WIDTH'((mut_t'(st3_tdata[i]) * mut_t'(param_alpha1)) >> DATA_WIDTH);
                 st4_rdata[i] <=  DATA_WIDTH'((mut_t'(rd_dout  [i]) * mut_t'(param_alpha )) >> DATA_WIDTH);
             end

@@ -694,13 +694,6 @@ module kv260_imx219_mnist_seg
     logic                               axi4s_mnist_tvalid;
     logic                               axi4s_mnist_tready;
 
-    logic   [10:0][7:0]                 axi4s_mnist_tclass_u8;
-    always_comb begin
-        for ( int i = 0; i < 11; i++ ) begin
-            axi4s_mnist_tclass_u8[i] = {8{axi4s_mnist_tclass[i]}};
-        end
-    end
-
     mnist_seg
             #(
                 .TUSER_WIDTH        (24 + 1),
@@ -731,6 +724,17 @@ module kv260_imx219_mnist_seg
                 .m_axi4s_tvalid     (axi4s_mnist_tvalid),
                 .m_axi4s_tready     (axi4s_mnist_tready)
             );
+    
+    logic   [10:0][7:0]                 axi4s_mnist_tclass_u8;
+    always_comb begin
+        for ( int i = 0; i < 10; i++ ) begin
+            axi4s_mnist_tclass_u8[i] = {8{axi4s_mnist_tclass[i]}};
+        end
+
+        // 背景の学習状況が悪いので補正
+        axi4s_mnist_tclass_u8[10] = {8{~|axi4s_mnist_tclass[9:0]}};
+    end
+
 
     // LowPass-filter
     logic   [0:0]               axi4s_lpf_tuser;
@@ -950,6 +954,7 @@ module kv260_imx219_mnist_seg
 //  assign wb_sel_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h013);   // 0x80130000-0x8013ffff
     assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h021);   // 0x80210000-0x8021ffff
     assign wb_bin_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h030);   // 0x80300000-0x8030ffff
+    assign wb_lpf_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h032);   // 0x80300000-0x8030ffff
 
 
     assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
@@ -958,6 +963,7 @@ module kv260_imx219_mnist_seg
 //                          wb_sel_stb_i   ? wb_sel_dat_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             wb_bin_stb_i   ? wb_bin_dat_o   :
+                            wb_lpf_stb_i   ? wb_lpf_dat_o   :
                             {WB_DAT_WIDTH{1'b0}};
     
     assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
@@ -966,6 +972,7 @@ module kv260_imx219_mnist_seg
 //                          wb_sel_stb_i   ? wb_sel_ack_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
                             wb_bin_stb_i   ? wb_bin_ack_o   :
+                            wb_lpf_stb_i   ? wb_lpf_ack_o   :
                             wb_peri_stb_i;
     
     
