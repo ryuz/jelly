@@ -315,6 +315,7 @@ int main(int argc, char *argv[])
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
         reg_lpf.WriteReg(REG_LPF_PARAM_ALPHA, lpf);
 
+        /*
         if ( bin_th == 0 ) {
             // PWMモード(テーブルサイズ=15)
             reg_bin.WriteReg(REG_BIN_TBL(0),  0x10);
@@ -339,7 +340,25 @@ int main(int argc, char *argv[])
             reg_bin.WriteReg(REG_BIN_TBL(0), bin_th);
             reg_bin.WriteReg(REG_BIN_PARAM_END, 0);
         }
+        */
 
+        // PWMモード(テーブルサイズ=15)
+        reg_bin.WriteReg(REG_BIN_TBL(0),  bin_th + 0x1);
+        reg_bin.WriteReg(REG_BIN_TBL(1),  bin_th + 0xf);
+        reg_bin.WriteReg(REG_BIN_TBL(2),  bin_th + 0x7);
+        reg_bin.WriteReg(REG_BIN_TBL(3),  bin_th + 0x9);
+        reg_bin.WriteReg(REG_BIN_TBL(4),  bin_th + 0x3);
+        reg_bin.WriteReg(REG_BIN_TBL(5),  bin_th + 0xd);
+        reg_bin.WriteReg(REG_BIN_TBL(6),  bin_th + 0x5);
+        reg_bin.WriteReg(REG_BIN_TBL(7),  bin_th + 0xb);
+        reg_bin.WriteReg(REG_BIN_TBL(8),  bin_th + 0x2);
+        reg_bin.WriteReg(REG_BIN_TBL(9),  bin_th + 0xe);
+        reg_bin.WriteReg(REG_BIN_TBL(10), bin_th + 0x6);
+        reg_bin.WriteReg(REG_BIN_TBL(11), bin_th + 0xa);
+        reg_bin.WriteReg(REG_BIN_TBL(12), bin_th + 0x4);
+        reg_bin.WriteReg(REG_BIN_TBL(13), bin_th + 0xc);
+        reg_bin.WriteReg(REG_BIN_TBL(14), bin_th + 0x8);
+        reg_bin.WriteReg(REG_BIN_PARAM_END, 14);
 
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
