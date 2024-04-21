@@ -277,34 +277,39 @@ module kv260_imx219
     
 
     // ----------------------------------------
-    //  Global ID
+    //  System Control
     // ----------------------------------------
     
-    logic   [WB_DAT_WIDTH-1:0]  wb_gid_dat_o;
-    logic                       wb_gid_stb_i;
-    logic                       wb_gid_ack_o;
+    logic   [WB_DAT_WIDTH-1:0]  wb_sys_dat_o;
+    logic                       wb_sys_stb_i;
+    logic                       wb_sys_ack_o;
         
-    reg     reg_sw_reset;
-    reg     reg_cam_enable;
+    logic                       reg_sw_reset;
+    logic                       reg_cam_enable;
+    logic   [7:0]               reg_csi_data_type;
     always_ff @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
-            reg_sw_reset   <= 1'b0;
-            reg_cam_enable <= 1'b0;
+            reg_sw_reset      <= 1'b0;
+            reg_cam_enable    <= 1'b0;
+            reg_csi_data_type <= 8'h2b;
         end
         else begin
-            if ( wb_gid_stb_i && wb_peri_we_i ) begin
+            if ( wb_sys_stb_i && wb_peri_we_i ) begin
                 case ( wb_peri_adr_i[3:0] )
-                1: reg_sw_reset   <= 1'(wb_peri_dat_i);
-                2: reg_cam_enable <= 1'(wb_peri_dat_i);
+                1: reg_sw_reset      <= 1'(wb_peri_dat_i);
+                2: reg_cam_enable    <= 1'(wb_peri_dat_i);
+                3: reg_csi_data_type <= 8'(wb_peri_dat_i);
                 endcase
             end
         end
     end
     
-    assign wb_gid_dat_o = wb_peri_adr_i[3:0] == 0 ? WB_DAT_WIDTH'(32'h01234567)   :
-                          wb_peri_adr_i[3:0] == 1 ? WB_DAT_WIDTH'(reg_sw_reset)   :
-                          wb_peri_adr_i[3:0] == 2 ? WB_DAT_WIDTH'(reg_cam_enable) : '0;
-    assign wb_gid_ack_o = wb_gid_stb_i;
+    assign wb_sys_dat_o = wb_peri_adr_i[3:0] == 0 ? WB_DAT_WIDTH'(32'h01234567)         :
+                          wb_peri_adr_i[3:0] == 1 ? WB_DAT_WIDTH'(reg_sw_reset)         :
+                          wb_peri_adr_i[3:0] == 2 ? WB_DAT_WIDTH'(reg_cam_enable)       :
+                          wb_peri_adr_i[3:0] == 3 ? WB_DAT_WIDTH'(reg_csi_data_type)    :
+                          '0;
+    assign wb_sys_ack_o = wb_sys_stb_i;
 
     assign cam_enable = reg_cam_enable;
 
@@ -482,7 +487,9 @@ module kv260_imx219
             (
                 .aresetn            (~sys_reset),
                 .aclk               (sys_clk250),
-                
+
+                .param_data_type    (reg_csi_data_type),
+
                 .ecc_corrected      (mipi_ecc_corrected),
                 .ecc_error          (mipi_ecc_error),
                 .ecc_valid          (mipi_ecc_valid),
@@ -901,20 +908,20 @@ module kv260_imx219
     //  WISHBONE address decoder
     // ----------------------------------------
     
-    assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h000);   // 0x80000000-0x8000ffff
+    assign wb_sys_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h000);   // 0x80000000-0x8000ffff
     assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h010);   // 0x80100000-0x8010ffff
     assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h012);   // 0x80120000-0x8012ffff
     assign wb_sel_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h013);   // 0x80130000-0x8013ffff
     assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h021);   // 0x80210000-0x8021ffff
     
-    assign wb_peri_dat_o  = wb_gid_stb_i   ? wb_gid_dat_o   :
+    assign wb_peri_dat_o  = wb_sys_stb_i   ? wb_sys_dat_o   :
                             wb_fmtr_stb_i  ? wb_fmtr_dat_o  :
                             wb_rgb_stb_i   ? wb_rgb_dat_o   :
                             wb_sel_stb_i   ? wb_sel_dat_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             {WB_DAT_WIDTH{1'b0}};
     
-    assign wb_peri_ack_o  = wb_gid_stb_i   ? wb_gid_ack_o   :
+    assign wb_peri_ack_o  = wb_sys_stb_i   ? wb_sys_ack_o   :
                             wb_fmtr_stb_i  ? wb_fmtr_ack_o  :
                             wb_rgb_stb_i   ? wb_rgb_ack_o   :
                             wb_sel_stb_i   ? wb_sel_ack_o   :
@@ -992,8 +999,9 @@ module kv260_imx219
     assign pmod[2] = i2c0_sda_o;
     assign pmod[3] = i2c0_sda_t;
     assign pmod[4] = cam_enable;
-    assign pmod[5] = reg_frame_count[7];
-    assign pmod[7:6] = reg_counter_clk100[9:8];
+    assign pmod[5] = reg_frame_count[0];
+    assign pmod[6] = reg_frame_count[7];
+    assign pmod[7] = reg_counter_clk100[8];
     
     
     // Debug

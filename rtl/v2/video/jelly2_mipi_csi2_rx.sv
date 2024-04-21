@@ -21,43 +21,45 @@ module jelly2_mipi_csi2_rx
             parameter M_FIFO_RAM_TYPE  = "distributed"
         )
         (
-            input   wire                        aresetn,
-            input   wire                        aclk,
-            
-            output  wire                        ecc_corrected,
-            output  wire                        ecc_error,
-            output  wire                        ecc_valid,
-            output  wire                        crc_error,
-            output  wire                        crc_valid,
-            output  wire                        packet_lost,
-            output  wire                        fifo_overflow,
+            input   var logic                       aresetn,
+            input   var logic                       aclk,
+
+            input   var logic   [7:0]               param_data_type,
+
+            output  var logic                       ecc_corrected,
+            output  var logic                       ecc_error,
+            output  var logic                       ecc_valid,
+            output  var logic                       crc_error,
+            output  var logic                       crc_valid,
+            output  var logic                       packet_lost,
+            output  var logic                       fifo_overflow,
             
             // input
-            input   wire                        rxreseths,
-            input   wire                        rxbyteclkhs,
-            input   wire    [LANES*8-1:0]       rxdatahs,
-            input   wire    [LANES-1:0]         rxvalidhs,
-            input   wire    [LANES-1:0]         rxactivehs,
-            input   wire    [LANES-1:0]         rxsynchs,
+            input   var logic                       rxreseths,
+            input   var logic                       rxbyteclkhs,
+            input   var logic   [LANES*8-1:0]       rxdatahs,
+            input   var logic   [LANES-1:0]         rxvalidhs,
+            input   var logic   [LANES-1:0]         rxactivehs,
+            input   var logic   [LANES-1:0]         rxsynchs,
             
             
             // output
-            input   wire                        m_axi4s_aresetn,
-            input   wire                        m_axi4s_aclk,
-            output  wire    [0:0]               m_axi4s_tuser,
-            output  wire                        m_axi4s_tlast,
-            output  wire    [DATA_WIDTH-1:0]    m_axi4s_tdata,
-            output  wire    [0:0]               m_axi4s_tvalid,
-            input   wire                        m_axi4s_tready
+            input   var logic                       m_axi4s_aresetn,
+            input   var logic                       m_axi4s_aclk,
+            output  var logic   [0:0]               m_axi4s_tuser,
+            output  var logic                       m_axi4s_tlast,
+            output  var logic   [DATA_WIDTH-1:0]    m_axi4s_tdata,
+            output  var logic   [0:0]               m_axi4s_tvalid,
+            input   var logic                       m_axi4s_tready
         );
     
     
     // MIPI lane reciver
-    wire    [0:0]               axi4s_lane_tuser;
-    wire                        axi4s_lane_tlast;
-    wire    [7:0]               axi4s_lane_tdata;
-    wire                        axi4s_lane_tvalid;
-    wire                        axi4s_lane_tready;
+    logic   [0:0]               axi4s_lane_tuser;
+    logic                       axi4s_lane_tlast;
+    logic   [7:0]               axi4s_lane_tdata;
+    logic                       axi4s_lane_tvalid;
+    logic                       axi4s_lane_tready;
     
     jelly2_mipi_rx_lane
             #(
@@ -83,22 +85,22 @@ module jelly2_mipi_csi2_rx
     
     
     // MIPI low layer parser
-    wire                        frame_start;
-    wire                        frame_end;
+    logic                       frame_start;
+    logic                       frame_end;
     
-    wire                        axi4s_low_tuser;
-    wire                        axi4s_low_tlast;
-    wire    [7:0]               axi4s_low_tdata;
-    wire                        axi4s_low_tvalid;
-    wire                        axi4s_low_tready;
-    
+    logic                       axi4s_low_tuser;
+    logic                       axi4s_low_tlast;
+    logic   [7:0]               axi4s_low_tdata;
+    logic                       axi4s_low_tvalid;
+    logic                       axi4s_low_tready;
+
     jelly_mipi_csi2_rx_low_layer
         i_mipi_csi2_rx_low_layer
             (
                 .aresetn            (aresetn),
                 .aclk               (aclk),
                 
-                .param_data_type    (8'h2b),
+                .param_data_type    (param_data_type), // (8'h2b),
                 
                 .out_frame_start    (frame_start),
                 .out_frame_end      (frame_end),
@@ -122,14 +124,38 @@ module jelly2_mipi_csi2_rx
                 .m_axi4s_tvalid     (axi4s_low_tvalid),
                 .m_axi4s_tready     (axi4s_low_tready)
             );
-    
+
+    logic                       axi4s_low_tready_raw8;
+    logic                       axi4s_low_tready_raw10;
+    always_comb begin
+        case ( param_data_type )
+        8'h2a:      axi4s_low_tready = axi4s_low_tready_raw8;
+        8'h2b:      axi4s_low_tready = axi4s_low_tready_raw10;
+        default:    axi4s_low_tready = 1'b1;
+        endcase
+    end
+
+    // RAW8
+    logic   [0:0]               axi4s_raw8_tuser;
+    logic                       axi4s_raw8_tlast;
+    logic   [DATA_WIDTH-1:0]    axi4s_raw8_tdata;
+    logic   [0:0]               axi4s_raw8_tvalid;
+    logic                       axi4s_raw8_tready;
+
+    assign axi4s_raw8_tuser  = axi4s_low_tuser;
+    assign axi4s_raw8_tlast  = axi4s_low_tlast;
+    assign axi4s_raw8_tdata  = DATA_WIDTH'({axi4s_low_tdata, axi4s_low_tdata} >> (16 - DATA_WIDTH));
+    assign axi4s_raw8_tvalid = axi4s_low_tvalid;
+
+    assign axi4s_low_tready_raw8 = axi4s_raw8_tready;
+
     
     // RAW10 decoder
-    wire    [0:0]               axi4s_raw10_tuser;
-    wire                        axi4s_raw10_tlast;
-    wire    [DATA_WIDTH-1:0]    axi4s_raw10_tdata;
-    wire    [0:0]               axi4s_raw10_tvalid;
-    wire                        axi4s_raw10_tready;
+    logic   [0:0]               axi4s_raw10_tuser;
+    logic                       axi4s_raw10_tlast;
+    logic   [DATA_WIDTH-1:0]    axi4s_raw10_tdata;
+    logic   [0:0]               axi4s_raw10_tvalid;
+    logic                       axi4s_raw10_tready;
     
     jelly2_mipi_csi2_rx_raw10
             #(
@@ -145,7 +171,7 @@ module jelly2_mipi_csi2_rx
                 .s_axi4s_tlast      (axi4s_low_tlast),
                 .s_axi4s_tdata      (axi4s_low_tdata),
                 .s_axi4s_tvalid     (axi4s_low_tvalid),
-                .s_axi4s_tready     (axi4s_low_tready),
+                .s_axi4s_tready     (axi4s_low_tready_raw10),
                 
                 .m_axi4s_tuser      (axi4s_raw10_tuser),
                 .m_axi4s_tlast      (axi4s_raw10_tlast),
@@ -156,12 +182,12 @@ module jelly2_mipi_csi2_rx
     
     
     // output
-    wire    [0:0]               axi4s_out_tuser;
-    wire                        axi4s_out_tlast;
-    wire    [DATA_WIDTH-1:0]    axi4s_out_tdata;
-    wire    [0:0]               axi4s_out_tvalid;
-    wire                        axi4s_out_tready;
-    
+    logic   [0:0]               axi4s_out_tuser;
+    logic                       axi4s_out_tlast;
+    logic   [DATA_WIDTH-1:0]    axi4s_out_tdata;
+    logic   [0:0]               axi4s_out_tvalid;
+    logic                       axi4s_out_tready;
+
     // frame start
     reg         reg_out_tuser;
     always_ff @(posedge aclk) begin
@@ -180,11 +206,13 @@ module jelly2_mipi_csi2_rx
     end
     
     assign axi4s_out_tuser    = reg_out_tuser;
-    assign axi4s_out_tlast    = axi4s_raw10_tlast;
-    assign axi4s_out_tdata    = axi4s_raw10_tdata;
-    assign axi4s_out_tvalid   = axi4s_raw10_tvalid;
+    assign axi4s_out_tlast    = param_data_type == 8'h2a ? axi4s_raw8_tlast  : axi4s_raw10_tlast;
+    assign axi4s_out_tdata    = param_data_type == 8'h2a ? axi4s_raw8_tdata  : axi4s_raw10_tdata;
+    assign axi4s_out_tvalid   = param_data_type == 8'h2a ? axi4s_raw8_tvalid : axi4s_raw10_tvalid;
+    assign axi4s_raw8_tready  = 1'b1;
     assign axi4s_raw10_tready = 1'b1;
     
+
     
     // output fifo
     assign  fifo_overflow = (axi4s_out_tvalid & !axi4s_out_tready);
