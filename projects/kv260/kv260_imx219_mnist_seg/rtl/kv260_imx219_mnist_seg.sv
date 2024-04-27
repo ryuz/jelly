@@ -482,6 +482,8 @@ module kv260_imx219_mnist_seg
             (
                 .aresetn            (~sys_reset),
                 .aclk               (sys_clk250),
+
+                .param_data_type    (8'h2b),
                 
                 .ecc_corrected      (mipi_ecc_corrected),
                 .ecc_error          (mipi_ecc_error),
@@ -752,7 +754,7 @@ module kv260_imx219_mnist_seg
             #(
                 .NUM                    (11 + 3             ),
                 .DATA_WIDTH             (8                  ),
-                .ADDR_WIDTH             (17                 ),
+                .ADDR_WIDTH             (18                 ),
                 .TUSER_WIDTH            (1                  ),
                 .WB_ADR_WIDTH           (8                  ),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH       ),
@@ -1046,9 +1048,8 @@ module kv260_imx219_mnist_seg
     assign pmod[2] = i2c0_sda_o;
     assign pmod[3] = i2c0_sda_t;
     assign pmod[4] = cam_enable;
-    assign pmod[5] = reg_frame_count[7];
+    assign pmod[5] = reg_frame_count[0];
     assign pmod[7:6] = reg_counter_clk100[9:8];
-    
     
     // Debug
     (* mark_debug = "true" *)   logic               dbg_reset;
