@@ -29,13 +29,13 @@ module jelly3_instruction_fetch_delay
 
             input   id_t        s_id            ,
             input   pc_t        s_pc            ,
-            input   logic       s_mem           ,
+            input   logic       s_en            ,
             input   logic       s_valid         ,
             output  logic       s_ready         ,
 
             output  id_t        m_id            ,
             output  pc_t        m_pc            ,
-            output  logic       m_mem           ,
+            output  logic       m_en            ,
             output  logic       m_valid         ,
             input   logic       m_ready         
         );
@@ -45,23 +45,25 @@ module jelly3_instruction_fetch_delay
         if ( reset ) begin
             m_id    <= 'x;
             m_pc    <= 'x;
-            m_mem   <= 1'b0;
+            m_en    <= 1'b0;
             m_valid <= 1'b0;
         end
         else if ( cke ) begin
             if ( m_ready || !m_valid ) begin
                 m_id    <= s_id   ;
                 m_pc    <= s_pc   ;
-                m_mem   <= s_mem  ;
+                m_en    <= s_en   ;
                 m_valid <= s_valid;
 
                 // ブランチで無効化する
                 if ( branch_en && branch_id == s_id ) begin
-                    m_valid <= 1'b0;
+                    m_en <= 1'b0;
                 end
             end
         end
     end
+    
+    assign s_ready = m_ready || !m_valid;
 
 endmodule
 

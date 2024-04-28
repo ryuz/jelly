@@ -211,13 +211,13 @@ module jelly3_instruction_fetch
                 )
             u_instruction_fetch_delay
                 (
-                    .reset           ,
-                    .clk             ,
-                    .cke             ,
+                    .reset      ,
+                    .clk        ,
+                    .cke        ,
 
-                    .branch_en       ,
-                    .branch_id       ,
-                    .branch_pc       ,
+                    .branch_en  ,
+                    .branch_id  ,
+                    .branch_pc  ,
 
                     .s_id       (st2_delay_id   [i]     ),
                     .s_pc       (st2_delay_pc   [i]     ),
@@ -246,101 +246,19 @@ module jelly3_instruction_fetch
     assign st2_delay_ready[MEM_LATENCY] = st2_ready;
 
 
-    /*
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            for ( int i = 1; i <= MEM_LATENCY; i++ ) begin
-                st2_delay_id   [i] <= 'x;
-                st2_delay_pc   [i] <= 'x;
-                st2_delay_valid[i] <= 1'b0;
-            end
-        end
-        else if ( cke ) begin
-            if ( st2_ready ) begin
-                for ( int i = 0; i < MEM_LATENCY; i++ ) begin
-                    st2_delay_id   [i+1] <= st2_delay_id    [i];
-                    st2_delay_pc   [i+1] <= st2_delay_pc    [i];
-                    st2_delay_valid[i+1] <= st2_delay_valid [i];
-
-                    // ブランチで無効化する
-                    if ( branch_en && branch_id == st2_delay_id[i] ) begin
-                        st2_delay_valid[i+1] <= 1'b0;
-                    end
-                end
-            end
-        end
-    end
-
-    assign st2_id    = st2_delay_id    [MEM_LATENCY];
-    assign st2_pc    = st2_delay_pc    [MEM_LATENCY];
-    assign st2_valid = st2_delay_valid [MEM_LATENCY];
-
-    for ( genvar i = 0; i < MEM_LATENCY; i++ ) begin
-        id_t    s_id;
-        pc_t    s_pc;
-        logic   s_valid;
-        logic   s_ready;
-
-        id_t    m_id;
-        pc_t    m_pc;
-        logic   m_valid;
-        logic   m_ready;
-
-        assign s_id               = st2_delay_id   [i];
-        assign s_pc               = st2_delay_pc   [i];
-        assign s_valid            = st2_delay_valid[i];
-        assign st2_delay_ready[i] = s_ready;
-
-        assign st2_delay_id   [i+1] = m_id      ;
-        assign st2_delay_pc   [i+1] = m_pc      ;
-        assign st2_delay_valid[i+1] = m_valid   ;
-        assign m_ready              = st2_delay_ready[i+1];
-
-        always_ff @(posedge clk) begin
-            if ( reset ) begin
-                for ( int i = 1; i <= MEM_LATENCY; i++ ) begin
-                    m_id    <= 'x;
-                    m_pc    <= 'x;
-                    m_valid <= 1'b0;
-                end
-            end
-            else if ( cke ) begin
-                if ( m_ready || !m_valid ) begin
-                    for ( int i = 0; i < MEM_LATENCY; i++ ) begin
-                        m_id    <= s_id   ;
-                        m_pc    <= s_pc   ;
-                        m_valid <= s_valid;
-
-                        // ブランチで無効化する
-                        if ( branch_en && branch_id == s_id ) begin
-                            st2_delay_valid[i+1] <= 1'b0;
-                        end
-                    end
-                end
-            end
-        end
-
-
-        assign mem_rready = st2_ready && st2_delay_valid[i];
-    end
-    */
-
-
     // -----------------------------
     //  Stage 3
     // -----------------------------
+
+    assign mem_rready = st2_mem && if_ready;
 
     assign if_id     = st2_id;
     assign if_pc     = st2_pc;
     assign if_inst   = mem_rdata;
     assign if_valid  = mem_rvalid && st2_valid;
 
-    assign st2_ready = if_ready;
- 
-endmodule
-
-
-
+    assign st2_ready = (st2_mem != mem_rvalid) && (if_ready || !st2_valid);
+    
 endmodule
 
 
