@@ -75,12 +75,12 @@ bit_scp: $(BIT_FILE)
 bit_cp: $(BIT_FILE)
 	cp $(BIT_FILE) ../../app
 
-$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS) Makefile
+$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS)
 	rm -f $(PRJ_NAME).xpr
-	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
+	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl | tee vivado_create_project.log
 
 $(BIT_FILE): $(PRJ_NAME).xpr
-	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
+	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl | tee vivado_implementation.log
 
 .PHONY : check_log
 check_log:
@@ -88,6 +88,11 @@ check_log:
 	@cat $(PRJ_NAME).runs/synth_1/runme.log | grep encountered.
 	@echo "----- impl_1 -----"
 	@cat $(PRJ_NAME).runs/impl_1/runme.log | grep encountered.
+
+.PHONY : make_csv
+make_csv:
+	$(TOP_DIR)/scripts/vivado_utilization_rpt_to_csv.py $(PRJ_NAME).runs/synth_1/$(TOP_MODULE)_utilization_synth.rpt utilization_synth.csv
+	$(TOP_DIR)/scripts/vivado_utilization_rpt_to_csv.py $(PRJ_NAME).runs/impl_1/$(TOP_MODULE)_utilization_placed.rpt utilization_placed.csv
 
 .PHONY : clean
 clean:
