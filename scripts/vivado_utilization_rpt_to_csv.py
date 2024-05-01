@@ -30,10 +30,10 @@ def read_utilization_table(f, category, pattern=None):
             line = next(f)
         
         # タイトル行を "|" で区切ってリストにした後に各々の前後の空白を削除
-        title = list(map(lambda x: x.strip(), line.split("|")[1:-1]))
+        header = list(map(lambda x: x.strip(), line.split("|")[1:-1]))
         line = next(f)
         tables = {}
-        for t in title:
+        for t in header:
             tables[t] = []
 
         # 区切り行を読み飛ばす
@@ -45,7 +45,7 @@ def read_utilization_table(f, category, pattern=None):
             data = line.split("|")[1:-1]
             data[0] = data[0].rstrip()[1:]
             data[1:] = list(map(lambda x: x.strip(), data[1:]))
-            for i, t in enumerate(title):
+            for i, t in enumerate(header):
                 tables[t].append(data[i])
 
             line = next(f)
