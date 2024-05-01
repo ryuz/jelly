@@ -1,12 +1,12 @@
 #! /bin/bash
 
-VERILATOR_VERSION=5.020
+VERILATOR_VERSION=5.022
 
 git clone https://github.com/verilator/verilator.git -b v${VERILATOR_VERSION} verilator-${VERILATOR_VERSION}
 cd verilator-${VERILATOR_VERSION}
 
 autoconf
 ./configure --prefix ${HOME}/.opt/verilator-${VERILATOR_VERSION}
-make -j2
+make -j8
 make install
 
