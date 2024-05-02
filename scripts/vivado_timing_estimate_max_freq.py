@@ -22,7 +22,7 @@ def vivado_timing_estimate_max_freq(summary_csv, intra_csv, output_csv):
         if not math.isnan(wns):
             period = df_summary.loc[clk_name, "Period(ns)"]
             freq   = df_summary.loc[clk_name, "Frequency(MHz)"]
-            est_period = period - wns
+            est_period = round(period - wns, 4)
             est_freq   = round(1000/est_period, 3)
             table["Clock"].append(clk_name)
             table["Period(ns)"].append(period)
