@@ -11,17 +11,14 @@
 
 
 // instruction_fetch
-module jelly3_program_counter
+module jelly3_jfive_program_counter
         #(
             parameter   int                     THREADS     = 4                                 ,
             parameter   int                     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
             parameter   type                    id_t        = logic [ID_BITS-1:0]               ,
             parameter   int                     PC_BITS     = 32                                ,
             parameter   type                    pc_t        = logic [PC_BITS-1:0]               ,
-            parameter   int                     ADDR_BITS   = 16, // PC_BITS                           ,
-            parameter   int                     DATA_BITS   = 32                                ,
-            parameter   type                    data_t      = logic [DATA_BITS-1:0]             ,
-            parameter   int                     MEM_LATENCY = 2                                 ,
+            parameter   pc_t                    PC_MASK     = '0                                ,
             parameter                           DEVICE      = "RTL"                             ,
             parameter   bit                     SIMULATION  = 1'b0                              ,
             parameter   bit     [THREADS-1:0]   INIT_RUN    = 1                                 ,
@@ -50,9 +47,8 @@ module jelly3_program_counter
             output  var id_t    m_id            ,
             output  var logic   m_phase         ,
             output  var pc_t    m_pc            ,
-            output  var data_t  m_inst          ,
             output  var logic   m_valid         ,
-            input   var logic   m_ready         
+            input   var logic   m_wait         
         );
 
     // -----------------------------
@@ -113,7 +109,7 @@ module jelly3_program_counter
             st0_pc    <= INIT_PC;
         end
         else if ( cke ) begin
-            if ( m_ready || !m_valid ) begin
+            if ( !m_wait ) begin
                 // run id
                 st0_id  <= next_id(st0_id, run);
 
@@ -124,7 +120,7 @@ module jelly3_program_counter
                         st0_phase[i] <= ~st0_phase[i];
                     end
                     else if ( run[i] && st0_id == id_t'(i) ) begin
-                        st0_pc[i][ADDR_BITS-1:0] <= st0_pc[i][ADDR_BITS-1:0] + 4;
+                        st0_pc[i] <= (PC_MASK & st0_pc[i]) | (~PC_MASK & (st0_pc[i] + pc_t'(4)));
                     end
                 end
             end
@@ -150,7 +146,7 @@ module jelly3_program_counter
             st1_valid <= 1'b0;
         end
         else if ( cke ) begin
-            if ( m_ready || !m_valid ) begin
+            if ( !m_wait ) begin
                 st1_id    <= st0_id;
                 st1_phase <= st0_phase[st0_id];
                 st1_pc    <= st0_pc[st0_id];
