@@ -20,9 +20,9 @@ module jelly3_flipflops
             parameter   bit     IS_CLK_INVERTED   = 1'b0                    ,
             parameter   bit     IS_RESET_INVERTED = 1'b0                    ,
             parameter   bit     IS_DIN_INVERTED   = 1'b0                    ,
-            parameter   string  DEVICE            = "RTL"                   ,
-            parameter   string  SIMULATION        = "false"                 ,
-            parameter   string  DEBUG             = "false"                 
+            parameter           DEVICE            = "RTL"                   ,
+            parameter           SIMULATION        = "false"                 ,
+            parameter           DEBUG             = "false"                 
         )
         (
             input   var logic   reset       ,
@@ -33,13 +33,13 @@ module jelly3_flipflops
             output  var data_t  dout        
         );
     
-    if ( DEVICE == "SPARTAN6"
-            || DEVICE == "VIRTEX6"
-            || DEVICE == "7SERIES"
-            || DEVICE == "ULTRASCALE"
-            || DEVICE == "ULTRASCALE_PLUS"
-            || DEVICE == "ULTRASCALE_PLUS_ES1"
-            || DEVICE == "ULTRASCALE_PLUS_ES2") begin : xilinx
+    if ( string'(DEVICE) == "SPARTAN6"
+            || string'(DEVICE) == "VIRTEX6"
+            || string'(DEVICE) == "7SERIES"
+            || string'(DEVICE) == "ULTRASCALE"
+            || string'(DEVICE) == "ULTRASCALE_PLUS"
+            || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
+            || string'(DEVICE) == "ULTRASCALE_PLUS_ES2") begin : xilinx
 
         for ( genvar i = 0; i < DATA_BITS; i++ ) begin : loop
             if ( ASYNC_RESET ) begin : async_reset
@@ -149,7 +149,7 @@ module jelly3_flipflops
     end
 
     // debug
-    if ( DEBUG == "true" ) begin : debug
+    if ( string'(DEBUG) == "true" ) begin : debug
         (* MARK_DEBUG = "true" *)   data_t   dbg_dout;
         assign dbg_dout = dout;
     end   
