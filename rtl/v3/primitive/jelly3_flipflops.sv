@@ -41,9 +41,9 @@ module jelly3_flipflops
             || DEVICE == "ULTRASCALE_PLUS_ES1"
             || DEVICE == "ULTRASCALE_PLUS_ES2") begin : xilinx
 
-        for ( genvar i = 0; i < BITS; i++ ) begin : loop
+        for ( genvar i = 0; i < DATA_BITS; i++ ) begin : loop
             if ( ASYNC_RESET ) begin : async_reset
-                if ( INIT[i] == 1'b1 ) begin : fdpe
+                if ( RESET_VALUE[i] == 1'b1 ) begin : fdpe
                     FDPE
                             #(
                                 .INIT               (BOOT_INIT[i]       ),
@@ -78,7 +78,7 @@ module jelly3_flipflops
                 end
             end
             else begin : sync_reset
-                if ( INIT[i] == 1'b1 ) begin : fdse
+                if ( RESET_VALUE[i] == 1'b1 ) begin : fdse
                     FDSE
                             #(
                                 .INIT               (BOOT_INIT[i]       ),
