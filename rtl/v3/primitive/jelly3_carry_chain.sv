@@ -21,10 +21,6 @@ module jelly3_carry_chain
             parameter           DEBUG      = "false"                 
         )
         (
-            input   var logic   reset       ,
-            input   var logic   clk         ,
-            input   var logic   cke         ,
-            
             input   var logic   cin         ,
             input   var data_t  sin         ,
             input   var data_t  din         ,
