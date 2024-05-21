@@ -10,7 +10,7 @@
 `default_nettype none
 
 
-module jelly3_jfive_shifter_decode0
+module jelly3_jfive_shifter
         #(
             localparam  bit                     BYPASS_FF   = 1'b0                              ,
             localparam  int                     XLEN        = 32                                ,
@@ -33,29 +33,32 @@ module jelly3_jfive_shifter_decode0
             // input            
             input   var logic               s_alithmatic    ,
             input   var logic               s_left          ,
-            input   var logic   [1:0]       s_select        ,
-            input   var shamt_t             s_shamt0        ,
-            input   var shamt_t             s_shamt1        ,
-            input   var shamt_t             s_shamt2        ,
+            input   var shamt_t             s_shamt         ,
+            input   var rval_t              s_rs1_val       ,
+            input   var ridx_t              s_rd_idx        ,
+            input   var rval_t              s_valid         ,
+            output  var logic               s_wait          ,    
 
-            // output
-            output  var shamt_t             m_shamt         ,
-            output  var rval_t              m_mask          
+            output  var ridx_t              m_rd_idx        ,
+            output  var rval_t              m_rd_val        ,
+            output  var logic               m_valid         ,
+            input   var logic               m_wait          
         );
 
+
     // ------------------------------------
-    //  Combination
+    //  Stage 0
     // ------------------------------------
 
-    shamt_t          out_shamt  ;
-    rval_t           out_mask   ;
+    // signal
+    shamt_t          sig0_shamt  ;
 
     // CARRY chain
-    logic            carry_cin;
-    shamt_t          carry_sin;
-    shamt_t          carry_din;
-    shamt_t          carry_dout;
-    shamt_t          carry_cout;
+    logic            carry_cin  ;
+    shamt_t          carry_sin  ;
+    shamt_t          carry_din  ;
+    shamt_t          carry_dout ;
+    shamt_t          carry_cout ;
 
     jelly3_carry_chain
             #(
@@ -88,24 +91,47 @@ module jelly3_jfive_shifter_decode0
         endcase
     end
 
-    assign carry_din = '0;
-    assign carry_cin = s_left;
-    assign out_shamt = carry_dout;
+    assign carry_din  = '0;
+    assign carry_cin  = s_left;
+    assign sig0_shamt = carry_dout;
+
+
+    logic            st0_alithmatic ;
+    logic            st0_left       ;
+    shamt_t          st0_shamt      ;
+    rval_t           st0_rs1_val    ;
+
+    always_ff @(posedge clk) begin
+        if ( cke && !m_wait ) begin
+            st0_alithmatic <= s_alithmatic;
+            st0_left       <= s_left;
+            st0_shamt      <= sig0_shamt;
+            st0_rs1_val    <= s_rs1_val;
+        end
+    end
+
+
+    logic            sig1_alithmatic ;
+    logic            sig1_left       ;
+    shamt_t          sig1_shamt      ;
+    rval_t           sig1_mask       ;
+    rval_t           sig1_rs1_val    ;
 
     always_comb begin
-        out_mask = '0;
-        if ( s_left ) begin
+        sig1_mask = '0;
+        if ( st0_left ) begin
             for ( int i = 0; i < XLEN; i++ ) begin
-                out_mask[i] = int'(out_shamt) > i;
+                sig1_mask[i] = int'(st0_shamt) > i;
             end
         end
         else begin
             for ( int i = 0; i < XLEN; i++ ) begin
-                out_mask[i] = int'(out_shamt) > (XLEN - 1 - i);
+                sig1_mask[i] = int'(st0_shamt) > (XLEN - 1 - i);
             end
         end
     end
-    
+
+
 
     // ------------------------------------
     //  Flip-Flops
