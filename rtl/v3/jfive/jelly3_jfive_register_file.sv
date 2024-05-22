@@ -12,7 +12,7 @@
 
 
 // レジスタファイル
-module jelly3_register_file_lutram
+module jelly3_jfive_register_file
         #(
             parameter   int     READ_PORTS  = 2                     ,
             parameter   int     ADDR_BITS   = 5                     ,
@@ -37,14 +37,12 @@ module jelly3_register_file_lutram
             input   var data_t                      wr_din,
 
             // read port
-            input   var logic   [READ_PORTS-1:0]    rd_en,
             input   var addt_t  [READ_PORTS-1:0]    rd_addr,
             output  var data_t  [READ_PORTS-1:0]    rd_dout
         );
     
     generate
     for ( genvar i = 0; i < READ_PORTS; ++i ) begin
-        data_t  rdout;
         jelly2_ram_async_dualport
                 #(
                     .ADDR_WIDTH     ($bits(addt_t)  ),
@@ -63,22 +61,8 @@ module jelly3_register_file_lutram
                     .port0_dout     (               ),
 
                     .port1_addr     (rd_addr[i]     ),
-                    .port1_dout     (rdout          )
+                    .port1_dout     (rd_dout[i]     )
                 );
-            
-        always_ff @(posedge clk) begin
-            if ( rd_en[i] ) begin
-                if ( wr_en && (wr_addr == rd_addr[i]) ) begin
-                    rd_dout[i] <= wr_din;
-                end
-                else begin
-                    rd_dout[i] <= rdout;
-                    if ( ZERO_REG && (rd_addr[i] == 0) ) begin
-                        rd_dout[i] <= '0;
-                    end
-                end
-            end
-        end
     end
     endgenerate
 

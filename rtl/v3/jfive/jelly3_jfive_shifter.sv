@@ -33,16 +33,14 @@ module jelly3_jfive_shifter
             // input            
             input   var logic               s_alithmatic    ,
             input   var logic               s_left          ,
-            input   var shamt_t             s_shamt         ,
+            input   var logic               s_imm_en        ,
             input   var rval_t              s_rs1_val       ,
+            input   var shamt_t             s_rs2_val       ,
+            input   var shamt_t             s_shamt         ,
             input   var ridx_t              s_rd_idx        ,
-            input   var rval_t              s_valid         ,
-            output  var logic               s_wait          ,    
 
             output  var ridx_t              m_rd_idx        ,
-            output  var rval_t              m_rd_val        ,
-            output  var logic               m_valid         ,
-            input   var logic               m_wait          
+            output  var rval_t              m_rd_val        
         );
 
 
@@ -60,35 +58,7 @@ module jelly3_jfive_shifter
     shamt_t          carry_dout ;
     shamt_t          carry_cout ;
 
-    jelly3_carry_chain
-            #(
-                .DATA_BITS      (SHAMT_BITS         ),
-                .data_t         (shamt_t            ),
-                .DEVICE         (DEVICE             ),
-                .SIMULATION     (SIMULATION         ),
-                .DEBUG          (DEBUG              )
-            )
-        u_carry_chain
-            (
-                .cin            (carry_cin          ),
-                .sin            (carry_sin          ),
-                .din            (carry_din          ),
-                .dout           (carry_dout         ),
-                .cout           (carry_cout         )
-            );
-
-    // operation
-    shamt_t     p;
     always_comb begin
-        case ( {s_left, s_select} )
-        3'b000: carry_sin = s_shamt0;
-        3'b001: carry_sin = s_shamt1;
-        3'b010: carry_sin = s_shamt2;
-        3'b100: carry_sin = ~s_shamt0;
-        3'b101: carry_sin = ~s_shamt1;  
-        3'b110: carry_sin = ~s_shamt2;  
-        default: carry_sin = 'x;
-        endcase
     end
 
     assign carry_din  = '0;
@@ -102,10 +72,18 @@ module jelly3_jfive_shifter
     rval_t           st0_rs1_val    ;
 
     always_ff @(posedge clk) begin
-        if ( cke && !m_wait ) begin
+        if ( cke ) begin
             st0_alithmatic <= s_alithmatic;
             st0_left       <= s_left;
-            st0_shamt      <= sig0_shamt;
+
+            case ( {s_left, s_imm_en} )
+            2'b00: st0_shamt <= s_rs2_val;
+            2'b01: st0_shamt <= s_shamt;
+            2'b10: st0_shamt <= -s_rs2_val;
+            2'b11: st0_shamt <= -s_shamt;
+            default: st0_shamt = 'x;
+            endcase
+            
             st0_rs1_val    <= s_rs1_val;
         end
     end
@@ -130,7 +108,6 @@ module jelly3_jfive_shifter
             end
         end
     end
-
 
 
     // ------------------------------------
