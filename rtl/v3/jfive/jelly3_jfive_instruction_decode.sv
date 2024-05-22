@@ -23,13 +23,26 @@ module jelly3_jfive_instruction_decode
             parameter   type                    instr_t     = logic [INSTR_BITS-1:0]            ,
             parameter   type                    ridx_t      = logic [4:0]                       ,
             parameter   type                    rval_t      = logic [XLEN-1:0]                  ,
+            parameter   int                     EXES        = 4                                 ,
+            parameter   bit                     RAW_HAZARD  = 1'b1                              ,
+            parameter   bit                     WAW_HAZARD  = 1'b1                              ,
             parameter                           DEVICE      = "RTL"                             ,
             parameter                           SIMULATION  = "false"                           
         )
         (
-            input   var logic   reset           ,
-            input   var logic   clk             ,
-            input   var logic   cke             ,
+            input   var logic       reset           ,
+            input   var logic       clk             ,
+            input   var logic       cke             ,
+
+            // executions
+            input   var id_t    [EXES-1:0]  exe_id      ,
+            input   var logic   [EXES-1:0]  exe_rd_en   ,
+            input   var ridx_t  [EXES-1:0]  exe_rd_idx  ,
+
+            // writeback
+            input   var id_t    [EXES-1:0]  wb_id      ,
+            input   var logic               wb_rd_en   ,
+            input   var ridx_t              wb_rd_idx  ,
 
             // instruction input
             input   var id_t    s_id            ,
@@ -203,60 +216,67 @@ module jelly3_jfive_instruction_decode
     //  Stage 0
     // -----------------------------------------
 
-    // opcode の下位2bit は 11 で共通なので一旦無視
+    id_t    st0_id          ;
+    logic   st0_rd_en    ;
+    ridx_t  st0_rd_idx   ;
+    logic   st0_rs1_en   ;
+    ridx_t  st0_rs1_idx  ;
+    logic   st0_rs2_en   ;
+    ridx_t  st0_rs2_idx  ;
+    logic   st0_valid    ;
 
-    logic  st0_rd_en;
-    ridx_t st0_rd_idx;
-    logic  st0_rs1_en;
-    ridx_t st0_rs1_idx;
-    logic  st0_rs2_en;
-    ridx_t st0_rs2_idx;
+    logic   st0_lui      ;
+    logic   st0_auipc    ;
+    logic   st0_jal      ;
+    logic   st0_jalr     ;
+    logic   st0_branch   ;
+    logic   st0_load     ;
+    logic   st0_store    ;
+    logic   st0_alui     ;
+    logic   st0_alu      ;
+    logic   st0_fence    ;
+    logic   st0_ecall    ;
+    logic   st0_ebreak   ;
 
-    logic  st0_lui;
-    logic  st0_auipc;
-    logic  st0_jal;
-    logic  st0_jalr;
-    logic  st0_branch;
-    logic  st0_load;
-    logic  st0_store;
-    logic  st0_alui;
-    logic  st0_alu;
-    logic  st0_fence;
-    logic  st0_ecall;
-    logic  st0_ebreak;
-
-    logic  st0_alu_add;
-    logic  st0_alu_sub;
-    logic  st0_alu_sll;
-    logic  st0_alu_slt;
-    logic  st0_alu_sltu;
-    logic  st0_alu_xor;
+    logic   st0_alu_add  ;
+    logic   st0_alu_sub  ;
+    logic   st0_alu_sll  ;
+    logic   st0_alu_slt  ;
+    logic   st0_alu_sltu ;
+    logic   st0_alu_xor  ;
+    logic   st0_alu_srl  ;
+    logic   st0_alu_sra  ;
+    logic   st0_alu_or   ;
+    logic   st0_alu_and  ;
 
     always_ff @(posedge clk) begin
-        if ( cke && !m_wait ) begin
-
-            st0_rd_en  <= s_opcode[6:2] == OPCODE_LUI   [6:2]
-                       || s_opcode[6:2] == OPCODE_AUIPC [6:2]
-                       || s_opcode[6:2] == OPCODE_JAL   [6:2]
-                       || s_opcode[6:2] == OPCODE_JALR  [6:2]
-                       || s_opcode[6:2] == OPCODE_L     [6:2]
-                       || s_opcode[6:2] == OPCODE_ALUI  [6:2]
-                       || s_opcode[6:2] == OPCODE_ALU   [6:2]
-                       || s_opcode[6:2] == OPCODE_FENCE [6:2];
+        if ( cke && !s_wait ) begin
+            // opcode の下位2bit は 11 で共通なので一旦無視
+            st0_rd_en  <= s_valid 
+                        && (s_opcode[6:2] == OPCODE_LUI   [6:2]
+                         || s_opcode[6:2] == OPCODE_AUIPC [6:2]
+                         || s_opcode[6:2] == OPCODE_JAL   [6:2]
+                         || s_opcode[6:2] == OPCODE_JALR  [6:2]
+                         || s_opcode[6:2] == OPCODE_L     [6:2]
+                         || s_opcode[6:2] == OPCODE_ALUI  [6:2]
+                         || s_opcode[6:2] == OPCODE_ALU   [6:2]
+                         || s_opcode[6:2] == OPCODE_FENCE [6:2]);
             st0_rd_idx  <= s_rd_idx;
 
-            st0_rs1_en <= s_opcode[6:2] == OPCODE_JALR  [6:2]
-                       || s_opcode[6:2] == OPCODE_B     [6:2]
-                       || s_opcode[6:2] == OPCODE_L     [6:2]
-                       || s_opcode[6:2] == OPCODE_S     [6:2]
-                       || s_opcode[6:2] == OPCODE_ALUI  [6:2]
-                       || s_opcode[6:2] == OPCODE_ALU   [6:2]
-                       || s_opcode[6:2] == OPCODE_FENCE [6:2];
+            st0_rs1_en <= s_valid
+                        && (s_opcode[6:2] == OPCODE_JALR  [6:2]
+                         || s_opcode[6:2] == OPCODE_B     [6:2]
+                         || s_opcode[6:2] == OPCODE_L     [6:2]
+                         || s_opcode[6:2] == OPCODE_S     [6:2]
+                         || s_opcode[6:2] == OPCODE_ALUI  [6:2]
+                         || s_opcode[6:2] == OPCODE_ALU   [6:2]
+                         || s_opcode[6:2] == OPCODE_FENCE [6:2]);
             st0_rs1_idx <= s_rs1_idx;
 
-            st0_rs2_en <= s_opcode[6:2] == OPCODE_B     [6:2]
-                       || s_opcode[6:2] == OPCODE_S     [6:2]
-                       || s_opcode[6:2] == OPCODE_ALU   [6:2];
+            st0_rs2_en <= s_valid
+                        && (s_opcode[6:2] == OPCODE_B     [6:2]
+                         || s_opcode[6:2] == OPCODE_S     [6:2]
+                         || s_opcode[6:2] == OPCODE_ALU   [6:2]);
             st0_rs2_idx <= s_rs2_idx;
             
             st0_lui    <= s_opcode[6:2] == OPCODE_LUI   [6:2];
@@ -272,7 +292,82 @@ module jelly3_jfive_instruction_decode
             st0_ecall  <= s_opcode[6:2] == OPCODE_ECALL [6:2];
             st0_ebreak <= s_opcode[6:2] == OPCODE_EBREAK[6:2];
 
-            
+            st0_alu_add  <= s_funct3 == FUNCT3_ADD && !(s_opcode[5] && s_funct7[5]);
+            st0_alu_sub  <= s_funct3 == FUNCT3_ADD &&  (s_opcode[5] && s_funct7[5]);
+            st0_alu_sll  <= s_funct3 == FUNCT3_SLL;
+            st0_alu_slt  <= s_funct3 == FUNCT3_SLT;
+            st0_alu_sltu <= s_funct3 == FUNCT3_SLTU;
+            st0_alu_xor  <= s_funct3 == FUNCT3_XOR;
+            st0_alu_srl  <= s_funct3 == FUNCT3_SRL;
+            st0_alu_sra  <= s_funct3 == FUNCT3_SRA;
+            st0_alu_or   <= s_funct3 == FUNCT3_OR;
+            st0_alu_and  <= s_funct3 == FUNCT3_AND;
+        end
+    end
+
+    id_t    st1_id          ;
+    logic   st1_rd_en       ;
+    ridx_t  st1_rd_idx      ;
+    logic   st1_rs1_en      ;
+    ridx_t  st1_rs1_idx     ;
+    logic   st1_rs2_en      ;
+    ridx_t  st1_rs2_idx     ;
+    logic   st1_pre_stall   ;
+    logic   st1_valid       ;
+
+    logic   st2_rd_en       ;
+    ridx_t  st2_rd_idx      ;
+    logic   st2_rs1_en      ;
+    ridx_t  st2_rs1_idx     ;
+    logic   st2_rs2_en      ;
+    ridx_t  st2_rs2_idx     ;
+    logic   st2_stall       ;
+    logic   st2_valid       ;
+
+    logic  sig1_pre_stall;
+    always_comb begin
+        sig1_pre_stall = 1'b0;
+        for ( int i = 0; i < EXES; i++ ) begin
+            if ( RAW_HAZARD && st0_rs1_en && exe_rd_en[i] && {st0_id, st0_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig1_pre_stall = 1'b1;
+            if ( RAW_HAZARD && st0_rs2_en && exe_rd_en[i] && {st0_id, st0_rs2_idx} == {exe_id[i], exe_rd_idx[i]} ) sig1_pre_stall = 1'b1;
+            if ( WAW_HAZARD && st0_rd_en  && exe_rd_en[i] && {st0_id, st0_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig1_pre_stall = 1'b1;
+        end
+        if ( RAW_HAZARD && st0_rs1_en && st1_rd_en && {st0_id, st0_rs1_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
+        if ( RAW_HAZARD && st0_rs2_en && st1_rd_en && {st0_id, st0_rs2_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
+        if ( WAW_HAZARD && st0_rd_en  && st1_rd_en && {st0_id, st0_rs1_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
+    end
+
+    always_ff @(posedge clk) begin
+        if ( cke && !s_wait ) begin
+            st1_rd_en     <= st0_rd_en  && (st0_rd_idx  != 0);
+            st1_rd_idx    <= st0_rd_idx;
+            st1_rs1_en    <= st0_rs1_en && (st0_rs1_idx != 0);
+            st1_rs1_idx   <= st0_rs1_idx;
+            st1_rs2_en    <= st0_rs2_en && (st0_rs2_idx != 0);
+            st1_rs2_idx   <= st0_rs2_idx;
+            st1_pre_stall <= sig1_pre_stall;
+        end
+    end
+
+    logic  sig2_stall;
+    always_comb begin
+        sig2_stall = 1'b0;
+        for ( int i = 0; i < EXES; i++ ) begin
+            if ( RAW_HAZARD && st1_rs1_en && exe_rd_en[i] && {st1_id, st0_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( RAW_HAZARD && st1_rs2_en && exe_rd_en[i] && {st1_id, st0_rs2_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( WAW_HAZARD && st1_rd_en  && exe_rd_en[i] && {st1_id, st0_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if ( cke && !m_wait ) begin
+            st2_rd_en   <= st1_rd_en    ;
+            st2_rd_idx  <= st1_rd_idx   ;
+            st2_rs1_en  <= st1_rs1_en   ;
+            st2_rs1_idx <= st1_rs1_idx  ;
+            st2_rs2_en  <= st1_rs2_en   ;
+            st2_rs2_idx <= st1_rs2_idx  ;
+            st2_stall   <= sig2_stall   ;
         end
     end
 
