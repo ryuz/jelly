@@ -11,7 +11,6 @@
 
 
 module jelly3_jfive_instruction_decode
-//import jelly3_jfive_package::*;
         #(
             localparam  int                     XLEN        = 32,
             parameter   int                     THREADS     = 4                                 ,
@@ -27,7 +26,8 @@ module jelly3_jfive_instruction_decode
             parameter   bit                     RAW_HAZARD  = 1'b1                              ,
             parameter   bit                     WAW_HAZARD  = 1'b1                              ,
             parameter                           DEVICE      = "RTL"                             ,
-            parameter                           SIMULATION  = "false"                           
+            parameter                           SIMULATION  = "false"                           ,
+            parameter                           DEBUG       = "false"               
         )
         (
             input   var logic       reset           ,
@@ -40,9 +40,10 @@ module jelly3_jfive_instruction_decode
             input   var ridx_t  [EXES-1:0]  exe_rd_idx  ,
 
             // writeback
-            input   var id_t    [EXES-1:0]  wb_id      ,
+            input   var id_t                wb_id      ,
             input   var logic               wb_rd_en   ,
             input   var ridx_t              wb_rd_idx  ,
+            input   var rval_t              wb_rd_val  ,
 
             // instruction input
             input   var id_t    s_id            ,
@@ -64,14 +65,15 @@ module jelly3_jfive_instruction_decode
             output  var logic   m_phase         ,
             output  var pc_t    m_pc            ,
             output  var instr_t m_instr         ,
+            output  var logic   m_rd_en         ,
+            output  var ridx_t  m_rd_idx        ,
+            output  var logic   m_rs1_en        ,
+            output  var rval_t  m_rs1_val       ,
+            output  var logic   m_rs2_en        ,
+            output  var rval_t  m_rs2_val       ,
             output  var logic   m_valid         ,
             input   var logic   m_wait         
         );
-
-    // parameters
-//    localparam  int     SEL_WIDTH   = XLEN / 8;
-//    localparam  int     SIZE_WIDTH  = 2;
-//    localparam  int     SHAMT_WIDTH = $clog2(XLEN);
 
 
     // -----------------------------------------
@@ -315,6 +317,7 @@ module jelly3_jfive_instruction_decode
     logic   st1_pre_stall   ;
     logic   st1_valid       ;
 
+    id_t    st2_id          ;
     logic   st2_rd_en       ;
     ridx_t  st2_rd_idx      ;
     logic   st2_rs1_en      ;
@@ -339,6 +342,7 @@ module jelly3_jfive_instruction_decode
 
     always_ff @(posedge clk) begin
         if ( cke && !s_wait ) begin
+            st1_id        <= st0_id;
             st1_rd_en     <= st0_rd_en  && (st0_rd_idx  != 0);
             st1_rd_idx    <= st0_rd_idx;
             st1_rs1_en    <= st0_rs1_en && (st0_rs1_idx != 0);
@@ -353,23 +357,82 @@ module jelly3_jfive_instruction_decode
     always_comb begin
         sig2_stall = 1'b0;
         for ( int i = 0; i < EXES; i++ ) begin
-            if ( RAW_HAZARD && st1_rs1_en && exe_rd_en[i] && {st1_id, st0_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
-            if ( RAW_HAZARD && st1_rs2_en && exe_rd_en[i] && {st1_id, st0_rs2_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
-            if ( WAW_HAZARD && st1_rd_en  && exe_rd_en[i] && {st1_id, st0_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( RAW_HAZARD && st2_rs1_en && exe_rd_en[i] && {st2_id, st2_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( RAW_HAZARD && st2_rs2_en && exe_rd_en[i] && {st2_id, st2_rs2_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( WAW_HAZARD && st2_rd_en  && exe_rd_en[i] && {st2_id, st2_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
         end
     end
 
     always_ff @(posedge clk) begin
-        if ( cke && !m_wait ) begin
-            st2_rd_en   <= st1_rd_en    ;
-            st2_rd_idx  <= st1_rd_idx   ;
-            st2_rs1_en  <= st1_rs1_en   ;
-            st2_rs1_idx <= st1_rs1_idx  ;
-            st2_rs2_en  <= st1_rs2_en   ;
-            st2_rs2_idx <= st1_rs2_idx  ;
-            st2_stall   <= sig2_stall   ;
+        if ( cke ) begin
+            if ( !s_wait ) begin
+                st2_rd_en   <= st1_rd_en    ;
+                st2_rd_idx  <= st1_rd_idx   ;
+                st2_rs1_en  <= st1_rs1_en   ;
+                st2_rs1_idx <= st1_rs1_idx  ;
+                st2_rs2_en  <= st1_rs2_en   ;
+                st2_rs2_idx <= st1_rs2_idx  ;
+                st2_stall   <= st1_pre_stall;
+            end
+
+            if ( st2_stall ) begin
+                st2_stall <= sig2_stall;
+            end
         end
     end
+
+    assign s_wait = st2_stall || m_wait;
+
+
+    assign m_id      = st2_id       ;
+//    assign m_phase   = st2_phase    ;
+//    assign m_pc      = st2_pc       ;
+//    assign m_instr   = st2_instr    ;
+    assign m_rd_en   = st2_rd_en    ;
+    assign m_rd_idx  = st2_rd_idx   ;
+//  assign m_rs1_en  = st2_rs1_en   ;
+//  assign m_rs1_val = st2_rs1_val  ;
+//    assign m_rs2_en  = st2_rs2_en  ;
+//  assign m_rs2_val = st2_rs2_val  ;
+    assign m_valid   = st2_valid && !st2_stall;
+
+    // register file
+    jelly3_register_file
+            #(
+                .WRITE_PORTS    (1                          ),
+                .READ_PORTS     (2                          ),
+                .ADDR_BITS      ($bits(id_t) + $bits(ridx_t)),
+                .DATA_BITS      ($bits(rval_t)              ),
+                .ZERO_REG       (1'b0                       ),
+                .REGISTERS      (THREADS * 32               ), 
+                .RAM_TYPE       ("distributed"              ),
+                .DEVICE         (DEVICE                     ),
+                .SIMULATION     (SIMULATION                 ),
+                .DEBUG          (DEBUG                      )
+            )
+        u_register_file
+            (
+                .reset          ,
+                .clk            ,
+                .cke            ,
+
+                .wr_en          (wb_rd_en                   ),
+                .wr_addr        ({wb_id, wb_rd_idx}         ),
+                .wr_din         (wb_rd_val                  ),
+
+                .rd_en          ({
+                                    st1_rs2_en && s_wait, 
+                                    st1_rs1_en && s_wait  
+                                }),
+                .rd_addr        ({
+                                    {st1_id, st1_rs2_idx},
+                                    {st1_id, st1_rs1_idx}
+                                }),
+                .rd_dout        ({
+                                    m_rs2_val,
+                                    m_rs1_val
+                                })
+            );
 
 
 endmodule
