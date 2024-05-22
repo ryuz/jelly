@@ -30,9 +30,9 @@ module jelly3_jfive_instruction_decode
             parameter                           DEBUG       = "false"               
         )
         (
-            input   var logic       reset           ,
-            input   var logic       clk             ,
-            input   var logic       cke             ,
+            input   var logic               reset       ,
+            input   var logic               clk         ,
+            input   var logic               cke         ,
 
             // executions
             input   var id_t    [EXES-1:0]  exe_id      ,
@@ -40,39 +40,32 @@ module jelly3_jfive_instruction_decode
             input   var ridx_t  [EXES-1:0]  exe_rd_idx  ,
 
             // writeback
-            input   var id_t                wb_id      ,
-            input   var logic               wb_rd_en   ,
-            input   var ridx_t              wb_rd_idx  ,
-            input   var rval_t              wb_rd_val  ,
+            input   var id_t                wb_id       ,
+            input   var logic               wb_rd_en    ,
+            input   var ridx_t              wb_rd_idx   ,
+            input   var rval_t              wb_rd_val   ,
 
-            // instruction input
-            input   var id_t    s_id            ,
-            input   var logic   s_phase         ,
-            input   var pc_t    s_pc            ,
-            input   var instr_t s_instr         ,
-            input   var logic   s_valid         ,
-            output  var logic   s_wait          ,
+            //  input
+            input   var id_t                s_id        ,
+            input   var logic               s_phase     ,
+            input   var pc_t                s_pc        ,
+            input   var instr_t             s_instr     ,
+            input   var logic               s_valid     ,
+            output  var logic               s_wait      ,
 
-            // writeback
-            input   var id_t    s_wb_id         ,
-            input   var ridx_t  s_wb_rd_idx     ,
-            input   var rval_t  s_wb_rd_val     ,
-            input   var logic   s_wb_valid      ,
-
-
-            // instruction decode
-            output  var id_t    m_id            ,
-            output  var logic   m_phase         ,
-            output  var pc_t    m_pc            ,
-            output  var instr_t m_instr         ,
-            output  var logic   m_rd_en         ,
-            output  var ridx_t  m_rd_idx        ,
-            output  var logic   m_rs1_en        ,
-            output  var rval_t  m_rs1_val       ,
-            output  var logic   m_rs2_en        ,
-            output  var rval_t  m_rs2_val       ,
-            output  var logic   m_valid         ,
-            input   var logic   m_wait         
+            // output
+            output  var id_t                m_id        ,
+            output  var logic               m_phase     ,
+            output  var pc_t                m_pc        ,
+            output  var instr_t             m_instr     ,
+            output  var logic               m_rd_en     ,
+            output  var ridx_t              m_rd_idx    ,
+            output  var logic               m_rs1_en    ,
+            output  var rval_t              m_rs1_val   ,
+            output  var logic               m_rs2_en    ,
+            output  var rval_t              m_rs2_val   ,
+            output  var logic               m_valid     ,
+            input   var logic               m_wait
         );
 
 
