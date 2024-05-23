@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 //  udmabuf テスト
-//                                  Copyright (C) 2015-2020 by Ryuz
+//                                  Copyright (C) 2015-2020 by Ryuji Fuchikami
 //                                  https://github.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         img = cv::Mat::zeros(360, 640, CV_8UC3);
         cv::rectangle(img, cv::Rect(0, 0, 640, 360), cv::Scalar(255, 255, 255), -1);
         cv::circle(img, cv::Point(320, 180), 80, cv::Scalar(0, 0, 255), -1);
-        cv::putText(img, "Copyright (C) 2020 by Ryuz", cv::Point(0, 320), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 1, cv::LINE_AA);
+        cv::putText(img, "Copyright (C) 2020 by Ryuji Fuchikami", cv::Point(0, 320), cv::FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 1, cv::LINE_AA);
     }
     
     // mmap uio
