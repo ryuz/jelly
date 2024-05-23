@@ -17,7 +17,6 @@ module tb_main
     localparam  int                     ID_BITS     = 4                                 ;
     localparam  type                    id_t        = logic [ID_BITS-1:0]               ;
     localparam  type                    ridx_t      = logic [5:0]                       ;
-//  localparam  type                    imm_i_t     = logic signed [11:0]               ;
     localparam                          DEVICE      = "RTL"                             ;
     localparam                          SIMULATION  = "false"                           ;
     localparam                          DEBUG       = "false"                           ;
@@ -45,7 +44,6 @@ module tb_main
                 .ID_BITS        (ID_BITS    ),
                 .id_t           (id_t       ),
                 .ridx_t         (ridx_t     ),
-//                .imm_i_t        (imm_i_t    ),
                 .DEVICE         (DEVICE     ),
                 .SIMULATION     (SIMULATION ),
                 .DEBUG          (DEBUG      )

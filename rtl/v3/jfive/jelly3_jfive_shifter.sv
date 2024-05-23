@@ -20,7 +20,6 @@ module jelly3_jfive_shifter
             parameter   int     ID_BITS     = 4                         ,
             parameter   type    id_t        = logic [ID_BITS-1:0]       ,
             parameter   type    ridx_t      = logic [5:0]               ,
-            parameter   type    imm_i_t     = logic signed [11:0]       ,
             parameter           DEVICE      = "RTL"                     ,
             parameter           SIMULATION  = "false"                   ,
             parameter           DEBUG       = "false"                   
@@ -46,7 +45,7 @@ module jelly3_jfive_shifter
 
 
     // ------------------------------------
-    // Input
+    //  Input
     // ------------------------------------
 
     localparam  int  EXT_SHAMT_BITS = $bits(shamt_t) + 1;
@@ -58,7 +57,6 @@ module jelly3_jfive_shifter
 
     localparam  int  EXT_DATA_BITS  = $bits(rval_t) * 3;
     localparam  type ext_data_t  = logic [EXT_DATA_BITS-1:0];
-
 
     ext_shamt_t      s_ext_shamt      ;
     ext_data_t       s_ext_data       ;
@@ -86,9 +84,8 @@ module jelly3_jfive_shifter
     assign {s_shamt1, s_shamt0} = s_ext_shamt;
 
 
-
     // ------------------------------------
-    //  Stage 0
+    //   stage 0
     // ------------------------------------
 
     shamt0_t    st0_shamt0  ;
@@ -102,22 +99,22 @@ module jelly3_jfive_shifter
     end
 
 
-
-
     // ------------------------------------
-    //  Stage 1
+    //  stage 1
     // ------------------------------------
 
     rval_t      st1_rd_val;
-
     always_ff @(posedge clk) begin
         if ( cke ) begin
            st1_rd_val <= rval_t'(st0_rd_val >> st0_shamt0);
         end
     end
 
+    // ------------------------------------
+    //  output
+    // ------------------------------------
+    
     assign m_rd_val = st1_rd_val;
-
 
 endmodule
 
