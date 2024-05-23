@@ -38,7 +38,8 @@ module jelly3_jfive_adder
             input   var rval_t              s_imm_val       ,
 
             // output
-            output  var rval_t              m_rd_val        
+            output  var rval_t              m_rd_val        ,
+            output  var logic               m_carry         
         );
 
 
@@ -46,14 +47,15 @@ module jelly3_jfive_adder
     //  Stage 0
     // ------------------------------------
 
+    logic               st0_carry   ;
     rval_t              st0_rd_val  ;
     always_ff @(posedge clk) begin
         if ( cke ) begin
             case ( {s_sub_en, s_imm_en})
-            2'b00:      st0_rd_val <= s_rs1_val + s_rs2_val;
-            2'b01:      st0_rd_val <= s_rs1_val + s_imm_val;
-            2'b10:      st0_rd_val <= s_rs1_val - s_rs2_val;
-            default:    st0_rd_val <= 'x;
+            2'b00:      {st0_carry, st0_rd_val} <= s_rs1_val + s_rs2_val;
+            2'b01:      {st0_carry, st0_rd_val} <= s_rs1_val + s_imm_val;
+            2'b10:      {st0_carry, st0_rd_val} <= s_rs1_val - s_rs2_val;
+            default:    {st0_carry, st0_rd_val} <= 'x;
             endcase
         end
     end
@@ -64,6 +66,7 @@ module jelly3_jfive_adder
     // ------------------------------------
 
     assign m_rd_val = st0_rd_val;
+    assign m_carry  = st0_carry;
 
 endmodule
 
