@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2022 by Ryuz
+//                                 Copyright (C) 2008-2024 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -10,7 +10,6 @@
 `default_nettype none
 
 
-// wishbone insert FF
 module jelly2_wishbone_to_mem
         #(
             parameter   int     WB_ADR_WIDTH  = 12,

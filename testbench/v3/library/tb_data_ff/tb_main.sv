@@ -3,25 +3,14 @@
 `default_nettype none
 
 
-module tb_data_ff();
-    localparam RATE    = 1000.0/200.0;
+module tb_main
+        (
+            input   var logic   reset,
+            input   var logic   clk
+        );
     
-    initial begin
-        $dumpfile("tb_data_ff.vcd");
-        $dumpvars(0, tb_data_ff);
-        
-        #10000;
-            $finish;
-    end
-    
-    reg     clk = 1'b1;
-    always #(RATE/2.0)  clk = ~clk;
-    
-    reg     reset = 1'b1;
-    initial #(RATE*100) reset = 1'b0;
-    
-    localparam  int     DATA_WIDTH = 16;
-    localparam  type    data_t     = logic [DATA_WIDTH-1:0];
+    localparam  int     DATA_BITS = 16;
+    localparam  type    data_t    = logic [DATA_BITS-1:0];
     
     data_t      s_data;
     logic       s_valid;
@@ -33,6 +22,7 @@ module tb_data_ff();
     
     jelly3_data_ff
             #(
+                .DATA_BITS      (DATA_BITS  ),
                 .data_t         (data_t     ),
                 .S_REGS         (1          ),
                 .M_REGS         (1          )

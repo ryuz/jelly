@@ -3,7 +3,7 @@
 //
 //  IMX219 capture sample
 //
-//                                 Copyright (C) 2008-2020 by Ryuz
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/
 // ---------------------------------------------------------------------------
 

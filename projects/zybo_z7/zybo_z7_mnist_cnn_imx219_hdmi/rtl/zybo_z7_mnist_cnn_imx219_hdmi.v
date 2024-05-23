@@ -3,7 +3,7 @@
 //
 //  LUT-Network CNN MNIST recognition
 //
-//                                 Copyright (C) 2008-2021 by Ryuz
+//                                 Copyright (C) 2008-2021 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/
 // ---------------------------------------------------------------------------
 
