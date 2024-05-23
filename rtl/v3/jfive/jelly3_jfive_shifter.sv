@@ -12,35 +12,36 @@
 
 module jelly3_jfive_shifter
         #(
-            localparam  bit                     BYPASS_FF   = 1'b0                              ,
-            localparam  int                     XLEN        = 32                                ,
-            localparam  int                     SHAMT_BITS  = $clog2(XLEN)                      ,
-            localparam  type                    shamt_t     = logic [SHAMT_BITS-1:0]            ,
-            parameter   type                    rval_t      = logic [XLEN-1:0]                  ,
-            parameter   int                     ID_BITS     = 4                                 ,
-            parameter   type                    id_t        = logic [ID_BITS-1:0]               ,
-            parameter   type                    ridx_t      = logic [5:0]                       ,
-            parameter   type                    imm_i_t     = logic signed [11:0]               ,
-            parameter                           DEVICE      = "RTL"                             ,
-            parameter                           SIMULATION  = "false"                           ,
-            parameter                           DEBUG       = "false"                           
+            parameter   bit     BYPASS_FF   = 1'b0                      ,
+            parameter   int     XLEN        = 32                        ,
+            parameter   int     SHAMT_BITS  = $clog2(XLEN)              ,
+            parameter   type    shamt_t     = logic [SHAMT_BITS-1:0]    ,
+            parameter   type    rval_t      = logic [XLEN-1:0]          ,
+            parameter   int     ID_BITS     = 4                         ,
+            parameter   type    id_t        = logic [ID_BITS-1:0]       ,
+            parameter   type    ridx_t      = logic [5:0]               ,
+            parameter   type    imm_i_t     = logic signed [11:0]       ,
+            parameter           DEVICE      = "RTL"                     ,
+            parameter           SIMULATION  = "false"                   ,
+            parameter           DEBUG       = "false"                   
         )
         (
-            input   var logic               reset           ,
-            input   var logic               clk             ,
-            input   var logic               cke             ,
+            input   var logic       reset           ,
+            input   var logic       clk             ,
+            input   var logic       cke             ,
 
-            // input            
-            input   var logic               s_alithmatic    ,
-            input   var logic               s_left          ,
-            input   var logic               s_imm_en        ,
-            input   var rval_t              s_rs1_val       ,
-            input   var shamt_t             s_rs2_val       ,
-            input   var shamt_t             s_shamt         ,
-            input   var ridx_t              s_rd_idx        ,
+            // input
+            input   var logic       s_arithmetic    ,
+            input   var logic       s_left          ,
+            input   var logic       s_imm_en        ,
+            input   var rval_t      s_rs1_val       ,
+            input   var shamt_t     s_rs2_val       ,
+            input   var shamt_t     s_shamt         ,
+            input   var ridx_t      s_rd_idx        ,
 
-            output  var ridx_t              m_rd_idx        ,
-            output  var rval_t              m_rd_val        
+            // output
+            output  var ridx_t      m_rd_idx        ,
+            output  var rval_t      m_rd_val        
         );
 
 
@@ -59,20 +60,20 @@ module jelly3_jfive_shifter
     localparam  type ext_data_t  = logic [EXT_DATA_BITS-1:0];
 
 
-    shamt_t          s_ext_shamt      ;
+    ext_shamt_t      s_ext_shamt      ;
     ext_data_t       s_ext_data       ;
 
     always_comb begin
         case ( {s_left, s_imm_en} )
-        2'b00: s_ext_shamt <= $bits(rval_t) + s_rs2_val;
-        2'b01: s_ext_shamt <= $bits(rval_t) + s_shamt;
-        2'b10: s_ext_shamt <= $bits(rval_t) - s_rs2_val;
-        2'b11: s_ext_shamt <= $bits(rval_t) - s_shamt;
+        2'b00: s_ext_shamt = ext_shamt_t'($bits(rval_t)) + s_rs2_val;
+        2'b01: s_ext_shamt = ext_shamt_t'($bits(rval_t)) + s_shamt;
+        2'b10: s_ext_shamt = ext_shamt_t'($bits(rval_t)) - s_rs2_val;
+        2'b11: s_ext_shamt = ext_shamt_t'($bits(rval_t)) - s_shamt;
         endcase
     end
 
     always_comb begin
-        if ( s_alithmatic ) begin
+        if ( s_arithmetic ) begin
             s_ext_data = { {XLEN{s_rs1_val[XLEN-1]}}, s_rs1_val, {XLEN{1'b0}} };
         end
         else begin
@@ -96,7 +97,7 @@ module jelly3_jfive_shifter
     always_ff @(posedge clk) begin
         if ( cke ) begin
            st0_shamt0 <= s_shamt0;
-           st0_rd_val <= s_ext_data >> {s_shamt1, shamt_t'(0)};
+           st0_rd_val <= s_ext_data >> {s_shamt1, shamt0_t'(0)};
         end
     end
 
