@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the soft-core processor system
 //
-//                                 Copyright (C) 2008-2009 by Ryuz 
+//                                 Copyright (C) 2008-2009 by Ryuji Fuchikami 
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 

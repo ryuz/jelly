@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //    Spartan-3 Starter Kit
 //
-//                                 Copyright (C) 2008-2010 by Ryuz 
+//                                 Copyright (C) 2008-2010 by Ryuji Fuchikami 
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
