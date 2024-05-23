@@ -2,7 +2,7 @@
 //  Jelly Debugger
 //    Command line loader
 //
-//                                      Copyright (C) 2008 by Ryuz
+//                                      Copyright (C) 2008 by Ryuji Fuchikami
 // ---------------------------------------------------------------------------
 
 
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	int				i;
 	
 	
-	printf("Jelly Loader Ver 0.02  Copyright (C) 2008-2014 by Ryuz\n");
+	printf("Jelly Loader Ver 0.02  Copyright (C) 2008-2014 by Ryuji Fuchikami\n");
 	
 	// command line
 	for ( i = 1; i < argc; i++ )
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 	// auto run
 	if ( blAutoRun )
 	{
-		// ƒŠƒZƒbƒg
+		// ï¿½ï¿½ï¿½Zï¿½bï¿½g
 		remote.DbgRegWrite(2, 0x0000130);	// ADDR:STATUS
 		remote.DbgRegWrite(4, 0x0000000);	// WRITE:0
 		remote.DbgRegWrite(2, 0x0000160);	// ADDR:DEPC
@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
 
 		else if ( stricmp(szCommand, "reset") == 0 )
 		{
-			// ƒŠƒZƒbƒg
+			// ï¿½ï¿½ï¿½Zï¿½bï¿½g
 			remote.DbgRegWrite(2, 0x0000130);	// ADDR:STATUS
 			remote.DbgRegWrite(4, 0x0000000);	// WRITE:0
 
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 			PrintReg(&ctrl);
 		}
 		
-		// ƒƒ‚ƒŠƒŠ[ƒh
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½h
 		else if ( strncmp(szCommand, "m ", 2) == 0 )
 		{
 			unsigned long ulAddr = strtoul(&szCommand[2], 0, 0);

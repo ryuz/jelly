@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly -- The computing system for Spartan-3e Starter Kit
 //
-//                                      Copyright (C) 2008 by Ryuz
+//                                      Copyright (C) 2008 by Ryuji Fuchikami
 //                                      https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
