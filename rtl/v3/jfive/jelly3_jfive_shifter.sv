@@ -45,94 +45,77 @@ module jelly3_jfive_shifter
 
 
     // ------------------------------------
+    // Input
+    // ------------------------------------
+
+    localparam  int  EXT_SHAMT_BITS = $bits(shamt_t) + 1;
+    localparam  int  SHAMT1_BITS    = 3;
+    localparam  int  SHAMT0_BITS    = EXT_SHAMT_BITS - SHAMT1_BITS;
+    localparam  type ext_shamt_t = logic [EXT_SHAMT_BITS-1:0];
+    localparam  type shamt0_t    = logic [SHAMT0_BITS-1:0];
+    localparam  type shamt1_t    = logic [SHAMT1_BITS-1:0];
+
+    localparam  int  EXT_DATA_BITS  = $bits(rval_t) * 3;
+    localparam  type ext_data_t  = logic [EXT_DATA_BITS-1:0];
+
+
+    shamt_t          s_ext_shamt      ;
+    ext_data_t       s_ext_data       ;
+
+    always_comb begin
+        case ( {s_left, s_imm_en} )
+        2'b00: s_ext_shamt <= $bits(rval_t) + s_rs2_val;
+        2'b01: s_ext_shamt <= $bits(rval_t) + s_shamt;
+        2'b10: s_ext_shamt <= $bits(rval_t) - s_rs2_val;
+        2'b11: s_ext_shamt <= $bits(rval_t) - s_shamt;
+        endcase
+    end
+
+    always_comb begin
+        if ( s_alithmatic ) begin
+            s_ext_data = { {XLEN{s_rs1_val[XLEN-1]}}, s_rs1_val, {XLEN{1'b0}} };
+        end
+        else begin
+            s_ext_data = { {XLEN{1'b0}}, s_rs1_val, {XLEN{1'b0}} };
+        end
+    end
+
+    shamt0_t    s_shamt0    ;
+    shamt1_t    s_shamt1    ;
+    assign {s_shamt1, s_shamt0} = s_ext_shamt;
+
+
+
+    // ------------------------------------
     //  Stage 0
     // ------------------------------------
 
-    // signal
-    shamt_t          sig0_shamt  ;
-
-    // CARRY chain
-    logic            carry_cin  ;
-    shamt_t          carry_sin  ;
-    shamt_t          carry_din  ;
-    shamt_t          carry_dout ;
-    shamt_t          carry_cout ;
-
-    always_comb begin
-    end
-
-    assign carry_din  = '0;
-    assign carry_cin  = s_left;
-    assign sig0_shamt = carry_dout;
-
-
-    logic            st0_alithmatic ;
-    logic            st0_left       ;
-    shamt_t          st0_shamt      ;
-    rval_t           st0_rs1_val    ;
+    shamt0_t    st0_shamt0  ;
+    ext_data_t  st0_rd_val  ;
 
     always_ff @(posedge clk) begin
         if ( cke ) begin
-            st0_alithmatic <= s_alithmatic;
-            st0_left       <= s_left;
-
-            case ( {s_left, s_imm_en} )
-            2'b00: st0_shamt <= s_rs2_val;
-            2'b01: st0_shamt <= s_shamt;
-            2'b10: st0_shamt <= -s_rs2_val;
-            2'b11: st0_shamt <= -s_shamt;
-            default: st0_shamt = 'x;
-            endcase
-            
-            st0_rs1_val    <= s_rs1_val;
+           st0_shamt0 <= s_shamt0;
+           st0_rd_val <= s_ext_data >> {s_shamt1, shamt_t'(0)};
         end
     end
 
 
-    logic            sig1_alithmatic ;
-    logic            sig1_left       ;
-    shamt_t          sig1_shamt      ;
-    rval_t           sig1_mask       ;
-    rval_t           sig1_rs1_val    ;
 
-    always_comb begin
-        sig1_mask = '0;
-        if ( st0_left ) begin
-            for ( int i = 0; i < XLEN; i++ ) begin
-                sig1_mask[i] = int'(st0_shamt) > i;
-            end
-        end
-        else begin
-            for ( int i = 0; i < XLEN; i++ ) begin
-                sig1_mask[i] = int'(st0_shamt) > (XLEN - 1 - i);
-            end
+
+    // ------------------------------------
+    //  Stage 1
+    // ------------------------------------
+
+    rval_t      st1_rd_val;
+
+    always_ff @(posedge clk) begin
+        if ( cke ) begin
+           st1_rd_val <= rval_t'(st0_rd_val >> st0_shamt0);
         end
     end
 
-
-    // ------------------------------------
-    //  Flip-Flops
-    // ------------------------------------
-    
-    jelly3_flipflops
-            #(
-                .BYPASS         (1'b0                    ),
-                .DATA_BITS      ($bits({m_shamt, m_mask})),
-                .RESET_VALUE    ('x                      ),
-                .BOOT_INIT      ('x                      ),
-                .DEVICE         (DEVICE                  ),
-                .SIMULATION     (SIMULATION              ),
-                .DEBUG          ("false"                 )
-            )
-        u_flipflops
-            (
-                .reset          (1'b0                   ),
-                .clk            ,
-                .cke            ,
-                
-                .din            ({out_shamt, out_mask}  ),
-                .dout           ({m_shamt, m_mask}      )
-            );
+    assign m_rd_val = st1_rd_val;
 
 
 endmodule

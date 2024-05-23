@@ -2,6 +2,9 @@
 # 725MHz (BUFGの限界)
 create_clock -period 1.380 -name clk -waveform {0.000 0.690} [get_ports clk]
 
+# 656MHz (LUTRAMの限界)
+#create_clock -period 1.524 -name clk -waveform {0.000 0.762} [get_ports clk]
+
 # 650MHz
 # create_clock -period 1.538 -name clk -waveform {0.000 0.769} [get_ports clk]
 

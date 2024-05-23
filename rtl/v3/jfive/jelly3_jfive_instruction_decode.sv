@@ -70,9 +70,10 @@ module jelly3_jfive_instruction_decode
 
 
     // -----------------------------------------
-    //  Signals
+    //  Defines
     // -----------------------------------------
 
+    // types
     localparam  type    opcode_t = logic [6:0];
     localparam  type    funct3_t = logic [2:0];
     localparam  type    funct7_t = logic [6:0];
@@ -208,44 +209,99 @@ module jelly3_jfive_instruction_decode
 
 
     // -----------------------------------------
+    //  Signals
+    // -----------------------------------------
+
+    logic   st0_lui         ;
+    logic   st0_auipc       ;
+    logic   st0_jal         ;
+    logic   st0_jalr        ;
+    logic   st0_branch      ;
+    logic   st0_load        ;
+    logic   st0_store       ;
+    logic   st0_alui        ;
+    logic   st0_alu         ;
+    logic   st0_fence       ;
+    logic   st0_ecall       ;
+    logic   st0_ebreak      ;
+
+    logic   st0_alu_add     ;
+    logic   st0_alu_sub     ;
+    logic   st0_alu_sll     ;
+    logic   st0_alu_slt     ;
+    logic   st0_alu_sltu    ;
+    logic   st0_alu_xor     ;
+    logic   st0_alu_srl     ;
+    logic   st0_alu_sra     ;
+    logic   st0_alu_or      ;
+    logic   st0_alu_and     ;
+
+    id_t    st0_id          ;
+    logic   st0_phase       ;
+    pc_t    st0_pc          ;
+    instr_t st0_instr       ;
+    logic   st0_rd_en       ;
+    ridx_t  st0_rd_idx      ;
+    logic   st0_rs1_en      ;
+    ridx_t  st0_rs1_idx     ;
+    logic   st0_rs2_en      ;
+    ridx_t  st0_rs2_idx     ;
+    logic   st0_valid       ;
+
+    id_t    st1_id          ;
+    logic   st1_phase       ;
+    pc_t    st1_pc          ;
+    instr_t st1_instr       ;
+    logic   st1_rd_en       ;
+    ridx_t  st1_rd_idx      ;
+    logic   st1_rs1_en      ;
+    ridx_t  st1_rs1_idx     ;
+    rval_t  st1_rs1_val     ;
+    logic   st1_rs2_en      ;
+    ridx_t  st1_rs2_idx     ;
+    rval_t  st1_rs2_val     ;
+    logic   st1_pre_stall   ;
+    logic   st1_valid       ;
+
+    id_t    st2_id          ;
+    logic   st2_phase       ;
+    pc_t    st2_pc          ;
+    instr_t st2_instr       ;
+    logic   st2_rd_en       ;
+    ridx_t  st2_rd_idx      ;
+    logic   st2_rs1_en      ;
+    ridx_t  st2_rs1_idx     ;
+    rval_t  st2_rs1_val     ;
+    logic   st2_rs2_en      ;
+    ridx_t  st2_rs2_idx     ;
+    rval_t  st2_rs2_val     ;
+    logic   st2_stall       ;
+    logic   st2_valid       ;
+
+    // -----------------------------------------
     //  Stage 0
     // -----------------------------------------
 
-    id_t    st0_id          ;
-    logic   st0_rd_en    ;
-    ridx_t  st0_rd_idx   ;
-    logic   st0_rs1_en   ;
-    ridx_t  st0_rs1_idx  ;
-    logic   st0_rs2_en   ;
-    ridx_t  st0_rs2_idx  ;
-    logic   st0_valid    ;
-
-    logic   st0_lui      ;
-    logic   st0_auipc    ;
-    logic   st0_jal      ;
-    logic   st0_jalr     ;
-    logic   st0_branch   ;
-    logic   st0_load     ;
-    logic   st0_store    ;
-    logic   st0_alui     ;
-    logic   st0_alu      ;
-    logic   st0_fence    ;
-    logic   st0_ecall    ;
-    logic   st0_ebreak   ;
-
-    logic   st0_alu_add  ;
-    logic   st0_alu_sub  ;
-    logic   st0_alu_sll  ;
-    logic   st0_alu_slt  ;
-    logic   st0_alu_sltu ;
-    logic   st0_alu_xor  ;
-    logic   st0_alu_srl  ;
-    logic   st0_alu_sra  ;
-    logic   st0_alu_or   ;
-    logic   st0_alu_and  ;
-
     always_ff @(posedge clk) begin
-        if ( cke && !s_wait ) begin
+        if ( reset ) begin
+            st0_id       <= 'x  ;
+            st0_phase    <= 'x  ;
+            st0_pc       <= 'x  ;
+            st0_instr    <= 'x  ;
+            st0_rd_en    <= 'x  ;
+            st0_rd_idx   <= 'x  ;
+            st0_rs1_en   <= 'x  ;
+            st0_rs1_idx  <= 'x  ;
+            st0_rs2_en   <= 'x  ;
+            st0_rs2_idx  <= 'x  ;
+            st0_valid    <= 1'b0;
+        end
+        else if ( cke && !s_wait ) begin
+            st0_id     <= s_id      ;
+            st0_phase  <= s_phase   ;
+            st0_pc     <= s_pc      ;
+            st0_instr  <= s_instr   ;
+
             // opcode の下位2bit は 11 で共通なので一旦無視
             st0_rd_en  <= s_valid 
                         && (s_opcode[6:2] == OPCODE_LUI   [6:2]
@@ -273,6 +329,9 @@ module jelly3_jfive_instruction_decode
                          || s_opcode[6:2] == OPCODE_S     [6:2]
                          || s_opcode[6:2] == OPCODE_ALU   [6:2]);
             st0_rs2_idx <= s_rs2_idx;
+
+            st1_valid   <= s_valid;
+
             
             st0_lui    <= s_opcode[6:2] == OPCODE_LUI   [6:2];
             st0_auipc  <= s_opcode[6:2] == OPCODE_AUIPC [6:2];
@@ -300,25 +359,10 @@ module jelly3_jfive_instruction_decode
         end
     end
 
-    id_t    st1_id          ;
-    logic   st1_rd_en       ;
-    ridx_t  st1_rd_idx      ;
-    logic   st1_rs1_en      ;
-    ridx_t  st1_rs1_idx     ;
-    logic   st1_rs2_en      ;
-    ridx_t  st1_rs2_idx     ;
-    logic   st1_pre_stall   ;
-    logic   st1_valid       ;
 
-    id_t    st2_id          ;
-    logic   st2_rd_en       ;
-    ridx_t  st2_rd_idx      ;
-    logic   st2_rs1_en      ;
-    ridx_t  st2_rs1_idx     ;
-    logic   st2_rs2_en      ;
-    ridx_t  st2_rs2_idx     ;
-    logic   st2_stall       ;
-    logic   st2_valid       ;
+    // -----------------------------------------
+    //  Stage 1
+    // -----------------------------------------
 
     logic  sig1_pre_stall;
     always_comb begin
@@ -331,13 +375,33 @@ module jelly3_jfive_instruction_decode
         if ( RAW_HAZARD && st0_rs1_en && st1_rd_en && {st0_id, st0_rs1_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
         if ( RAW_HAZARD && st0_rs2_en && st1_rd_en && {st0_id, st0_rs2_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
         if ( WAW_HAZARD && st0_rd_en  && st1_rd_en && {st0_id, st0_rs1_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
+
+        if ( RAW_HAZARD && st0_rs1_en && st2_rd_en && {st0_id, st0_rs1_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
+        if ( RAW_HAZARD && st0_rs2_en && st2_rd_en && {st0_id, st0_rs2_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
+        if ( WAW_HAZARD && st0_rd_en  && st2_rd_en && {st0_id, st0_rs1_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
     end
 
     always_ff @(posedge clk) begin
-        if ( cke && !s_wait ) begin
-            st1_id        <= st0_id;
+        if ( reset ) begin
+            st1_id       <= 'x  ;
+            st1_phase    <= 'x  ;
+            st1_pc       <= 'x  ;
+            st1_instr    <= 'x  ;
+            st1_rd_en    <= 'x  ;
+            st1_rd_idx   <= 'x  ;
+            st1_rs1_en   <= 'x  ;
+            st1_rs1_idx  <= 'x  ;
+            st1_rs2_en   <= 'x  ;
+            st1_rs2_idx  <= 'x  ;
+            st1_valid    <= 1'b0;
+        end
+        else if ( cke && !s_wait ) begin
+            st1_id        <= st1_id     ;
+            st1_phase     <= st1_phase  ;
+            st1_pc        <= st1_pc     ;
+            st1_instr     <= st1_instr  ;
             st1_rd_en     <= st0_rd_en  && (st0_rd_idx  != 0);
-            st1_rd_idx    <= st0_rd_idx;
+            st1_rd_idx    <= st0_rd_idx ;
             st1_rs1_en    <= st0_rs1_en && (st0_rs1_idx != 0);
             st1_rs1_idx   <= st0_rs1_idx;
             st1_rs2_en    <= st0_rs2_en && (st0_rs2_idx != 0);
@@ -346,53 +410,10 @@ module jelly3_jfive_instruction_decode
         end
     end
 
-    logic  sig2_stall;
-    always_comb begin
-        sig2_stall = 1'b0;
-        for ( int i = 0; i < EXES; i++ ) begin
-            if ( RAW_HAZARD && st2_rs1_en && exe_rd_en[i] && {st2_id, st2_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
-            if ( RAW_HAZARD && st2_rs2_en && exe_rd_en[i] && {st2_id, st2_rs2_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
-            if ( WAW_HAZARD && st2_rd_en  && exe_rd_en[i] && {st2_id, st2_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
-        end
-    end
-
-    always_ff @(posedge clk) begin
-        if ( cke ) begin
-            if ( !s_wait ) begin
-                st2_rd_en   <= st1_rd_en    ;
-                st2_rd_idx  <= st1_rd_idx   ;
-                st2_rs1_en  <= st1_rs1_en   ;
-                st2_rs1_idx <= st1_rs1_idx  ;
-                st2_rs2_en  <= st1_rs2_en   ;
-                st2_rs2_idx <= st1_rs2_idx  ;
-                st2_stall   <= st1_pre_stall;
-            end
-
-            if ( st2_stall ) begin
-                st2_stall <= sig2_stall;
-            end
-        end
-    end
-
-    assign s_wait = st2_stall || m_wait;
-
-
-    assign m_id      = st2_id       ;
-//    assign m_phase   = st2_phase    ;
-//    assign m_pc      = st2_pc       ;
-//    assign m_instr   = st2_instr    ;
-    assign m_rd_en   = st2_rd_en    ;
-    assign m_rd_idx  = st2_rd_idx   ;
-//  assign m_rs1_en  = st2_rs1_en   ;
-//  assign m_rs1_val = st2_rs1_val  ;
-//    assign m_rs2_en  = st2_rs2_en  ;
-//  assign m_rs2_val = st2_rs2_val  ;
-    assign m_valid   = st2_valid && !st2_stall;
 
     // register file
-    jelly3_register_file
+    jelly3_jfive_register_file
             #(
-                .WRITE_PORTS    (1                          ),
                 .READ_PORTS     (2                          ),
                 .ADDR_BITS      ($bits(id_t) + $bits(ridx_t)),
                 .DATA_BITS      ($bits(rval_t)              ),
@@ -413,20 +434,87 @@ module jelly3_jfive_instruction_decode
                 .wr_addr        ({wb_id, wb_rd_idx}         ),
                 .wr_din         (wb_rd_val                  ),
 
-                .rd_en          ({
-                                    st1_rs2_en && s_wait, 
-                                    st1_rs1_en && s_wait  
-                                }),
                 .rd_addr        ({
                                     {st1_id, st1_rs2_idx},
                                     {st1_id, st1_rs1_idx}
                                 }),
                 .rd_dout        ({
-                                    m_rs2_val,
-                                    m_rs1_val
+                                    st1_rs2_val,
+                                    st1_rs1_val
                                 })
             );
 
+
+    // -----------------------------------------
+    //  Stage 2
+    // -----------------------------------------
+
+    logic  sig2_stall;
+    always_comb begin
+        sig2_stall = 1'b0;
+        for ( int i = 0; i < EXES; i++ ) begin
+            if ( RAW_HAZARD && st2_rs1_en && exe_rd_en[i] && {st2_id, st2_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( RAW_HAZARD && st2_rs2_en && exe_rd_en[i] && {st2_id, st2_rs2_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( WAW_HAZARD && st2_rd_en  && exe_rd_en[i] && {st2_id, st2_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            st2_id       <= 'x  ;
+            st2_phase    <= 'x  ;
+            st2_pc       <= 'x  ;
+            st2_instr    <= 'x  ;
+            st2_rd_en    <= 'x  ;
+            st2_rd_idx   <= 'x  ;
+            st2_rs1_en   <= 'x  ;
+            st2_rs1_idx  <= 'x  ;
+            st2_rs2_en   <= 'x  ;
+            st2_rs2_idx  <= 'x  ;
+            st2_valid    <= 1'b0;
+        end
+        else if ( cke ) begin
+            if ( !s_wait ) begin
+                st2_rd_en   <= st1_rd_en    ;
+                st2_rd_idx  <= st1_rd_idx   ;
+                st2_rs1_en  <= st1_rs1_en   ;
+                st2_rs1_idx <= st1_rs1_idx  ;
+                st2_rs1_val <= st1_rs1_val  ;
+                st2_rs2_en  <= st1_rs2_en   ;
+                st2_rs2_idx <= st1_rs2_idx  ;
+                st2_rs2_val <= st1_rs2_val  ;
+                st2_stall   <= st1_pre_stall;
+
+                // forward
+                if ( wb_rd_en && {wb_id, wb_rd_idx} == {st1_id, st1_rs1_idx} ) st2_rs1_val <= wb_rd_val;
+                if ( wb_rd_en && {wb_id, wb_rd_idx} == {st1_id, st1_rs2_idx} ) st2_rs2_val <= wb_rd_val;
+            end
+            else begin
+                // forward
+                if ( wb_rd_en && {wb_id, wb_rd_idx} == {st2_id, st2_rs1_idx} ) st2_rs1_val <= wb_rd_val;
+                if ( wb_rd_en && {wb_id, wb_rd_idx} == {st2_id, st2_rs2_idx} ) st2_rs2_val <= wb_rd_val;
+            end
+
+            if ( st2_stall ) begin
+                st2_stall <= sig2_stall;
+            end
+        end
+    end
+
+    assign s_wait = st2_stall || m_wait;
+
+
+    assign m_id      = st2_id       ;
+    assign m_phase   = st2_phase    ;
+    assign m_pc      = st2_pc       ;
+    assign m_instr   = st2_instr    ;
+    assign m_rd_en   = st2_rd_en    ;
+    assign m_rd_idx  = st2_rd_idx   ;
+    assign m_rs1_en  = st2_rs1_en   ;
+    assign m_rs1_val = st2_rs1_val  ;
+    assign m_rs2_en  = st2_rs2_en   ;
+    assign m_rs2_val = st2_rs2_val  ;
+    assign m_valid   = st2_valid && !st2_stall;
 
 endmodule
 
