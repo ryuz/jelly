@@ -75,7 +75,7 @@ module jelly2_necolink_synctimer_master
                 )
             u_synctimer_timer
                 (
-                    .reset          (reset          ),
+                    .rst            (reset          ),
                     .clk            (clk            ),
                     
                     .set_time       (set_time       ),
