@@ -15,7 +15,7 @@ all: clean build run
 
 .PHONY: build
 build: veryl
-	xvlog -f xvlog_cmd.txt -i ../../../../../include
+	xvlog -f xvlog_cmd.txt -i ../../../../../../include
 	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
 
 .PHONY: run
@@ -24,11 +24,11 @@ run:
 
 .PHONY : veryl
 veryl:
-	cd ../../../../../jellyvl; veryl build
+	cd ../../../../../../rtl/jellyvl; veryl build
 
 .PHONY : fmt
 fmt:
-	cd ../../../../../jellyvl; veryl fmt
+	cd ../../../../../../rtl/jellyvl; veryl fmt
 
 .PHONY: vcd2fst
 vcd2fst:

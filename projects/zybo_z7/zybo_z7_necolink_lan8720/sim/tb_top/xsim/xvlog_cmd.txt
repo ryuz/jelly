@@ -15,7 +15,7 @@
 --sourcelibdir ../../../../../../rtl/v2/image
 --sourcelibdir ../../../../../../rtl/v2/video
 --sourcelibdir ../../../../../../rtl/v2/model
---sourcelibdir ../../../../../../jellyvl/sv
+--sourcelibdir ../../../../../../rtl/jellyvl/sv
 
 --sourcelibext .v
 --sourcelibext .sv

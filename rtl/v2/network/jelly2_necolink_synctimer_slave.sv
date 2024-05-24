@@ -114,7 +114,7 @@ module jelly2_necolink_synctimer_slave
             )
         u_synctimer_core
             (
-                .reset              (reset                      ),
+                .rst                (reset                      ),
                 .clk                (clk                        ),
                 .param_limit_min    (param_limit_min            ),
                 .param_limit_max    (param_limit_max            ),
@@ -140,7 +140,7 @@ module jelly2_necolink_synctimer_slave
             )
         u_synctimer_timer_free_run
             (
-                .reset              (reset              ),
+                .rst                (reset              ),
                 .clk                (clk                ),
                 .set_time           ('0                 ),
                 .set_valid          (1'b0               ),
