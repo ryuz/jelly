@@ -223,9 +223,10 @@ module jelly3_jfive_instruction_decode
 
 
     // -----------------------------------------
-    //  Signals
+    //  Valiables
     // -----------------------------------------
 
+    /*
     logic   st0_lui         ;
     logic   st0_auipc       ;
     logic   st0_jal         ;
@@ -249,17 +250,15 @@ module jelly3_jfive_instruction_decode
     logic   st0_alu_sra     ;
     logic   st0_alu_or      ;
     logic   st0_alu_and     ;
+    */
 
     id_t    st0_id          ;
     logic   st0_phase       ;
     pc_t    st0_pc          ;
     instr_t st0_instr       ;
     logic   st0_rd_en       ;
-    ridx_t  st0_rd_idx      ;
     logic   st0_rs1_en      ;
-    ridx_t  st0_rs1_idx     ;
     logic   st0_rs2_en      ;
-    ridx_t  st0_rs2_idx     ;
     logic   st0_valid       ;
 
     id_t    st1_id          ;
@@ -267,12 +266,9 @@ module jelly3_jfive_instruction_decode
     pc_t    st1_pc          ;
     instr_t st1_instr       ;
     logic   st1_rd_en       ;
-    ridx_t  st1_rd_idx      ;
     logic   st1_rs1_en      ;
-    ridx_t  st1_rs1_idx     ;
     rval_t  st1_rs1_val     ;
     logic   st1_rs2_en      ;
-    ridx_t  st1_rs2_idx     ;
     rval_t  st1_rs2_val     ;
     logic   st1_pre_stall   ;
     logic   st1_valid       ;
@@ -282,12 +278,9 @@ module jelly3_jfive_instruction_decode
     pc_t    st2_pc          ;
     instr_t st2_instr       ;
     logic   st2_rd_en       ;
-//    ridx_t  st2_rd_idx      ;
     logic   st2_rs1_en      ;
-//    ridx_t  st2_rs1_idx     ;
     rval_t  st2_rs1_val     ;
     logic   st2_rs2_en      ;
-//    ridx_t  st2_rs2_idx     ;
     rval_t  st2_rs2_val     ;
     logic   st2_stall       ;
     logic   st2_valid       ;
@@ -298,7 +291,7 @@ module jelly3_jfive_instruction_decode
     logic               st2_shifter_arithmetic;
     logic               st2_shifter_left      ;
     logic               st2_shifter_imm_en    ;
-    rval_t              st2_shifter_imm_val   ;
+    shamt_t             st2_shifter_imm_val   ;
 
 
     // -----------------------------------------
@@ -312,11 +305,8 @@ module jelly3_jfive_instruction_decode
             st0_pc       <= 'x  ;
             st0_instr    <= 'x  ;
             st0_rd_en    <= 'x  ;
-            st0_rd_idx   <= 'x  ;
             st0_rs1_en   <= 'x  ;
-            st0_rs1_idx  <= 'x  ;
             st0_rs2_en   <= 'x  ;
-            st0_rs2_idx  <= 'x  ;
             st0_valid    <= 1'b0;
         end
         else if ( cke && !s_wait ) begin
@@ -335,7 +325,6 @@ module jelly3_jfive_instruction_decode
                          || s_opcode[6:2] == OPCODE_ALUI  [6:2]
                          || s_opcode[6:2] == OPCODE_ALU   [6:2]
                          || s_opcode[6:2] == OPCODE_FENCE [6:2]);
-            st0_rd_idx  <= s_rd_idx;
 
             st0_rs1_en <= s_valid
                         && (s_opcode[6:2] == OPCODE_JALR  [6:2]
@@ -345,17 +334,14 @@ module jelly3_jfive_instruction_decode
                          || s_opcode[6:2] == OPCODE_ALUI  [6:2]
                          || s_opcode[6:2] == OPCODE_ALU   [6:2]
                          || s_opcode[6:2] == OPCODE_FENCE [6:2]);
-            st0_rs1_idx <= s_rs1_idx;
 
             st0_rs2_en <= s_valid
                         && (s_opcode[6:2] == OPCODE_B     [6:2]
                          || s_opcode[6:2] == OPCODE_S     [6:2]
                          || s_opcode[6:2] == OPCODE_ALU   [6:2]);
-            st0_rs2_idx <= s_rs2_idx;
-
             st1_valid   <= s_valid;
 
-            
+            /*
             st0_lui    <= s_opcode[6:2] == OPCODE_LUI   [6:2];
             st0_auipc  <= s_opcode[6:2] == OPCODE_AUIPC [6:2];
             st0_jal    <= s_opcode[6:2] == OPCODE_JAL   [6:2];
@@ -379,8 +365,24 @@ module jelly3_jfive_instruction_decode
             st0_alu_sra  <= s_funct3 == FUNCT3_SRA;
             st0_alu_or   <= s_funct3 == FUNCT3_OR;
             st0_alu_and  <= s_funct3 == FUNCT3_AND;
+            */
         end
     end
+
+    wire    opcode_t                st0_opcode  = st0_instr[6:0]   ;
+    wire    ridx_t                  st0_rd_idx  = st0_instr[11:7]  ;
+    wire    ridx_t                  st0_rs1_idx = st0_instr[19:15] ;
+    wire    ridx_t                  st0_rs2_idx = st0_instr[24:20] ;
+    wire    funct3_t                st0_funct3  = st0_instr[14:12] ;
+    wire    funct7_t                st0_funct7  = st0_instr[31:25] ;
+
+    wire    logic   signed  [11:0]  st0_imm_i = st0_instr[31:20]                                                        ;
+    wire    logic   signed  [11:0]  st0_imm_s = {st0_instr[31:25], st0_instr[11:7]}                                     ;
+    wire    logic   signed  [12:0]  st0_imm_b = {st0_instr[31], st0_instr[7], st0_instr[30:25], st0_instr[11:8], 1'b0}  ;
+    wire    logic   signed  [31:0]  st0_imm_u = {st0_instr[31:12], 12'd0}                                               ;
+    wire    logic   signed  [20:0]  st0_imm_j = {st0_instr[31], st0_instr[19:12], st0_instr[20], st0_instr[30:21], 1'b0};
+    wire    logic           [4:0]   st0_shamt = st0_instr[24:20]                                                        ;
+
 
 
     // -----------------------------------------
@@ -411,11 +413,8 @@ module jelly3_jfive_instruction_decode
             st1_pc       <= 'x  ;
             st1_instr    <= 'x  ;
             st1_rd_en    <= 'x  ;
-            st1_rd_idx   <= 'x  ;
             st1_rs1_en   <= 'x  ;
-            st1_rs1_idx  <= 'x  ;
             st1_rs2_en   <= 'x  ;
-            st1_rs2_idx  <= 'x  ;
             st1_valid    <= 1'b0;
         end
         else if ( cke && !s_wait ) begin
@@ -424,12 +423,10 @@ module jelly3_jfive_instruction_decode
             st1_pc        <= st1_pc     ;
             st1_instr     <= st1_instr  ;
             st1_rd_en     <= st0_rd_en  && (st0_rd_idx  != 0);
-            st1_rd_idx    <= st0_rd_idx ;
             st1_rs1_en    <= st0_rs1_en && (st0_rs1_idx != 0);
-            st1_rs1_idx   <= st0_rs1_idx;
             st1_rs2_en    <= st0_rs2_en && (st0_rs2_idx != 0);
-            st1_rs2_idx   <= st0_rs2_idx;
             st1_pre_stall <= sig1_pre_stall;
+            st1_valid     <= st0_valid;
         end
     end
 
@@ -504,22 +501,17 @@ module jelly3_jfive_instruction_decode
             st2_pc       <= 'x  ;
             st2_instr    <= 'x  ;
             st2_rd_en    <= 'x  ;
-//            st2_rd_idx   <= 'x  ;
             st2_rs1_en   <= 'x  ;
-//            st2_rs1_idx  <= 'x  ;
             st2_rs2_en   <= 'x  ;
-//            st2_rs2_idx  <= 'x  ;
             st2_valid    <= 1'b0;
         end
         else if ( cke ) begin
             if ( !s_wait ) begin
+                st2_id      <= st1_id       ;
                 st2_rd_en   <= st1_rd_en    ;
-                st2_rd_idx  <= st1_rd_idx   ;
                 st2_rs1_en  <= st1_rs1_en   ;
-//                st2_rs1_idx <= st1_rs1_idx  ;
                 st2_rs1_val <= st1_rs1_val  ;
                 st2_rs2_en  <= st1_rs2_en   ;
-//                st2_rs2_idx <= st1_rs2_idx  ;
                 st2_rs2_val <= st1_rs2_val  ;
                 st2_stall   <= st1_pre_stall;
 
@@ -544,12 +536,18 @@ module jelly3_jfive_instruction_decode
 
     always_ff @(posedge clk) begin
         if ( cke ) begin
-            st2_adder_sub     <= st1_instr[6:5] == 2'b01 && st1_instr[30] == 1'b1;      // SUB 
-            st2_adder_imm_en  <= st1_instr[6:5] == 2'b00 || st1_instr[6:5] == 2'b11;    // ALUI or JALR
+            st2_adder_sub     <= (st1_instr[6:5] == 2'b01 && st1_instr[30] == 1'b1) // SUB
+                              || (st1_instr[6:2] == OPCODE_B[6:2]);                 // BEQ/BNE/BLT/BGE/BLTU/BGEU
+            st2_adder_imm_en  <= st1_instr[6:2] == OPCODE_JALR[6:2]                 // JALR
+                              || st1_instr[6:2] == OPCODE_ALUI[6:2];                // ADDI/STLI/STLIU/XORI/ORI/ANDI
             st2_adder_imm_val <= st1_funct3 == FUNCT3_SLTIU ? rval_t'($unsigned(st1_imm_i)) : rval_t'($signed(st1_imm_i));
+
+            st2_shifter_arithmetic <= st1_funct7[5] ;
+            st2_shifter_left       <= ~st1_funct3[2];
+            st2_shifter_imm_en     <= ~st1_opcode[5];
+            st2_shifter_imm_val    <= st1_shamt     ;
         end
     end
-
 
     wire    opcode_t                st2_opcode  = st2_instr[6:0]   ;
     wire    ridx_t                  st2_rd_idx  = st2_instr[11:7]  ;
@@ -571,26 +569,26 @@ module jelly3_jfive_instruction_decode
     //  output
     // -----------------------------------------
 
-    assign m_id                 = st2_id       ;
-    assign m_phase              = st2_phase    ;
-    assign m_pc                 = st2_pc       ;
-    assign m_instr              = st2_instr    ;
-    assign m_rd_en              = st2_rd_en    ;
-    assign m_rd_idx             = st2_rd_idx   ;
-    assign m_rs1_en             = st2_rs1_en   ;
-    assign m_rs1_val            = st2_rs1_val  ;
-    assign m_rs2_en             = st2_rs2_en   ;
-    assign m_rs2_val            = st2_rs2_val  ;
-    assign m_valid              = st2_valid && !st2_stall;
+    assign m_id                 = st2_id                    ;
+    assign m_phase              = st2_phase                 ;
+    assign m_pc                 = st2_pc                    ;
+    assign m_instr              = st2_instr                 ;
+    assign m_rd_en              = st2_rd_en                 ;
+    assign m_rd_idx             = st2_rd_idx                ;
+    assign m_rs1_en             = st2_rs1_en                ;
+    assign m_rs1_val            = st2_rs1_val               ;
+    assign m_rs2_en             = st2_rs2_en                ;
+    assign m_rs2_val            = st2_rs2_val               ;
+    assign m_valid              = st2_valid && !st2_stall   ;
 
-    assign m_adder_sub          = st2_adder_sub;
-    assign m_adder_imm_en       = st2_adder_imm_en;
-    assign m_adder_imm_val      = rval_t'(st2_imm_i);
+    assign m_adder_sub          = st2_adder_sub             ;
+    assign m_adder_imm_en       = st2_adder_imm_en          ;
+    assign m_adder_imm_val      = st2_adder_imm_val         ;
 
-    assign m_shifter_arithmetic = st2_funct7[5];
-    assign m_shifter_left       = ~st2_funct3[2];
-    assign m_shifter_imm_en     = ~st2_opcode[5];
-    assign m_shifter_imm_val    = st2_shamt;
+    assign m_shifter_arithmetic = st2_shifter_arithmetic    ;
+    assign m_shifter_left       = st2_shifter_left          ;
+    assign m_shifter_imm_en     = st2_shifter_imm_en        ;
+    assign m_shifter_imm_val    = st2_shifter_imm_val       ;
 
 endmodule
 

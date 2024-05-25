@@ -105,6 +105,11 @@ module tb_main
 
     wire match = m_rd_val == expected_rd_val;
 
+    always_ff @(posedge clk) begin
+        if ( !reset ) begin
+            assert (m_rd_val == expected_rd_val) else $error("m_rd_val mismatch");
+        end
+    end
     
 endmodule
 
