@@ -12,7 +12,7 @@
 
 module jelly3_jfive_instruction_decode
         #(
-            localparam  int                     XLEN        = 32,
+            parameter   int                     XLEN        = 32,
             parameter   int                     THREADS     = 4                                 ,
             parameter   int                     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
             parameter   type                    id_t        = logic         [ID_BITS-1:0]       ,
@@ -72,6 +72,10 @@ module jelly3_jfive_instruction_decode
             output  var logic               m_adder_sub         ,
             output  var logic               m_adder_imm_en      ,
             output  var rval_t              m_adder_imm_val     ,
+
+            output  var logic   [1:0]       m_logical_op        ,
+            output  var logic               m_logical_imm_en    ,
+            output  var rval_t              m_logical_imm_val   ,
 
             output  var logic               m_shifter_arithmetic,
             output  var logic               m_shifter_left      ,
@@ -584,6 +588,10 @@ module jelly3_jfive_instruction_decode
     assign m_adder_sub          = st2_adder_sub             ;
     assign m_adder_imm_en       = st2_adder_imm_en          ;
     assign m_adder_imm_val      = st2_adder_imm_val         ;
+
+    assign m_logical_op         = st2_funct3[1:0]           ;
+    assign m_logical_imm_en     = st2_adder_imm_en          ;
+    assign m_logical_imm_val    = st2_adder_imm_val         ;
 
     assign m_shifter_arithmetic = st2_shifter_arithmetic    ;
     assign m_shifter_left       = st2_shifter_left          ;

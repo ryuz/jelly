@@ -12,7 +12,7 @@
 
 module jelly3_jfive_adder
         #(
-            localparam  int                     XLEN        = 32                                ,
+            parameter   int                     XLEN        = 32                                ,
             parameter   type                    rval_t      = logic [XLEN-1:0]                  ,
             parameter   int                     ID_BITS     = 4                                 ,
             parameter                           DEVICE      = "RTL"                             ,
@@ -25,7 +25,7 @@ module jelly3_jfive_adder
             input   var logic               cke             ,
 
             // input
-            input   var logic               s_sub_en        ,
+            input   var logic               s_sub           ,
             input   var logic               s_imm_en        ,
             input   var rval_t              s_imm_val       ,
             input   var rval_t              s_rs1_val       ,
@@ -46,10 +46,10 @@ module jelly3_jfive_adder
     logic   s_cin;
     rval_t  s_din0;
     rval_t  s_din1;
-    assign s_cin  = s_sub_en ? 1'b1 : 1'b0;
+    assign s_cin  = s_sub ? 1'b1 : 1'b0;
     assign s_din0 = s_rs1_val;
     always_comb begin
-        case ( {s_sub_en, s_imm_en})
+        case ( {s_sub, s_imm_en})
         2'b00:      s_din1 =  s_rs2_val;
         2'b01:      s_din1 =  s_imm_val;
         2'b10:      s_din1 = ~s_rs2_val;

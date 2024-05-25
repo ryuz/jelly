@@ -12,7 +12,7 @@
 
 module jelly3_jfive_logical
         #(
-            localparam  int                     XLEN        = 32                ,
+            parameter   int                     XLEN        = 32                ,
             parameter   type                    rval_t      = logic [XLEN-1:0]  ,
             parameter                           DEVICE      = "RTL"             ,
             parameter                           SIMULATION  = "false"           ,
