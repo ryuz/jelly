@@ -24,7 +24,7 @@ module jelly3_carry_chain
             input   var data_t  din         ,
 
             output  var data_t  dout        ,
-            output  var logic   cout        
+            output  var data_t  cout        
         );
 
 
@@ -60,18 +60,17 @@ module jelly3_carry_chain
 
         assign carry8_s  = CARRY8_BITS'(sin);
         assign carry8_di = CARRY8_BITS'(din);
-        assign dout = data_t'(carry8_o);
-        assign cout = carry8_co[$bits(data_t)-1];
+        assign dout = data_t'(carry8_o );
+        assign cout = data_t'(carry8_co);
     end
     else begin : rtl
         always_comb begin
-            automatic logic c;
-            c = cin;
+            automatic logic c = cin;
             for ( int i = 0; i < DATA_BITS; i++ ) begin
                 dout[i] = c ^ sin[i];
                 c = sin[i] ? c : din[i];
+                cout[i] = c;
             end
-            cout = c;
         end
     end
 

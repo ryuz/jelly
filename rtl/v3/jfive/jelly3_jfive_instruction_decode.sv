@@ -15,13 +15,14 @@ module jelly3_jfive_instruction_decode
             localparam  int                     XLEN        = 32,
             parameter   int                     THREADS     = 4                                 ,
             parameter   int                     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
-            parameter   type                    id_t        = logic [ID_BITS-1:0]               ,
+            parameter   type                    id_t        = logic         [ID_BITS-1:0]       ,
             parameter   int                     PC_BITS     = 32                                ,
-            parameter   type                    pc_t        = logic [PC_BITS-1:0]               ,
+            parameter   type                    pc_t        = logic         [PC_BITS-1:0]       ,
             parameter   int                     INSTR_BITS  = 32                                ,
-            parameter   type                    instr_t     = logic [INSTR_BITS-1:0]            ,
-            parameter   type                    ridx_t      = logic [4:0]                       ,
-            parameter   type                    rval_t      = logic [XLEN-1:0]                  ,
+            parameter   type                    instr_t     = logic         [INSTR_BITS-1:0]    ,
+            parameter   type                    ridx_t      = logic         [4:0]               ,
+            parameter   type                    rval_t      = logic signed  [XLEN-1:0]          ,
+            parameter   type                    shamt_t     = logic         [$clog2(XLEN)-1:0]  ,
             parameter   int                     EXES        = 4                                 ,
             parameter   bit                     RAW_HAZARD  = 1'b1                              ,
             parameter   bit                     WAW_HAZARD  = 1'b1                              ,
@@ -64,7 +65,20 @@ module jelly3_jfive_instruction_decode
             output  var rval_t              m_rs1_val   ,
             output  var logic               m_rs2_en    ,
             output  var rval_t              m_rs2_val   ,
-            output  var logic               m_valid     ,
+
+            output  var logic               m_adder            ,
+            output  var logic               m_logical          ,
+
+            output  var logic               m_adder_sub         ,
+            output  var logic               m_adder_imm_en      ,
+            output  var rval_t              m_adder_imm_val     ,
+
+            output  var logic               m_shifter_arithmetic,
+            output  var logic               m_shifter_left      ,
+            output  var logic               m_shifter_imm_en    ,
+            output  var shamt_t             m_shifter_imm_val   ,
+
+            output  var logic               m_valid             ,
             input   var logic               m_wait
         );
 
@@ -193,19 +207,19 @@ module jelly3_jfive_instruction_decode
     //  Input Signals
     // -----------------------------------------
 
-    wire opcode_t      s_opcode  = s_instr[6:0]   ;
-    wire ridx_t        s_rd_idx  = s_instr[11:7]  ;
-    wire ridx_t        s_rs1_idx = s_instr[19:15] ;
-    wire ridx_t        s_rs2_idx = s_instr[24:20] ;
-    wire funct3_t      s_funct3  = s_instr[14:12] ;
-    wire funct7_t      s_funct7  = s_instr[31:25] ;
+    wire    opcode_t                s_opcode  = s_instr[6:0]   ;
+    wire    ridx_t                  s_rd_idx  = s_instr[11:7]  ;
+    wire    ridx_t                  s_rs1_idx = s_instr[19:15] ;
+    wire    ridx_t                  s_rs2_idx = s_instr[24:20] ;
+    wire    funct3_t                s_funct3  = s_instr[14:12] ;
+    wire    funct7_t                s_funct7  = s_instr[31:25] ;
 
     wire    logic   signed  [11:0]  s_imm_i = s_instr[31:20]                                                   ;
     wire    logic   signed  [11:0]  s_imm_s = {s_instr[31:25], s_instr[11:7]}                                  ;
     wire    logic   signed  [12:0]  s_imm_b = {s_instr[31], s_instr[7], s_instr[30:25], s_instr[11:8], 1'b0}   ;
     wire    logic   signed  [31:0]  s_imm_u = {s_instr[31:12], 12'd0}                                          ;
     wire    logic   signed  [20:0]  s_imm_j = {s_instr[31], s_instr[19:12], s_instr[20], s_instr[30:21], 1'b0} ;
-    wire    logic           [4:0]   s_shamt = s_instr[24:20]                                                   ;
+    wire    shamt_t                 s_shamt = s_instr[20 +: $bits(shamt_t)]                                    ;
 
 
     // -----------------------------------------
@@ -268,15 +282,24 @@ module jelly3_jfive_instruction_decode
     pc_t    st2_pc          ;
     instr_t st2_instr       ;
     logic   st2_rd_en       ;
-    ridx_t  st2_rd_idx      ;
+//    ridx_t  st2_rd_idx      ;
     logic   st2_rs1_en      ;
-    ridx_t  st2_rs1_idx     ;
+//    ridx_t  st2_rs1_idx     ;
     rval_t  st2_rs1_val     ;
     logic   st2_rs2_en      ;
-    ridx_t  st2_rs2_idx     ;
+//    ridx_t  st2_rs2_idx     ;
     rval_t  st2_rs2_val     ;
     logic   st2_stall       ;
     logic   st2_valid       ;
+
+    logic               st2_adder_sub         ;
+    logic               st2_adder_imm_en      ;
+    rval_t              st2_adder_imm_val     ;
+    logic               st2_shifter_arithmetic;
+    logic               st2_shifter_left      ;
+    logic               st2_shifter_imm_en    ;
+    rval_t              st2_shifter_imm_val   ;
+
 
     // -----------------------------------------
     //  Stage 0
@@ -444,6 +467,21 @@ module jelly3_jfive_instruction_decode
                                 })
             );
 
+    wire    opcode_t                st1_opcode  = st1_instr[6:0]   ;
+    wire    ridx_t                  st1_rd_idx  = st1_instr[11:7]  ;
+    wire    ridx_t                  st1_rs1_idx = st1_instr[19:15] ;
+    wire    ridx_t                  st1_rs2_idx = st1_instr[24:20] ;
+    wire    funct3_t                st1_funct3  = st1_instr[14:12] ;
+    wire    funct7_t                st1_funct7  = st1_instr[31:25] ;
+
+    wire    logic   signed  [11:0]  st1_imm_i = st1_instr[31:20]                                                        ;
+    wire    logic   signed  [11:0]  st1_imm_s = {st1_instr[31:25], st1_instr[11:7]}                                     ;
+    wire    logic   signed  [12:0]  st1_imm_b = {st1_instr[31], st1_instr[7], st1_instr[30:25], st1_instr[11:8], 1'b0}  ;
+    wire    logic   signed  [31:0]  st1_imm_u = {st1_instr[31:12], 12'd0}                                               ;
+    wire    logic   signed  [20:0]  st1_imm_j = {st1_instr[31], st1_instr[19:12], st1_instr[20], st1_instr[30:21], 1'b0};
+    wire    logic           [4:0]   st1_shamt = st1_instr[24:20]                                                        ;
+
+
 
     // -----------------------------------------
     //  Stage 2
@@ -466,11 +504,11 @@ module jelly3_jfive_instruction_decode
             st2_pc       <= 'x  ;
             st2_instr    <= 'x  ;
             st2_rd_en    <= 'x  ;
-            st2_rd_idx   <= 'x  ;
+//            st2_rd_idx   <= 'x  ;
             st2_rs1_en   <= 'x  ;
-            st2_rs1_idx  <= 'x  ;
+//            st2_rs1_idx  <= 'x  ;
             st2_rs2_en   <= 'x  ;
-            st2_rs2_idx  <= 'x  ;
+//            st2_rs2_idx  <= 'x  ;
             st2_valid    <= 1'b0;
         end
         else if ( cke ) begin
@@ -478,10 +516,10 @@ module jelly3_jfive_instruction_decode
                 st2_rd_en   <= st1_rd_en    ;
                 st2_rd_idx  <= st1_rd_idx   ;
                 st2_rs1_en  <= st1_rs1_en   ;
-                st2_rs1_idx <= st1_rs1_idx  ;
+//                st2_rs1_idx <= st1_rs1_idx  ;
                 st2_rs1_val <= st1_rs1_val  ;
                 st2_rs2_en  <= st1_rs2_en   ;
-                st2_rs2_idx <= st1_rs2_idx  ;
+//                st2_rs2_idx <= st1_rs2_idx  ;
                 st2_rs2_val <= st1_rs2_val  ;
                 st2_stall   <= st1_pre_stall;
 
@@ -504,17 +542,55 @@ module jelly3_jfive_instruction_decode
     assign s_wait = st2_stall || m_wait;
 
 
-    assign m_id      = st2_id       ;
-    assign m_phase   = st2_phase    ;
-    assign m_pc      = st2_pc       ;
-    assign m_instr   = st2_instr    ;
-    assign m_rd_en   = st2_rd_en    ;
-    assign m_rd_idx  = st2_rd_idx   ;
-    assign m_rs1_en  = st2_rs1_en   ;
-    assign m_rs1_val = st2_rs1_val  ;
-    assign m_rs2_en  = st2_rs2_en   ;
-    assign m_rs2_val = st2_rs2_val  ;
-    assign m_valid   = st2_valid && !st2_stall;
+    always_ff @(posedge clk) begin
+        if ( cke ) begin
+            st2_adder_sub     <= st1_instr[6:5] == 2'b01 && st1_instr[30] == 1'b1;      // SUB 
+            st2_adder_imm_en  <= st1_instr[6:5] == 2'b00 || st1_instr[6:5] == 2'b11;    // ALUI or JALR
+            st2_adder_imm_val <= st1_funct3 == FUNCT3_SLTIU ? rval_t'($unsigned(st1_imm_i)) : rval_t'($signed(st1_imm_i));
+        end
+    end
+
+
+    wire    opcode_t                st2_opcode  = st2_instr[6:0]   ;
+    wire    ridx_t                  st2_rd_idx  = st2_instr[11:7]  ;
+    wire    ridx_t                  st2_rs1_idx = st2_instr[19:15] ;
+    wire    ridx_t                  st2_rs2_idx = st2_instr[24:20] ;
+    wire    funct3_t                st2_funct3  = st2_instr[14:12] ;
+    wire    funct7_t                st2_funct7  = st2_instr[31:25] ;
+
+    wire    logic   signed  [11:0]  st2_imm_i = st2_instr[31:20]                                                        ;
+    wire    logic   signed  [11:0]  st2_imm_s = {st2_instr[31:25], st2_instr[11:7]}                                     ;
+    wire    logic   signed  [12:0]  st2_imm_b = {st2_instr[31], st2_instr[7], st2_instr[30:25], st2_instr[11:8], 1'b0}  ;
+    wire    logic   signed  [31:0]  st2_imm_u = {st2_instr[31:12], 12'd0}                                               ;
+    wire    logic   signed  [20:0]  st2_imm_j = {st2_instr[31], st2_instr[19:12], st2_instr[20], st2_instr[30:21], 1'b0};
+    wire    shamt_t                 st2_shamt = st2_instr[20 +: $bits(shamt_t)]                                         ;
+
+
+
+    // -----------------------------------------
+    //  output
+    // -----------------------------------------
+
+    assign m_id                 = st2_id       ;
+    assign m_phase              = st2_phase    ;
+    assign m_pc                 = st2_pc       ;
+    assign m_instr              = st2_instr    ;
+    assign m_rd_en              = st2_rd_en    ;
+    assign m_rd_idx             = st2_rd_idx   ;
+    assign m_rs1_en             = st2_rs1_en   ;
+    assign m_rs1_val            = st2_rs1_val  ;
+    assign m_rs2_en             = st2_rs2_en   ;
+    assign m_rs2_val            = st2_rs2_val  ;
+    assign m_valid              = st2_valid && !st2_stall;
+
+    assign m_adder_sub          = st2_adder_sub;
+    assign m_adder_imm_en       = st2_adder_imm_en;
+    assign m_adder_imm_val      = rval_t'(st2_imm_i);
+
+    assign m_shifter_arithmetic = st2_funct7[5];
+    assign m_shifter_left       = ~st2_funct3[2];
+    assign m_shifter_imm_en     = ~st2_opcode[5];
+    assign m_shifter_imm_val    = st2_shamt;
 
 endmodule
 

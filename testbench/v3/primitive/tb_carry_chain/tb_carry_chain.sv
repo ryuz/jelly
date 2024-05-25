@@ -34,7 +34,7 @@ module tb_carry_chain();
     data_t  din         ;
 
     data_t  dout        ;
-    logic   cout        ;
+    data_t  cout        ;
 
     jelly3_carry_chain
             #(
@@ -46,9 +46,6 @@ module tb_carry_chain();
             )
         u_carry_chain
             (
-                .reset          ,
-                .clk            ,
-                .cke            ,
                 .cin            ,
                 .sin            ,
                 .din            ,
@@ -57,7 +54,7 @@ module tb_carry_chain();
             );
 
     data_t  rtl_dout        ;
-    logic   rtl_cout        ;
+    data_t  rtl_cout        ;
 
     jelly3_carry_chain
             #(
@@ -69,9 +66,6 @@ module tb_carry_chain();
             )
         u_carry_chain_rtl
             (
-                .reset          ,
-                .clk            ,
-                .cke            ,
                 .cin            ,
                 .sin            ,
                 .din            ,
