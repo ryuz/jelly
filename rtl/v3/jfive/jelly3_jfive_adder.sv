@@ -13,13 +13,8 @@
 module jelly3_jfive_adder
         #(
             localparam  int                     XLEN        = 32                                ,
-            localparam  int                     SHAMT_BITS  = $clog2(XLEN)                      ,
-            localparam  type                    shamt_t     = logic [SHAMT_BITS-1:0]            ,
             parameter   type                    rval_t      = logic [XLEN-1:0]                  ,
             parameter   int                     ID_BITS     = 4                                 ,
-            parameter   type                    id_t        = logic [ID_BITS-1:0]               ,
-            parameter   type                    ridx_t      = logic [5:0]                       ,
-            parameter   type                    imm_i_t     = logic signed [11:0]               ,
             parameter                           DEVICE      = "RTL"                             ,
             parameter                           SIMULATION  = "false"                           ,
             parameter                           DEBUG       = "false"                           
