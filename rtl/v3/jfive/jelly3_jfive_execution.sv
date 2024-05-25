@@ -22,6 +22,7 @@ module jelly3_jfive_execution
             parameter   type                    instr_t     = logic         [INSTR_BITS-1:0]    ,
             parameter   type                    ridx_t      = logic         [4:0]               ,
             parameter   type                    rval_t      = logic signed  [XLEN-1:0]          ,
+            parameter   int                     SHAMT_BITS  = $clog2(XLEN)                      ,
             parameter   type                    shamt_t     = logic         [$clog2(XLEN)-1:0]  ,
             parameter   int                     EXES        = 4                                 ,
             parameter   bit                     RAW_HAZARD  = 1'b1                              ,
@@ -80,19 +81,19 @@ module jelly3_jfive_execution
             )
         u_jfive_adder
             (
-                .reset           ,
-                .clk             ,
-                .cke             ,
+                .reset          ,
+                .clk            ,
+                .cke            ,
 
-                .s_sub           (s_adder_sub       ),
-                .s_imm_en        (s_adder_imm_en    ),
-                .s_imm_val       (s_adder_imm_val   ),
-                .s_rs1_val       (s_rs1_val         ),
-                .s_rs2_val       (s_rs2_val         ),
+                .s_sub          (s_adder_sub        ),
+                .s_imm_en       (s_adder_imm_en     ),
+                .s_imm_val      (s_adder_imm_val    ),
+                .s_rs1_val      (s_rs1_val          ),
+                .s_rs2_val      (s_rs2_val          ),
 
-                .m_msb_c         (st0_adder_msb_c   ),
-                .m_carry         (st0_adder_carry   ),
-                .m_rd_val        (st0_adder_rd_val  )
+                .m_msb_c        (st0_adder_msb_c    ),
+                .m_carry        (st0_adder_carry    ),
+                .m_rd_val       (st0_adder_rd_val   )
             );
 
     // logical
@@ -119,6 +120,37 @@ module jelly3_jfive_execution
 
                 .m_rd_val       (st0_logical_rd_val )
         );
+
+
+    // shifter
+    rval_t      st1_shifter_rd_val;
+    jelly3_jfive_shifter
+            #(
+                .XLEN           (XLEN                   ),
+                .SHAMT_BITS     (SHAMT_BITS             ),
+                .shamt_t        (shamt_t                ),
+                .rval_t         (rval_t                 ),
+                .ridx_t         (ridx_t                 ),
+                .DEVICE         (DEVICE                 ),
+                .SIMULATION     (SIMULATION             ),
+                .DEBUG          (DEBUG                  )
+            )
+        u_jfive_shifter
+            (
+                .reset          ,
+                .clk            ,
+                .cke            ,
+
+                .s_arithmetic   (s_shifter_arithmetic   ),
+                .s_left         (s_shifter_left         ),
+                .s_imm_en       (s_shifter_imm_en       ),
+                .s_rs1_val      (s_rs1_val              ),
+                .s_rs2_val      (s_rs2_val              ),
+                .s_shamt        (s_shifter_imm_val      ),
+
+                .m_rd_val       (st1_shifter_rd_val     )
+            );
+
 
 endmodule
 

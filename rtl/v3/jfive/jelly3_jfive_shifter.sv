@@ -12,13 +12,10 @@
 
 module jelly3_jfive_shifter
         #(
-            parameter   bit     BYPASS_FF   = 1'b0                      ,
             parameter   int     XLEN        = 32                        ,
             parameter   int     SHAMT_BITS  = $clog2(XLEN)              ,
             parameter   type    shamt_t     = logic [SHAMT_BITS-1:0]    ,
             parameter   type    rval_t      = logic [XLEN-1:0]          ,
-            parameter   int     ID_BITS     = 4                         ,
-            parameter   type    id_t        = logic [ID_BITS-1:0]       ,
             parameter   type    ridx_t      = logic [5:0]               ,
             parameter           DEVICE      = "RTL"                     ,
             parameter           SIMULATION  = "false"                   ,
@@ -36,10 +33,8 @@ module jelly3_jfive_shifter
             input   var rval_t      s_rs1_val       ,
             input   var shamt_t     s_rs2_val       ,
             input   var shamt_t     s_shamt         ,
-            input   var ridx_t      s_rd_idx        ,
 
             // output
-            output  var ridx_t      m_rd_idx        ,
             output  var rval_t      m_rd_val        
         );
 
