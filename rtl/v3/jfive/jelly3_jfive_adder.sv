@@ -14,7 +14,6 @@ module jelly3_jfive_adder
         #(
             parameter   int                     XLEN        = 32                                ,
             parameter   type                    rval_t      = logic [XLEN-1:0]                  ,
-            parameter   int                     ID_BITS     = 4                                 ,
             parameter                           DEVICE      = "RTL"                             ,
             parameter                           SIMULATION  = "false"                           ,
             parameter                           DEBUG       = "false"                           

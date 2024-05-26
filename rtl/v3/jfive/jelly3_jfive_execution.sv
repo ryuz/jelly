@@ -66,6 +66,22 @@ module jelly3_jfive_execution
             output  var logic               s_wait
         );
 
+    // -----------------------------------------
+    //  stage 0
+    // -----------------------------------------
+
+    id_t                st0_id          ;
+    logic               st0_phase       ;
+    pc_t                st0_pc          ;
+    instr_t             st0_instr       ;
+    logic               st0_rd_en       ;
+    ridx_t              st0_rd_idx      ;
+    logic               st0_rs1_en      ;
+    rval_t              st0_rs1_val     ;
+    logic               st0_rs2_en      ;
+    rval_t              st0_rs2_val     ;
+
+
     // adder
     logic       st0_adder_msb_c         ;
     logic       st0_adder_carry         ;
@@ -74,7 +90,6 @@ module jelly3_jfive_execution
             #(
                 .XLEN           (XLEN               ),
                 .rval_t         (rval_t             ),
-                .ID_BITS        (ID_BITS            ),
                 .DEVICE         (DEVICE             ),
                 .SIMULATION     (SIMULATION         ),
                 .DEBUG          (DEBUG              )
@@ -95,6 +110,29 @@ module jelly3_jfive_execution
                 .m_carry        (st0_adder_carry    ),
                 .m_rd_val       (st0_adder_rd_val   )
             );
+
+    // match
+    logic       st0_match_eq    ;     
+    jelly3_jfive_match
+            #(
+                .XLEN           (XLEN               ),
+                .rval_t         (rval_t             ),
+                .DEVICE         (DEVICE             ),
+                .SIMULATION     (SIMULATION         ),
+                .DEBUG          (DEBUG              )
+            )
+        u_jfive_match
+        (
+                .reset          ,
+                .clk            ,
+                .cke            ,
+
+                .s_rs1_val      (s_rs1_val          ),
+                .s_rs2_val      (s_rs2_val          ),
+                
+                .m_eq           (st0_match_eq       )
+        );
+
 
     // logical
     rval_t      st0_logical_rd_val  ;

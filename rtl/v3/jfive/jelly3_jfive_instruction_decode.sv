@@ -12,7 +12,7 @@
 
 module jelly3_jfive_instruction_decode
         #(
-            parameter   int                     XLEN        = 32,
+            parameter   int                     XLEN        = 32                                ,
             parameter   int                     THREADS     = 4                                 ,
             parameter   int                     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
             parameter   type                    id_t        = logic         [ID_BITS-1:0]       ,
@@ -31,43 +31,49 @@ module jelly3_jfive_instruction_decode
             parameter                           DEBUG       = "false"               
         )
         (
-            input   var logic               reset       ,
-            input   var logic               clk         ,
-            input   var logic               cke         ,
+            input   var logic               reset               ,
+            input   var logic               clk                 ,
+            input   var logic               cke                 ,
 
             // executions
-            input   var id_t    [EXES-1:0]  exe_id      ,
-            input   var logic   [EXES-1:0]  exe_rd_en   ,
-            input   var ridx_t  [EXES-1:0]  exe_rd_idx  ,
+            input   var id_t    [EXES-1:0]  exe_id              ,
+            input   var logic   [EXES-1:0]  exe_rd_en           ,
+            input   var ridx_t  [EXES-1:0]  exe_rd_idx          ,
 
             // writeback
-            input   var id_t                wb_id       ,
-            input   var logic               wb_rd_en    ,
-            input   var ridx_t              wb_rd_idx   ,
-            input   var rval_t              wb_rd_val   ,
+            input   var id_t                wb_id               ,
+            input   var logic               wb_rd_en            ,
+            input   var ridx_t              wb_rd_idx           ,
+            input   var rval_t              wb_rd_val           ,
 
             //  input
-            input   var id_t                s_id        ,
-            input   var logic               s_phase     ,
-            input   var pc_t                s_pc        ,
-            input   var instr_t             s_instr     ,
-            input   var logic               s_valid     ,
-            output  var logic               s_wait      ,
+            input   var id_t                s_id                ,
+            input   var logic               s_phase             ,
+            input   var pc_t                s_pc                ,
+            input   var instr_t             s_instr             ,
+            input   var logic               s_valid             ,
+            output  var logic               s_wait              ,
 
             // output
-            output  var id_t                m_id        ,
-            output  var logic               m_phase     ,
-            output  var pc_t                m_pc        ,
-            output  var instr_t             m_instr     ,
-            output  var logic               m_rd_en     ,
-            output  var ridx_t              m_rd_idx    ,
-            output  var logic               m_rs1_en    ,
-            output  var rval_t              m_rs1_val   ,
-            output  var logic               m_rs2_en    ,
-            output  var rval_t              m_rs2_val   ,
+            output  var id_t                m_id                ,
+            output  var logic               m_phase             ,
+            output  var pc_t                m_pc                ,
+            output  var instr_t             m_instr             ,
+            output  var logic               m_rd_en             ,
+            output  var ridx_t              m_rd_idx            ,
+            output  var rval_t              m_rd_val            ,
+            output  var logic               m_rs1_en            ,
+            output  var rval_t              m_rs1_val           ,
+            output  var logic               m_rs2_en            ,
+            output  var rval_t              m_rs2_val           ,
 
-            output  var logic               m_adder            ,
-            output  var logic               m_logical          ,
+            output  var logic               m_offset            ,
+            output  var logic               m_adder             ,
+            output  var logic               m_logical           ,
+            output  var logic               m_shifter           ,
+            output  var logic               m_load              ,
+            output  var logic               m_store             ,
+            output  var logic               m_branch            ,
 
             output  var logic               m_adder_sub         ,
             output  var logic               m_adder_imm_en      ,
@@ -81,6 +87,9 @@ module jelly3_jfive_instruction_decode
             output  var logic               m_shifter_left      ,
             output  var logic               m_shifter_imm_en    ,
             output  var shamt_t             m_shifter_imm_val   ,
+
+            output  var logic   [2:0]       m_branch_op         ,
+            output  var pc_t                m_branch_pc         ,
 
             output  var logic               m_valid             ,
             input   var logic               m_wait
@@ -105,22 +114,22 @@ module jelly3_jfive_instruction_decode
     
     localparam  opcode_t    OPCODE_JALR     = 7'b1100111;
 
-    localparam  opcode_t    OPCODE_B        = 7'b1100011;
-    localparam  opcode_t    OPCODE_BEQ      = 7'b1100011;
-    localparam  opcode_t    OPCODE_BNE      = 7'b1100011;
-    localparam  opcode_t    OPCODE_BLT      = 7'b1100011;
-    localparam  opcode_t    OPCODE_BGE      = 7'b1100011;
-    localparam  opcode_t    OPCODE_BLTU     = 7'b1100011;
-    localparam  opcode_t    OPCODE_BGEU     = 7'b1100011;
+    localparam  opcode_t    OPCODE_BRANCH        = 7'b1100011;
+    localparam  opcode_t    OPCODE_BRANCHEQ      = 7'b1100011;
+    localparam  opcode_t    OPCODE_BRANCHNE      = 7'b1100011;
+    localparam  opcode_t    OPCODE_BRANCHLT      = 7'b1100011;
+    localparam  opcode_t    OPCODE_BRANCHGE      = 7'b1100011;
+    localparam  opcode_t    OPCODE_BRANCHLTU     = 7'b1100011;
+    localparam  opcode_t    OPCODE_BRANCHGEU     = 7'b1100011;
     
-    localparam  opcode_t    OPCODE_L        = 7'b0000011;
+    localparam  opcode_t    OPCODE_LOAD        = 7'b0000011;
     localparam  opcode_t    OPCODE_LB       = 7'b0000011;
     localparam  opcode_t    OPCODE_LH       = 7'b0000011;
     localparam  opcode_t    OPCODE_LW       = 7'b0000011;
     localparam  opcode_t    OPCODE_LBU      = 7'b0000011;
     localparam  opcode_t    OPCODE_LHU      = 7'b0000011;
     
-    localparam  opcode_t    OPCODE_S        = 7'b0100011;
+    localparam  opcode_t    OPCODE_STORE        = 7'b0100011;
     localparam  opcode_t    OPCODE_SB       = 7'b0100011;
     localparam  opcode_t    OPCODE_SH       = 7'b0100011;
     localparam  opcode_t    OPCODE_SW       = 7'b0100011;
@@ -168,28 +177,30 @@ module jelly3_jfive_instruction_decode
     localparam  funct3_t    FUNCT3_SB       = 3'b000;
     localparam  funct3_t    FUNCT3_SH       = 3'b001;
     localparam  funct3_t    FUNCT3_SW       = 3'b010;
-    localparam  funct3_t    FUNCT3_ADDI     = 3'b000;
-    localparam  funct3_t    FUNCT3_SLTI     = 3'b010;
-    localparam  funct3_t    FUNCT3_SLTIU    = 3'b011;
-    localparam  funct3_t    FUNCT3_XORI     = 3'b100;
-    localparam  funct3_t    FUNCT3_ORI      = 3'b110;
-    localparam  funct3_t    FUNCT3_ANDI     = 3'b111;
-    localparam  funct3_t    FUNCT3_SLLI     = 3'b001;
-    localparam  funct3_t    FUNCT3_SRLI     = 3'b101;
-    localparam  funct3_t    FUNCT3_SRAI     = 3'b101;
+//  localparam  funct3_t    FUNCT3_ADDI     = 3'b000;
+//  localparam  funct3_t    FUNCT3_SLTI     = 3'b010;
+//  localparam  funct3_t    FUNCT3_SLTIU    = 3'b011;
+//  localparam  funct3_t    FUNCT3_XORI     = 3'b100;
+//  localparam  funct3_t    FUNCT3_ORI      = 3'b110;
+//  localparam  funct3_t    FUNCT3_ANDI     = 3'b111;
+//  localparam  funct3_t    FUNCT3_SLLI     = 3'b001;
+//  localparam  funct3_t    FUNCT3_SRLI     = 3'b101;
+//  localparam  funct3_t    FUNCT3_SRAI     = 3'b101;
     localparam  funct3_t    FUNCT3_ADD      = 3'b000;
-    localparam  funct3_t    FUNCT3_SUB      = 3'b000;
-    localparam  funct3_t    FUNCT3_SLL      = 3'b001;
+//  localparam  funct3_t    FUNCT3_SUB      = 3'b000;
+//  localparam  funct3_t    FUNCT3_SLL      = 3'b001;
+    localparam  funct3_t    FUNCT3_SL       = 3'b001;
     localparam  funct3_t    FUNCT3_SLT      = 3'b010;
     localparam  funct3_t    FUNCT3_SLTU     = 3'b011;
     localparam  funct3_t    FUNCT3_XOR      = 3'b100;
-    localparam  funct3_t    FUNCT3_SRL      = 3'b101;
-    localparam  funct3_t    FUNCT3_SRA      = 3'b101;
+    localparam  funct3_t    FUNCT3_SR       = 3'b101;
+//  localparam  funct3_t    FUNCT3_SRL      = 3'b101;
+//  localparam  funct3_t    FUNCT3_SRA      = 3'b101;
     localparam  funct3_t    FUNCT3_OR       = 3'b110;
     localparam  funct3_t    FUNCT3_AND      = 3'b111;
-    localparam  funct3_t    FUNCT3_FENCE    = 3'b000;
-    localparam  funct3_t    FUNCT3_ECALL    = 3'b000;
-    localparam  funct3_t    FUNCT3_EBREAK   = 3'b000;
+//  localparam  funct3_t    FUNCT3_FENCE    = 3'b000;
+//  localparam  funct3_t    FUNCT3_ECALL    = 3'b000;
+//  localparam  funct3_t    FUNCT3_EBREAK   = 3'b000;
 
     // funct7
     localparam  funct7_t    FUNCT7_SLLI     = 7'b0000000;
@@ -230,32 +241,7 @@ module jelly3_jfive_instruction_decode
     //  Valiables
     // -----------------------------------------
 
-    /*
-    logic   st0_lui         ;
-    logic   st0_auipc       ;
-    logic   st0_jal         ;
-    logic   st0_jalr        ;
-    logic   st0_branch      ;
-    logic   st0_load        ;
-    logic   st0_store       ;
-    logic   st0_alui        ;
-    logic   st0_alu         ;
-    logic   st0_fence       ;
-    logic   st0_ecall       ;
-    logic   st0_ebreak      ;
-
-    logic   st0_alu_add     ;
-    logic   st0_alu_sub     ;
-    logic   st0_alu_sll     ;
-    logic   st0_alu_slt     ;
-    logic   st0_alu_sltu    ;
-    logic   st0_alu_xor     ;
-    logic   st0_alu_srl     ;
-    logic   st0_alu_sra     ;
-    logic   st0_alu_or      ;
-    logic   st0_alu_and     ;
-    */
-
+    // stage 0
     id_t    st0_id          ;
     logic   st0_phase       ;
     pc_t    st0_pc          ;
@@ -265,11 +251,15 @@ module jelly3_jfive_instruction_decode
     logic   st0_rs2_en      ;
     logic   st0_valid       ;
 
+
+    // stage 1
     id_t    st1_id          ;
     logic   st1_phase       ;
     pc_t    st1_pc          ;
     instr_t st1_instr       ;
     logic   st1_rd_en       ;
+    rval_t  st2_rd_pc       ;
+    rval_t  st2_rd_imm      ;
     logic   st1_rs1_en      ;
     rval_t  st1_rs1_val     ;
     logic   st1_rs2_en      ;
@@ -277,11 +267,23 @@ module jelly3_jfive_instruction_decode
     logic   st1_pre_stall   ;
     logic   st1_valid       ;
 
+    logic   st1_lui         ;
+    logic   st1_auipc       ;
+    logic   st1_jal         ;
+    logic   st1_jalr        ;
+    logic   st1_branch      ;
+    logic   st1_load        ;
+    logic   st1_store       ;
+    logic   st1_alu         ;
+
+
+    // stage 2
     id_t    st2_id          ;
     logic   st2_phase       ;
     pc_t    st2_pc          ;
     instr_t st2_instr       ;
     logic   st2_rd_en       ;
+    rval_t  st2_rd_val      ;
     logic   st2_rs1_en      ;
     rval_t  st2_rs1_val     ;
     logic   st2_rs2_en      ;
@@ -289,13 +291,25 @@ module jelly3_jfive_instruction_decode
     logic   st2_stall       ;
     logic   st2_valid       ;
 
-    logic               st2_adder_sub         ;
-    logic               st2_adder_imm_en      ;
-    rval_t              st2_adder_imm_val     ;
-    logic               st2_shifter_arithmetic;
-    logic               st2_shifter_left      ;
-    logic               st2_shifter_imm_en    ;
-    shamt_t             st2_shifter_imm_val   ;
+    logic   st2_offset      ;
+    logic   st2_adder       ;
+    logic   st2_logical     ;
+    logic   st2_shifter     ;
+    logic   st2_load        ;
+    logic   st2_store       ;
+    logic   st2_branch      ;
+
+    logic   st2_adder_sub         ;
+    logic   st2_adder_imm_en      ;
+    rval_t  st2_adder_imm_val     ;
+
+    logic   st2_shifter_arithmetic;
+    logic   st2_shifter_left      ;
+    logic   st2_shifter_imm_en    ;
+    shamt_t st2_shifter_imm_val   ;
+
+//    pc_t    st2_jalr_pc       ;
+//    pc_t    st2_imm_pc        ;
 
 
     // -----------------------------------------
@@ -325,51 +339,25 @@ module jelly3_jfive_instruction_decode
                          || s_opcode[6:2] == OPCODE_AUIPC [6:2]
                          || s_opcode[6:2] == OPCODE_JAL   [6:2]
                          || s_opcode[6:2] == OPCODE_JALR  [6:2]
-                         || s_opcode[6:2] == OPCODE_L     [6:2]
+                         || s_opcode[6:2] == OPCODE_LOAD  [6:2]
                          || s_opcode[6:2] == OPCODE_ALUI  [6:2]
                          || s_opcode[6:2] == OPCODE_ALU   [6:2]
                          || s_opcode[6:2] == OPCODE_FENCE [6:2]);
 
             st0_rs1_en <= s_valid
                         && (s_opcode[6:2] == OPCODE_JALR  [6:2]
-                         || s_opcode[6:2] == OPCODE_B     [6:2]
-                         || s_opcode[6:2] == OPCODE_L     [6:2]
-                         || s_opcode[6:2] == OPCODE_S     [6:2]
+                         || s_opcode[6:2] == OPCODE_BRANCH[6:2]
+                         || s_opcode[6:2] == OPCODE_LOAD  [6:2]
+                         || s_opcode[6:2] == OPCODE_STORE [6:2]
                          || s_opcode[6:2] == OPCODE_ALUI  [6:2]
                          || s_opcode[6:2] == OPCODE_ALU   [6:2]
                          || s_opcode[6:2] == OPCODE_FENCE [6:2]);
 
             st0_rs2_en <= s_valid
-                        && (s_opcode[6:2] == OPCODE_B     [6:2]
-                         || s_opcode[6:2] == OPCODE_S     [6:2]
+                        && (s_opcode[6:2] == OPCODE_BRANCH[6:2]
+                         || s_opcode[6:2] == OPCODE_STORE [6:2]
                          || s_opcode[6:2] == OPCODE_ALU   [6:2]);
             st1_valid   <= s_valid;
-
-            /*
-            st0_lui    <= s_opcode[6:2] == OPCODE_LUI   [6:2];
-            st0_auipc  <= s_opcode[6:2] == OPCODE_AUIPC [6:2];
-            st0_jal    <= s_opcode[6:2] == OPCODE_JAL   [6:2];
-            st0_jalr   <= s_opcode[6:2] == OPCODE_JALR  [6:2];
-            st0_branch <= s_opcode[6:2] == OPCODE_B     [6:2];
-            st0_load   <= s_opcode[6:2] == OPCODE_L     [6:2];
-            st0_store  <= s_opcode[6:2] == OPCODE_S     [6:2];
-            st0_alui   <= s_opcode[6:2] == OPCODE_ALUI  [6:2];
-            st0_alu    <= s_opcode[6:2] == OPCODE_ALU   [6:2];
-            st0_fence  <= s_opcode[6:2] == OPCODE_FENCE [6:2];
-            st0_ecall  <= s_opcode[6:2] == OPCODE_ECALL [6:2];
-            st0_ebreak <= s_opcode[6:2] == OPCODE_EBREAK[6:2];
-
-            st0_alu_add  <= s_funct3 == FUNCT3_ADD && !(s_opcode[5] && s_funct7[5]);
-            st0_alu_sub  <= s_funct3 == FUNCT3_ADD &&  (s_opcode[5] && s_funct7[5]);
-            st0_alu_sll  <= s_funct3 == FUNCT3_SLL;
-            st0_alu_slt  <= s_funct3 == FUNCT3_SLT;
-            st0_alu_sltu <= s_funct3 == FUNCT3_SLTU;
-            st0_alu_xor  <= s_funct3 == FUNCT3_XOR;
-            st0_alu_srl  <= s_funct3 == FUNCT3_SRL;
-            st0_alu_sra  <= s_funct3 == FUNCT3_SRA;
-            st0_alu_or   <= s_funct3 == FUNCT3_OR;
-            st0_alu_and  <= s_funct3 == FUNCT3_AND;
-            */
         end
     end
 
@@ -412,14 +400,17 @@ module jelly3_jfive_instruction_decode
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            st1_id       <= 'x  ;
-            st1_phase    <= 'x  ;
-            st1_pc       <= 'x  ;
-            st1_instr    <= 'x  ;
-            st1_rd_en    <= 'x  ;
-            st1_rs1_en   <= 'x  ;
-            st1_rs2_en   <= 'x  ;
-            st1_valid    <= 1'b0;
+            st1_id        <= 'x  ;
+            st1_phase     <= 'x  ;
+            st1_pc        <= 'x  ;
+            st1_instr     <= 'x  ;
+            st1_rd_en     <= 'x  ;
+            st1_rs1_en    <= 'x  ;
+            st1_rs2_en    <= 'x  ;
+            st1_lui       <= 'x  ;
+            st1_auipc     <= 'x  ;
+            st1_pre_stall <= 1'b0;
+            st1_valid     <= 1'b0;
         end
         else if ( cke && !s_wait ) begin
             st1_id        <= st1_id     ;
@@ -429,8 +420,33 @@ module jelly3_jfive_instruction_decode
             st1_rd_en     <= st0_rd_en  && (st0_rd_idx  != 0);
             st1_rs1_en    <= st0_rs1_en && (st0_rs1_idx != 0);
             st1_rs2_en    <= st0_rs2_en && (st0_rs2_idx != 0);
+            st1_lui       <= st0_opcode[6:2] == OPCODE_LUI[6:2];
+            st1_auipc     <= st0_opcode[6:2] == OPCODE_AUIPC[6:2];
             st1_pre_stall <= sig1_pre_stall;
             st1_valid     <= st0_valid;
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            st1_lui     <= 1'bx;
+            st1_auipc   <= 1'bx;
+            st1_jal     <= 1'bx;
+            st1_jalr    <= 1'bx;
+            st1_branch  <= 1'bx;
+            st1_load    <= 1'bx;
+            st1_store   <= 1'bx;
+            st1_alu     <= 1'bx;
+        end
+        else if ( cke & !s_wait ) begin
+            st1_lui     <= st0_opcode[6:2] == OPCODE_LUI[6:2];
+            st1_auipc   <= st0_opcode[6:2] == OPCODE_AUIPC[6:2];
+            st1_jal     <= st0_opcode[6:2] == OPCODE_JAL[6:2];
+            st1_jalr    <= st0_opcode[6:2] == OPCODE_JALR[6:2];
+            st1_branch  <= st0_opcode[6:2] == OPCODE_BRANCH[6:2];
+            st1_load    <= st0_opcode[6:2] == OPCODE_LOAD[6:2];
+            st1_store   <= st0_opcode[6:2] == OPCODE_STORE[6:2];
+            st1_alu     <= st0_opcode[6:2] == OPCODE_ALU[6:2];
         end
     end
 
@@ -507,6 +523,7 @@ module jelly3_jfive_instruction_decode
             st2_rd_en    <= 'x  ;
             st2_rs1_en   <= 'x  ;
             st2_rs2_en   <= 'x  ;
+            st2_stall    <= 1'b0;
             st2_valid    <= 1'b0;
         end
         else if ( cke ) begin
@@ -518,6 +535,17 @@ module jelly3_jfive_instruction_decode
                 st2_rs2_en  <= st1_rs2_en   ;
                 st2_rs2_val <= st1_rs2_val  ;
                 st2_stall   <= st1_pre_stall;
+
+                if ( st1_lui ) begin
+                    st2_rd_val <= rval_t'(st1_imm_u);
+                end 
+                else if ( st1_auipc ) begin
+                    st2_rd_val <= rval_t'(st1_pc) + rval_t'(st1_imm_u);
+                end
+                else begin
+                    st2_rd_val <= rval_t'(st1_pc) + rval_t'(4);
+                end
+
 
                 // forward
                 if ( wb_rd_en && {wb_id, wb_rd_idx} == {st1_id, st1_rs1_idx} ) st2_rs1_val <= wb_rd_val;
@@ -539,17 +567,29 @@ module jelly3_jfive_instruction_decode
 
 
     always_ff @(posedge clk) begin
-        if ( cke ) begin
-            st2_adder_sub     <= (st1_instr[6:5] == 2'b01 && st1_instr[30] == 1'b1) // SUB
-                              || (st1_instr[6:2] == OPCODE_B[6:2]);                 // BEQ/BNE/BLT/BGE/BLTU/BGEU
-            st2_adder_imm_en  <= st1_instr[6:2] == OPCODE_JALR[6:2]                 // JALR
-                              || st1_instr[6:2] == OPCODE_ALUI[6:2];                // ADDI/STLI/STLIU/XORI/ORI/ANDI
-            st2_adder_imm_val <= st1_funct3 == FUNCT3_SLTIU ? rval_t'($unsigned(st1_imm_i)) : rval_t'($signed(st1_imm_i));
+        if ( cke && !s_wait ) begin
+            // destination
+            st2_offset    <= st1_lui || st1_auipc || st1_jal || st1_jalr;
+            st2_adder     <= st1_alu && (st1_funct3 == FUNCT3_ADD || st1_funct3 == FUNCT3_SLT || st1_funct3 == FUNCT3_SLTU);
+            st2_logical   <= st1_alu && (st1_funct3 == FUNCT3_XOR || st1_funct3 == FUNCT3_OR  || st1_funct3 == FUNCT3_AND);
+            st2_shifter   <= st1_alu && (st1_funct3 == FUNCT3_SL  || st1_funct3 == FUNCT3_SR);
+            st2_load      <= st1_opcode[6:2] == OPCODE_LOAD[6:2];
+            st2_store     <= st1_opcode[6:2] == OPCODE_STORE[6:2];
+            st2_branch    <= st1_jal || st1_jalr || st1_branch;
 
+            // adder
+            st2_adder_sub     <= (st1_instr[6:5] == 2'b01 && st1_instr[30] == 1'b1) // SUB
+                            || (st1_instr[6:2] == OPCODE_BRANCH[6:2]);                 // BEQ/BNE/BLT/BGE/BLTU/BGEU
+            st2_adder_imm_en  <= st1_instr[6:2] == OPCODE_JALR[6:2]                 // JALR
+                            || st1_instr[6:2] == OPCODE_ALUI[6:2];                // ADDI/STLI/STLIU/XORI/ORI/ANDI
+            st2_adder_imm_val <= st1_funct3 == FUNCT3_SLTU ? rval_t'($unsigned(st1_imm_i)) : rval_t'($signed(st1_imm_i));
+
+            // shifter
             st2_shifter_arithmetic <= st1_funct7[5] ;
             st2_shifter_left       <= ~st1_funct3[2];
             st2_shifter_imm_en     <= ~st1_opcode[5];
             st2_shifter_imm_val    <= st1_shamt     ;
+
         end
     end
 
