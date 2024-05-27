@@ -24,7 +24,7 @@ module jelly3_jfive_logical
             input   var logic               cke             ,
 
             // input
-            input   var logic   [1:0]       s_op            ,
+            input   var logic   [1:0]       s_mode          ,
             input   var logic               s_imm_en        ,
             input   var rval_t              s_imm_val       ,
             input   var rval_t              s_rs1_val       ,
@@ -42,7 +42,7 @@ module jelly3_jfive_logical
     rval_t              st0_rd_val  ;
     always_ff @(posedge clk) begin
         if ( cke ) begin
-            case ( s_op )
+            case ( s_mode )
             2'b00:      st0_rd_val <= s_rs1_val ^ s_rs2_val;
             2'b10:      st0_rd_val <= s_rs1_val | s_rs2_val;
             2'b11:      st0_rd_val <= s_rs1_val & s_rs2_val;

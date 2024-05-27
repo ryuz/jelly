@@ -33,6 +33,7 @@ module jelly3_jfive_adder
             // output
             output  var logic               m_msb_c         ,
             output  var logic               m_carry         ,
+            output  var logic               m_sign          ,
             output  var rval_t              m_rd_val        
         );
 
@@ -127,6 +128,7 @@ module jelly3_jfive_adder
 
     assign m_msb_c  = st0_msb_c;
     assign m_carry  = st0_carry;
+    assign m_sign   = st0_rd_val[XLEN-1];
     assign m_rd_val = st0_rd_val;
 
 endmodule
