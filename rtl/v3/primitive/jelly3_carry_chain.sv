@@ -33,7 +33,7 @@ module jelly3_carry_chain
             || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
             || string'(DEVICE) == "ULTRASCALE_PLUS_ES2" ) begin : xilinx
         
-        localparam  int     CARRY8_N    = $bits(data_t) + 7 / 8;
+        localparam  int     CARRY8_N    = ($bits(data_t) + 7) / 8;
         localparam  int     CARRY8_BITS = CARRY8_N * 8;
 
         logic   [CARRY8_N-1:0]      carry8_ci;
