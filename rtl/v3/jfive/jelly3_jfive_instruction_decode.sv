@@ -116,22 +116,22 @@ module jelly3_jfive_instruction_decode
     
     localparam  opcode_t    OPCODE_JALR     = 7'b1100111;
 
-    localparam  opcode_t    OPCODE_BRANCH        = 7'b1100011;
-    localparam  opcode_t    OPCODE_BRANCHEQ      = 7'b1100011;
-    localparam  opcode_t    OPCODE_BRANCHNE      = 7'b1100011;
-    localparam  opcode_t    OPCODE_BRANCHLT      = 7'b1100011;
-    localparam  opcode_t    OPCODE_BRANCHGE      = 7'b1100011;
-    localparam  opcode_t    OPCODE_BRANCHLTU     = 7'b1100011;
-    localparam  opcode_t    OPCODE_BRANCHGEU     = 7'b1100011;
+    localparam  opcode_t    OPCODE_BRANCH   = 7'b1100011;
+    localparam  opcode_t    OPCODE_BEQ      = 7'b1100011;
+    localparam  opcode_t    OPCODE_BNE      = 7'b1100011;
+    localparam  opcode_t    OPCODE_BLT      = 7'b1100011;
+    localparam  opcode_t    OPCODE_BGE      = 7'b1100011;
+    localparam  opcode_t    OPCODE_BLTU     = 7'b1100011;
+    localparam  opcode_t    OPCODE_BGEU     = 7'b1100011;
     
-    localparam  opcode_t    OPCODE_LOAD        = 7'b0000011;
+    localparam  opcode_t    OPCODE_LOAD     = 7'b0000011;
     localparam  opcode_t    OPCODE_LB       = 7'b0000011;
     localparam  opcode_t    OPCODE_LH       = 7'b0000011;
     localparam  opcode_t    OPCODE_LW       = 7'b0000011;
     localparam  opcode_t    OPCODE_LBU      = 7'b0000011;
     localparam  opcode_t    OPCODE_LHU      = 7'b0000011;
     
-    localparam  opcode_t    OPCODE_STORE        = 7'b0100011;
+    localparam  opcode_t    OPCODE_STORE    = 7'b0100011;
     localparam  opcode_t    OPCODE_SB       = 7'b0100011;
     localparam  opcode_t    OPCODE_SH       = 7'b0100011;
     localparam  opcode_t    OPCODE_SW       = 7'b0100011;
