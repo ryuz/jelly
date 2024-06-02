@@ -278,6 +278,20 @@ module jelly3_jfive_instruction_decode
     logic           st1_store               ;
     logic           st1_alu                 ;
 
+    wire    opcode_t                st1_opcode  = st1_instr[6:0]   ;
+    wire    ridx_t                  st1_rd_idx  = st1_instr[11:7]  ;
+    wire    ridx_t                  st1_rs1_idx = st1_instr[19:15] ;
+    wire    ridx_t                  st1_rs2_idx = st1_instr[24:20] ;
+    wire    funct3_t                st1_funct3  = st1_instr[14:12] ;
+    wire    funct7_t                st1_funct7  = st1_instr[31:25] ;
+
+    wire    logic   signed  [11:0]  st1_imm_i = st1_instr[31:20]                                                        ;
+    wire    logic   signed  [11:0]  st1_imm_s = {st1_instr[31:25], st1_instr[11:7]}                                     ;
+    wire    logic   signed  [12:0]  st1_imm_b = {st1_instr[31], st1_instr[7], st1_instr[30:25], st1_instr[11:8], 1'b0}  ;
+    wire    logic   signed  [31:0]  st1_imm_u = {st1_instr[31:12], 12'd0}                                               ;
+    wire    logic   signed  [20:0]  st1_imm_j = {st1_instr[31], st1_instr[19:12], st1_instr[20], st1_instr[30:21], 1'b0};
+    wire    logic           [4:0]   st1_shamt = st1_instr[24:20]                                                        ;
+
 
     // stage 2
     logic           st2_stall               ;
@@ -313,6 +327,21 @@ module jelly3_jfive_instruction_decode
 
     logic   [2:0]   st2_branch_mode         ;
     pc_t            st2_branch_pc           ;
+
+    wire    opcode_t                st2_opcode  = st2_instr[6:0]   ;
+    wire    ridx_t                  st2_rd_idx  = st2_instr[11:7]  ;
+    wire    ridx_t                  st2_rs1_idx = st2_instr[19:15] ;
+    wire    ridx_t                  st2_rs2_idx = st2_instr[24:20] ;
+    wire    funct3_t                st2_funct3  = st2_instr[14:12] ;
+    wire    funct7_t                st2_funct7  = st2_instr[31:25] ;
+
+    wire    logic   signed  [11:0]  st2_imm_i = st2_instr[31:20]                                                        ;
+    wire    logic   signed  [11:0]  st2_imm_s = {st2_instr[31:25], st2_instr[11:7]}                                     ;
+    wire    logic   signed  [12:0]  st2_imm_b = {st2_instr[31], st2_instr[7], st2_instr[30:25], st2_instr[11:8], 1'b0}  ;
+    wire    logic   signed  [31:0]  st2_imm_u = {st2_instr[31:12], 12'd0}                                               ;
+    wire    logic   signed  [20:0]  st2_imm_j = {st2_instr[31], st2_instr[19:12], st2_instr[20], st2_instr[30:21], 1'b0};
+    wire    shamt_t                 st2_shamt = st2_instr[20 +: $bits(shamt_t)]                                         ;
+
 
 
     // -----------------------------------------
@@ -487,19 +516,7 @@ module jelly3_jfive_instruction_decode
                                 })
             );
 
-    wire    opcode_t                st1_opcode  = st1_instr[6:0]   ;
-    wire    ridx_t                  st1_rd_idx  = st1_instr[11:7]  ;
-    wire    ridx_t                  st1_rs1_idx = st1_instr[19:15] ;
-    wire    ridx_t                  st1_rs2_idx = st1_instr[24:20] ;
-    wire    funct3_t                st1_funct3  = st1_instr[14:12] ;
-    wire    funct7_t                st1_funct7  = st1_instr[31:25] ;
-
-    wire    logic   signed  [11:0]  st1_imm_i = st1_instr[31:20]                                                        ;
-    wire    logic   signed  [11:0]  st1_imm_s = {st1_instr[31:25], st1_instr[11:7]}                                     ;
-    wire    logic   signed  [12:0]  st1_imm_b = {st1_instr[31], st1_instr[7], st1_instr[30:25], st1_instr[11:8], 1'b0}  ;
-    wire    logic   signed  [31:0]  st1_imm_u = {st1_instr[31:12], 12'd0}                                               ;
-    wire    logic   signed  [20:0]  st1_imm_j = {st1_instr[31], st1_instr[19:12], st1_instr[20], st1_instr[30:21], 1'b0};
-    wire    logic           [4:0]   st1_shamt = st1_instr[24:20]                                                        ;
+                                                  ;
 
 
 
@@ -626,19 +643,6 @@ module jelly3_jfive_instruction_decode
         end
     end
 
-    wire    opcode_t                st2_opcode  = st2_instr[6:0]   ;
-    wire    ridx_t                  st2_rd_idx  = st2_instr[11:7]  ;
-    wire    ridx_t                  st2_rs1_idx = st2_instr[19:15] ;
-    wire    ridx_t                  st2_rs2_idx = st2_instr[24:20] ;
-    wire    funct3_t                st2_funct3  = st2_instr[14:12] ;
-    wire    funct7_t                st2_funct7  = st2_instr[31:25] ;
-
-    wire    logic   signed  [11:0]  st2_imm_i = st2_instr[31:20]                                                        ;
-    wire    logic   signed  [11:0]  st2_imm_s = {st2_instr[31:25], st2_instr[11:7]}                                     ;
-    wire    logic   signed  [12:0]  st2_imm_b = {st2_instr[31], st2_instr[7], st2_instr[30:25], st2_instr[11:8], 1'b0}  ;
-    wire    logic   signed  [31:0]  st2_imm_u = {st2_instr[31:12], 12'd0}                                               ;
-    wire    logic   signed  [20:0]  st2_imm_j = {st2_instr[31], st2_instr[19:12], st2_instr[20], st2_instr[30:21], 1'b0};
-    wire    shamt_t                 st2_shamt = st2_instr[20 +: $bits(shamt_t)]                                         ;
 
 
 

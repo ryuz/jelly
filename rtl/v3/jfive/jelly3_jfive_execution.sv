@@ -384,6 +384,9 @@ module jelly3_jfive_execution
         end
     end
 
+
+    assign s_wait = 1'b0;
+
 endmodule
 
 

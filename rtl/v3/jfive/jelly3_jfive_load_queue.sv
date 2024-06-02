@@ -12,7 +12,7 @@
 
 module jelly3_jfive_load_queue
         #(
-            parameter   int     QUE_SIZE    = 1                                 ,
+            parameter   int     QUE_SIZE    = 4                                 ,
             parameter   int     XLEN        = 32                                ,
             parameter   int     ID_BITS     = 4                                 ,
             parameter   type    id_t        = logic         [ID_BITS-1:0]       ,

@@ -16,14 +16,17 @@ module jelly3_jfive_program_counter
             parameter   int                     THREADS     = 4                                 ,
             parameter   int                     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
             parameter   type                    id_t        = logic [ID_BITS-1:0]               ,
+            parameter   int                     PHASE_BITS  = 1                                 ,
+            parameter   type                    phase_t     = logic         [PHASE_BITS-1:0]    ,
             parameter   int                     PC_BITS     = 32                                ,
             parameter   type                    pc_t        = logic [PC_BITS-1:0]               ,
             parameter   pc_t                    PC_MASK     = '0                                ,
-            parameter                           DEVICE      = "RTL"                             ,
-            parameter   bit                     SIMULATION  = 1'b0                              ,
             parameter   bit     [THREADS-1:0]   INIT_RUN    = 1                                 ,
             parameter   id_t                    INIT_ID     = '0                                ,
-            parameter   pc_t    [THREADS-1:0]   INIT_PC     = '0                                
+            parameter   pc_t    [THREADS-1:0]   INIT_PC     = '0                                ,
+            parameter                           DEVICE      = "RTL"                             ,
+            parameter                           SIMULATION  = "false"                           ,
+            parameter                           DEBUG       = "false"                           
         )
         (
             input   var logic   reset           ,
@@ -45,7 +48,7 @@ module jelly3_jfive_program_counter
 
             // instruction fetch output
             output  var id_t    m_id            ,
-            output  var logic   m_phase         ,
+            output  var phase_t m_phase         ,
             output  var pc_t    m_pc            ,
             output  var logic   m_valid         ,
             input   var logic   m_wait         
