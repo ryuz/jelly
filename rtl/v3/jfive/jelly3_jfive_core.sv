@@ -171,7 +171,8 @@ module jelly3_jfive_core
     localparam   type   ridx_t      = logic         [4:0]               ;
     localparam   type   rval_t      = logic signed  [XLEN-1:0]          ;
     localparam   int    SHAMT_BITS  = $clog2(XLEN)                      ;
-    localparam   type   shamt_t     = logic         [$clog2(XLEN)-1:0]  ;
+    localparam   type   shamt_t     = logic         [SHAMT_BITS-1:0]    ;
+//  localparam   type   shamt_t     = logic         [4:0]    ;
 
 
     id_t    [EXES-1:0]  exe_id                  ;

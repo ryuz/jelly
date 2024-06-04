@@ -23,6 +23,7 @@ VLOGFLAGS += $(addprefix --sourcelibdir ,$(SIM_LIB_DIRS))
 ELABFLAGS  = -debug wave
  
 SRCS  = ../$(TOP_MODULE).sv
+SRCS += $(JELLY_TOP_DIR)/rtl/v3/jfive/jelly3_jfive32_pkg.sv
 SRCS += $(XILINX_VIVADO)/data/verilog/src/glbl.v
 
 

@@ -4,13 +4,12 @@
 
 
 module tb_main
+    import jelly3_jfive32_pkg::*;
         (
             input   wire                        reset,
             input   wire                        clk
         );
     
-
-
 
     localparam  int                     XLEN           = 32                                 ;
     localparam  int                     THREADS        = 4                                  ;
@@ -273,6 +272,20 @@ module tb_main
     end
     */
 
+    localparam  type    mnemonic_t = logic [64*8-1:0];
+    mnemonic_t   mnemonic;
+    assign mnemonic = mnemonic_t'(instr2mnemonic(ibus_res_instr));
+    /*
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            mnemonic <= "reset";
+        end
+        else begin
+            // string を信号に変換
+            mnemonic <= mnemonic_t'(instr2mnemonic(ibus_res_instr));
+        end
+    end
+    */
 endmodule
 
 

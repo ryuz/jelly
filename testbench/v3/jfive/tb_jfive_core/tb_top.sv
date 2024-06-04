@@ -14,10 +14,10 @@ module tb_top();
         $finish();
     end
 
-    reg     reset = 1'b1;
+    logic   reset = 1'b1;
     always #(RATE*100)  reset = 1'b0;
 
-    reg     clk = 1'b1;
+    logic   clk = 1'b1;
     always #(RATE/2.0)  clk = ~clk;
     
 
@@ -26,7 +26,7 @@ module tb_top();
     // -----------------------------
 
     tb_main
-        i_main
+        u_tb_main
             (
                 .reset,
                 .clk

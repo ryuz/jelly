@@ -297,7 +297,7 @@ module jelly3_jfive_execution
                 .s_left         (s_shifter_left         ),
                 .s_imm_en       (s_shifter_imm_en       ),
                 .s_rs1_val      (s_rs1_val              ),
-                .s_rs2_val      (s_rs2_val              ),
+                .s_rs2_val      (shamt_t'(s_rs2_val)    ),
                 .s_shamt        (s_shifter_imm_val      ),
 
                 .m_rd_val       (st1_shifter_rd_val     )

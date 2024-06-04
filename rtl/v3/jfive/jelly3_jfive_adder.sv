@@ -73,7 +73,7 @@ module jelly3_jfive_adder
         rval_t  cc_cout;
         jelly3_carry_chain
                 #(
-                    .DATA_BITS  (DATA_BITS  ),
+                    .DATA_BITS  (XLEN       ),
                     .data_t     (rval_t     ),
                     .DEVICE     (DEVICE     ),
                     .SIMULATION (SIMULATION ),
