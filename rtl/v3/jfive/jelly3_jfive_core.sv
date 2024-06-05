@@ -165,14 +165,14 @@ module jelly3_jfive_core
     //  Instruction Decode
     // -----------------------------
 
-    localparam   int    EXES        = 4                                 ;
+    localparam   int    EXES        = 3                                 ;
     localparam   bit    RAW_HAZARD  = 1'b1                              ;
     localparam   bit    WAW_HAZARD  = 1'b1                              ;
     localparam   type   ridx_t      = logic         [4:0]               ;
     localparam   type   rval_t      = logic signed  [XLEN-1:0]          ;
     localparam   int    SHAMT_BITS  = $clog2(XLEN)                      ;
-    localparam   type   shamt_t     = logic         [SHAMT_BITS-1:0]    ;
-//  localparam   type   shamt_t     = logic         [4:0]    ;
+//  localparam   type   shamt_t     = logic         [SHAMT_BITS-1:0]    ;
+    localparam   type   shamt_t     = logic         [4:0]    ;
 
 
     id_t    [EXES-1:0]  exe_id                  ;
@@ -244,9 +244,11 @@ module jelly3_jfive_core
                 .reset                  ,
                 .clk                    ,
                 .cke                    ,
+                
                 .exe_id                 ,
                 .exe_rd_en              ,
                 .exe_rd_idx             ,
+
                 .wb_id                  ,
                 .wb_rd_en               ,
                 .wb_rd_idx              ,
@@ -336,12 +338,18 @@ module jelly3_jfive_core
                 .branch_pc              ,
                 .branch_valid           ,
 
+                .wb_id                  ,
+                .wb_rd_en               ,
+                .wb_rd_idx              ,
+                .wb_rd_val              ,
+
                 .s_id                   (id_id                ),
                 .s_phase                (id_phase             ),
                 .s_pc                   (id_pc                ),
                 .s_instr                (id_instr             ),
                 .s_rd_en                (id_rd_en             ),
                 .s_rd_idx               (id_rd_idx            ),
+                .s_rd_val               (id_rd_val            ),
                 .s_rs1_en               (id_rs1_en            ),
                 .s_rs1_val              (id_rs1_val           ),
                 .s_rs2_en               (id_rs2_en            ),

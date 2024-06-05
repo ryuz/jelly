@@ -445,10 +445,10 @@ module jelly3_jfive_instruction_decode
             st1_valid     <= 1'b0;
         end
         else if ( cke && !s_wait ) begin
-            st1_id        <= st1_id     ;
-            st1_phase     <= st1_phase  ;
-            st1_pc        <= st1_pc     ;
-            st1_instr     <= st1_instr  ;
+            st1_id        <= st0_id     ;
+            st1_phase     <= st0_phase  ;
+            st1_pc        <= st0_pc     ;
+            st1_instr     <= st0_instr  ;
             st1_rd_en     <= st0_rd_en  && (st0_rd_idx  != 0);
             st1_rs1_en    <= st0_rs1_en && (st0_rs1_idx != 0);
             st1_rs2_en    <= st0_rs2_en && (st0_rs2_idx != 0);
@@ -478,7 +478,7 @@ module jelly3_jfive_instruction_decode
             st1_branch  <= st0_opcode[6:2] == OPCODE_BRANCH[6:2];
             st1_load    <= st0_opcode[6:2] == OPCODE_LOAD[6:2];
             st1_store   <= st0_opcode[6:2] == OPCODE_STORE[6:2];
-            st1_alu     <= st0_opcode[6:2] == OPCODE_ALU[6:2];
+            st1_alu     <= st0_opcode[6:2] == OPCODE_ALU[6:2] || st0_opcode[6:2] == OPCODE_ALUI[6:2];
         end
     end
 
@@ -659,6 +659,7 @@ module jelly3_jfive_instruction_decode
 
     assign m_rd_en              = st2_rd_en                 ;
     assign m_rd_idx             = st2_rd_idx                ;
+    assign m_rd_val             = st2_rd_val                ;
     assign m_rs1_en             = st2_rs1_en                ;
     assign m_rs1_val            = st2_rs1_val               ;
     assign m_rs2_en             = st2_rs2_en                ;

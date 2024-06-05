@@ -254,6 +254,18 @@ module tb_main
     assign dbus_res_valid = dbus_st1_valid  ;
 
 
+    localparam  type    mnemonic_t = logic [64*8-1:0];
+    
+    wire    mnemonic_t   ibus_res_mnemonic = mnemonic_t'(instr2mnemonic(ibus_res_instr));
+
+    wire    mnemonic_t   id0_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_instruction_decode.st0_instr));
+    wire    mnemonic_t   id1_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_instruction_decode.st1_instr));
+    wire    mnemonic_t   id2_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_instruction_decode.st2_instr));
+    wire    mnemonic_t   ex0_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_execution.st0_instr));
+    wire    mnemonic_t   ex1_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_execution.st1_instr));
+    wire    mnemonic_t   ex2_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_execution.st2_instr));
+
+
     /*
     logic   [1:0]   mem_shift;
     always_ff @(posedge clk) begin
@@ -272,9 +284,6 @@ module tb_main
     end
     */
 
-    localparam  type    mnemonic_t = logic [64*8-1:0];
-    mnemonic_t   mnemonic;
-    assign mnemonic = mnemonic_t'(instr2mnemonic(ibus_res_instr));
     /*
     always_ff @(posedge clk) begin
         if ( reset ) begin

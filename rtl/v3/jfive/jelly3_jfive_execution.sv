@@ -26,7 +26,7 @@ module jelly3_jfive_execution
             parameter   type                    rval_t      = logic signed  [XLEN-1:0]          ,
             parameter   int                     SHAMT_BITS  = $clog2(XLEN)                      ,
             parameter   type                    shamt_t     = logic         [$clog2(XLEN)-1:0]  ,
-            parameter   int                     EXES        = 4                                 ,
+            parameter   int                     EXES        = 3                                 ,
             parameter   bit                     RAW_HAZARD  = 1'b1                              ,
             parameter   bit                     WAW_HAZARD  = 1'b1                              ,
             parameter                           DEVICE      = "RTL"                             ,
@@ -48,6 +48,12 @@ module jelly3_jfive_execution
             output  var pc_t                branch_pc           ,
             output  var logic               branch_valid        ,
 
+            // write-back
+            output  var id_t                wb_id               ,
+            output  var logic               wb_rd_en            ,
+            output  var ridx_t              wb_rd_idx           ,
+            output  var rval_t              wb_rd_val           ,
+
             // output
             input   var id_t                s_id                ,
             input   var phase_t             s_phase             ,
@@ -55,6 +61,7 @@ module jelly3_jfive_execution
             input   var instr_t             s_instr             ,
             input   var logic               s_rd_en             ,
             input   var ridx_t              s_rd_idx            ,
+            input   var rval_t              s_rd_val            ,
             input   var logic               s_rs1_en            ,
             input   var rval_t              s_rs1_val           ,
             input   var logic               s_rs2_en            ,
@@ -172,6 +179,7 @@ module jelly3_jfive_execution
     instr_t             st0_instr               ;
     logic               st0_rd_en               ;
     ridx_t              st0_rd_idx              ;
+    rval_t              st0_rd_val              ;
     logic               st0_rs1_en              ;
     rval_t              st0_rs1_val             ;
     logic               st0_rs2_en              ;
@@ -197,10 +205,7 @@ module jelly3_jfive_execution
     logic   [2:0]       st0_branch_mode         ;
     pc_t                st0_branch_pc           ;
 
-
     logic               st0_valid               ;
-
-
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -210,6 +215,7 @@ module jelly3_jfive_execution
             st0_instr               <= 'x;
             st0_rd_en               <= 'x;
             st0_rd_idx              <= 'x;
+            st0_rd_val              <= 'x;
             st0_rs1_en              <= 'x;
             st0_rs1_val             <= 'x;
             st0_rs2_en              <= 'x;
@@ -240,8 +246,9 @@ module jelly3_jfive_execution
             st0_phase               <= s_phase              ;
             st0_pc                  <= s_pc                 ;
             st0_instr               <= s_instr              ;
-            st0_rd_en               <= s_rd_en              ;
+            st0_rd_en               <= s_rd_en & s_valid    ;
             st0_rd_idx              <= s_rd_idx             ;
+            st0_rd_val              <= s_rd_val             ;
             st0_rs1_en              <= s_rs1_en             ;
             st0_rs1_val             <= s_rs1_val            ;
             st0_rs2_en              <= s_rs2_en             ;
@@ -252,7 +259,7 @@ module jelly3_jfive_execution
             st0_shifter             <= s_shifter            ;
             st0_load                <= s_load               ;
             st0_store               <= s_store              ;
-            st0_branch              <= s_branch             ;
+            st0_branch              <= s_branch & s_valid   ;
             st0_adder_sub           <= s_adder_sub          ;
             st0_adder_imm_en        <= s_adder_imm_en       ;
             st0_adder_imm_val       <= s_adder_imm_val      ;
@@ -339,9 +346,8 @@ module jelly3_jfive_execution
                 .s_eq            (st0_match_eq          ),
                 .s_jalr_pc       (st0_adder_rd_val      ),
                 .s_imm_pc        (st0_branch_pc         ),
-                .s_valid         (st0_valid             )
+                .s_valid         (st0_branch            )
             );
-
 
     // control
     id_t                st1_id          ;
@@ -350,10 +356,13 @@ module jelly3_jfive_execution
     instr_t             st1_instr       ;
     logic               st1_rd_en       ;
     ridx_t              st1_rd_idx      ;
+    rval_t              st1_rd_val      ;
     logic               st1_rs1_en      ;
     rval_t              st1_rs1_val     ;
     logic               st1_rs2_en      ;
     rval_t              st1_rs2_val     ;
+    logic               st1_shifter     ;
+    logic               st1_load        ;
     logic               st1_valid       ;
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -363,10 +372,13 @@ module jelly3_jfive_execution
             st1_instr   <= 'x;
             st1_rd_en   <= 'x;
             st1_rd_idx  <= 'x;
+            st1_rd_val  <= 'x;
             st1_rs1_en  <= 'x;
             st1_rs1_val <= 'x;
             st1_rs2_en  <= 'x;
             st1_rs2_val <= 'x;
+            st1_shifter <= 'x;
+            st1_load    <= 'x;
             st1_valid   <= 1'b0;
         end
         else if ( cke && !s_wait ) begin
@@ -374,15 +386,84 @@ module jelly3_jfive_execution
             st1_phase   <= st0_phase  ;
             st1_pc      <= st0_pc     ;
             st1_instr   <= st0_instr  ;
-            st1_rd_en   <= st0_rd_en  ;
+            st1_rd_en   <= st0_rd_en && (st1_phase_table[st0_id] == st0_phase);
             st1_rd_idx  <= st0_rd_idx ;
+            st1_rd_val  <= st0_adder   ? st0_adder_rd_val   :
+                           st0_logical ? st0_logical_rd_val :
+                           st0_rd_val ;
             st1_rs1_en  <= st0_rs1_en ;
             st1_rs1_val <= st0_rs1_val;
             st1_rs2_en  <= st0_rs2_en ;
             st1_rs2_val <= st0_rs2_val;
+            st1_shifter <= st0_shifter;
+            st1_load    <= st0_load   ;
             st1_valid   <= st0_valid && (st1_phase_table[st0_id] == st0_phase);
         end
     end
+
+
+    // -----------------------------------------
+    //  stage 2
+    // -----------------------------------------
+
+    // control
+    id_t                st2_id          ;
+    phase_t             st2_phase       ;
+    pc_t                st2_pc          ;
+    instr_t             st2_instr       ;
+    logic               st2_rd_en       ;
+    ridx_t              st2_rd_idx      ;
+    rval_t              st2_rd_val      ;
+    logic               st2_rs1_en      ;
+    rval_t              st2_rs1_val     ;
+    logic               st2_rs2_en      ;
+    rval_t              st2_rs2_val     ;
+    logic               st2_shifter     ;
+    logic               st2_load        ;
+    logic               st2_valid       ;
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            st2_id      <= 'x;
+            st2_phase   <= 'x;
+            st2_pc      <= 'x;
+            st2_instr   <= 'x;
+            st2_rd_en   <= 'x;
+            st2_rd_idx  <= 'x;
+            st2_rd_val  <= 'x;
+            st2_rs1_en  <= 'x;
+            st2_rs1_val <= 'x;
+            st2_rs2_en  <= 'x;
+            st2_rs2_val <= 'x;
+            st2_shifter <= 'x;
+            st2_load    <= 'x;
+            st2_valid   <= 1'b0;
+        end
+        else if ( cke && !s_wait ) begin
+            st2_id      <= st1_id     ;
+            st2_phase   <= st1_phase  ;
+            st2_pc      <= st1_pc     ;
+            st2_instr   <= st1_instr  ;
+            st2_rd_en   <= st1_rd_en  ;
+            st2_rd_idx  <= st1_rd_idx ;
+            st2_rd_val  <= st1_shifter ? st1_shifter_rd_val :
+                           st1_rd_val ;
+            st2_rs1_en  <= st1_rs1_en ;
+            st2_rs1_val <= st1_rs1_val;
+            st2_rs2_en  <= st1_rs2_en ;
+            st2_rs2_val <= st1_rs2_val;
+            st2_valid   <= st1_valid  ;
+        end
+    end
+
+   assign exe_id     = {st0_id,     st1_id,     st2_id    };
+   assign exe_rd_en  = {st0_rd_en,  st1_rd_en,  1'b0};//st2_rd_en };
+   assign exe_rd_idx = {st0_rd_idx, st1_rd_idx, st2_rd_idx};
+
+
+    assign wb_id     = st2_id       ;
+    assign wb_rd_en  = st2_rd_en    ;
+    assign wb_rd_idx = st2_rd_idx   ;
+    assign wb_rd_val = st2_rd_val   ;
 
 
     assign s_wait = 1'b0;
