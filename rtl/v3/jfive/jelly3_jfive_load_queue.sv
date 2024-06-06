@@ -29,9 +29,13 @@ module jelly3_jfive_load_queue
             input   var logic                   clk             ,
             input   var logic                   cke             ,
 
-            output  var id_t    [QUE_SIZE-1:0]  exe_id          ,
-            output  var logic   [QUE_SIZE-1:0]  exe_rd_en       ,
-            output  var ridx_t  [QUE_SIZE-1:0]  exe_rd_idx      ,
+            output  var id_t    [QUE_SIZE-1:0]  que_id          ,
+            output  var logic   [QUE_SIZE-1:0]  que_rd_en       ,
+            output  var ridx_t  [QUE_SIZE-1:0]  que_rd_idx      ,
+            output  var align_t [QUE_SIZE-1:0]  que_align       ,
+            output  var size_t  [QUE_SIZE-1:0]  que_size        ,
+            output  var logic   [QUE_SIZE-1:0]  que_unsigned    ,
+            output  var logic   [QUE_SIZE-1:0]  que_valid       ,
 
             // input
             input   var id_t                    s_id            ,
@@ -56,12 +60,12 @@ module jelly3_jfive_load_queue
     localparam  type    count_t    = logic  [COUNT_BITS-1:0]    ;
 
 
-    id_t    [QUE_SIZE-1:0]      que_id      , next_id      ;
-    ridx_t  [QUE_SIZE-1:0]      que_rd_idx  , next_rd_idx  ;
-    align_t [QUE_SIZE-1:0]      que_align   , next_align   ;
-    size_t  [QUE_SIZE-1:0]      que_size    , next_size    ;
-    logic   [QUE_SIZE-1:0]      que_unsigned, next_unsigned;
-    logic   [QUE_SIZE-1:0]      que_valid   , next_valid   ;
+    id_t    [QUE_SIZE-1:0]  next_id         ;
+    ridx_t  [QUE_SIZE-1:0]  next_rd_idx     ;
+    align_t [QUE_SIZE-1:0]  next_align      ;
+    size_t  [QUE_SIZE-1:0]  next_size       ;
+    logic   [QUE_SIZE-1:0]  next_unsigned   ;
+    logic   [QUE_SIZE-1:0]  next_valid      ;
     always_comb begin
         next_id       = que_id      ;
         next_rd_idx   = que_rd_idx  ;
@@ -118,11 +122,7 @@ module jelly3_jfive_load_queue
             que_valid    <= next_valid    ;
         end
     end
-
-    assign exe_id       = que_id      ;
-    assign exe_rd_idx   = que_rd_idx  ;
-    assign exe_rd_en    = que_valid   ;
-
+    
     assign s_wait      = que_valid[QUE_SIZE-1]; // && !m_wait;
 
     assign m_id        = que_id      [0] ;

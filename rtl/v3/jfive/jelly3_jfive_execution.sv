@@ -12,26 +12,35 @@
 
 module jelly3_jfive_execution
         #(
-            parameter   int                     XLEN        = 32,
-            parameter   int                     THREADS     = 4                                 ,
-            parameter   int                     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
-            parameter   type                    id_t        = logic         [ID_BITS-1:0]       ,
-            parameter   int                     PHASE_BITS  = 1                                 ,
-            parameter   type                    phase_t     = logic         [PHASE_BITS-1:0]    ,
-            parameter   int                     PC_BITS     = 32                                ,
-            parameter   type                    pc_t        = logic         [PC_BITS-1:0]       ,
-            parameter   int                     INSTR_BITS  = 32                                ,
-            parameter   type                    instr_t     = logic         [INSTR_BITS-1:0]    ,
-            parameter   type                    ridx_t      = logic         [4:0]               ,
-            parameter   type                    rval_t      = logic signed  [XLEN-1:0]          ,
-            parameter   int                     SHAMT_BITS  = $clog2(XLEN)                      ,
-            parameter   type                    shamt_t     = logic         [$clog2(XLEN)-1:0]  ,
-            parameter   int                     EXES        = 3                                 ,
-            parameter   bit                     RAW_HAZARD  = 1'b1                              ,
-            parameter   bit                     WAW_HAZARD  = 1'b1                              ,
-            parameter                           DEVICE      = "RTL"                             ,
-            parameter                           SIMULATION  = "false"                           ,
-            parameter                           DEBUG       = "false"               
+            parameter   int     XLEN        = 32                                ,
+            parameter   int     THREADS     = 4                                 ,
+            parameter   int     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
+            parameter   type    id_t        = logic         [ID_BITS-1:0]       ,
+            parameter   int     PHASE_BITS  = 1                                 ,
+            parameter   type    phase_t     = logic         [PHASE_BITS-1:0]    ,
+            parameter   int     PC_BITS     = 32                                ,
+            parameter   type    pc_t        = logic         [PC_BITS-1:0]       ,
+            parameter   int     INSTR_BITS  = 32                                ,
+            parameter   type    instr_t     = logic         [INSTR_BITS-1:0]    ,
+            parameter   type    ridx_t      = logic         [4:0]               ,
+            parameter   type    rval_t      = logic signed  [XLEN-1:0]          ,
+            parameter   int     SHAMT_BITS  = $clog2(XLEN)                      ,
+            parameter   type    shamt_t     = logic         [$clog2(XLEN)-1:0]  ,
+            parameter   int     ADDR_BITS   = $bits(rval_t)                     ,
+            parameter   type    addr_t      = logic         [ADDR_BITS-1:0]     ,
+            parameter   int     DATA_BITS   = $bits(rval_t)                     ,
+            parameter   type    data_t      = logic         [DATA_BITS-1:0]     ,
+            parameter   int     STRB_BITS   = $bits(data_t) / 8                 ,
+            parameter   type    strb_t      = logic         [STRB_BITS-1:0]     ,
+            parameter   int     ALIGN_BITS  = $clog2($bits(strb_t))             ,
+            parameter   type    align_t     = logic         [ALIGN_BITS-1:0]    ,
+            parameter   type    size_t      = logic         [1:0]               ,
+            parameter   int     EXES        = 3                                 ,
+            parameter   bit     RAW_HAZARD  = 1'b1                              ,
+            parameter   bit     WAW_HAZARD  = 1'b1                              ,
+            parameter           DEVICE      = "RTL"                             ,
+            parameter           SIMULATION  = "false"                           ,
+            parameter           DEBUG       = "false"               
         )
         (
             input   var logic               reset               ,
@@ -53,6 +62,17 @@ module jelly3_jfive_execution
             output  var logic               wb_rd_en            ,
             output  var ridx_t              wb_rd_idx           ,
             output  var rval_t              wb_rd_val           ,
+
+            // data bus 
+            output  var addr_t              dbus_cmd_addr       ,
+            output  var logic               dbus_cmd_wr         ,
+            output  var strb_t              dbus_cmd_strb       ,
+            output  var data_t              dbus_cmd_wdata      ,
+            output  var logic               dbus_cmd_valid      ,
+            input   var logic               dbus_cmd_wait       ,
+            input   var data_t              dbus_res_rdata      ,
+            input   var logic               dbus_res_valid      ,
+            output  var logic               dbus_res_wait       ,
 
             // output
             input   var id_t                s_id                ,
@@ -85,6 +105,8 @@ module jelly3_jfive_execution
             input   var shamt_t             s_shifter_imm_val   ,
             input   var logic   [2:0]       s_branch_mode       ,
             input   var pc_t                s_branch_pc         ,
+            input   var size_t              s_mem_size          ,
+            input   var logic               s_mem_unsigned      ,
             input   var logic               s_valid             ,
             output  var logic               s_wait
         );
@@ -172,6 +194,26 @@ module jelly3_jfive_execution
                 .m_rd_val       (st0_logical_rd_val )
         );
 
+    // storobe 計算
+    function automatic strb_t make_strb(input size_t size, input align_t align);
+        case ( size )
+        2'b00:   return strb_t'('b0001) << (align & ~align_t'('b0000));
+        2'b01:   return strb_t'('b0011) << (align & ~align_t'('b0001));
+        2'b10:   return strb_t'('b1111) << (align & ~align_t'('b0011));
+        default: return '1;
+        endcase
+    endfunction
+
+    function automatic rval_t make_wdata(input size_t size, input rval_t val);
+        case ( size )
+        2'b00:   return {($bits(rval_t)/ 8){val[ 7:0]}};
+        2'b01:   return {($bits(rval_t)/16){val[15:0]}};
+        2'b10:   return {($bits(rval_t)/32){val[31:0]}};
+        default: return val;
+        endcase
+    endfunction
+
+
     // control
     id_t                st0_id                  ;
     phase_t             st0_phase               ;
@@ -204,7 +246,10 @@ module jelly3_jfive_execution
     shamt_t             st0_shifter_imm_val     ;
     logic   [2:0]       st0_branch_mode         ;
     pc_t                st0_branch_pc           ;
-
+    size_t              st0_mem_size            ;
+    logic               st0_mem_unsigned        ;
+    strb_t              st0_mem_strb            ;
+    rval_t              st0_mem_wdata           ;
     logic               st0_valid               ;
 
     always_ff @(posedge clk) begin
@@ -239,6 +284,10 @@ module jelly3_jfive_execution
             st0_shifter_imm_val     <= 'x;
             st0_branch_mode         <= 'x;
             st0_branch_pc           <= 'x;
+            st0_mem_size            <= 'x;
+            st0_mem_unsigned        <= 'x;
+            st0_mem_strb            <= 'x;
+            st0_mem_wdata           <= 'x;
             st0_valid               <= 1'b0;
         end
         else if ( cke && !s_wait ) begin
@@ -272,6 +321,10 @@ module jelly3_jfive_execution
             st0_shifter_imm_val     <= s_shifter_imm_val    ;
             st0_branch_mode         <= s_branch_mode        ;
             st0_branch_pc           <= s_branch_pc          ;
+            st0_mem_size            <= s_mem_size           ;
+            st0_mem_unsigned        <= s_mem_unsigned       ;
+            st0_mem_strb            <= make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val));
+            st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)                            ;
             st0_valid               <= s_valid              ;
         end
     end
@@ -348,6 +401,78 @@ module jelly3_jfive_execution
                 .s_imm_pc        (st0_branch_pc         ),
                 .s_valid         (st0_branch            )
             );
+
+    jelly3_jfive_load_store
+            #(
+                .QUE_SIZE       (4                      ),
+                .XLEN           (XLEN                   ),
+                .ID_BITS        (ID_BITS                ),
+                .id_t           (id_t                   ),
+                .PHASE_BITS     (PHASE_BITS             ),
+                .phase_t        (phase_t                ),
+                .PC_BITS        (PC_BITS                ),
+                .pc_t           (pc_t                   ),
+                .INSTR_BITS     (INSTR_BITS             ),
+                .instr_t        (instr_t                ),
+                .ridx_t         (ridx_t                 ),
+                .rval_t         (rval_t                 ),
+                .ADDR_BITS      (ADDR_BITS              ),
+                .addr_t         (addr_t                 ),
+                .DATA_BITS      (DATA_BITS              ),
+                .data_t         (data_t                 ),
+                .STRB_BITS      (STRB_BITS              ),
+                .strb_t         (strb_t                 ),
+                .ALIGN_BITS     (ALIGN_BITS             ),
+                .align_t        (align_t                ),
+                .size_t         (size_t                 ),
+                .RAW_HAZARD     (RAW_HAZARD             ),
+                .WAW_HAZARD     (WAW_HAZARD             ),
+                .DEVICE         (DEVICE                 ),
+                .SIMULATION     (SIMULATION             ),
+                .DEBUG          (DEBUG                  )
+            )
+        u_jfive_load_store
+            (
+                .reset           ,
+                .clk             ,
+                .cke             ,
+
+                .dbus_cmd_addr   ,
+                .dbus_cmd_wr     ,
+                .dbus_cmd_strb   ,
+                .dbus_cmd_wdata  ,
+                .dbus_cmd_valid  ,
+                .dbus_cmd_wait   ,
+                .dbus_res_rdata  ,
+                .dbus_res_valid  ,
+                .dbus_res_wait   ,
+
+                .que_id          (),
+                .que_rd_en       (),
+                .que_rd_idx      (),
+
+                .s_id            (st0_id                ),
+                .s_rd_en         (st0_rd_en             ),
+                .s_rd_idx        (st0_rd_idx            ),
+                .s_addr          (st0_adder_rd_val      ),
+                .s_size          (st0_mem_size          ),
+                .s_unsigned      (st0_mem_unsigned      ),
+                .s_rd            (st0_load              ),
+                .s_wr            (st0_store             ),
+                .s_strb          (st0_mem_strb          ),
+                .s_wdata         (st0_mem_wdata         ),
+                .s_valid         (st0_valid             ),
+                .s_wait          (                      ),
+
+                .m_id            (),
+                .m_rd_en         (),
+                .m_rd_idx        (),
+                .m_rd_val        (),
+                .m_valid         (),
+                .m_wait          ()
+            );
+
+
 
     // control
     id_t                st1_id          ;

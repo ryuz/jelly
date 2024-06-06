@@ -12,9 +12,9 @@
 
 module jelly3_jfive_load_store
         #(
+            parameter   int     QUE_SIZE    = 4                                 ,
             parameter   int     XLEN        = 32                                ,
-            parameter   int     THREADS     = 4                                 ,
-            parameter   int     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
+            parameter   int     ID_BITS     = 4                                 ,
             parameter   type    id_t        = logic         [ID_BITS-1:0]       ,
             parameter   int     PHASE_BITS  = 1                                 ,
             parameter   type    phase_t     = logic         [PHASE_BITS-1:0]    ,
@@ -33,7 +33,6 @@ module jelly3_jfive_load_store
             parameter   int     ALIGN_BITS  = $clog2($bits(strb_t))             ,
             parameter   type    align_t     = logic         [ALIGN_BITS-1:0]    ,
             parameter   type    size_t      = logic         [1:0]               ,
-
             parameter   bit     RAW_HAZARD  = 1'b1                              ,
             parameter   bit     WAW_HAZARD  = 1'b1                              ,
             parameter           DEVICE      = "RTL"                             ,
@@ -41,55 +40,139 @@ module jelly3_jfive_load_store
             parameter           DEBUG       = "false"                           
         )
         (
-            input   var logic               reset           ,
-            input   var logic               clk             ,
-            input   var logic               cke             ,
+            input   var logic                   reset           ,
+            input   var logic                   clk             ,
+            input   var logic                   cke             ,
 
-            // data bus
-            output  var addr_t              dbus_cmd_addr   ,
-            output  var logic               dbus_cmd_wr     ,
-            output  var strb_t              dbus_cmd_strb   ,
-            output  var data_t              dbus_cmd_wdata  ,
-            output  var logic               dbus_cmd_valid  ,
-            input   var logic               dbus_cmd_wait   ,
+            // data bus 
+            output  var addr_t                  dbus_cmd_addr   ,
+            output  var logic                   dbus_cmd_wr     ,
+            output  var strb_t                  dbus_cmd_strb   ,
+            output  var data_t                  dbus_cmd_wdata  ,
+            output  var logic                   dbus_cmd_valid  ,
+            input   var logic                   dbus_cmd_wait   ,
 
-            input   var data_t              dbus_ack_rdata  ,
-            input   var logic               dbus_ack_valid  ,
-            output  var logic               dbus_ack_wait   ,
+            input   var data_t                  dbus_res_rdata  ,
+            input   var logic                   dbus_res_valid  ,
+            output  var logic                   dbus_res_wait   ,
+
+            // execution
+            output  var id_t    [QUE_SIZE-1:0]  que_id          ,
+            output  var logic   [QUE_SIZE-1:0]  que_rd_en       ,
+            output  var ridx_t  [QUE_SIZE-1:0]  que_rd_idx      ,
 
             // input
-            input   var id_t                s_id            ,
-            input   var logic               s_rd_en         ,
-            input   var ridx_t              s_rd_idx        ,
-            input   var rval_t              s_addr          ,
-            input   var logic               s_rd            ,
-            input   var logic               s_wr            ,
-            input   var strb_t              s_strb          ,
-            input   var rval_t              s_wdata         ,
-            input   var logic               s_valid         ,
-            output  var logic               s_wait          ,
+            input   var id_t                    s_id            ,
+            input   var logic                   s_rd_en         ,
+            input   var ridx_t                  s_rd_idx        ,
+            input   var rval_t                  s_addr          ,
+            input   var size_t                  s_size          ,
+            input   var logic                   s_unsigned      ,
+            input   var logic                   s_rd            ,
+            input   var logic                   s_wr            ,
+            input   var strb_t                  s_strb          ,
+            input   var rval_t                  s_wdata         ,
+            input   var logic                   s_valid         ,
+            output  var logic                   s_wait          ,
 
-            // output
-            output  var id_t                m_id            ,
-            output  var logic               m_rd_en         ,
-            output  var ridx_t              m_rd_idx        ,
-            output  var rval_t              m_rd_val        ,
-            output  var logic               m_valid         ,
-            input   var logic               m_wait          
+            // output   
+            output  var id_t                    m_id            ,
+            output  var logic                   m_rd_en         ,
+            output  var ridx_t                  m_rd_idx        ,
+            output  var rval_t                  m_rd_val        ,
+            output  var logic                   m_valid         ,
+            input   var logic                   m_wait          
         );
+
+
+
+    // ------------------------------------
+    //  queue
+    // ------------------------------------
+
+    id_t        quein_id            ;
+    ridx_t      quein_rd_idx        ;
+    align_t     quein_align         ;
+    size_t      quein_size          ;
+    logic       quein_unsigned      ;
+    logic       quein_valid         ;
+    logic       quein_wait          ;
+
+    id_t        queout_id           ;
+    ridx_t      queout_rd_idx       ;
+    align_t     queout_align        ;
+    size_t      queout_size         ;
+    logic       queout_unsigned     ;
+    logic       queout_valid        ;
+    logic       queout_wait         ;
+
+    jelly3_jfive_load_queue
+            #(
+                .QUE_SIZE       (QUE_SIZE           ),
+                .XLEN           (XLEN               ),
+                .ID_BITS        (ID_BITS            ),
+                .id_t           (id_t               ),
+                .ridx_t         (ridx_t             ),
+                .ALIGN_BITS     (ALIGN_BITS         ),
+                .align_t        (align_t            ),
+                .size_t         (size_t             ),
+                .DEVICE         (DEVICE             ),
+                .SIMULATION     (SIMULATION         ),
+                .DEBUG          (DEBUG              )
+            )
+        u_jfive_load_queue
+            (
+                .reset           ,
+                .clk             ,
+                .cke             ,
+
+                .que_id          (que_id            ),
+                .que_rd_en       (que_rd_en         ),
+                .que_rd_idx      (que_rd_idx        ),
+                .que_align       (                  ),
+                .que_size        (                  ),
+                .que_unsigned    (                  ),
+                .que_valid       (                  ),
+
+                .s_id            (quein_id          ),
+                .s_rd_idx        (quein_rd_idx      ),
+                .s_align         (quein_align       ),
+                .s_size          (quein_size        ),
+                .s_unsigned      (quein_unsigned    ),
+                .s_valid         (quein_valid       ),
+                .s_wait          (quein_wait        ),
+
+                .m_id            (queout_id         ),
+                .m_rd_idx        (queout_rd_idx     ),
+                .m_align         (queout_align      ),
+                .m_size          (queout_size       ),
+                .m_unsigned      (queout_unsigned   ),
+                .m_valid         (queout_valid      ),
+                .m_wait          (queout_wait       )
+        );
+
+    assign quein_id        = s_id                   ;
+    assign quein_rd_idx    = s_rd_idx               ;
+    assign quein_align     = align_t'(s_addr)       ;
+    assign quein_size      = s_size                 ;
+    assign quein_unsigned  = s_unsigned             ;       
+    assign quein_valid     = s_rd && !dbus_cmd_wait ;
+
 
 
     // ------------------------------------
     //  command
     // ------------------------------------
 
-    assign dbus_cmd_addr  = s_addr;
-    assign dbus_cmd_wr    = s_wr;
-    assign dbus_cmd_strb  = s_strb;
-    assign dbus_cmd_wdata = s_wdata;
-    assign dbus_cmd_valid = s_valid;
+    logic               que_wait                    ;
 
-    assign s_wait = dbus_cmd_wait; //  || (st0_valid && !(dbus_ack_valid && !dbus_ack_wait));
+    assign dbus_cmd_addr  = s_addr                  ;
+    assign dbus_cmd_wr    = s_wr                    ;
+    assign dbus_cmd_strb  = s_strb                  ;
+    assign dbus_cmd_wdata = s_wdata                 ;
+    assign dbus_cmd_valid = s_valid & !quein_wait   ;
+
+    assign s_wait = dbus_cmd_wait || quein_wait     ;
 
 
     // ------------------------------------
@@ -99,103 +182,58 @@ module jelly3_jfive_load_store
     id_t                st0_id            ;
     logic               st0_rd_en         ;
     ridx_t              st0_rd_idx        ;
-    align_t             st0_align         ;
-    size_t              st0_size          ;
-    logic               st0_unsigned      ;
+    rval_t              st0_rd_val        ;
+    rval_t              st0_addr          ;
     logic               st0_rd            ;
     logic               st0_wr            ;
     strb_t              st0_strb          ;
     rval_t              st0_wdata         ;
-    logic               st0_valid         ;
-
-    always_ff @( posedge clk ) begin
-        if ( reset ) begin
-            st0_id      <= 'x;
-            st0_rd_en   <= 'x;
-            st0_rd_idx  <= 'x;
-            st0_align   <= 'x;
-            st0_size    <= 'x;
-            st0_rd      <= 'x;
-            st0_wr      <= 'x;
-            st0_strb    <= 'x;
-            st0_wdata   <= 'x;
-            st0_valid   <= 'x;
-        end
-        else if ( cke && !s_wait ) begin
-            st0_id      <= s_id             ;
-            st0_rd_en   <= s_rd_en          ;
-            st0_rd_idx  <= s_rd_idx         ;
-            st0_align   <= align_t'(s_addr) ;
-            st0_rd      <= s_rd             ;
-            st0_wr      <= s_wr             ;
-            st0_strb    <= s_strb           ;
-            st0_wdata   <= s_wdata          ;
-            st0_valid   <= s_valid          ;
-        end
-    end
-
-    rval_t      st0_rdata;
-    assign st0_rdata = (dbus_ack_rdata >> (st0_align * 8));
-
-
-    // ------------------------------------
-    //  Stage 1
-    // ------------------------------------
-
-    id_t                st1_id            ;
-    logic               st1_rd_en         ;
-    ridx_t              st1_rd_idx        ;
-    rval_t              st1_rd_val        ;
-    rval_t              st1_addr          ;
-    logic               st1_rd            ;
-    logic               st1_wr            ;
-    strb_t              st1_strb          ;
-    rval_t              st1_wdata         ;
-    logic               st1_valid         ;
+//  logic               st0_valid         ;
 
     always_ff @(posedge clk ) begin
         if ( cke ) begin
-            if ( !m_wait ) begin
-                st1_valid <= 1'b0;
-            end
+            if ( !m_valid || !m_wait ) begin
+                st0_rd_en  <= 1'b0          ;  
+                if ( dbus_res_valid && !dbus_res_wait ) begin
+                    st0_id     <= queout_id     ;
+                    st0_rd_en  <= 1'b1          ;  
+                    st0_rd_idx <= queout_rd_idx;
 
-            if ( dbus_ack_valid && !dbus_ack_wait ) begin
-                st1_id     <= st0_id    ;
-                st1_rd_en  <= st0_rd_en ;
-                st1_rd_idx <= st0_rd_idx;
-
-                if ( st0_unsigned ) begin
-                    case ( st0_size )
-                    2'b00:      st1_rd_val <= rval_t'($unsigned(st0_rdata[ 7:0]));
-                    2'b01:      st1_rd_val <= rval_t'($unsigned(st0_rdata[15:0]));
-                    2'b10:      st1_rd_val <= rval_t'($unsigned(st0_rdata[31:0]));
-                    default:    st1_rd_val <= rval_t'($unsigned(st0_rdata));
-                    endcase
+                    if ( queout_unsigned ) begin
+                        case ( queout_size )
+                        2'b00:      st0_rd_val <= rval_t'($unsigned(dbus_res_rdata[ 7:0]));
+                        2'b01:      st0_rd_val <= rval_t'($unsigned(dbus_res_rdata[15:0]));
+                        2'b10:      st0_rd_val <= rval_t'($unsigned(dbus_res_rdata[31:0]));
+                        default:    st0_rd_val <= rval_t'($unsigned(dbus_res_rdata));
+                        endcase
+                    end
+                    else begin
+                        case ( queout_size )
+                        2'b00:      st0_rd_val <= rval_t'($signed(dbus_res_rdata[ 7:0]));
+                        2'b01:      st0_rd_val <= rval_t'($signed(dbus_res_rdata[15:0]));
+                        2'b10:      st0_rd_val <= rval_t'($signed(dbus_res_rdata[31:0]));
+                        default:    st0_rd_val <= rval_t'($signed(dbus_res_rdata));
+                        endcase
+                    end
                 end
-                else begin
-                    case ( st0_size )
-                    2'b00:      st1_rd_val <= rval_t'($signed(st0_rdata[ 7:0]));
-                    2'b01:      st1_rd_val <= rval_t'($signed(st0_rdata[15:0]));
-                    2'b10:      st1_rd_val <= rval_t'($signed(st0_rdata[31:0]));
-                    default:    st1_rd_val <= rval_t'($signed(st0_rdata));
-                    endcase
-                end
-
-                st1_valid <= 1'b1;
             end
         end
     end
 
-    assign dbus_ack_wait = m_wait;
+    assign dbus_res_wait = m_wait;
+
+    assign queout_wait  = !dbus_res_valid || dbus_res_wait;
 
 
     // ------------------------------------
     //  Output
     // ------------------------------------
 
-    assign m_id     = st1_id     ;
-    assign m_rd_val = st1_rd_val;
-
+    assign m_id     = st0_id           ;
+    assign m_rd_en  = st0_rd_en        ;
+    assign m_rd_idx = st0_rd_idx       ;
+    assign m_rd_val = st0_rd_val       ;
+    assign m_valid  = st0_rd_en        ;
 
 endmodule
 

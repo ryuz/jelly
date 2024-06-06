@@ -12,25 +12,32 @@
 
 module jelly3_jfive_instruction_decode
         #(
-            parameter   int                     XLEN        = 32                                ,
-            parameter   int                     THREADS     = 4                                 ,
-            parameter   int                     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
-            parameter   type                    id_t        = logic         [ID_BITS-1:0]       ,
-            parameter   int                     PHASE_BITS  = 1                                 ,
-            parameter   type                    phase_t     = logic         [PHASE_BITS-1:0]    ,
-            parameter   int                     PC_BITS     = 32                                ,
-            parameter   type                    pc_t        = logic         [PC_BITS-1:0]       ,
-            parameter   int                     INSTR_BITS  = 32                                ,
-            parameter   type                    instr_t     = logic         [INSTR_BITS-1:0]    ,
-            parameter   type                    ridx_t      = logic         [4:0]               ,
-            parameter   type                    rval_t      = logic signed  [XLEN-1:0]          ,
-            parameter   type                    shamt_t     = logic         [$clog2(XLEN)-1:0]  ,
-            parameter   int                     EXES        = 4                                 ,
-            parameter   bit                     RAW_HAZARD  = 1'b1                              ,
-            parameter   bit                     WAW_HAZARD  = 1'b1                              ,
-            parameter                           DEVICE      = "RTL"                             ,
-            parameter                           SIMULATION  = "false"                           ,
-            parameter                           DEBUG       = "false"               
+            parameter   int     XLEN        = 32                                ,
+            parameter   int     THREADS     = 4                                 ,
+            parameter   int     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
+            parameter   type    id_t        = logic         [ID_BITS-1:0]       ,
+            parameter   int     PHASE_BITS  = 1                                 ,
+            parameter   type    phase_t     = logic         [PHASE_BITS-1:0]    ,
+            parameter   int     PC_BITS     = 32                                ,
+            parameter   type    pc_t        = logic         [PC_BITS-1:0]       ,
+            parameter   int     INSTR_BITS  = 32                                ,
+            parameter   type    instr_t     = logic         [INSTR_BITS-1:0]    ,
+            parameter   type    ridx_t      = logic         [4:0]               ,
+            parameter   type    rval_t      = logic signed  [XLEN-1:0]          ,
+            parameter   type    shamt_t     = logic         [$clog2(XLEN)-1:0]  ,
+            parameter   int     DATA_BITS   = $bits(rval_t)                     ,
+            parameter   type    data_t      = logic         [DATA_BITS-1:0]     ,
+            parameter   int     STRB_BITS   = $bits(data_t) / 8                 ,
+            parameter   type    strb_t      = logic         [STRB_BITS-1:0]     ,
+            parameter   int     ALIGN_BITS  = $clog2($bits(strb_t))             ,
+            parameter   type    align_t     = logic         [ALIGN_BITS-1:0]    ,
+            parameter   type    size_t      = logic         [1:0]               ,
+            parameter   int     EXES        = 4                                 ,
+            parameter   bit     RAW_HAZARD  = 1'b1                              ,
+            parameter   bit     WAW_HAZARD  = 1'b1                              ,
+            parameter           DEVICE      = "RTL"                             ,
+            parameter           SIMULATION  = "false"                           ,
+            parameter           DEBUG       = "false"               
         )
         (
             input   var logic               reset               ,
@@ -92,6 +99,9 @@ module jelly3_jfive_instruction_decode
 
             output  var logic   [2:0]       m_branch_mode       ,
             output  var pc_t                m_branch_pc         ,
+
+            output  var size_t              m_mem_size          ,
+            output  var logic               m_mem_unsigned      ,
 
             output  var logic               m_valid             ,
             input   var logic               m_wait
@@ -688,6 +698,10 @@ module jelly3_jfive_instruction_decode
 
     assign m_branch_mode        = st2_branch_mode           ;
     assign m_branch_pc          = st2_branch_pc             ;
+
+    assign m_mem_size           = st2_funct3[1:0]           ;
+    assign m_mem_unsigned       = st2_funct3[2]             ;
+
 
 endmodule
 

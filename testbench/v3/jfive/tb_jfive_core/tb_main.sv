@@ -228,10 +228,7 @@ module tb_main
     assign ibus_res_valid = ibus_st1_valid  ;
 
 
-
     // dbus
-
-
     assign port1_addr = mem_addr_t'(dbus_cmd_addr)  ;
     assign port1_we   = dbus_cmd_strb               ;
     assign port1_din  = dbus_cmd_wdata              ;
@@ -243,7 +240,7 @@ module tb_main
             dbus_st0_valid  <= 1'b0;
             dbus_st1_valid  <= 1'b0;
         end
-        else if ( cke ) begin
+        else if ( cke && !dbus_res_wait ) begin
             dbus_st0_valid  <= dbus_cmd_valid && !dbus_cmd_wr;
             dbus_st1_valid  <= dbus_st0_valid;
         end
@@ -257,44 +254,18 @@ module tb_main
     localparam  type    mnemonic_t = logic [64*8-1:0];
     
     wire    mnemonic_t   ibus_res_mnemonic = mnemonic_t'(instr2mnemonic(ibus_res_instr));
-
+    wire    mnemonic_t   ids_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_instruction_decode.s_instr));
     wire    mnemonic_t   id0_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_instruction_decode.st0_instr));
     wire    mnemonic_t   id1_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_instruction_decode.st1_instr));
     wire    mnemonic_t   id2_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_instruction_decode.st2_instr));
+    wire    mnemonic_t   idm_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_instruction_decode.m_instr));
+
+    wire    mnemonic_t   exs_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_execution.s_instr));
     wire    mnemonic_t   ex0_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_execution.st0_instr));
     wire    mnemonic_t   ex1_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_execution.st1_instr));
     wire    mnemonic_t   ex2_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_execution.st2_instr));
 
 
-    /*
-    logic   [1:0]   mem_shift;
-    always_ff @(posedge clk) begin
-        mem_shift <= dbus_addr[1:0];
-    end
-    assign dbus_rdata = 32'(mem_rdata >> (mem_shift * 8));
-
-
-    // IO
-    wire mmio_valid = dbus_wr && (dbus_addr[31:24] == 8'hf0);
-
-    always_ff @(posedge clk) begin
-        if ( !reset && mmio_valid ) begin
-            $display("write: %h %10d %b", dbus_addr, $signed(dbus_wdata), dbus_sel);
-        end
-    end
-    */
-
-    /*
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            mnemonic <= "reset";
-        end
-        else begin
-            // string を信号に変換
-            mnemonic <= mnemonic_t'(instr2mnemonic(ibus_res_instr));
-        end
-    end
-    */
 endmodule
 
 
