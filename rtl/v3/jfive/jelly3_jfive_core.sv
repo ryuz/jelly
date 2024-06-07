@@ -165,14 +165,18 @@ module jelly3_jfive_core
     //  Instruction Decode
     // -----------------------------
 
-    localparam   int    EXES        = 3                                 ;
-    localparam   bit    RAW_HAZARD  = 1'b1                              ;
-    localparam   bit    WAW_HAZARD  = 1'b1                              ;
-    localparam   type   ridx_t      = logic         [4:0]               ;
-    localparam   type   rval_t      = logic signed  [XLEN-1:0]          ;
-    localparam   int    SHAMT_BITS  = $clog2(XLEN)                      ;
-//  localparam   type   shamt_t     = logic         [SHAMT_BITS-1:0]    ;
-    localparam   type   shamt_t     = logic         [4:0]    ;
+    localparam  int     EXES             = 3                                    ;
+    localparam  bit     RAW_HAZARD       = 1'b1                                 ;
+    localparam  bit     WAW_HAZARD       = 1'b1                                 ;
+    localparam  type    ridx_t           = logic         [4:0]                  ;
+    localparam  type    rval_t           = logic signed  [XLEN-1:0]             ;
+    localparam  int     SHAMT_BITS       = $clog2(XLEN)                         ;
+//  localparam  type    shamt_t          = logic         [SHAMT_BITS-1:0]       ;
+    localparam  type    shamt_t          = logic         [4:0]                  ;
+    localparam  int     DBUS_ALIGN_BITS  = $clog2($bits(dbus_strb_t))           ;
+    localparam  type    dbus_align_t     = logic        [DBUS_ALIGN_BITS-1:0]   ;
+    localparam  type    dbus_size_t      = logic        [1:0]                   ;
+
 
 
     id_t    [EXES-1:0]  exe_id                  ;
@@ -317,6 +321,15 @@ module jelly3_jfive_core
                 .rval_t                 (rval_t                 ),
                 .SHAMT_BITS             (SHAMT_BITS             ),
                 .shamt_t                (shamt_t                ),
+                .ADDR_BITS              (DBUS_ADDR_BITS         ),
+                .addr_t                 (dbus_addr_t            ),
+                .DATA_BITS              (DBUS_DATA_BITS         ),
+                .data_t                 (dbus_data_t            ),
+                .STRB_BITS              (DBUS_STRB_BITS         ),
+                .strb_t                 (dbus_strb_t            ),
+                .ALIGN_BITS             (DBUS_ALIGN_BITS        ),
+                .align_t                (dbus_align_t           ),
+                .size_t                 (dbus_size_t            ),
                 .EXES                   (EXES                   ),
                 .RAW_HAZARD             (RAW_HAZARD             ),
                 .WAW_HAZARD             (WAW_HAZARD             ),
@@ -342,6 +355,16 @@ module jelly3_jfive_core
                 .wb_rd_en               ,
                 .wb_rd_idx              ,
                 .wb_rd_val              ,
+
+                .dbus_cmd_addr          ,
+                .dbus_cmd_wr            ,
+                .dbus_cmd_strb          ,
+                .dbus_cmd_wdata         ,
+                .dbus_cmd_valid         ,
+                .dbus_cmd_wait          ,
+                .dbus_res_rdata         ,
+                .dbus_res_valid         ,
+                .dbus_res_wait          ,
 
                 .s_id                   (id_id                ),
                 .s_phase                (id_phase             ),

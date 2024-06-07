@@ -164,8 +164,6 @@ module jelly3_jfive_load_store
     //  command
     // ------------------------------------
 
-    logic               que_wait                    ;
-
     assign dbus_cmd_addr  = s_addr                  ;
     assign dbus_cmd_wr    = s_wr                    ;
     assign dbus_cmd_strb  = s_strb                  ;

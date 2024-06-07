@@ -500,7 +500,6 @@ module jelly3_jfive_execution
     logic               st1_shifter     ;
     logic               st1_load        ;
     logic               st1_valid       ;
-    logic               st1_wait        ;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             st1_id      <= 'x;
@@ -605,6 +604,7 @@ module jelly3_jfive_execution
     assign wb_rd_val = load_valid ? load_rd_val : st2_rd_val ;
 
     assign alu_wait  = st2_valid && load_valid;
+    assign load_wait = 1'b0;
 
 
 endmodule
