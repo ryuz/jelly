@@ -111,6 +111,10 @@ module jelly3_jfive_execution
             output  var logic               s_wait
         );
 
+    logic       alu_wait    ;
+    logic       mem_wait    ;
+
+
     // -----------------------------------------
     //  stage 0
     // -----------------------------------------
@@ -329,6 +333,8 @@ module jelly3_jfive_execution
         end
     end
 
+    assign s_wait = alu_wait || mem_wait;
+
 
     // -----------------------------------------
     //  stage 1
@@ -402,6 +408,13 @@ module jelly3_jfive_execution
                 .s_valid         (st0_branch            )
             );
 
+    // load/store
+    id_t                    load_id     ;
+    logic                   load_rd_en  ;
+    ridx_t                  load_rd_idx ;
+    rval_t                  load_rd_val ;
+    logic                   load_valid  ;
+    logic                   load_wait   ;
     jelly3_jfive_load_store
             #(
                 .QUE_SIZE       (4                      ),
@@ -462,17 +475,15 @@ module jelly3_jfive_execution
                 .s_strb          (st0_mem_strb          ),
                 .s_wdata         (st0_mem_wdata         ),
                 .s_valid         (st0_valid             ),
-                .s_wait          (                      ),
+                .s_wait          (mem_wait              ),
 
-                .m_id            (),
-                .m_rd_en         (),
-                .m_rd_idx        (),
-                .m_rd_val        (),
-                .m_valid         (),
-                .m_wait          ()
+                .m_id            (load_id               ),
+                .m_rd_en         (load_rd_en            ),
+                .m_rd_idx        (load_rd_idx           ),
+                .m_rd_val        (load_rd_val           ),
+                .m_valid         (load_valid            ),
+                .m_wait          (load_wait             )
             );
-
-
 
     // control
     id_t                st1_id          ;
@@ -489,6 +500,7 @@ module jelly3_jfive_execution
     logic               st1_shifter     ;
     logic               st1_load        ;
     logic               st1_valid       ;
+    logic               st1_wait        ;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             st1_id      <= 'x;
@@ -506,7 +518,7 @@ module jelly3_jfive_execution
             st1_load    <= 'x;
             st1_valid   <= 1'b0;
         end
-        else if ( cke && !s_wait ) begin
+        else if ( cke && !alu_wait ) begin
             st1_id      <= st0_id     ;
             st1_phase   <= st0_phase  ;
             st1_pc      <= st0_pc     ;
@@ -546,6 +558,7 @@ module jelly3_jfive_execution
     logic               st2_shifter     ;
     logic               st2_load        ;
     logic               st2_valid       ;
+
     always_ff @(posedge clk) begin
         if ( reset ) begin
             st2_id      <= 'x;
@@ -563,7 +576,7 @@ module jelly3_jfive_execution
             st2_load    <= 'x;
             st2_valid   <= 1'b0;
         end
-        else if ( cke && !s_wait ) begin
+        else if ( cke && !alu_wait ) begin
             st2_id      <= st1_id     ;
             st2_phase   <= st1_phase  ;
             st2_pc      <= st1_pc     ;
@@ -580,18 +593,19 @@ module jelly3_jfive_execution
         end
     end
 
-   assign exe_id     = {st0_id,     st1_id,     st2_id    };
-   assign exe_rd_en  = {st0_rd_en,  st1_rd_en,  1'b0};//st2_rd_en };
-   assign exe_rd_idx = {st0_rd_idx, st1_rd_idx, st2_rd_idx};
+
+    assign exe_id     = {st0_id,     st1_id,     st2_id    };
+    assign exe_rd_en  = {st0_rd_en,  st1_rd_en,  1'b0};//st2_rd_en };
+    assign exe_rd_idx = {st0_rd_idx, st1_rd_idx, st2_rd_idx};
 
 
-    assign wb_id     = st2_id       ;
-    assign wb_rd_en  = st2_rd_en    ;
-    assign wb_rd_idx = st2_rd_idx   ;
-    assign wb_rd_val = st2_rd_val   ;
+    assign wb_id     = load_valid ? load_id     : st2_id     ;
+    assign wb_rd_en  = load_valid ? load_rd_en  : st2_rd_en  ;
+    assign wb_rd_idx = load_valid ? load_rd_idx : st2_rd_idx ;
+    assign wb_rd_val = load_valid ? load_rd_val : st2_rd_val ;
 
+    assign alu_wait  = st2_valid && load_valid;
 
-    assign s_wait = 1'b0;
 
 endmodule
 

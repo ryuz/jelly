@@ -172,7 +172,7 @@ module jelly3_jfive_load_store
     assign dbus_cmd_wdata = s_wdata                 ;
     assign dbus_cmd_valid = s_valid & !quein_wait   ;
 
-    assign s_wait = dbus_cmd_wait || quein_wait     ;
+    assign s_wait = s_valid && (dbus_cmd_wait || quein_wait);
 
 
     // ------------------------------------
