@@ -32,8 +32,6 @@ module jelly3_jfive_execution
             parameter   type    data_t      = logic         [DATA_BITS-1:0]     ,
             parameter   int     STRB_BITS   = $bits(data_t) / 8                 ,
             parameter   type    strb_t      = logic         [STRB_BITS-1:0]     ,
-            parameter   int     ALIGN_BITS  = $clog2($bits(strb_t))             ,
-            parameter   type    align_t     = logic         [ALIGN_BITS-1:0]    ,
             parameter   type    size_t      = logic         [1:0]               ,
             parameter   int     EXES        = 3                                 ,
             parameter   bit     RAW_HAZARD  = 1'b1                              ,
@@ -111,6 +109,10 @@ module jelly3_jfive_execution
             output  var logic               s_wait
         );
 
+    localparam  int     ALIGN_BITS  = $clog2($bits(strb_t))             ;
+    localparam  type    align_t     = logic         [ALIGN_BITS-1:0]    ;
+
+    // stall signal
     logic       alu_wait    ;
     logic       mem_wait    ;
 
@@ -273,9 +275,9 @@ module jelly3_jfive_execution
             st0_adder               <= 'x;
             st0_logical             <= 'x;
             st0_shifter             <= 'x;
-            st0_load                <= 'x;
-            st0_store               <= 'x;
-            st0_branch              <= 'x;
+            st0_load                <= 1'b0;
+            st0_store               <= 1'b0;
+            st0_branch              <= 1'b0;
             st0_adder_sub           <= 'x;
             st0_adder_imm_en        <= 'x;
             st0_adder_imm_val       <= 'x;
@@ -310,9 +312,9 @@ module jelly3_jfive_execution
             st0_adder               <= s_adder              ;
             st0_logical             <= s_logical            ;
             st0_shifter             <= s_shifter            ;
-            st0_load                <= s_load               ;
-            st0_store               <= s_store              ;
-            st0_branch              <= s_branch & s_valid   ;
+            st0_load                <= s_load    & s_valid  ;
+            st0_store               <= s_store   & s_valid  ;
+            st0_branch              <= s_branch  & s_valid  ;
             st0_adder_sub           <= s_adder_sub          ;
             st0_adder_imm_en        <= s_adder_imm_en       ;
             st0_adder_imm_val       <= s_adder_imm_val      ;

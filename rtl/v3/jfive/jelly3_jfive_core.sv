@@ -165,17 +165,17 @@ module jelly3_jfive_core
     //  Instruction Decode
     // -----------------------------
 
-    localparam  int     EXES             = 3                                    ;
-    localparam  bit     RAW_HAZARD       = 1'b1                                 ;
-    localparam  bit     WAW_HAZARD       = 1'b1                                 ;
-    localparam  type    ridx_t           = logic         [4:0]                  ;
-    localparam  type    rval_t           = logic signed  [XLEN-1:0]             ;
-    localparam  int     SHAMT_BITS       = $clog2(XLEN)                         ;
-//  localparam  type    shamt_t          = logic         [SHAMT_BITS-1:0]       ;
-    localparam  type    shamt_t          = logic         [4:0]                  ;
-    localparam  int     DBUS_ALIGN_BITS  = $clog2($bits(dbus_strb_t))           ;
-    localparam  type    dbus_align_t     = logic        [DBUS_ALIGN_BITS-1:0]   ;
-    localparam  type    dbus_size_t      = logic        [1:0]                   ;
+    localparam  int     EXES             = 3                                ;
+    localparam  bit     RAW_HAZARD       = 1'b1                             ;
+    localparam  bit     WAW_HAZARD       = 1'b1                             ;
+    localparam  type    ridx_t           = logic         [4:0]              ;
+    localparam  type    rval_t           = logic signed  [XLEN-1:0]         ;
+    localparam  int     SHAMT_BITS       = $clog2(XLEN)                     ;
+//  localparam  type    shamt_t          = logic         [SHAMT_BITS-1:0]   ;
+    localparam  type    shamt_t          = logic         [4:0]              ;
+//  localparam  int     ALIGN_BITS       = $clog2($bits(dbus_strb_t))       ;
+//  localparam  type    align_t          = logic        [ALIGN_BITS-1:0]    ;
+    localparam  type    size_t           = logic        [1:0]               ;
 
 
 
@@ -218,6 +218,8 @@ module jelly3_jfive_core
     shamt_t             id_shifter_imm_val      ;
     logic   [2:0]       id_branch_mode          ;
     pc_t                id_branch_pc            ;
+    size_t              id_mem_size             ;
+    logic               id_mem_unsigned         ;
     logic               id_valid                ;
     logic               id_wait                 ;
     
@@ -295,6 +297,8 @@ module jelly3_jfive_core
                 .m_shifter_imm_val      (id_shifter_imm_val     ),
                 .m_branch_mode          (id_branch_mode         ),
                 .m_branch_pc            (id_branch_pc           ),
+                .m_mem_size             (id_mem_size            ),
+                .m_mem_unsigned         (id_mem_unsigned        ),
                 .m_valid                (id_valid               ),
                 .m_wait                 (id_wait                )
         );
@@ -327,9 +331,9 @@ module jelly3_jfive_core
                 .data_t                 (dbus_data_t            ),
                 .STRB_BITS              (DBUS_STRB_BITS         ),
                 .strb_t                 (dbus_strb_t            ),
-                .ALIGN_BITS             (DBUS_ALIGN_BITS        ),
-                .align_t                (dbus_align_t           ),
-                .size_t                 (dbus_size_t            ),
+//              .ALIGN_BITS             (ALIGN_BITS             ),
+//              .align_t                (dbus_align_t           ),
+                .size_t                 (size_t                 ),
                 .EXES                   (EXES                   ),
                 .RAW_HAZARD             (RAW_HAZARD             ),
                 .WAW_HAZARD             (WAW_HAZARD             ),
@@ -366,38 +370,40 @@ module jelly3_jfive_core
                 .dbus_res_valid         ,
                 .dbus_res_wait          ,
 
-                .s_id                   (id_id                ),
-                .s_phase                (id_phase             ),
-                .s_pc                   (id_pc                ),
-                .s_instr                (id_instr             ),
-                .s_rd_en                (id_rd_en             ),
-                .s_rd_idx               (id_rd_idx            ),
-                .s_rd_val               (id_rd_val            ),
-                .s_rs1_en               (id_rs1_en            ),
-                .s_rs1_val              (id_rs1_val           ),
-                .s_rs2_en               (id_rs2_en            ),
-                .s_rs2_val              (id_rs2_val           ),
-                .s_offset               (id_offset            ),
-                .s_adder                (id_adder             ),
-                .s_logical              (id_logical           ),
-                .s_shifter              (id_shifter           ),
-                .s_load                 (id_load              ),
-                .s_store                (id_store             ),
-                .s_branch               (id_branch            ),
-                .s_adder_sub            (id_adder_sub         ),
-                .s_adder_imm_en         (id_adder_imm_en      ),
-                .s_adder_imm_val        (id_adder_imm_val     ),
-                .s_logical_mode         (id_logical_mode      ),
-                .s_logical_imm_en       (id_logical_imm_en    ),
-                .s_logical_imm_val      (id_logical_imm_val   ),
-                .s_shifter_arithmetic   (id_shifter_arithmetic),
-                .s_shifter_left         (id_shifter_left      ),
-                .s_shifter_imm_en       (id_shifter_imm_en    ),
-                .s_shifter_imm_val      (id_shifter_imm_val   ),
-                .s_branch_mode          (id_branch_mode       ),
-                .s_branch_pc            (id_branch_pc         ),
-                .s_valid                (id_valid             ),
-                .s_wait                 (id_wait              )
+                .s_id                   (id_id                  ),
+                .s_phase                (id_phase               ),
+                .s_pc                   (id_pc                  ),
+                .s_instr                (id_instr               ),
+                .s_rd_en                (id_rd_en               ),
+                .s_rd_idx               (id_rd_idx              ),
+                .s_rd_val               (id_rd_val              ),
+                .s_rs1_en               (id_rs1_en              ),
+                .s_rs1_val              (id_rs1_val             ),
+                .s_rs2_en               (id_rs2_en              ),
+                .s_rs2_val              (id_rs2_val             ),
+                .s_offset               (id_offset              ),
+                .s_adder                (id_adder               ),
+                .s_logical              (id_logical             ),
+                .s_shifter              (id_shifter             ),
+                .s_load                 (id_load                ),
+                .s_store                (id_store               ),
+                .s_branch               (id_branch              ),
+                .s_adder_sub            (id_adder_sub           ),
+                .s_adder_imm_en         (id_adder_imm_en        ),
+                .s_adder_imm_val        (id_adder_imm_val       ),
+                .s_logical_mode         (id_logical_mode        ),
+                .s_logical_imm_en       (id_logical_imm_en      ),
+                .s_logical_imm_val      (id_logical_imm_val     ),
+                .s_shifter_arithmetic   (id_shifter_arithmetic  ),
+                .s_shifter_left         (id_shifter_left        ),
+                .s_shifter_imm_en       (id_shifter_imm_en      ),
+                .s_shifter_imm_val      (id_shifter_imm_val     ),
+                .s_branch_mode          (id_branch_mode         ),
+                .s_branch_pc            (id_branch_pc           ),
+                .s_mem_size             (id_mem_size            ),
+                .s_mem_unsigned         (id_mem_unsigned        ),
+                .s_valid                (id_valid               ),
+                .s_wait                 (id_wait                )
         );
 
 
