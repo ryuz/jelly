@@ -68,10 +68,10 @@ module jelly3_jfive_execution
             output  var strb_t              dbus_cmd_strb       ,
             output  var data_t              dbus_cmd_wdata      ,
             output  var logic               dbus_cmd_valid      ,
-            input   var logic               dbus_cmd_wait       ,
+            input   var logic               dbus_cmd_acceptable       ,
             input   var data_t              dbus_res_rdata      ,
             input   var logic               dbus_res_valid      ,
-            output  var logic               dbus_res_wait       ,
+            output  var logic               dbus_res_acceptable       ,
 
             // output
             input   var id_t                s_id                ,
@@ -107,15 +107,15 @@ module jelly3_jfive_execution
             input   var size_t              s_mem_size          ,
             input   var logic               s_mem_unsigned      ,
             input   var logic               s_valid             ,
-            output  var logic               s_wait
+            output  var logic               s_acceptable
         );
 
     localparam  int     ALIGN_BITS  = $clog2($bits(strb_t))             ;
     localparam  type    align_t     = logic         [ALIGN_BITS-1:0]    ;
 
     // stall signal
-    logic       alu_wait    ;
-    logic       mem_wait    ;
+    logic       alu_acceptable    ;
+    logic       mem_acceptable    ;
 
 
     // -----------------------------------------
@@ -299,7 +299,7 @@ module jelly3_jfive_execution
             st0_mem_valid           <= 1'b0;
             st0_valid               <= 1'b0;
         end
-        else if ( cke && !s_wait ) begin
+        else if ( cke && s_acceptable ) begin
             st0_id                  <= s_id                 ;
             st0_phase               <= s_phase              ;
             st0_pc                  <= s_pc                 ;
@@ -339,7 +339,7 @@ module jelly3_jfive_execution
         end
     end
 
-    assign s_wait = alu_wait || mem_wait;
+    assign s_acceptable = alu_acceptable && mem_acceptable;
 
 
     // -----------------------------------------
@@ -423,7 +423,7 @@ module jelly3_jfive_execution
     ridx_t                  load_rd_idx ;
     rval_t                  load_rd_val ;
     logic                   load_valid  ;
-    logic                   load_wait   ;
+    logic                   load_acceptable   ;
     jelly3_jfive_load_store
             #(
                 .LOAD_QUES      (LOAD_QUES              ),
@@ -464,10 +464,10 @@ module jelly3_jfive_execution
                 .dbus_cmd_strb   ,
                 .dbus_cmd_wdata  ,
                 .dbus_cmd_valid  ,
-                .dbus_cmd_wait   ,
+                .dbus_cmd_acceptable   ,
                 .dbus_res_rdata  ,
                 .dbus_res_valid  ,
-                .dbus_res_wait   ,
+                .dbus_res_acceptable   ,
 
                 .que_id          ,
                 .que_rd_en       ,
@@ -484,14 +484,14 @@ module jelly3_jfive_execution
                 .s_strb          (st0_mem_strb          ),
                 .s_wdata         (st0_mem_wdata         ),
                 .s_valid         (st0_mem_valid         ),
-                .s_wait          (mem_wait              ),
+                .s_acceptable          (mem_acceptable              ),
 
                 .m_id            (load_id               ),
                 .m_rd_en         (load_rd_en            ),
                 .m_rd_idx        (load_rd_idx           ),
                 .m_rd_val        (load_rd_val           ),
                 .m_valid         (load_valid            ),
-                .m_wait          (load_wait             )
+                .m_acceptable          (load_acceptable             )
             );
 
     // control
@@ -526,7 +526,7 @@ module jelly3_jfive_execution
             st1_load    <= 'x;
             st1_valid   <= 1'b0;
         end
-        else if ( cke && !alu_wait ) begin
+        else if ( cke && alu_acceptable ) begin
             st1_id      <= st0_id     ;
             st1_phase   <= st0_phase  ;
             st1_pc      <= st0_pc     ;
@@ -584,7 +584,7 @@ module jelly3_jfive_execution
             st2_load    <= 'x;
             st2_valid   <= 1'b0;
         end
-        else if ( cke && !alu_wait ) begin
+        else if ( cke && alu_acceptable ) begin
             st2_id      <= st1_id     ;
             st2_phase   <= st1_phase  ;
             st2_pc      <= st1_pc     ;
@@ -612,8 +612,8 @@ module jelly3_jfive_execution
     assign wb_rd_idx = load_valid ? load_rd_idx : st2_rd_idx ;
     assign wb_rd_val = load_valid ? load_rd_val : st2_rd_val ;
 
-    assign alu_wait  = st2_valid && load_valid;
-    assign load_wait = 1'b0;
+    assign alu_acceptable  = !(st2_valid &&  load_valid);
+    assign load_acceptable = 1'b1;
 
 
 endmodule

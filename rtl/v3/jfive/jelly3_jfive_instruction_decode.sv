@@ -61,7 +61,7 @@ module jelly3_jfive_instruction_decode
             input   var pc_t                s_pc                ,
             input   var instr_t             s_instr             ,
             input   var logic               s_valid             ,
-            output  var logic               s_wait              ,
+            output  var logic               s_acceptable              ,
 
             // output
             output  var id_t                m_id                ,
@@ -104,7 +104,7 @@ module jelly3_jfive_instruction_decode
             output  var logic               m_mem_unsigned      ,
 
             output  var logic               m_valid             ,
-            input   var logic               m_wait
+            input   var logic               m_acceptable
         );
 
 
@@ -369,7 +369,7 @@ module jelly3_jfive_instruction_decode
             st0_rs1_en <= 'x      ;
             st0_rs2_en <= 'x      ;
         end
-        else if ( cke && !s_wait ) begin
+        else if ( cke && s_acceptable ) begin
             st0_valid  <= s_valid;
             st0_id     <= s_id      ;
             st0_phase  <= s_phase   ;
@@ -454,7 +454,7 @@ module jelly3_jfive_instruction_decode
             st1_pre_stall <= 1'b0;
             st1_valid     <= 1'b0;
         end
-        else if ( cke && !s_wait ) begin
+        else if ( cke && s_acceptable ) begin
             st1_id        <= st0_id     ;
             st1_phase     <= st0_phase  ;
             st1_pc        <= st0_pc     ;
@@ -480,7 +480,7 @@ module jelly3_jfive_instruction_decode
             st1_store   <= 1'bx;
             st1_alu     <= 1'bx;
         end
-        else if ( cke & !s_wait ) begin
+        else if ( cke & s_acceptable ) begin
             st1_lui     <= st0_opcode[6:2] == OPCODE_LUI[6:2];
             st1_auipc   <= st0_opcode[6:2] == OPCODE_AUIPC[6:2];
             st1_jal     <= st0_opcode[6:2] == OPCODE_JAL[6:2];
@@ -550,7 +550,7 @@ module jelly3_jfive_instruction_decode
             st2_stall    <= 1'b0;
         end
         else if ( cke ) begin
-            if ( !s_wait ) begin
+            if ( s_acceptable ) begin
                 st2_stall   <= st1_pre_stall;
             end
             
@@ -560,7 +560,7 @@ module jelly3_jfive_instruction_decode
         end
     end
 
-    assign s_wait = st2_stall || m_wait;
+    assign s_acceptable = !st2_stall && m_acceptable;
 
 
     // context
@@ -572,7 +572,7 @@ module jelly3_jfive_instruction_decode
             st2_pc       <= 'x  ;
             st2_instr    <= 'x  ;
         end
-        else if ( cke && !s_wait ) begin
+        else if ( cke && s_acceptable ) begin
             st2_valid   <= st1_valid    ;
             st2_id      <= st1_id       ;
             st2_phase   <= st1_phase    ;
@@ -592,7 +592,7 @@ module jelly3_jfive_instruction_decode
             st2_rs2_val  <= 'x  ;
         end
         else if ( cke ) begin
-            if ( !s_wait ) begin
+            if ( s_acceptable ) begin
                 // rd
                 st2_rd_en   <= st1_rd_en    ;
                 if ( st1_lui ) begin
@@ -622,7 +622,7 @@ module jelly3_jfive_instruction_decode
 
     // control
     always_ff @(posedge clk) begin
-        if ( cke && !s_wait ) begin
+        if ( cke && s_acceptable ) begin
             // type
             st2_offset    <= st1_lui || st1_auipc || st1_jal || st1_jalr;
             st2_adder     <= st1_alu && (st1_funct3 == FUNCT3_ADD || st1_funct3 == FUNCT3_SLT || st1_funct3 == FUNCT3_SLTU);

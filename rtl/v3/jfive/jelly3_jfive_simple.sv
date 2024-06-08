@@ -50,22 +50,22 @@ module jelly3_jfive_simple
     phase_t             ibus_cmd_phase  ;
     pc_t                ibus_cmd_pc     ;
     logic               ibus_cmd_valid  ;
-    logic               ibus_cmd_wait   ;
+    logic               ibus_cmd_acceptable   ;
     id_t                ibus_res_id     ;
     phase_t             ibus_res_phase  ;
     pc_t                ibus_res_pc     ;
     instr_t             ibus_res_instr  ;
     logic               ibus_res_valid  ;
-    logic               ibus_res_wait   ;
+    logic               ibus_res_acceptable   ;
     dbus_addr_t         dbus_cmd_addr   ;
     logic               dbus_cmd_wr     ;
     dbus_strb_t         dbus_cmd_strb   ;
     dbus_data_t         dbus_cmd_wdata  ;
     logic               dbus_cmd_valid  ;
-    logic               dbus_cmd_wait   ;
+    logic               dbus_cmd_acceptable   ;
     dbus_data_t         dbus_res_rdata  ;
     logic               dbus_res_valid  ;
-    logic               dbus_res_wait   ;
+    logic               dbus_res_acceptable   ;
 
     jelly3_jfive_core
         #(
@@ -112,22 +112,22 @@ module jelly3_jfive_simple
                 .ibus_cmd_phase     ,
                 .ibus_cmd_pc        ,
                 .ibus_cmd_valid     ,
-                .ibus_cmd_wait      ,
+                .ibus_cmd_acceptable      ,
                 .ibus_res_id        ,
                 .ibus_res_phase     ,
                 .ibus_res_pc        ,
                 .ibus_res_instr     ,
                 .ibus_res_valid     ,
-                .ibus_res_wait      ,
+                .ibus_res_acceptable      ,
                 .dbus_cmd_addr      ,
                 .dbus_cmd_wr        ,
                 .dbus_cmd_strb      ,
                 .dbus_cmd_wdata     ,
                 .dbus_cmd_valid     ,
-                .dbus_cmd_wait      ,
+                .dbus_cmd_acceptable      ,
                 .dbus_res_rdata     ,
                 .dbus_res_valid     ,
-                .dbus_res_wait      
+                .dbus_res_acceptable      
             );
 
 
@@ -219,7 +219,7 @@ module jelly3_jfive_simple
         end
     end
 
-    assign ibus_cmd_wait  = ibus_res_wait   ;
+    assign ibus_cmd_acceptable  = ibus_res_acceptable   ;
 
     assign ibus_res_id    = ibus_st1_id     ;
     assign ibus_res_phase = ibus_st1_phase  ;
@@ -240,13 +240,13 @@ module jelly3_jfive_simple
             dbus_st0_valid  <= 1'b0;
             dbus_st1_valid  <= 1'b0;
         end
-        else if ( cke && !dbus_res_wait ) begin
+        else if ( cke && dbus_res_acceptable ) begin
             dbus_st0_valid  <= dbus_cmd_valid && !dbus_cmd_wr;
             dbus_st1_valid  <= dbus_st0_valid;
         end
     end
 
-    assign dbus_cmd_wait  = dbus_res_wait   ;
+    assign dbus_cmd_acceptable  = dbus_res_acceptable   ;
     assign dbus_res_rdata = port1_dout      ;
     assign dbus_res_valid = dbus_st1_valid  ;
 

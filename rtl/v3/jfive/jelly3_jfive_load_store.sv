@@ -50,11 +50,11 @@ module jelly3_jfive_load_store
             output  var strb_t                  dbus_cmd_strb   ,
             output  var data_t                  dbus_cmd_wdata  ,
             output  var logic                   dbus_cmd_valid  ,
-            input   var logic                   dbus_cmd_wait   ,
+            input   var logic                   dbus_cmd_acceptable   ,
 
             input   var data_t                  dbus_res_rdata  ,
             input   var logic                   dbus_res_valid  ,
-            output  var logic                   dbus_res_wait   ,
+            output  var logic                   dbus_res_acceptable   ,
 
             // execution
             output  var id_t    [LOAD_QUES-1:0] que_id          ,
@@ -73,7 +73,7 @@ module jelly3_jfive_load_store
             input   var strb_t                  s_strb          ,
             input   var rval_t                  s_wdata         ,
             input   var logic                   s_valid         ,
-            output  var logic                   s_wait          ,
+            output  var logic                   s_acceptable          ,
 
             // output   
             output  var id_t                    m_id            ,
@@ -81,7 +81,7 @@ module jelly3_jfive_load_store
             output  var ridx_t                  m_rd_idx        ,
             output  var rval_t                  m_rd_val        ,
             output  var logic                   m_valid         ,
-            input   var logic                   m_wait          
+            input   var logic                   m_acceptable          
         );
 
 
@@ -96,7 +96,7 @@ module jelly3_jfive_load_store
     size_t      quein_size          ;
     logic       quein_unsigned      ;
     logic       quein_valid         ;
-    logic       quein_wait          ;
+    logic       quein_acceptable          ;
 
     id_t        queout_id           ;
     ridx_t      queout_rd_idx       ;
@@ -104,7 +104,7 @@ module jelly3_jfive_load_store
     size_t      queout_size         ;
     logic       queout_unsigned     ;
     logic       queout_valid        ;
-    logic       queout_wait         ;
+    logic       queout_acceptable         ;
 
     jelly3_jfive_load_queue
             #(
@@ -140,7 +140,7 @@ module jelly3_jfive_load_store
                 .s_size          (quein_size        ),
                 .s_unsigned      (quein_unsigned    ),
                 .s_valid         (quein_valid       ),
-                .s_wait          (quein_wait        ),
+                .s_acceptable          (quein_acceptable        ),
 
                 .m_id            (queout_id         ),
                 .m_rd_idx        (queout_rd_idx     ),
@@ -148,7 +148,7 @@ module jelly3_jfive_load_store
                 .m_size          (queout_size       ),
                 .m_unsigned      (queout_unsigned   ),
                 .m_valid         (queout_valid      ),
-                .m_wait          (queout_wait       )
+                .m_acceptable          (queout_acceptable       )
         );
 
     assign quein_id        = s_id                   ;
@@ -156,7 +156,7 @@ module jelly3_jfive_load_store
     assign quein_align     = align_t'(s_addr)       ;
     assign quein_size      = s_size                 ;
     assign quein_unsigned  = s_unsigned             ;       
-    assign quein_valid     = s_rd && !dbus_cmd_wait ;
+    assign quein_valid     = s_rd && dbus_cmd_acceptable ;
 
 
 
@@ -168,9 +168,9 @@ module jelly3_jfive_load_store
     assign dbus_cmd_wr    = s_wr                    ;
     assign dbus_cmd_strb  = s_strb                  ;
     assign dbus_cmd_wdata = s_wdata                 ;
-    assign dbus_cmd_valid = s_valid & !quein_wait   ;
+    assign dbus_cmd_valid = s_valid & quein_acceptable   ;
 
-    assign s_wait = s_valid && (dbus_cmd_wait || quein_wait);
+    assign s_acceptable = !s_valid || (dbus_cmd_acceptable && quein_acceptable);
 
 
     // ------------------------------------
@@ -190,9 +190,9 @@ module jelly3_jfive_load_store
 
     always_ff @(posedge clk ) begin
         if ( cke ) begin
-            if ( !m_valid || !m_wait ) begin
+            if ( !m_valid || m_acceptable ) begin
                 st0_rd_en  <= 1'b0          ;  
-                if ( dbus_res_valid && !dbus_res_wait ) begin
+                if ( dbus_res_valid && dbus_res_acceptable ) begin
                     st0_id     <= queout_id     ;
                     st0_rd_en  <= 1'b1          ;  
                     st0_rd_idx <= queout_rd_idx;
@@ -218,9 +218,9 @@ module jelly3_jfive_load_store
         end
     end
 
-    assign dbus_res_wait = m_wait;
+    assign dbus_res_acceptable = m_acceptable;
 
-    assign queout_wait  = !dbus_res_valid || dbus_res_wait;
+    assign queout_acceptable  = !dbus_res_valid || dbus_res_acceptable;
 
 
     // ------------------------------------
