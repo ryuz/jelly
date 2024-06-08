@@ -60,6 +60,8 @@ module jelly3_jfive_execution
 
             // write-back
             output  var id_t                wb_id               ,
+            output  var pc_t                wb_pc               ,
+            output  var instr_t             wb_instr            ,
             output  var logic               wb_rd_en            ,
             output  var ridx_t              wb_rd_idx           ,
             output  var rval_t              wb_rd_val           ,
@@ -614,6 +616,8 @@ module jelly3_jfive_execution
 
 
     assign wb_id     = load_valid ? load_id     : st2_id     ;
+    assign wb_pc     = load_valid ? 'x          : st2_pc     ;
+    assign wb_instr  = load_valid ? 'x          : st2_instr  ;
     assign wb_rd_en  = load_valid ? load_rd_en  : st2_rd_en  ;
     assign wb_rd_idx = load_valid ? load_rd_idx : st2_rd_idx ;
     assign wb_rd_val = load_valid ? load_rd_val : st2_rd_val ;

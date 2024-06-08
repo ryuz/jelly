@@ -271,7 +271,6 @@ module jelly3_jfive_instruction_decode
     instr_t         st1_instr               ;
     logic           st1_rd_en               ;
     rval_t          st2_rd_pc               ;
-    rval_t          st2_rd_imm              ;
     logic           st1_rs1_en              ;
     rval_t          st1_rs1_val             ;
     logic           st1_rs2_en              ;
@@ -649,7 +648,7 @@ module jelly3_jfive_instruction_decode
             st2_branch_mode <= st1_funct3;
             if ( st1_jal  ) st2_branch_mode <= 3'b010;
             if ( st1_jalr ) st2_branch_mode <= 3'b011;
-            st2_branch_pc <= st1_pc + (st1_jal ?  + pc_t'(st1_imm_j) : pc_t'(st1_imm_b));
+            st2_branch_pc <= st1_pc + (st1_jal ? pc_t'(st1_imm_j) : pc_t'(st1_imm_b));
         end
     end
 

@@ -187,6 +187,8 @@ module jelly3_jfive_core
     ridx_t  [EXES-1:0]  exe_rd_idx              ;
 
     id_t                wb_id                   ;
+    pc_t                wb_pc                   ;
+    instr_t             wb_instr                ;
     logic               wb_rd_en                ;
     ridx_t              wb_rd_idx               ;
     rval_t              wb_rd_val               ;
@@ -361,6 +363,8 @@ module jelly3_jfive_core
                 .branch_valid           ,
 
                 .wb_id                  ,
+                .wb_pc                  ,
+                .wb_instr               ,
                 .wb_rd_en               ,
                 .wb_rd_idx              ,
                 .wb_rd_val              ,

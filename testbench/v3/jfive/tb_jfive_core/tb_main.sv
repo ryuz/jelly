@@ -274,6 +274,7 @@ module tb_main
     wire    mnemonic_t   b0_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_execution.u_jfive_branch.st0_instr));
 
     wire    mnemonic_t   branch_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.branch_instr));
+    wire    mnemonic_t   wb_mnemonic     = mnemonic_t'(instr2mnemonic(u_jfive_core.wb_instr));
 
 
 endmodule
