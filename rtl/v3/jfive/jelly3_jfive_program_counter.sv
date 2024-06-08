@@ -139,7 +139,6 @@ module jelly3_jfive_program_counter
     logic   st1_phase   ;
     pc_t    st1_pc      ;
     logic   st1_valid   ;
-    logic   st1_ready   ;
 
     always_ff @(posedge clk) begin
         if ( reset ) begin

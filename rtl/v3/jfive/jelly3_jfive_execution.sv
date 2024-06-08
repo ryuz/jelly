@@ -257,6 +257,7 @@ module jelly3_jfive_execution
     logic               st0_mem_unsigned        ;
     strb_t              st0_mem_strb            ;
     rval_t              st0_mem_wdata           ;
+    logic               st0_mem_valid           ;
     logic               st0_valid               ;
 
     always_ff @(posedge clk) begin
@@ -295,6 +296,7 @@ module jelly3_jfive_execution
             st0_mem_unsigned        <= 'x;
             st0_mem_strb            <= 'x;
             st0_mem_wdata           <= 'x;
+            st0_mem_valid           <= 1'b0;
             st0_valid               <= 1'b0;
         end
         else if ( cke && !s_wait ) begin
@@ -331,7 +333,8 @@ module jelly3_jfive_execution
             st0_mem_size            <= s_mem_size           ;
             st0_mem_unsigned        <= s_mem_unsigned       ;
             st0_mem_strb            <= make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val));
-            st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)                            ;
+            st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)           ;
+            st0_mem_valid           <= (s_load || s_store) && s_valid ;
             st0_valid               <= s_valid              ;
         end
     end
@@ -480,7 +483,7 @@ module jelly3_jfive_execution
                 .s_wr            (st0_store             ),
                 .s_strb          (st0_mem_strb          ),
                 .s_wdata         (st0_mem_wdata         ),
-                .s_valid         (st0_valid             ),
+                .s_valid         (st0_mem_valid         ),
                 .s_wait          (mem_wait              ),
 
                 .m_id            (load_id               ),

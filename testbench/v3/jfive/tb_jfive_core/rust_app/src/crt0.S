@@ -1,7 +1,7 @@
 /* ------------------------------------------------------------------------ */
 /*  startup                                                                 */
 /*                                                                          */
-/*                               Copyright (C) 1998-2021 by Ryuji Fuchikami */
+/*                                          Copyright (C) 1998-2021 by Ryuji Fuchikami */
 /* ------------------------------------------------------------------------ */
 
 
@@ -32,6 +32,11 @@ _rst_handler:
 end_loop:
                 j       end_loop
 
+
+                .global   asm_test
+asm_test:
+                li	a0,7
+                ret
 
 
 /* end of file */

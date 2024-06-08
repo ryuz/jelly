@@ -3,7 +3,7 @@ ENTRY(_rst_handler)
 
 MEMORY
 {
-	ram  : o = 0x00000000, l = 0x00010000
+	ram  : o = 0x80000000, l = 0x0010000
 }
 
 SECTIONS
@@ -37,6 +37,13 @@ SECTIONS
 		___bss_end = . ;  
 	} > ram
 
+	.sbss :
+	{
+		___sbss = . ;
+		*(.sbss .sbss.*)
+		___sbss_end = . ;  
+	} > ram
+
     .app_stack ALIGN(0x08):
     {
         *(.usr_stack .usr_stack.*);
@@ -46,7 +53,7 @@ SECTIONS
     .stacks ALIGN(0x08):
     {
         ___stack = . ; 
-        . += 1024;
+        . += 8192;
         ___stack_end = . ;
     } > ram
 }
