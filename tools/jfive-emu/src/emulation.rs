@@ -34,6 +34,46 @@ fn bit_sign((v, l): (u32, u32)) -> (i32, u32) {
     (si, ui)
 }
 
+fn ridx_to_name(idx: u32) -> String {
+    // RISC-Vの対応するレジスタ名を返す
+    format!("x{}", idx)
+    /*
+    match idx {
+        0 => "zero",
+        1 => "ra",
+        2 => "sp",
+        3 => "gp",
+        4 => "tp",
+        5 => "t0",
+        6 => "t1",
+        7 => "t2",
+        8 => "s0",
+        9 => "s1",
+        10 => "a0",
+        11 => "a1",
+        12 => "a2",
+        13 => "a3",
+        14 => "a4",
+        15 => "a5",
+        16 => "a6",
+        17 => "a7",
+        18 => "s2",
+        19 => "s3",
+        20 => "s4",
+        21 => "s5",
+        22 => "s6",
+        23 => "s7",
+        24 => "s8",
+        25 => "s9",
+        26 => "s10",
+        27 => "s11",
+        28 => "t3",
+        29 => "t4",
+        30 => "t5",
+        31 => "t6",
+    }
+    */
+}
 
 pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, logfile: &mut File, logmem: bool) {
     let mut pc: u32 = init_pc;
@@ -88,7 +128,7 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
         let rs1_val = regs[rs1_idx as usize];
         let rs2_val = regs[rs2_idx as usize];
 
-        let mnemonic: &str;
+        let mnemonic: String;
         let mut rd_val: i32 = 0;
         let mut branch_pc: u32 = pc + 4;
         let mut mem_access: String = String::new();
@@ -96,162 +136,162 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
 
         match (opcode, funct3, funct7) {
             (0b0110111, _, _) => {
-                mnemonic = "lui";
+                mnemonic = format!("lui   {}, 0x{:x}", ridx_to_name(rd_idx), imm_u);
                 rd_val = imm_u;
             }
             (0b0010111, _, _) => {
-                mnemonic = "auipc";
+                mnemonic = format!("auipc {}, 0x{:x}", ridx_to_name(rd_idx), imm_u);
                 rd_val = imm_u + (pc as i32);
             }
             (0b1101111, _, _) => {
-                mnemonic = "jal";
+                mnemonic = format!("jal   {}, 0x{:x}", ridx_to_name(rd_idx), imm_j);
                 rd_val = pc as i32 + 4;
                 branch_pc = (pc as i32 + imm_j) as u32;
             }
             (0b1100111, 0b000, _) => {
-                mnemonic = "jalr";
+                mnemonic = format!("jalr  {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = pc as i32 + 4;
                 branch_pc = (rs1_val + imm_i) as u32;
             }
             (0b1100011, 0b000, _) => {
-                mnemonic = "beq";
+                mnemonic = format!("beq   {}, {}, 0x{:x}", ridx_to_name(rs1_idx), ridx_to_name(rs2_idx), imm_b);
                 if rs1_val == rs2_val {
                     branch_pc = (pc as i32 + imm_b) as u32;
                 }
                 rd_idx = 0;
             }
             (0b1100011, 0b001, _) => {
-                mnemonic = "bne";
+                mnemonic = format!("bne   {}, {}, 0x{:x}", ridx_to_name(rs1_idx), ridx_to_name(rs2_idx), imm_b);
                 if rs1_val != rs2_val {
                     branch_pc = (pc as i32 + imm_b) as u32;
                 }
                 rd_idx = 0;
             }
             (0b1100011, 0b100, _) => {
-                mnemonic = "blt";
+                mnemonic = format!("blt   {}, {}, 0x{:x}", ridx_to_name(rs1_idx), ridx_to_name(rs2_idx), imm_b);
                 if rs1_val < rs2_val {
                     branch_pc = (pc as i32 + imm_b) as u32;
                 }
                 rd_idx = 0;
             }
             (0b1100011, 0b101, _) => {
-                mnemonic = "bge";
+                mnemonic = format!("bge   {}, {}, 0x{:x}", ridx_to_name(rs1_idx), ridx_to_name(rs2_idx), imm_b);
                 if rs1_val >= rs2_val {
                     branch_pc = (pc as i32 + imm_b) as u32;
                 }
                 rd_idx = 0;
             }
             (0b1100011, 0b110, _) => {
-                mnemonic = "bltu";
+                mnemonic = format!("bltu  {}, {}, 0x{:x}", ridx_to_name(rs1_idx), ridx_to_name(rs2_idx), imm_b);
                 if (rs1_val as u32) < (rs2_val as u32) {
                     branch_pc = (pc as i32 + imm_b) as u32;
                 }
                 rd_idx = 0;
             }
             (0b1100011, 0b111, _) => {
-                mnemonic = "bgeu";
+                mnemonic = format!("bgeu  {}, {}, 0x{:x}", ridx_to_name(rs1_idx), ridx_to_name(rs2_idx), imm_b);
                 if (rs1_val as u32) >= (rs2_val as u32) {
                     branch_pc = (pc as i32 + imm_b) as u32;
                 }
                 rd_idx = 0;
             }
             (0b0000011, 0b000, _) => {
-                mnemonic = "lb";
+                mnemonic = format!("lb    {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = mem.read8i((rs1_val + imm_i) as u32 as usize) as i32;
                 mem_access = format!("read b  {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0000011, 0b001, _) => {
-                mnemonic = "lh";
+                mnemonic = format!("lh    {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = mem.read16i((rs1_val + imm_i) as u32 as usize) as i32;
                 mem_access = format!("read h  {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0000011, 0b010, _) => {
-                mnemonic = "lw";
+                mnemonic = format!("lw    {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = mem.read32i((rs1_val + imm_i) as u32 as usize) as i32;
                 mem_access = format!("read w  {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0000011, 0b100, _) => {
-                mnemonic = "lbu";
+                mnemonic = format!("lbu   {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = mem.read8((rs1_val + imm_i) as u32 as usize) as i32;
                 mem_access = format!("read bu {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0000011, 0b101, _) => {
-                mnemonic = "lhu";
+                mnemonic = format!("lhu   {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = mem.read16((rs1_val + imm_i) as u32 as usize) as i32;
                 mem_access = format!("read hu {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0100011, 0b000, _) => {
-                mnemonic = "sb";
+                mnemonic = format!("sb    {}, {}, 0x{:x}", ridx_to_name(rs2_idx), ridx_to_name(rs1_idx), imm_i);
                 mem.write8((rs1_val + imm_s) as u32 as usize, rs2_val as u8);
                 mem_access = format!("write b {:x} <= {:02x}", (rs1_val + imm_s) as u32 as usize, rs2_val as u8);
                 rd_idx = 0;
             }
             (0b0100011, 0b001, _) => {
-                mnemonic = "sh";
+                mnemonic = format!("sh    {}, {}, 0x{:x}", ridx_to_name(rs2_idx), ridx_to_name(rs1_idx), imm_i);
                 mem.write16((rs1_val + imm_s) as u32 as usize, rs2_val as u16);
                 mem_access = format!("write h {:x} <= {:04x}", (rs1_val + imm_s) as u32 as usize, rs2_val as u16);
                 rd_idx = 0;
             }
             (0b0100011, 0b010, _) => {
-                mnemonic = "sw";
+                mnemonic = format!("sw    {}, {}, 0x{:x}", ridx_to_name(rs2_idx), ridx_to_name(rs1_idx), imm_i);
                 mem.write32((rs1_val + imm_s) as u32 as usize, rs2_val as u32);
                 mem_access = format!("write w {:x} <= {:08x}", (rs1_val + imm_s) as u32 as usize, rs2_val as u32);
                 rd_idx = 0;
             }
             (0b0010011, 0b000, _) => {
-                mnemonic = "addi";
-                rd_val = rs1_val + imm_i;
+                mnemonic = format!("addi  {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
+                rd_val = rs1_val.wrapping_add(imm_i);
             }
             (0b0010011, 0b010, _) => {
-                mnemonic = "slti";
+                mnemonic = format!("slti  {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = if rs1_val < imm_i { 1 } else { 0 };
             }
             (0b0010011, 0b011, _) => {
-                mnemonic = "sltiu";
+                mnemonic = format!("sltiu {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = if (rs1_val as u32) < imm_i_u { 1 } else { 0 };
             }
             (0b0010011, 0b100, _) => {
-                mnemonic = "xori";
+                mnemonic = format!("xori  {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = rs1_val ^ imm_i;
             }
             (0b0010011, 0b110, _) => {
-                mnemonic = "ori";
+                mnemonic = format!("ori   {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = rs1_val | imm_i;
             }
             (0b0010011, 0b111, _) => {
-                mnemonic = "andi";
+                mnemonic = format!("andi  {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), imm_i);
                 rd_val = rs1_val & imm_i;
             }
             (0b0010011, 0b001, 0b0000000) => {
-                mnemonic = "slli";
+                mnemonic = format!("slli  {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), shamt);
                 rd_val = rs1_val << shamt;
             }
             (0b0010011, 0b101, 0b0000000) => {
-                mnemonic = "srli";
+                mnemonic = format!("srli  {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), shamt);
                 rd_val = ((rs1_val as u32) >> shamt) as i32;
             }
             (0b0010011, 0b101, 0b0100000) => {
-                mnemonic = "srai";
+                mnemonic = format!("srai  {}, {}, 0x{:x}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), shamt);
                 rd_val = rs1_val >> shamt;
             }
             (0b0110011, 0b000, 0b0000000) => {
-                mnemonic = "add";
+                mnemonic = format!("add   {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = rs1_val.wrapping_add(rs2_val);
             }
             (0b0110011, 0b000, 0b0100000) => {
-                mnemonic = "sub";
+                mnemonic = format!("sub   {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = rs1_val.wrapping_sub(rs2_val);
             }
             (0b0110011, 0b001, 0b0000000) => {
-                mnemonic = "sll";
+                mnemonic = format!("sll   {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = rs1_val << (rs2_val & 0x1f);
             }
             (0b0110011, 0b010, 0b0000000) => {
-                mnemonic = "slt";
+                mnemonic = format!("slt   {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = if rs1_val < rs2_val { 1 } else { 0 };
             }
             (0b0110011, 0b011, 0b0000000) => {
-                mnemonic = "sltu";
+                mnemonic = format!("sltu  {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = if (rs1_val as u32) < (rs2_val as u32) {
                     1
                 } else {
@@ -259,40 +299,40 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
                 };
             }
             (0b0110011, 0b100, 0b0000000) => {
-                mnemonic = "xor";
+                mnemonic = format!("xor   {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = rs1_val ^ rs2_val;
             }
             (0b0110011, 0b101, 0b0000000) => {
-                mnemonic = "srl";
+                mnemonic = format!("srl   {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = ((rs1_val as u32) >> (rs2_val & 0x1f)) as i32;
             }
             (0b0110011, 0b101, 0b0100000) => {
-                mnemonic = "sra";
+                mnemonic = format!("sra   {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = rs1_val >> (rs2_val & 0x1f);
             }
             (0b0110011, 0b110, 0b0000000) => {
-                mnemonic = "or";
+                mnemonic = format!("or    {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = rs1_val | rs2_val;
             }
             (0b0110011, 0b111, 0b0000000) => {
-                mnemonic = "and";
+                mnemonic = format!("and   {}, {}, {}", ridx_to_name(rd_idx), ridx_to_name(rs1_idx), ridx_to_name(rs2_idx));
                 rd_val = rs1_val & rs2_val;
             }
             (0b0001111, _, _) => {
-                mnemonic = "fence";
+                mnemonic = format!("fence");
                 rd_idx = 0;
             }
             (_, _, _) => match instr {
                 0x00000073 => {
-                    mnemonic = "ecall";
+                    mnemonic = format!("ecall");
                     rd_idx = 0;
                 }
                 0x00100073 => {
-                    mnemonic = "ebreak";
+                    mnemonic = format!("ebreak");
                     rd_idx = 0;
                 }
                 _ => {
-                    mnemonic = "unknown";
+                    mnemonic = format!("unknown");
                     rd_idx = 0;
                 }
             },
@@ -305,16 +345,17 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
             rd_val = 0;
         }
         
-        /*
+        
         writeln!(logfile,
-            "{:8} pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x}",
-            mnemonic, pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val
+            "pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x} {:8}",
+            pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val, mnemonic
         ).unwrap();
-        */
+        /*
         writeln!(logfile,
             "pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x}",
             pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val
         ).unwrap();
+        */
 
         if logmem && mem_access.len() > 0 {
             writeln!(logfile, "{}", mem_access).unwrap();

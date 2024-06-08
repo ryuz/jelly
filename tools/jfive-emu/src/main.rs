@@ -12,7 +12,7 @@ use emulation::*;
 use std::fs::File;
 
 fn main() {
-    let mut logfile = File::create("exe_log.txt").expect("file open error");
+    let mut logfile = File::create("emu_exe_log.txt").expect("file open error");
 
     let mut map = MemoryMap::new();
 
@@ -20,7 +20,7 @@ fn main() {
     map.add(0x8000_0000, Rc::new(RefCell::new(mem)));
 
     let prt = MemStdout::new(0x100);
-    map.add(0x1000_0100, Rc::new(RefCell::new(prt)));
+    map.add(0x1000_0000, Rc::new(RefCell::new(prt)));
 
 
     map.load_hex32("./mem.hex", 0x8000_0000);
