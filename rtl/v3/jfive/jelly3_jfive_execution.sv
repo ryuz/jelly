@@ -54,6 +54,8 @@ module jelly3_jfive_execution
             // branch
             output  var id_t                branch_id           ,
             output  var pc_t                branch_pc           ,
+            output  var pc_t                branch_old_pc       ,
+            output  var instr_t             branch_instr        ,
             output  var logic               branch_valid        ,
 
             // write-back
@@ -400,9 +402,13 @@ module jelly3_jfive_execution
 
                 .branch_id       ,
                 .branch_pc       ,
+                .branch_old_pc   ,
+                .branch_instr    ,
                 .branch_valid    ,
 
                 .s_id            (st0_id                ),
+                .s_pc            (st0_pc                ),
+                .s_instr         (st0_instr             ),
                 .s_phase         (st0_phase             ),
                 .s_mode          (st0_branch_mode       ),
                 .s_msb_c         (st0_adder_msb_c       ),

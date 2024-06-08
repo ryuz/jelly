@@ -12,16 +12,18 @@
 
 module jelly3_jfive_branch
         #(
-            parameter   int                     THREADS     = 4                                 ,
-            parameter   int                     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
-            parameter   type                    id_t        = logic         [ID_BITS-1:0]       ,
-            parameter   int                     PHASE_BITS  = 1                                 ,
-            parameter   type                    phase_t     = logic         [PHASE_BITS-1:0]    ,
-            parameter   int                     PC_BITS     = 32                                ,
-            parameter   type                    pc_t        = logic         [PC_BITS-1:0]       ,
-            parameter                           DEVICE      = "RTL"                             ,
-            parameter                           SIMULATION  = "false"                           ,
-            parameter                           DEBUG       = "false"                           
+            parameter   int     THREADS     = 4                                 ,
+            parameter   int     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
+            parameter   type    id_t        = logic         [ID_BITS-1:0]       ,
+            parameter   int     PHASE_BITS  = 1                                 ,
+            parameter   type    phase_t     = logic         [PHASE_BITS-1:0]    ,
+            parameter   int     PC_BITS     = 32                                ,
+            parameter   type    pc_t        = logic         [PC_BITS-1:0]       ,
+            parameter   int     INSTR_BITS  = 32                                ,
+            parameter   type    instr_t     = logic         [INSTR_BITS-1:0]    ,
+            parameter           DEVICE      = "RTL"                             ,
+            parameter           SIMULATION  = "false"                           ,
+            parameter           DEBUG       = "false"                           
         )
         (
             input   var logic               reset           ,
@@ -34,10 +36,14 @@ module jelly3_jfive_branch
             // branch
             output  var id_t                branch_id       ,
             output  var pc_t                branch_pc       ,
+            output  var pc_t                branch_old_pc   ,
+            output  var instr_t             branch_instr    ,
             output  var logic               branch_valid    ,
 
             // input
             input   var id_t                s_id            ,
+            input   var pc_t                s_pc            ,
+            input   var instr_t             s_instr         ,
             input   var phase_t             s_phase         ,
             input   var logic   [2:0]       s_mode          ,
             input   var logic               s_msb_c         ,
@@ -76,14 +82,18 @@ module jelly3_jfive_branch
     //  stage 0
     // ------------------------------------
 
-    id_t                    st0_branch_id       ;
+    id_t                    st0_id              ;
+    pc_t                    st0_pc              ;
+    instr_t                 st0_instr           ;
     pc_t                    st0_branch_pc       ;
     logic                   st0_branch_valid    ;
     
     always_ff @(posedge clk) begin
         if ( reset ) begin
             phase_table       <= '0;
-            st0_branch_id     <= 'x;
+            st0_id            <= 'x;
+            st0_pc            <= 'x;
+            st0_instr         <= 'x;
             st0_branch_pc     <= 'x;
             st0_branch_valid  <= 1'b0;
         end
@@ -92,7 +102,9 @@ module jelly3_jfive_branch
                 phase_table[s_id] <= phase_table[s_id] + phase_t'(1);
             end
 
-            st0_branch_id     <= s_id;
+            st0_id        <= s_id;
+            st0_pc        <= s_pc;
+            st0_instr     <= s_instr;
             st0_branch_pc <= s_imm_pc;
             if ( s_mode == 3'b011 ) begin
                 st0_branch_pc <= s_jalr_pc;
@@ -101,8 +113,10 @@ module jelly3_jfive_branch
         end
     end
 
-    assign branch_id     = st0_branch_id    ;
+    assign branch_id     = st0_id           ;
     assign branch_pc     = st0_branch_pc    ;
+    assign branch_old_pc = st0_pc           ;
+    assign branch_instr  = st0_instr        ;
     assign branch_valid  = st0_branch_valid ;
 
 endmodule

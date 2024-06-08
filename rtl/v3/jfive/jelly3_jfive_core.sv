@@ -91,7 +91,9 @@ module jelly3_jfive_core
 
     id_t    branch_id       ;
     pc_t    branch_pc       ;
-    logic   branch_valid    = 0;
+    pc_t    branch_old_pc   ;
+    instr_t branch_instr    ;
+    logic   branch_valid    ;
 
     id_t    pc_id           ;
     phase_t pc_phase        ;
@@ -354,6 +356,8 @@ module jelly3_jfive_core
                 
                 .branch_id              ,
                 .branch_pc              ,
+                .branch_old_pc          ,
+                .branch_instr           ,
                 .branch_valid           ,
 
                 .wb_id                  ,
@@ -404,7 +408,7 @@ module jelly3_jfive_core
                 .s_mem_size             (id_mem_size            ),
                 .s_mem_unsigned         (id_mem_unsigned        ),
                 .s_valid                (id_valid               ),
-                .s_acceptable                 (id_acceptable                )
+                .s_acceptable           (id_acceptable          )
         );
 
 
