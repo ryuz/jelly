@@ -33,6 +33,7 @@ module jelly3_jfive_execution
             parameter   int     STRB_BITS   = $bits(data_t) / 8                 ,
             parameter   type    strb_t      = logic         [STRB_BITS-1:0]     ,
             parameter   type    size_t      = logic         [1:0]               ,
+            parameter   int     LOAD_QUES   = 2                                 ,
             parameter   int     EXES        = 3                                 ,
             parameter   bit     RAW_HAZARD  = 1'b1                              ,
             parameter   bit     WAW_HAZARD  = 1'b1                              ,
@@ -303,7 +304,7 @@ module jelly3_jfive_execution
             st0_instr               <= s_instr              ;
             st0_rd_en               <= s_rd_en & s_valid    ;
             st0_rd_idx              <= s_rd_idx             ;
-            st0_rd_val              <= s_rd_val             ;
+            st0_rd_val              <= s_branch ? rval_t'(s_pc) : s_rd_val;
             st0_rs1_en              <= s_rs1_en             ;
             st0_rs1_val             <= s_rs1_val            ;
             st0_rs2_en              <= s_rs2_en             ;
@@ -411,6 +412,9 @@ module jelly3_jfive_execution
             );
 
     // load/store
+    id_t    [LOAD_QUES-1:0] que_id      ;
+    logic   [LOAD_QUES-1:0] que_rd_en   ;
+    ridx_t  [LOAD_QUES-1:0] que_rd_idx  ;
     id_t                    load_id     ;
     logic                   load_rd_en  ;
     ridx_t                  load_rd_idx ;
@@ -419,7 +423,7 @@ module jelly3_jfive_execution
     logic                   load_wait   ;
     jelly3_jfive_load_store
             #(
-                .QUE_SIZE       (4                      ),
+                .LOAD_QUES      (LOAD_QUES              ),
                 .XLEN           (XLEN                   ),
                 .ID_BITS        (ID_BITS                ),
                 .id_t           (id_t                   ),
@@ -462,9 +466,9 @@ module jelly3_jfive_execution
                 .dbus_res_valid  ,
                 .dbus_res_wait   ,
 
-                .que_id          (),
-                .que_rd_en       (),
-                .que_rd_idx      (),
+                .que_id          ,
+                .que_rd_en       ,
+                .que_rd_idx      ,
 
                 .s_id            (st0_id                ),
                 .s_rd_en         (st0_rd_en             ),
@@ -595,9 +599,9 @@ module jelly3_jfive_execution
     end
 
 
-    assign exe_id     = {st0_id,     st1_id,     st2_id    };
-    assign exe_rd_en  = {st0_rd_en,  st1_rd_en,  1'b0};//st2_rd_en };
-    assign exe_rd_idx = {st0_rd_idx, st1_rd_idx, st2_rd_idx};
+    assign exe_id     = {que_id    , st0_id,     st1_id,     st2_id    };
+    assign exe_rd_en  = {que_rd_en , st0_rd_en,  st1_rd_en,  st2_rd_en };
+    assign exe_rd_idx = {que_rd_idx, st0_rd_idx, st1_rd_idx, st2_rd_idx};
 
 
     assign wb_id     = load_valid ? load_id     : st2_id     ;

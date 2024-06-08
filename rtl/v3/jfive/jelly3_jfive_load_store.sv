@@ -12,7 +12,7 @@
 
 module jelly3_jfive_load_store
         #(
-            parameter   int     QUE_SIZE    = 4                                 ,
+            parameter   int     LOAD_QUES   = 4                                 ,
             parameter   int     XLEN        = 32                                ,
             parameter   int     ID_BITS     = 4                                 ,
             parameter   type    id_t        = logic         [ID_BITS-1:0]       ,
@@ -57,9 +57,9 @@ module jelly3_jfive_load_store
             output  var logic                   dbus_res_wait   ,
 
             // execution
-            output  var id_t    [QUE_SIZE-1:0]  que_id          ,
-            output  var logic   [QUE_SIZE-1:0]  que_rd_en       ,
-            output  var ridx_t  [QUE_SIZE-1:0]  que_rd_idx      ,
+            output  var id_t    [LOAD_QUES-1:0] que_id          ,
+            output  var logic   [LOAD_QUES-1:0] que_rd_en       ,
+            output  var ridx_t  [LOAD_QUES-1:0] que_rd_idx      ,
 
             // input
             input   var id_t                    s_id            ,
@@ -108,7 +108,7 @@ module jelly3_jfive_load_store
 
     jelly3_jfive_load_queue
             #(
-                .QUE_SIZE       (QUE_SIZE           ),
+                .QUE_SIZE       (LOAD_QUES          ),
                 .XLEN           (XLEN               ),
                 .ID_BITS        (ID_BITS            ),
                 .id_t           (id_t               ),

@@ -27,6 +27,7 @@ module jelly3_jfive_core
 //          parameter   type                    ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ,
 //          parameter   int                     IBUS_DATA_BITS = INSTR_BITS                         ,
 //          parameter   type                    ibus_data_t    = logic         [IBUS_DATA_BITS-1:0] ,
+            parameter   int                     LOAD_QUES      = 2                                  ,
             parameter   int                     DBUS_ADDR_BITS = 10                                 ,
             parameter   type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ,
             parameter   int                     DBUS_DATA_BITS = XLEN                               ,
@@ -165,7 +166,7 @@ module jelly3_jfive_core
     //  Instruction Decode
     // -----------------------------
 
-    localparam  int     EXES             = 3                                ;
+    localparam  int     EXES             = 3 + LOAD_QUES                    ;
     localparam  bit     RAW_HAZARD       = 1'b1                             ;
     localparam  bit     WAW_HAZARD       = 1'b1                             ;
     localparam  type    ridx_t           = logic         [4:0]              ;
