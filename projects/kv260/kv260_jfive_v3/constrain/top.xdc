@@ -21,7 +21,7 @@
 # create_clock -period 1.6667 -name clk -waveform {0.000 0.8333} [get_ports clk]
 
 # 585MHz (BRAMの限界)
-create_clock -period 1.710 -name clk -waveform {0.000 0.855} [get_ports clk]
+# create_clock -period 1.710 -name clk -waveform {0.000 0.855} [get_ports clk]
 
 # 550MHz
 # create_clock -period 1.818 -name clk -waveform {0.000 0.909} [get_ports clk]
@@ -30,7 +30,7 @@ create_clock -period 1.710 -name clk -waveform {0.000 0.855} [get_ports clk]
 # create_clock -period 1.923 -name clk -waveform {0.000 0.9615} [get_ports clk]
 
 # 500MHz (URAMの限界)
-# create_clock -period 2.000 -name clk -waveform {0.000 1.000} [get_ports clk]
+create_clock -period 2.000 -name clk -waveform {0.000 1.000} [get_ports clk]
 
 
 # -mode out_of_context 

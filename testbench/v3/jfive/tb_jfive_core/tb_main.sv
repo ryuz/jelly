@@ -278,6 +278,18 @@ module tb_main
     wire    mnemonic_t   branch_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.branch_instr));
     wire    mnemonic_t   wb_mnemonic     = mnemonic_t'(instr2mnemonic(u_jfive_core.wb_instr));
 
+    int fp;
+    initial begin
+        fp = $fopen("wb_rd_log.txt", "w");
+    end
+
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( u_jfive_core.wb_rd_en ) begin
+                $fwrite(fp, "%2d %08x %s\n", u_jfive_core.wb_rd_idx, u_jfive_core.wb_rd_val, string'(wb_mnemonic));
+            end
+        end
+    end
 
 endmodule
 

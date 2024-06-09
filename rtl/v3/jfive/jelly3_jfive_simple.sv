@@ -32,12 +32,12 @@ module jelly3_jfive_simple
         //  parameter  int                     EXES           = 4                                  ,
         //  parameter  bit                     RAW_HAZARD     = 1'b1                               ,
         //  parameter  bit                     WAW_HAZARD     = 1'b1                               ,
-            parameter  bit     [THREADS-1:0]   INIT_RUN    = 1                                     ,
-            parameter  id_t                    INIT_ID     = '0                                    ,
-            parameter  pc_t    [THREADS-1:0]   INIT_PC     = '0                                    ,
-            parameter                          DEVICE      = "RTL"                                 ,
-            parameter                          SIMULATION  = "false"                               ,
-            parameter                          DEBUG       = "false"                               
+            parameter  bit     [THREADS-1:0]   INIT_RUN       = 1                                  ,
+            parameter  id_t                    INIT_ID        = '0                                 ,
+            parameter  pc_t    [THREADS-1:0]   INIT_PC        = '0                                 ,
+            parameter                          DEVICE         = "ULTRASCALE_PLUS", //"RTL"         ,
+            parameter                          SIMULATION     = "false"                            ,
+            parameter                          DEBUG          = "false"                            
         )
         (
             input   var logic           reset   ,
@@ -112,19 +112,19 @@ module jelly3_jfive_simple
                 .ibus_cmd_phase     ,
                 .ibus_cmd_pc        ,
                 .ibus_cmd_valid     ,
-                .ibus_cmd_acceptable      ,
+                .ibus_cmd_acceptable,
                 .ibus_res_id        ,
                 .ibus_res_phase     ,
                 .ibus_res_pc        ,
                 .ibus_res_instr     ,
                 .ibus_res_valid     ,
-                .ibus_res_acceptable      ,
+                .ibus_res_acceptable,
                 .dbus_cmd_addr      ,
                 .dbus_cmd_wr        ,
                 .dbus_cmd_strb      ,
                 .dbus_cmd_wdata     ,
                 .dbus_cmd_valid     ,
-                .dbus_cmd_acceptable      ,
+                .dbus_cmd_acceptable,
                 .dbus_res_rdata     ,
                 .dbus_res_valid     ,
                 .dbus_res_acceptable      
@@ -138,11 +138,13 @@ module jelly3_jfive_simple
     localparam int  MEM_WE_BITS    = $bits(mem_data_t) / 8;
     localparam type mem_we_t       = logic  [MEM_WE_BITS-1:0]   ;
 
+    logic           port0_cke   ;
     mem_we_t        port0_we    ;
     mem_addr_t      port0_addr  ;
     mem_data_t      port0_din   ;
     mem_data_t      port0_dout  ;
 
+    logic           port1_cke   ;
     mem_we_t        port1_we    ;
     mem_addr_t      port1_addr  ;
     mem_data_t      port1_din   ;
@@ -154,7 +156,7 @@ module jelly3_jfive_simple
                 .DATA_WIDTH     (32                 ),
                 .WE_WIDTH       (4                  ),
                 .WORD_WIDTH     (8                  ),
-                .RAM_TYPE       ("block"            ),
+                .RAM_TYPE       ("block"            ), // ("ultra"  ),
                 .DOUT_REGS0     (1                  ),
                 .DOUT_REGS1     (1                  ),
                 .MODE0          ("NO_CHANGE"        ),
@@ -168,22 +170,23 @@ module jelly3_jfive_simple
         u_ram_dualport
             (
                 .port0_clk      (clk                ),
-                .port0_en       (cke                ),
-                .port0_regcke   (cke                ),
+                .port0_en       (port0_cke          ),
+                .port0_regcke   (port0_cke          ),
                 .port0_we       (port0_we           ),
                 .port0_addr     (port0_addr         ),
                 .port0_din      (port0_din          ),
                 .port0_dout     (port0_dout         ),
 
                 .port1_clk      (clk                ),
-                .port1_en       (cke                ),
-                .port1_regcke   (cke                ),
+                .port1_en       (port1_cke          ),
+                .port1_regcke   (port1_cke          ),
                 .port1_we       (port1_we           ),
                 .port1_addr     (port1_addr         ),
                 .port1_din      (port1_din          ),
                 .port1_dout     (port1_dout         )
             );
     
+    assign port0_cke   = cke & ibus_res_acceptable;
     assign port0_we    = '0;
     assign port0_addr  = mem_addr_t'(ibus_cmd_pc >> 2);
     assign port0_din   = '0;
@@ -207,7 +210,7 @@ module jelly3_jfive_simple
             ibus_st1_pc     <= 'x;
             ibus_st1_valid  <= 1'b0;
         end
-        else if ( cke ) begin
+        else if ( cke && ibus_res_acceptable ) begin
             ibus_st0_id     <= ibus_cmd_id;
             ibus_st0_phase  <= ibus_cmd_phase;
             ibus_st0_pc     <= ibus_cmd_pc;
@@ -229,6 +232,7 @@ module jelly3_jfive_simple
 
 
     // dbus
+    assign port1_cke  = cke & dbus_res_acceptable;
     assign port1_addr = mem_addr_t'(dbus_cmd_addr)  ;
     assign port1_we   = dbus_cmd_strb               ;
     assign port1_din  = dbus_cmd_wdata              ;

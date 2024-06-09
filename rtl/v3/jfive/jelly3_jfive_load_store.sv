@@ -159,21 +159,48 @@ module jelly3_jfive_load_store
     assign quein_align     = align_t'(s_addr)           ;
     assign quein_size      = s_size                     ;
     assign quein_unsigned  = s_unsigned                 ;       
-    assign quein_valid     = s_rd && dbus_cmd_acceptable;
-
+    assign quein_valid     = s_rd && s_acceptable       ;
 
 
     // ------------------------------------
     //  command
     // ------------------------------------
 
-    assign dbus_cmd_addr  = s_addr                      ;
-    assign dbus_cmd_wr    = s_wr                        ;
-    assign dbus_cmd_strb  = s_strb                      ;
-    assign dbus_cmd_wdata = s_wdata                     ;
-    assign dbus_cmd_valid = s_valid & quein_acceptable  ;
+    addr_t      cmd0_addr   ;
+    logic       cmd0_wr     ;
+    strb_t      cmd0_strb   ;
+    data_t      cmd0_wdata  ;
+    logic       cmd0_valid  ;
 
-    assign s_acceptable = !s_valid || (dbus_cmd_acceptable && quein_acceptable);
+    always_ff @(posedge clk ) begin
+        if ( reset ) begin
+            cmd0_addr  <= 'x;
+            cmd0_wr    <= '0;
+            cmd0_strb  <= '0;
+            cmd0_wdata <= 'x;
+            cmd0_valid <= '0;
+        end
+        if ( cke ) begin
+            if ( dbus_cmd_acceptable ) begin
+                 cmd0_valid  <= 1'b0;
+            end
+            if ( s_acceptable ) begin
+                cmd0_addr   <= s_addr    ;
+                cmd0_wr     <= s_wr      ;
+                cmd0_strb   <= s_strb    ;
+                cmd0_wdata  <= s_wdata   ;
+                cmd0_valid  <= s_valid   ;
+            end
+        end
+    end
+
+    assign dbus_cmd_addr  = cmd0_addr   ;
+    assign dbus_cmd_wr    = cmd0_wr     ;
+    assign dbus_cmd_strb  = cmd0_strb   ;
+    assign dbus_cmd_wdata = cmd0_wdata  ;
+    assign dbus_cmd_valid = cmd0_valid  ;
+
+    assign s_acceptable = (dbus_cmd_acceptable && quein_acceptable); // || !s_valid;
 
 
     // ------------------------------------

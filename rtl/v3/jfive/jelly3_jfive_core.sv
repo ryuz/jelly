@@ -100,7 +100,7 @@ module jelly3_jfive_core
     pc_t    pc_pc           ;
     instr_t pc_instr        ;
     logic   pc_valid        ;
-    logic   pc_acceptable         ;
+    logic   pc_acceptable   ;
 
     jelly3_jfive_program_counter
             #(
@@ -135,7 +135,7 @@ module jelly3_jfive_core
                 .m_phase            (pc_phase           ),
                 .m_pc               (pc_pc              ),
                 .m_valid            (pc_valid           ),
-                .m_acceptable             (pc_acceptable            )
+                .m_acceptable       (pc_acceptable      )
             );
 
 

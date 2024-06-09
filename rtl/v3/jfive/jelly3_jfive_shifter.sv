@@ -40,59 +40,38 @@ module jelly3_jfive_shifter
 
 
     // ------------------------------------
-    //  Input
+    //   stage 0
     // ------------------------------------
 
     localparam  int  EXT_SHAMT_BITS = $bits(shamt_t) + 1;
-    localparam  int  SHAMT1_BITS    = 3;
-    localparam  int  SHAMT0_BITS    = EXT_SHAMT_BITS - SHAMT1_BITS;
     localparam  type ext_shamt_t = logic [EXT_SHAMT_BITS-1:0];
-    localparam  type shamt0_t    = logic [SHAMT0_BITS-1:0];
-    localparam  type shamt1_t    = logic [SHAMT1_BITS-1:0];
 
     localparam  int  EXT_DATA_BITS  = $bits(rval_t) * 3;
     localparam  type ext_data_t  = logic [EXT_DATA_BITS-1:0];
 
-    ext_shamt_t      s_ext_shamt      ;
-    ext_data_t       s_ext_data       ;
-
-    always_comb begin
-        case ( {s_left, s_imm_en} )
-        2'b00: s_ext_shamt = ext_shamt_t'($bits(rval_t)) + s_rs2_val;
-        2'b01: s_ext_shamt = ext_shamt_t'($bits(rval_t)) + s_shamt;
-        2'b10: s_ext_shamt = ext_shamt_t'($bits(rval_t)) - s_rs2_val;
-        2'b11: s_ext_shamt = ext_shamt_t'($bits(rval_t)) - s_shamt;
-        endcase
-    end
-
-    always_comb begin
-        if ( s_arithmetic ) begin
-            s_ext_data = { {XLEN{s_rs1_val[XLEN-1]}}, s_rs1_val, {XLEN{1'b0}} };
-        end
-        else begin
-            s_ext_data = { {XLEN{1'b0}}, s_rs1_val, {XLEN{1'b0}} };
-        end
-    end
-
-    shamt0_t    s_shamt0    ;
-    shamt1_t    s_shamt1    ;
-    assign {s_shamt1, s_shamt0} = s_ext_shamt;
-
-
-    // ------------------------------------
-    //   stage 0
-    // ------------------------------------
-
-    shamt0_t    st0_shamt0  ;
-    ext_data_t  st0_rd_val  ;
+    ext_shamt_t      st0_shamt      ;
+    ext_data_t       st0_rs1_val    ;
 
     always_ff @(posedge clk) begin
-        if ( cke ) begin
-           st0_shamt0 <= s_shamt0;
-           st0_rd_val <= s_ext_data >> {s_shamt1, shamt0_t'(0)};
+        if ( reset ) begin
+           st0_shamt   <= 'x;
+           st0_rs1_val <= 'x;
+        end
+        else if ( cke ) begin
+            case ( {s_left, s_imm_en} )
+            2'b00: st0_shamt <= ext_shamt_t'($bits(rval_t)) + ext_shamt_t'(s_rs2_val);
+            2'b01: st0_shamt <= ext_shamt_t'($bits(rval_t)) + ext_shamt_t'(s_shamt  );
+            2'b10: st0_shamt <= ext_shamt_t'($bits(rval_t)) - ext_shamt_t'(s_rs2_val);
+            2'b11: st0_shamt <= ext_shamt_t'($bits(rval_t)) - ext_shamt_t'(s_shamt  );
+            endcase
+            if ( s_arithmetic ) begin
+                st0_rs1_val <= { {XLEN{s_rs1_val[XLEN-1]}}, s_rs1_val, {XLEN{1'b0}} };
+            end
+            else begin
+                st0_rs1_val <= { {XLEN{1'b0}}, s_rs1_val, {XLEN{1'b0}} };
+            end
         end
     end
-
 
     // ------------------------------------
     //  stage 1
@@ -101,9 +80,10 @@ module jelly3_jfive_shifter
     rval_t      st1_rd_val;
     always_ff @(posedge clk) begin
         if ( cke ) begin
-           st1_rd_val <= rval_t'(st0_rd_val >> st0_shamt0);
+           st1_rd_val <= rval_t'(st0_rs1_val >> st0_shamt);
         end
     end
+
 
     // ------------------------------------
     //  output
