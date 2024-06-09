@@ -129,6 +129,7 @@ module jelly3_jfive_load_queue
             que_id       <= 'x;
             que_pc       <= 'x;
             que_instr    <= 'x;
+            que_rd_en    <= '0;
             que_rd_idx   <= 'x;
             que_align    <= 'x;
             que_size     <= 'x;
@@ -139,6 +140,7 @@ module jelly3_jfive_load_queue
             que_id       <= next_id       ;
             que_pc       <= next_pc       ;
             que_instr    <= next_instr    ;
+            que_rd_en    <= next_valid    ;
             que_rd_idx   <= next_rd_idx   ;
             que_align    <= next_align    ;
             que_size     <= next_size     ;

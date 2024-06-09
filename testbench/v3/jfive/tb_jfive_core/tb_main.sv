@@ -129,6 +129,13 @@ module tb_main
                 .dbus_res_valid     ,
                 .dbus_res_acceptable      
             );
+    
+    wire    ridx_t  exe_rd_idx0 = u_jfive_core.u_jfive_execution.exe_rd_idx[0];
+    wire    ridx_t  exe_rd_idx1 = u_jfive_core.u_jfive_execution.exe_rd_idx[1];
+    wire    ridx_t  exe_rd_idx2 = u_jfive_core.u_jfive_execution.exe_rd_idx[2];
+    wire    ridx_t  exe_rd_idx3 = u_jfive_core.u_jfive_execution.exe_rd_idx[3];
+    wire    ridx_t  exe_rd_idx4 = u_jfive_core.u_jfive_execution.exe_rd_idx[4];
+    wire    ridx_t  exe_rd_idx5 = u_jfive_core.u_jfive_execution.exe_rd_idx[5];
 
 
     localparam int  MEM_ADDR_BITS  = 14;

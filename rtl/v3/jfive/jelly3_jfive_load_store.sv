@@ -80,6 +80,8 @@ module jelly3_jfive_load_store
 
             // output   
             output  var id_t                    m_id                ,
+            output  var pc_t                    m_pc                ,
+            output  var instr_t                 m_instr             ,
             output  var logic                   m_rd_en             ,
             output  var ridx_t                  m_rd_idx            ,
             output  var rval_t                  m_rd_val            ,
@@ -94,6 +96,8 @@ module jelly3_jfive_load_store
     // ------------------------------------
 
     id_t        quein_id            ;
+    pc_t        quein_pc            ;
+    instr_t     quein_instr         ;
     ridx_t      quein_rd_idx        ;
     align_t     quein_align         ;
     size_t      quein_size          ;
@@ -102,6 +106,8 @@ module jelly3_jfive_load_store
     logic       quein_acceptable    ;
 
     id_t        queout_id           ;
+    pc_t        queout_pc           ;
+    instr_t     queout_instr        ;
     ridx_t      queout_rd_idx       ;
     align_t     queout_align        ;
     size_t      queout_size         ;
@@ -130,6 +136,8 @@ module jelly3_jfive_load_store
                 .cke             ,
 
                 .que_id          (que_id            ),
+                .que_pc          (                  ),
+                .que_instr       (                  ),
                 .que_rd_en       (que_rd_en         ),
                 .que_rd_idx      (que_rd_idx        ),
                 .que_align       (                  ),
@@ -138,6 +146,8 @@ module jelly3_jfive_load_store
                 .que_valid       (                  ),
 
                 .s_id            (quein_id          ),
+                .s_pc            (quein_pc          ),
+                .s_instr         (quein_instr       ),
                 .s_rd_idx        (quein_rd_idx      ),
                 .s_align         (quein_align       ),
                 .s_size          (quein_size        ),
@@ -146,6 +156,8 @@ module jelly3_jfive_load_store
                 .s_acceptable    (quein_acceptable  ),
 
                 .m_id            (queout_id         ),
+                .m_pc            (queout_pc         ),
+                .m_instr         (queout_instr      ),
                 .m_rd_idx        (queout_rd_idx     ),
                 .m_align         (queout_align      ),
                 .m_size          (queout_size       ),
@@ -155,6 +167,8 @@ module jelly3_jfive_load_store
         );
 
     assign quein_id        = s_id                       ;
+    assign quein_pc        = s_pc                       ;
+    assign quein_instr     = s_instr                    ;
     assign quein_rd_idx    = s_rd_idx                   ;
     assign quein_align     = align_t'(s_addr)           ;
     assign quein_size      = s_size                     ;
@@ -208,6 +222,8 @@ module jelly3_jfive_load_store
     // ------------------------------------
 
     id_t                st0_id            ;
+    pc_t                st0_pc            ;
+    instr_t             st0_instr         ;
     logic               st0_rd_en         ;
     ridx_t              st0_rd_idx        ;
     rval_t              st0_rd_val        ;
@@ -219,11 +235,27 @@ module jelly3_jfive_load_store
 //  logic               st0_valid         ;
 
     always_ff @(posedge clk ) begin
-        if ( cke ) begin
+        if ( reset ) begin
+            st0_id      <= 'x   ;
+            st0_pc      <= 'x   ;
+            st0_instr   <= 'x   ;
+            st0_rd_en   <= 1'b0 ;
+            st0_rd_idx  <= 'x   ;
+            st0_rd_val  <= 'x   ;
+            st0_addr    <= 'x   ;
+            st0_rd      <= 'x   ;
+            st0_wr      <= 'x   ;
+            st0_strb    <= 'x   ;
+            st0_wdata   <= 'x   ;
+//          st0_valid   <= 'x   ;
+        end
+        else if ( cke ) begin
             if ( !m_valid || m_acceptable ) begin
                 st0_rd_en  <= 1'b0          ;  
                 if ( dbus_res_valid && dbus_res_acceptable ) begin
                     st0_id     <= queout_id     ;
+                    st0_pc     <= queout_pc     ;
+                    st0_instr  <= queout_instr  ;
                     st0_rd_en  <= 1'b1          ;  
                     st0_rd_idx <= queout_rd_idx;
 
@@ -258,6 +290,8 @@ module jelly3_jfive_load_store
     // ------------------------------------
 
     assign m_id     = st0_id           ;
+    assign m_pc     = st0_pc           ;
+    assign m_instr  = st0_instr        ;
     assign m_rd_en  = st0_rd_en        ;
     assign m_rd_idx = st0_rd_idx       ;
     assign m_rd_val = st0_rd_val       ;

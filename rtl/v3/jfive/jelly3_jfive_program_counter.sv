@@ -118,13 +118,17 @@ module jelly3_jfive_program_counter
 
                 // program counter
                 for ( int i = 0; i < THREADS; i++ ) begin
-                    if ( branch_valid && branch_id == id_t'(i) ) begin
-                        st0_pc[i]    <= branch_pc;
-                        st0_phase[i] <= ~st0_phase[i];
-                    end
-                    else if ( run[i] && st0_id == id_t'(i) ) begin
+                    if ( run[i] && st0_id == id_t'(i) ) begin
                         st0_pc[i] <= (PC_MASK & st0_pc[i]) | (~PC_MASK & (st0_pc[i] + pc_t'(4)));
                     end
+                end
+            end
+
+            // branch
+            for ( int i = 0; i < THREADS; i++ ) begin
+                if ( branch_valid && branch_id == id_t'(i) ) begin
+                    st0_pc[i]    <= branch_pc;
+                    st0_phase[i] <= ~st0_phase[i];
                 end
             end
         end

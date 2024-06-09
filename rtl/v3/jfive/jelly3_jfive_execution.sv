@@ -441,6 +441,8 @@ module jelly3_jfive_execution
     logic   [LOAD_QUES-1:0] que_rd_en   ;
     ridx_t  [LOAD_QUES-1:0] que_rd_idx  ;
     id_t                    load_id     ;
+    pc_t                    load_pc     ;
+    instr_t                 load_instr  ;
     logic                   load_rd_en  ;
     ridx_t                  load_rd_idx ;
     rval_t                  load_rd_val ;
@@ -512,6 +514,8 @@ module jelly3_jfive_execution
                 .s_acceptable       (mem_acceptable         ),
 
                 .m_id               (load_id                ),
+                .m_pc               (load_pc                ),
+                .m_instr            (load_instr             ),
                 .m_rd_en            (load_rd_en             ),
                 .m_rd_idx           (load_rd_idx            ),
                 .m_rd_val           (load_rd_val            ),
@@ -560,7 +564,7 @@ module jelly3_jfive_execution
             st1_phase   <= st0_phase  ;
             st1_pc      <= st0_pc     ;
             st1_instr   <= st0_instr  ;
-            st1_rd_en   <= st0_rd_en && st0_phase_en;
+            st1_rd_en   <= st0_rd_en && !st0_load && st0_phase_en;
             st1_rd_idx  <= st0_rd_idx ;
             st1_rd_val  <= st0_adder   ? st0_adder_rd_val   :
                            st0_logical ? st0_logical_rd_val :
@@ -634,6 +638,8 @@ module jelly3_jfive_execution
             st2_rs2_en  <= st1_rs2_en ;
             st2_rs2_idx <= st1_rs2_idx;
             st2_rs2_val <= st1_rs2_val;
+            st2_shifter <= st1_shifter;
+            st2_load    <= st1_load   ;
             st2_valid   <= st1_valid  ;
         end
     end
@@ -645,13 +651,13 @@ module jelly3_jfive_execution
 
 
     assign wb_id     = load_valid ? load_id     : st2_id     ;
-    assign wb_pc     = load_valid ? 'x          : st2_pc     ;
-    assign wb_instr  = load_valid ? 'x          : st2_instr  ;
+    assign wb_pc     = load_valid ? load_pc     : st2_pc     ;
+    assign wb_instr  = load_valid ? load_instr  : st2_instr  ;
     assign wb_rd_en  = load_valid ? load_rd_en  : st2_rd_en  ;
     assign wb_rd_idx = load_valid ? load_rd_idx : st2_rd_idx ;
     assign wb_rd_val = load_valid ? load_rd_val : st2_rd_val ;
 
-    assign alu_acceptable  = !(st2_valid &&  load_valid);
+    assign alu_acceptable  = !(st2_rd_en &&  load_rd_en);
     assign load_acceptable = 1'b1;
 
 
