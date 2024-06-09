@@ -31,7 +31,8 @@ module jelly3_jfive_logical
             input   var rval_t              s_rs2_val       ,
 
             // output
-            output  var rval_t              m_rd_val        
+            output  var rval_t              m_rd_val        ,
+            input   var logic               m_acceptable
         );
 
 
@@ -41,11 +42,11 @@ module jelly3_jfive_logical
 
     rval_t              st0_rd_val  ;
     always_ff @(posedge clk) begin
-        if ( cke ) begin
+        if ( cke && m_acceptable ) begin
             case ( s_mode )
-            2'b00:      st0_rd_val <= s_rs1_val ^ s_rs2_val;
-            2'b10:      st0_rd_val <= s_rs1_val | s_rs2_val;
-            2'b11:      st0_rd_val <= s_rs1_val & s_rs2_val;
+            2'b00:      st0_rd_val <= s_rs1_val ^ (s_imm_en ? s_imm_val : s_rs2_val);
+            2'b10:      st0_rd_val <= s_rs1_val | (s_imm_en ? s_imm_val : s_rs2_val);
+            2'b11:      st0_rd_val <= s_rs1_val & (s_imm_en ? s_imm_val : s_rs2_val);
             default:    st0_rd_val <= 'x;
             endcase
         end

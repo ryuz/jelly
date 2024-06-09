@@ -89,6 +89,9 @@ module jelly3_jfive_load_store
             input   var logic                   m_acceptable        
         );
 
+    localparam   align_t  align_mask_b = ~align_t'('b000);
+    localparam   align_t  align_mask_h = ~align_t'('b001);
+    localparam   align_t  align_mask_w = ~align_t'('b011);
 
 
     // ------------------------------------
@@ -244,6 +247,20 @@ module jelly3_jfive_load_store
     rval_t              res0_wdata         ;
 //  logic               res0_valid         ;
 
+    align_t             queout_align_b     ;
+    align_t             queout_align_h     ;
+    align_t             queout_align_w     ;
+    assign queout_align_b = queout_align & ~align_t'('b000);
+    assign queout_align_w = queout_align & ~align_t'('b001);
+    assign queout_align_h = queout_align & ~align_t'('b011);
+
+    rval_t              dbus_res_rdata_alignd_b;
+    rval_t              dbus_res_rdata_alignd_h;
+    rval_t              dbus_res_rdata_alignd_w;
+    assign dbus_res_rdata_alignd_b = (dbus_res_rdata >> (8 * int'(queout_align_b)));
+    assign dbus_res_rdata_alignd_h = (dbus_res_rdata >> (8 * int'(queout_align_h)));
+    assign dbus_res_rdata_alignd_w = (dbus_res_rdata >> (8 * int'(queout_align_w)));
+
     always_ff @(posedge clk ) begin
         if ( reset ) begin
             res0_id      <= 'x   ;
@@ -271,17 +288,17 @@ module jelly3_jfive_load_store
 
                     if ( queout_unsigned ) begin
                         case ( queout_size )
-                        2'b00:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata[ 7:0]));
-                        2'b01:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata[15:0]));
-                        2'b10:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata[31:0]));
+                        2'b00:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata_alignd_b[ 7:0]));
+                        2'b01:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata_alignd_h[15:0]));
+                        2'b10:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata_alignd_w[31:0]));
                         default:    res0_rd_val <= rval_t'($unsigned(dbus_res_rdata));
                         endcase
                     end
                     else begin
                         case ( queout_size )
-                        2'b00:      res0_rd_val <= rval_t'($signed(dbus_res_rdata[ 7:0]));
-                        2'b01:      res0_rd_val <= rval_t'($signed(dbus_res_rdata[15:0]));
-                        2'b10:      res0_rd_val <= rval_t'($signed(dbus_res_rdata[31:0]));
+                        2'b00:      res0_rd_val <= rval_t'($signed(dbus_res_rdata_alignd_b[ 7:0]));
+                        2'b01:      res0_rd_val <= rval_t'($signed(dbus_res_rdata_alignd_h[15:0]));
+                        2'b10:      res0_rd_val <= rval_t'($signed(dbus_res_rdata_alignd_w[31:0]));
                         default:    res0_rd_val <= rval_t'($signed(dbus_res_rdata));
                         endcase
                     end

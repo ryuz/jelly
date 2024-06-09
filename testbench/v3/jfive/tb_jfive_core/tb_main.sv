@@ -351,10 +351,10 @@ module tb_main
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
             if ( dbus_cmd_valid && dbus_cmd_wr ) begin
-                $fwrite(fp_dbus_log, "w addr:%08x wdata:%08x strb:%b\n", int'(dbus_cmd_addr) << 2, dbus_cmd_wdata, dbus_cmd_strb);
+                $fwrite(fp_dbus_log, "%d w addr:%08x %08x wdata:%08x strb:%b\n", exe_counter, dbus_cmd_addr, int'(dbus_cmd_addr) << 2, dbus_cmd_wdata, dbus_cmd_strb);
             end
             if ( dbus_st1_valid && !dbus_st1_wr ) begin
-                $fwrite(fp_dbus_log, "r addr:%08x rdata:%08x\n", int'(dbus_st1_addr) << 2, dbus_res_rdata);
+                $fwrite(fp_dbus_log, "%d r addr:%08x %08x rdata:%08x\n", exe_counter, dbus_st1_addr, int'(dbus_st1_addr) << 2, dbus_res_rdata);
             end
         end
     end

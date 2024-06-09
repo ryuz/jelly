@@ -182,7 +182,8 @@ module jelly3_jfive_execution
                 .s_rs1_val      (s_rs1_val          ),
                 .s_rs2_val      (s_rs2_val          ),
                 
-                .m_eq           (st0_match_eq       )
+                .m_eq           (st0_match_eq       ),
+                .m_acceptable   (s_acceptable       )
         );
 
 
@@ -208,7 +209,8 @@ module jelly3_jfive_execution
                 .s_rs1_val      (s_rs1_val          ),
                 .s_rs2_val      (s_rs2_val          ),
 
-                .m_rd_val       (st0_logical_rd_val )
+                .m_rd_val       (st0_logical_rd_val ),
+                .m_acceptable   (s_acceptable       )
         );
 
     // storobe 計算
@@ -348,7 +350,7 @@ module jelly3_jfive_execution
             st0_branch_pc           <= s_branch_pc          ;
             st0_mem_size            <= s_mem_size           ;
             st0_mem_unsigned        <= s_mem_unsigned       ;
-            st0_mem_strb            <= (s_store & s_valid) ? make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val)) : '0;
+            st0_mem_strb            <= s_store ? make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val)) : '0;
             st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)            ;
             st0_mem_valid           <= (s_load || s_store) && s_valid               ;
             st0_valid               <= s_valid                                      ;

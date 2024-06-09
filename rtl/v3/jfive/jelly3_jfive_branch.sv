@@ -69,8 +69,8 @@ module jelly3_jfive_branch
             3'b001: s_branch_en = ~s_eq;                          // BNE
             3'b100: s_branch_en =  (s_carry ^ s_msb_c ^ s_sign);  // BLT
             3'b101: s_branch_en = ~(s_carry ^ s_msb_c ^ s_sign);  // BGE
-            3'b110: s_branch_en =  s_carry;                       // BLTU
-            3'b111: s_branch_en = ~s_carry;                       // BGEU
+            3'b110: s_branch_en = ~s_carry;                       // BLTU
+            3'b111: s_branch_en =  s_carry;                       // BGEU
             3'b010: s_branch_en = 1'b1;                           // JAL
             3'b011: s_branch_en = 1'b1;                           // JALR
             endcase
