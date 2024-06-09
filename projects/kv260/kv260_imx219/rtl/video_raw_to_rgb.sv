@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //   math
 //
-//                                 Copyright (C) 2008-2018 by Ryuz
+//                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -30,59 +30,61 @@ module video_raw_to_rgb
             parameter   DEVICE        = "RTL"
         )
         (
-            input   wire                        aresetn,
-            input   wire                        aclk,
+            input   var logic                       aresetn,
+            input   var logic                       aclk,
             
-            input   wire                        in_update_req,
+            input   var logic                       in_update_req,
 
-            input   wire    [X_WIDTH-1:0]       param_width,
-            input   wire    [Y_WIDTH-1:0]       param_height,
+            input   var logic   [X_WIDTH-1:0]       param_width,
+            input   var logic   [Y_WIDTH-1:0]       param_height,
 
-            input   wire    [TUSER_WIDTH-1:0]   s_axi4s_tuser,
-            input   wire                        s_axi4s_tlast,
-            input   wire    [S_TDATA_WIDTH-1:0] s_axi4s_tdata,
-            input   wire                        s_axi4s_tvalid,
-            output  wire                        s_axi4s_tready,
+            input   var logic   [TUSER_WIDTH-1:0]   s_axi4s_tuser,
+            input   var logic                       s_axi4s_tlast,
+            input   var logic   [S_TDATA_WIDTH-1:0] s_axi4s_tdata,
+            input   var logic                       s_axi4s_tvalid,
+            output  var logic                       s_axi4s_tready,
             
-            output  wire    [TUSER_WIDTH-1:0]   m_axi4s_tuser,
-            output  wire                        m_axi4s_tlast,
-            output  wire    [M_TDATA_WIDTH-1:0] m_axi4s_tdata,
-            output  wire                        m_axi4s_tvalid,
-            input   wire                        m_axi4s_tready,
+            output  var logic   [TUSER_WIDTH-1:0]   m_axi4s_tuser,
+            output  var logic                       m_axi4s_tlast,
+            output  var logic   [M_TDATA_WIDTH-1:0] m_axi4s_tdata,
+            output  var logic                       m_axi4s_tvalid,
+            input   var logic                       m_axi4s_tready,
 
-            input   wire                        s_wb_rst_i,
-            input   wire                        s_wb_clk_i,
-            input   wire    [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
-            input   wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_i,
-            output  wire    [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
-            input   wire                        s_wb_we_i,
-            input   wire    [WB_SEL_WIDTH-1:0]  s_wb_sel_i,
-            input   wire                        s_wb_stb_i,
-            output  wire                        s_wb_ack_o
+            input   var logic                       s_wb_rst_i,
+            input   var logic                       s_wb_clk_i,
+            input   var logic   [WB_ADR_WIDTH-1:0]  s_wb_adr_i,
+            input   var logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_i,
+            output  var logic   [WB_DAT_WIDTH-1:0]  s_wb_dat_o,
+            input   var logic                       s_wb_we_i,
+            input   var logic   [WB_SEL_WIDTH-1:0]  s_wb_sel_i,
+            input   var logic                       s_wb_stb_i,
+            output  var logic                       s_wb_ack_o
         );
     
     
-    wire                                reset = ~aresetn;
-    wire                                clk   = aclk;
-    wire                                cke;
+    logic                               reset;
+    logic                               clk;
+    logic                               cke;
+    assign  reset = ~aresetn;
+    assign  clk   = aclk;
     
-    wire                                img_src_row_first;
-    wire                                img_src_row_last;
-    wire                                img_src_col_first;
-    wire                                img_src_col_last;
-    wire                                img_src_de;
-    wire    [TUSER_WIDTH-1:0]           img_src_user;
-    wire    [S_TDATA_WIDTH-1:0]         img_src_data;
-    wire                                img_src_valid;
+    logic                               img_src_row_first;
+    logic                               img_src_row_last;
+    logic                               img_src_col_first;
+    logic                               img_src_col_last;
+    logic                               img_src_de;
+    logic   [TUSER_WIDTH-1:0]           img_src_user;
+    logic   [S_TDATA_WIDTH-1:0]         img_src_data;
+    logic                               img_src_valid;
     
-    wire                                img_sink_row_first;
-    wire                                img_sink_row_last;
-    wire                                img_sink_col_first;
-    wire                                img_sink_col_last;
-    wire                                img_sink_de;
-    wire    [TUSER_WIDTH-1:0]           img_sink_user;
-    wire    [M_TDATA_WIDTH-1:0]         img_sink_data;
-    wire                                img_sink_valid;
+    logic                               img_sink_row_first;
+    logic                               img_sink_row_last;
+    logic                               img_sink_col_first;
+    logic                               img_sink_col_last;
+    logic                               img_sink_de;
+    logic   [TUSER_WIDTH-1:0]           img_sink_user;
+    logic   [M_TDATA_WIDTH-1:0]         img_sink_data;
+    logic                               img_sink_valid;
     
     // img
     jelly2_axi4s_img
@@ -144,21 +146,21 @@ module video_raw_to_rgb
 
     
     // demosaic
-    wire                                img_demos_row_first;
-    wire                                img_demos_row_last;
-    wire                                img_demos_col_first;
-    wire                                img_demos_col_last;
-    wire                                img_demos_de;
-    wire    [TUSER_WIDTH-1:0]           img_demos_user;
-    wire    [DATA_WIDTH-1:0]            img_demos_raw;
-    wire    [DATA_WIDTH-1:0]            img_demos_r;
-    wire    [DATA_WIDTH-1:0]            img_demos_g;
-    wire    [DATA_WIDTH-1:0]            img_demos_b;
-    wire                                img_demos_valid;
+    logic                               img_demos_row_first;
+    logic                               img_demos_row_last;
+    logic                               img_demos_col_first;
+    logic                               img_demos_col_last;
+    logic                               img_demos_de;
+    logic   [TUSER_WIDTH-1:0]           img_demos_user;
+    logic   [DATA_WIDTH-1:0]            img_demos_raw;
+    logic   [DATA_WIDTH-1:0]            img_demos_r;
+    logic   [DATA_WIDTH-1:0]            img_demos_g;
+    logic   [DATA_WIDTH-1:0]            img_demos_b;
+    logic                               img_demos_valid;
     
-    wire    [WB_DAT_WIDTH-1:0]          wb_demos_dat_o;
-    wire                                wb_demos_stb_i;
-    wire                                wb_demos_ack_o;
+    logic   [WB_DAT_WIDTH-1:0]          wb_demos_dat_o;
+    logic                               wb_demos_stb_i;
+    logic                               wb_demos_ack_o;
     
     jelly2_img_demosaic_acpi
             #(
@@ -213,9 +215,9 @@ module video_raw_to_rgb
             );
     
     
-    wire    [WB_DAT_WIDTH-1:0]          wb_colmat_dat_o;
-    wire                                wb_colmat_stb_i;
-    wire                                wb_colmat_ack_o;
+    logic   [WB_DAT_WIDTH-1:0]          wb_colmat_dat_o;
+    logic                               wb_colmat_stb_i;
+    logic                               wb_colmat_ack_o;
     
     jelly2_img_color_matrix
             #(

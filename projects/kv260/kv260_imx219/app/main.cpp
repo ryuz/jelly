@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     int     a_gain      = 20;
     int     d_gain      = 0;
     int     bayer_phase = 0;
+    int     fmtsel      = 0;
     int     view_scale  = 4;
     
     for ( int i = 1; i < argc; ++i ) {
@@ -175,6 +176,7 @@ int main(int argc, char *argv[])
 //  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
     auto reg_demos  = uio_acc.GetAccessor(0x00120000);
     auto reg_colmat = uio_acc.GetAccessor(0x00120800);
+    auto reg_sel    = uio_acc.GetAccessor(0x00130000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
 #if 1
@@ -239,6 +241,18 @@ int main(int argc, char *argv[])
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
 
+    cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
+    cv::createTrackbar("scale",    "img", &view_scale, 4);
+    cv::setTrackbarMin("scale",    "img", 1);
+    cv::createTrackbar("fps",      "img", &frame_rate, 1000);
+    cv::setTrackbarMin("fps",      "img", 5);
+    cv::createTrackbar("exposure", "img", &exposure, 1000);
+    cv::setTrackbarMin("exposure", "img", 1);
+    cv::createTrackbar("a_gain",   "img", &a_gain, 20);
+    cv::createTrackbar("d_gain",   "img", &d_gain, 24);
+    cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
+    cv::createTrackbar("fmtsel",   "img", &fmtsel, 3);
+    
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
@@ -251,24 +265,31 @@ int main(int argc, char *argv[])
         imx219.SetFlip(flip_h, flip_v);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+        reg_sel.WriteReg(0, fmtsel);
 
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
-//      capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, frame_num);
-        cv::Mat img(height*frame_num, width, CV_8UC4);
-        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-        
+        cv::Mat img;
+        if ( fmtsel == 3 ) {
+            img = cv::Mat(height*frame_num, width, CV_32S);
+            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
+            cv::Mat img_u16;
+            img.convertTo(img_u16, CV_16U, 65535.0/2147483647.0);
+//          cv::Mat img_col;
+//          cv::cvtColor(img_u16, img_col, CV_BayerBG2BGR);
+            img = img_u16;
+        }
+        else {
+            img = cv::Mat(height*frame_num, width, CV_8UC4);
+            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
+        }
+
+
         // 表示
+        view_scale = std::max(1, view_scale);
         cv::Mat view_img;
         cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
-
         cv::imshow("img", view_img);
-        cv::createTrackbar("scale",    "img", &view_scale, 4);
-        cv::createTrackbar("fps",      "img", &frame_rate, 1000);
-        cv::createTrackbar("exposure", "img", &exposure, 1000);
-        cv::createTrackbar("a_gain",   "img", &a_gain, 20);
-        cv::createTrackbar("d_gain",   "img", &d_gain, 24);
-        cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
 
         // ユーザー操作
         switch ( key ) {
@@ -297,16 +318,18 @@ int main(int argc, char *argv[])
         case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
 
         case 'd':   // image dump
-            {
+            if ( fmtsel == 3 ) {
+                cv::imwrite("img_dump_raw.png", img);
+            }
+            else {
                 cv::Mat imgRgb;
-                cv::cvtColor(img, imgRgb, CV_BGRA2BGR);
+                cv::cvtColor(img, imgRgb, cv::COLOR_BGRA2BGR);
                 cv::imwrite("img_dump.png", imgRgb);
             }
             break;
 
         case 'r': // image record
             std::cout << "record" << std::endl;
-//          capture_still_image(reg_wdma, reg_fmtr, dmabuf_phys_adr, width, height, rec_frame_num);
             vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
             int offset = 0;
             for ( int i = 0; i < rec_frame_num; i++ ) {
@@ -316,7 +339,7 @@ int main(int argc, char *argv[])
                 udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
                 offset += width * height * 4;
                 cv::Mat imgRgb;
-                cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
+                cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
                 cv::imwrite(fname, imgRgb);
             }
             break;
@@ -324,6 +347,13 @@ int main(int argc, char *argv[])
     }
 
     std::cout << "close device" << std::endl;
+
+    // DMA停止
+    vdmaw.Stop();
+    
+    // 取り込み停止
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
+    usleep(100000);
 
     // close
     imx219.Stop();
@@ -333,43 +363,6 @@ int main(int argc, char *argv[])
 }
 
 
-/*
-// 静止画キャプチャ
-void capture_still_image(jelly::MemAccessor& reg_wdma, jelly::MemAccessor& reg_fmtr, std::uintptr_t bufaddr, int width, int height, int frame_num)
-{
-    // DMA start (one shot)
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_ADDR,   bufaddr);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_STRIDE, width*4);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_WIDTH,  width);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_HEIGHT, height);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_SIZE,   width*height*frame_num);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_PARAM_AWLEN,  31);
-    reg_wdma.WriteReg(REG_VIDEO_WDMA_CTL_CONTROL,  0x07);
-    
-    // video format regularizer
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,      height);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x100);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
-    usleep(100000);
-    
-    // 取り込み完了を待つ
-    usleep(10000);
-    while ( reg_wdma.ReadReg(REG_VIDEO_WDMA_CTL_STATUS) != 0 ) {
-        usleep(10000);
-    }
-    
-    // normalizer stop
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
-    usleep(1000);
-    while ( reg_wdma.ReadReg(REG_VIDEO_FMTREG_CTL_STATUS) != 0 ) {
-        usleep(1000);
-    }
-}
-*/
 
 
 // end of file

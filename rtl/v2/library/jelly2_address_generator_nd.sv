@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2020 by Ryuz
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -147,7 +147,7 @@ module jelly2_address_generator_nd
             else begin
                 // 1つ前の次元がlastなら進める
                 tmp_last = 1'b1;
-                for ( int i = 0; i < N; i = ++i ) begin
+                for ( int i = 0; i < N; ++i ) begin
                     next_first[i] = 1'b0;
                     if ( tmp_last ) begin
                         tmp_last = reg_last[i];

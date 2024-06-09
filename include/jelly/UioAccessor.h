@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the signal processor system
 //
-//                                 Copyright (C) 2008-2020 by Ryuz
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/
 // ---------------------------------------------------------------------------
 
@@ -152,7 +152,10 @@ public:
                 return -1;
             }
             char    uio_name[64];
-            fgets(uio_name, 64, fp);
+            if ( fgets(uio_name, 64, fp) == NULL ) {
+                fclose(fp);
+                return -1;
+            }
             fclose(fp);
 
             // chomp
@@ -179,7 +182,10 @@ private:
             return 0;
         }
         char    uio_addr[64];
-        fgets(uio_addr, 64, fp);
+        if ( fgets(uio_addr, 64, fp) == NULL ) {
+            fclose(fp);
+            return 0;
+        }
         fclose(fp);
 
         return (std::uintptr_t)std::strtoll(uio_addr, nullptr, 0);
@@ -194,7 +200,10 @@ private:
             return 0;
         }
         char    uio_size[64];
-        fgets(uio_size, 64, fp);
+        if ( fgets(uio_size, 64, fp) == NULL ) {
+            fclose(fp);
+            return 0;
+        }
         fclose(fp);
 
         return (std::size_t)std::strtoll(uio_size, nullptr, 0);

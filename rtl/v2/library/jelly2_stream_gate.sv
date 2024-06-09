@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2020 by Ryuz
+//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -149,7 +149,7 @@ module jelly2_stream_gate
         assign m_user              = BYPASS_COMBINE ? (fifo_s_permit_user)              : {USER_BITS{1'bx}};
         assign m_valid             = BYPASS_COMBINE ? (s_valid & fifo_s_permit_valid)   : s_valid;
         assign s_ready             = BYPASS_COMBINE ? (m_ready & fifo_s_permit_valid)   : m_ready;
-        assign fifo_s_permit_ready = BYPASS_COMBINE ? (m_ready & s_valid & s_last)      : 1'b1;
+        assign fifo_s_permit_ready = BYPASS_COMBINE ? (m_ready & s_valid & s_last[0])   : 1'b1;
     end
     else begin : blk_gate
         // parameter

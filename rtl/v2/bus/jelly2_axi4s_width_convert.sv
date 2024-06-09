@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2015 by Ryuz
+//                                 Copyright (C) 2008-2015 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -196,7 +196,7 @@ module jelly2_axi4s_width_convert
     
     assign m_axi4s_tfirst = HAS_FIRST ? m_conv_tfirst : 1'b0;
     assign m_axi4s_tlast  = HAS_LAST  ? m_conv_tlast  : 1'b0;
-    assign m_axi4s_tdata  = m_conv_tdata;
+    assign m_axi4s_tdata  = M_TDATA_BITS'(m_conv_tdata);
     assign m_axi4s_tstrb  = HAS_STRB  ? M_TSTRB_BITS'(m_conv_tstrb) : {M_TSTRB_BITS{1'b1}};
     assign m_axi4s_tkeep  = HAS_KEEP  ? M_TKEEP_BITS'(m_conv_tkeep) : {M_TKEEP_BITS{1'b1}};
     assign m_axi4s_tuser  = m_conv_tuser;

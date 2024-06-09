@@ -42,6 +42,7 @@ Untitled.*
 *.dtb
 *.dtbo
 *.bit
+*.ltx
 *.xsa
 
 # wave file
@@ -150,6 +151,7 @@ veritak_command.txt
 *.lst
 *.lnk
 *.vvp
+*.deb
 
 .vs/
 
@@ -162,6 +164,7 @@ veritak_command.txt
 
 p_temp*.txt
 *_log.txt
+log.txt
 out*.txt
 exp*.txt
 axi4_read*.txt

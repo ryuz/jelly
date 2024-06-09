@@ -15,7 +15,7 @@ all: clean build run
 
 .PHONY: build
 build:
-	xvlog -f xvlog_cmd.txt -i ../../../../../include
+	xvlog -f xvlog_cmd.txt -i ../../../../../../include
 	xelab -debug wave $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
 
 .PHONY: run

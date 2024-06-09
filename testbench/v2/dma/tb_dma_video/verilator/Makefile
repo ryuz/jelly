@@ -1,42 +1,50 @@
 
 
-# cmake のフラグ
-CMAKE_FLAGS = 
+# setting
+TOP_MODULE = tb_sim
+
+JELLY_TOP_DIR = ../../../../..
+
+-include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
 
 
-# clang があれば使う
-ifeq (,$(shell which clang))
-WITH_CLANG ?= No
-else
-WITH_CLANG ?= Yes
-endif
+FLAGS  = --binary -j 0
+FLAGS += --assert
+FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
+FLAGS += -D__VERILATOR__ -D__SIMULATION__
+FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
+#FLAGS += -Wall
+#FLAGS += -Wno-WIDTH
+#FLAGS += -Wno-PINCONNECTEMPTY
+#FLAGS += -Wno-UNUSEDPARAM
+#FLAGS += -Wno-UNUSEDSIGNAL
+#FLAGS += -Wno-UNUSEDPARAM
+#FLAGS += -Wno-WIDTHTRUNC
+FLAGS += -Wno-fatal
 
-# ninja があれば使う
-ifeq (,$(shell which ninja))
-WITH_NINJA ?= No
-else
-WITH_NINJA ?= Yes
-endif
-
-ifeq ($(WITH_CLANG),Yes)
-CMAKE_FLAGS += -C ../clang-cmakeinit.cmake
-endif
-
-ifeq ($(WITH_NINJA),Yes)
-CMAKE_FLAGS += -GNinja
-endif
+SRCS  = ../$(TOP_MODULE).sv
+SRCS += ../tb_main.sv
 
 
+# rulres
 all: build run
 
 .PHONY : build
 build:
-	mkdir -p build && cd build && cmake $(CMAKE_FLAGS) ..
-	cmake --build build -j
+	verilator $(FLAGS) --top $(TOP_MODULE) $(SRCS)
+
+.PHONY : run
+run:
+	./obj_dir/V$(TOP_MODULE)
+
+.PHONY : coverage
+coverage:
+	verilator_coverage --annotate annotated coverage.dat
+
 
 .PHONY : clean
 clean:
-	rm -rf build
+	rm -rf obj_dir
 
 .PHONY : distclean
 distclean: clean
@@ -45,14 +53,3 @@ distclean: clean
 	rm -f axi*.txt
 	rm -f coverage.dat
 	rm -fr annotated
-
-
-.PHONY : run
-run:
-	build/tb_verilator
-
-.PHONY : coverage
-coverage:
-	verilator_coverage --annotate annotated coverage.dat
-
-

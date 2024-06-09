@@ -2,6 +2,16 @@
 
 --sourcelibdir ../../stub
 --sourcelibdir ../../../rtl
+--sourcelibdir ../../../../../../rtl/v1/library
+--sourcelibdir ../../../../../../rtl/v1/bus
+--sourcelibdir ../../../../../../rtl/v1/dma
+--sourcelibdir ../../../../../../rtl/v1/math
+--sourcelibdir ../../../../../../rtl/v1/primitive
+--sourcelibdir ../../../../../../rtl/v1/peripheral
+--sourcelibdir ../../../../../../rtl/v1/rtos
+--sourcelibdir ../../../../../../rtl/v1/image
+--sourcelibdir ../../../../../../rtl/v1/video
+--sourcelibdir ../../../../../../rtl/v1/model
 --sourcelibdir ../../../../../../rtl/v2/library
 --sourcelibdir ../../../../../../rtl/v2/bus
 --sourcelibdir ../../../../../../rtl/v2/dma
@@ -20,5 +30,6 @@
 ../tb_main.sv
 ../../stub/design_1.v
 ../../stub/mipi_dphy_cam.v
+../../stub/jelly2_mipi_csi2_rx.sv
 
 $XILINX_VIVADO/data/verilog/src/glbl.v

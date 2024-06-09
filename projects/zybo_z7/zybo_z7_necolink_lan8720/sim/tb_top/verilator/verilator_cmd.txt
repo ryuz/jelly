@@ -38,6 +38,6 @@
 -y ../../../../../../rtl/v2/peripheral
 -y ../../../../../../rtl/v2/misc
 -y ../../../../../../rtl/v2/model
--y ../../../../../../jellyvl/sv
+-y ../../../../../../rtl/jellyvl/sv
 
 

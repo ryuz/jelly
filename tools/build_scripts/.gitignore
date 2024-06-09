@@ -8,3 +8,4 @@ opencv3_contrib/
 opencv4/
 opencv4_contrib/
 
+verilator-*/

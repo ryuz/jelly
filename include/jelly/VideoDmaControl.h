@@ -1,7 +1,7 @@
 // --------------------------------------------------------------------------
 //  Jelly DMA control
 //
-//                                     Copyright (C) 2020 by Ryuz
+//                                     Copyright (C) 2020 by Ryuji Fuchikami
 // --------------------------------------------------------------------------
 
 
@@ -121,7 +121,7 @@ public:
         StartDma(addr, width, height, frames, line_step, frame_step, offset_x, offset_y, true, false);
         
         // 完了待ち
-        if ( timeout == 0 ) { timeout = 100*frames; } 
+        if ( timeout == 0 ) { timeout = 1000*frames; } 
         if ( !WaitForStop(timeout) ) {
             std::cerr << "DMA stop timeout" << std::endl;
             return false;

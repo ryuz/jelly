@@ -3,7 +3,7 @@
 //
 //  Kria KV260 RISC-V sample
 //
-//                                 Copyright (C) 2008-2022 by Ryuz
+//                                 Copyright (C) 2008-2022 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
