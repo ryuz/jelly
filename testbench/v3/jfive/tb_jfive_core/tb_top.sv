@@ -10,7 +10,7 @@ module tb_top();
         $dumpfile("tb_top.vcd");
         $dumpvars(0, tb_top);
         
-    #2000000
+    #200000
         $finish();
     end
 

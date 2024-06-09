@@ -177,9 +177,12 @@ module jelly3_jfive_load_store
 
 
     // ------------------------------------
-    //  command
+    //  send command
     // ------------------------------------
 
+    id_t        cmd0_id     ;
+    pc_t        cmd0_pc     ;
+    instr_t     cmd0_instr  ;
     addr_t      cmd0_addr   ;
     logic       cmd0_wr     ;
     strb_t      cmd0_strb   ;
@@ -188,6 +191,9 @@ module jelly3_jfive_load_store
 
     always_ff @(posedge clk ) begin
         if ( reset ) begin
+            cmd0_id    <= 'x;
+            cmd0_pc    <= 'x;
+            cmd0_instr <= 'x;
             cmd0_addr  <= 'x;
             cmd0_wr    <= '0;
             cmd0_strb  <= '0;
@@ -199,6 +205,9 @@ module jelly3_jfive_load_store
                  cmd0_valid  <= 1'b0;
             end
             if ( s_acceptable ) begin
+                cmd0_id     <= s_id;
+                cmd0_pc     <= s_pc;
+                cmd0_instr  <= s_instr;
                 cmd0_addr   <= addr_t'(s_addr >> $clog2($bits(strb_t)));
                 cmd0_wr     <= s_wr      ;
                 cmd0_strb   <= s_strb    ;
@@ -218,61 +227,61 @@ module jelly3_jfive_load_store
 
 
     // ------------------------------------
-    //  Stage 0
+    //  recv response
     // ------------------------------------
 
-    id_t                st0_id            ;
-    pc_t                st0_pc            ;
-    instr_t             st0_instr         ;
-    logic               st0_rd_en         ;
-    ridx_t              st0_rd_idx        ;
-    rval_t              st0_rd_val        ;
-    rval_t              st0_addr          ;
-    logic               st0_rd            ;
-    logic               st0_wr            ;
-    strb_t              st0_strb          ;
-    rval_t              st0_wdata         ;
-//  logic               st0_valid         ;
+    id_t                res0_id            ;
+    pc_t                res0_pc            ;
+    instr_t             res0_instr         ;
+    logic               res0_rd_en         ;
+    ridx_t              res0_rd_idx        ;
+    rval_t              res0_rd_val        ;
+    rval_t              res0_addr          ;
+    logic               res0_rd            ;
+    logic               res0_wr            ;
+    strb_t              res0_strb          ;
+    rval_t              res0_wdata         ;
+//  logic               res0_valid         ;
 
     always_ff @(posedge clk ) begin
         if ( reset ) begin
-            st0_id      <= 'x   ;
-            st0_pc      <= 'x   ;
-            st0_instr   <= 'x   ;
-            st0_rd_en   <= 1'b0 ;
-            st0_rd_idx  <= 'x   ;
-            st0_rd_val  <= 'x   ;
-            st0_addr    <= 'x   ;
-            st0_rd      <= 'x   ;
-            st0_wr      <= 'x   ;
-            st0_strb    <= 'x   ;
-            st0_wdata   <= 'x   ;
-//          st0_valid   <= 'x   ;
+            res0_id      <= 'x   ;
+            res0_pc      <= 'x   ;
+            res0_instr   <= 'x   ;
+            res0_rd_en   <= 1'b0 ;
+            res0_rd_idx  <= 'x   ;
+            res0_rd_val  <= 'x   ;
+            res0_addr    <= 'x   ;
+            res0_rd      <= 'x   ;
+            res0_wr      <= 'x   ;
+            res0_strb    <= 'x   ;
+            res0_wdata   <= 'x   ;
+//          res0_valid   <= 'x   ;
         end
         else if ( cke ) begin
             if ( !m_valid || m_acceptable ) begin
-                st0_rd_en  <= 1'b0          ;  
+                res0_rd_en  <= 1'b0          ;  
                 if ( dbus_res_valid && dbus_res_acceptable ) begin
-                    st0_id     <= queout_id     ;
-                    st0_pc     <= queout_pc     ;
-                    st0_instr  <= queout_instr  ;
-                    st0_rd_en  <= 1'b1          ;  
-                    st0_rd_idx <= queout_rd_idx;
+                    res0_id     <= queout_id     ;
+                    res0_pc     <= queout_pc     ;
+                    res0_instr  <= queout_instr  ;
+                    res0_rd_en  <= 1'b1          ;  
+                    res0_rd_idx <= queout_rd_idx;
 
                     if ( queout_unsigned ) begin
                         case ( queout_size )
-                        2'b00:      st0_rd_val <= rval_t'($unsigned(dbus_res_rdata[ 7:0]));
-                        2'b01:      st0_rd_val <= rval_t'($unsigned(dbus_res_rdata[15:0]));
-                        2'b10:      st0_rd_val <= rval_t'($unsigned(dbus_res_rdata[31:0]));
-                        default:    st0_rd_val <= rval_t'($unsigned(dbus_res_rdata));
+                        2'b00:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata[ 7:0]));
+                        2'b01:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata[15:0]));
+                        2'b10:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata[31:0]));
+                        default:    res0_rd_val <= rval_t'($unsigned(dbus_res_rdata));
                         endcase
                     end
                     else begin
                         case ( queout_size )
-                        2'b00:      st0_rd_val <= rval_t'($signed(dbus_res_rdata[ 7:0]));
-                        2'b01:      st0_rd_val <= rval_t'($signed(dbus_res_rdata[15:0]));
-                        2'b10:      st0_rd_val <= rval_t'($signed(dbus_res_rdata[31:0]));
-                        default:    st0_rd_val <= rval_t'($signed(dbus_res_rdata));
+                        2'b00:      res0_rd_val <= rval_t'($signed(dbus_res_rdata[ 7:0]));
+                        2'b01:      res0_rd_val <= rval_t'($signed(dbus_res_rdata[15:0]));
+                        2'b10:      res0_rd_val <= rval_t'($signed(dbus_res_rdata[31:0]));
+                        default:    res0_rd_val <= rval_t'($signed(dbus_res_rdata));
                         endcase
                     end
                 end
@@ -289,13 +298,13 @@ module jelly3_jfive_load_store
     //  Output
     // ------------------------------------
 
-    assign m_id     = st0_id           ;
-    assign m_pc     = st0_pc           ;
-    assign m_instr  = st0_instr        ;
-    assign m_rd_en  = st0_rd_en        ;
-    assign m_rd_idx = st0_rd_idx       ;
-    assign m_rd_val = st0_rd_val       ;
-    assign m_valid  = st0_rd_en        ;
+    assign m_id     = res0_id           ;
+    assign m_pc     = res0_pc           ;
+    assign m_instr  = res0_instr        ;
+    assign m_rd_en  = res0_rd_en        ;
+    assign m_rd_idx = res0_rd_idx       ;
+    assign m_rd_val = res0_rd_val       ;
+    assign m_valid  = res0_rd_en        ;
 
 endmodule
 

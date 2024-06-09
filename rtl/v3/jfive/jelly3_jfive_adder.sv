@@ -34,7 +34,8 @@ module jelly3_jfive_adder
             output  var logic               m_msb_c         ,
             output  var logic               m_carry         ,
             output  var logic               m_sign          ,
-            output  var rval_t              m_rd_val        
+            output  var rval_t              m_rd_val        ,
+            input   var logic               m_acceptable    
         );
 
 
@@ -114,7 +115,7 @@ module jelly3_jfive_adder
             st0_carry  <= 'x;
             st0_rd_val <= 'x;
         end
-        else if ( cke ) begin
+        else if ( cke && m_acceptable ) begin
             st0_msb_c  <= s_msbc;
             st0_carry  <= s_cout;
             st0_rd_val <= s_dout;

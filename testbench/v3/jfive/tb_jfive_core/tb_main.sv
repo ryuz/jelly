@@ -309,11 +309,12 @@ module tb_main
     wire    mnemonic_t   branch_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.branch_instr));
     wire    mnemonic_t   wb_mnemonic     = mnemonic_t'(instr2mnemonic(u_jfive_core.wb_instr));
 
+    int exe_counter = 0;
     int fp_exe_log;
     initial fp_exe_log = $fopen("exe_log.txt", "w");
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
-            if ( u_jfive_core.u_jfive_execution.st1_valid && u_jfive_core.u_jfive_execution.s_acceptable ) begin
+            if ( u_jfive_core.u_jfive_execution.st1_valid && u_jfive_core.u_jfive_execution.alu_acceptable ) begin
                 automatic   logic   rs1_en ;
                 automatic   ridx_t  rs1_idx;
                 automatic   rval_t  rs1_val;
@@ -340,6 +341,7 @@ module tb_main
                     rs2_val,
                     string'(ex1_mnemonic)
                     );
+                exe_counter <= exe_counter + 1;
             end
         end
     end

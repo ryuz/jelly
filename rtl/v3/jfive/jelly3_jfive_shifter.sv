@@ -35,7 +35,8 @@ module jelly3_jfive_shifter
             input   var shamt_t     s_shamt         ,
 
             // output
-            output  var rval_t      m_rd_val        
+            output  var rval_t      m_rd_val        ,
+            input   var logic       m_acceptable    
         );
 
 
@@ -57,7 +58,7 @@ module jelly3_jfive_shifter
            st0_shamt   <= 'x;
            st0_rs1_val <= 'x;
         end
-        else if ( cke ) begin
+        else if ( cke && m_acceptable ) begin
             case ( {s_left, s_imm_en} )
             2'b00: st0_shamt <= ext_shamt_t'($bits(rval_t)) + ext_shamt_t'(s_rs2_val);
             2'b01: st0_shamt <= ext_shamt_t'($bits(rval_t)) + ext_shamt_t'(s_shamt  );
@@ -79,7 +80,7 @@ module jelly3_jfive_shifter
 
     rval_t      st1_rd_val;
     always_ff @(posedge clk) begin
-        if ( cke ) begin
+        if ( cke && m_acceptable ) begin
            st1_rd_val <= rval_t'(st0_rs1_val >> st0_shamt);
         end
     end

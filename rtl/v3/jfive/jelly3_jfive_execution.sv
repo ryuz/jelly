@@ -159,7 +159,8 @@ module jelly3_jfive_execution
                 .m_msb_c        (st0_adder_msb_c    ),
                 .m_carry        (st0_adder_carry    ),
                 .m_sign         (st0_adder_sign     ),
-                .m_rd_val       (st0_adder_rd_val   )
+                .m_rd_val       (st0_adder_rd_val   ),
+                .m_acceptable   (s_acceptable       )
             );
 
     // match
@@ -391,7 +392,8 @@ module jelly3_jfive_execution
                 .s_rs2_val      (shamt_t'(s_rs2_val)    ),
                 .s_shamt        (s_shifter_imm_val      ),
 
-                .m_rd_val       (st1_shifter_rd_val     )
+                .m_rd_val       (st1_shifter_rd_val     ),
+                .m_acceptable   (alu_acceptable         )
             );
 
     // branch
@@ -501,16 +503,16 @@ module jelly3_jfive_execution
                 .s_phase            (st0_phase              ),
                 .s_pc               (st0_pc                 ),
                 .s_instr            (st0_instr              ),
-                .s_rd_en            (st0_rd_en    & st0_phase_en            ),
+                .s_rd_en            (st0_rd_en    & st0_phase_en    ),
                 .s_rd_idx           (st0_rd_idx             ),
                 .s_addr             (st0_adder_rd_val       ),
                 .s_size             (st0_mem_size           ),
                 .s_unsigned         (st0_mem_unsigned       ),
-                .s_rd               (st0_load     & st0_phase_en           ),
-                .s_wr               (st0_store    & st0_phase_en            ),
+                .s_rd               (st0_load     & st0_phase_en    ),
+                .s_wr               (st0_store    & st0_phase_en    ),
                 .s_strb             (st0_mem_strb           ),
                 .s_wdata            (st0_mem_wdata          ),
-                .s_valid            (st0_mem_valid & st0_phase_en           ),
+                .s_valid            (st0_mem_valid & st0_phase_en   ),
                 .s_acceptable       (mem_acceptable         ),
 
                 .m_id               (load_id                ),
@@ -564,7 +566,7 @@ module jelly3_jfive_execution
             st1_phase   <= st0_phase  ;
             st1_pc      <= st0_pc     ;
             st1_instr   <= st0_instr  ;
-            st1_rd_en   <= st0_rd_en && !st0_load && st0_phase_en;
+            st1_rd_en   <= st0_rd_en && !st0_load && st0_phase_en && s_acceptable;
             st1_rd_idx  <= st0_rd_idx ;
             st1_rd_val  <= st0_adder   ? st0_adder_rd_val   :
                            st0_logical ? st0_logical_rd_val :
@@ -577,7 +579,7 @@ module jelly3_jfive_execution
             st1_rs2_val <= st0_rs2_val;
             st1_shifter <= st0_shifter;
             st1_load    <= st0_load   ;
-            st1_valid   <= st0_valid && st0_phase_en;
+            st1_valid   <= st0_valid && st0_phase_en && s_acceptable;
         end
     end
 
