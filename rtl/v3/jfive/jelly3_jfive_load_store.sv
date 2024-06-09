@@ -203,6 +203,7 @@ module jelly3_jfive_load_store
         if ( cke ) begin
             if ( dbus_cmd_acceptable ) begin
                  cmd0_valid  <= 1'b0;
+                 cmd0_strb   <= '0  ;
             end
             if ( s_acceptable ) begin
                 cmd0_id     <= s_id;
@@ -210,7 +211,7 @@ module jelly3_jfive_load_store
                 cmd0_instr  <= s_instr;
                 cmd0_addr   <= addr_t'(s_addr >> $clog2($bits(strb_t)));
                 cmd0_wr     <= s_wr      ;
-                cmd0_strb   <= s_strb    ;
+                cmd0_strb   <= s_valid ? s_strb : '0;
                 cmd0_wdata  <= s_wdata   ;
                 cmd0_valid  <= s_valid   ;
             end

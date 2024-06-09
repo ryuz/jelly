@@ -359,6 +359,22 @@ module tb_main
         end
     end
 
+
+    int fp_port1_log;
+    initial fp_port1_log = $fopen("port1_log.txt", "w");
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( port1_cke ) begin
+                if ( port1_we != 0 ) begin
+                    $fwrite(fp_port1_log, "%t w addr:%08x %08x wdata:%08x %b\n", $time, port1_addr, port1_addr*4, port1_din, port1_we);
+                end
+            end
+        end
+    end
+
+
+
+
     int fp_wb_rd_log;
     initial begin
         fp_wb_rd_log = $fopen("wb_rd_log.txt", "w");
