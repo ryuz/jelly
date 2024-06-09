@@ -22,6 +22,7 @@ static mut DATA : i32 = 0;
 pub unsafe extern "C" fn main() -> ! {
     println!("Start!");
     
+    /*
     let pi8_0  = 0x10000100  as *mut i8;
     let pu8_0  = 0x10000100  as *mut u8;
     let pi8_1  = 0x10000101  as *mut i8;
@@ -88,7 +89,8 @@ pub unsafe extern "C" fn main() -> ! {
     core::ptr::write_volatile(&mut DATA, 0x7654320);
     core::ptr::write_volatile(&mut DATA, core::ptr::read_volatile(&mut DATA) + 1);
     core::ptr::write_volatile(pi32, core::ptr::read_volatile(&mut DATA));
-
+    */
+    
     println!("Hello world!");
     println!("asm_test:{}", asm_test());
 

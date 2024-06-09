@@ -72,8 +72,10 @@ module jelly3_jfive_instruction_decode
             output  var ridx_t              m_rd_idx            ,
             output  var rval_t              m_rd_val            ,
             output  var logic               m_rs1_en            ,
+            output  var ridx_t              m_rs1_idx           ,
             output  var rval_t              m_rs1_val           ,
             output  var logic               m_rs2_en            ,
+            output  var ridx_t              m_rs2_idx           ,
             output  var rval_t              m_rs2_val           ,
 
             output  var logic               m_offset            ,
@@ -633,10 +635,13 @@ module jelly3_jfive_instruction_decode
 
             // adder
             st2_adder_sub     <= (st1_instr[6:5] == 2'b01 && st1_instr[30] == 1'b1) // SUB
-                            || (st1_instr[6:2] == OPCODE_BRANCH[6:2]);                 // BEQ/BNE/BLT/BGE/BLTU/BGEU
+                            || (st1_instr[6:2] == OPCODE_BRANCH[6:2]);              // BEQ/BNE/BLT/BGE/BLTU/BGEU
             st2_adder_imm_en  <= st1_instr[6:2] == OPCODE_JALR[6:2]                 // JALR
-                            || st1_instr[6:2] == OPCODE_ALUI[6:2];                // ADDI/STLI/STLIU/XORI/ORI/ANDI
-            st2_adder_imm_val <= st1_funct3 == FUNCT3_SLTU ? rval_t'($unsigned(st1_imm_i)) : rval_t'($signed(st1_imm_i));
+                            || st1_instr[6:2] == OPCODE_ALUI[6:2]                   // ADDI/STLI/STLIU/XORI/ORI/ANDI
+                            || st1_instr[6:2] == OPCODE_LOAD[6:2]                   // LB/LH/LW/LBU/LHU
+                            || st1_instr[6:2] == OPCODE_STORE[6:2];                 // SB/SH/SW
+            st2_adder_imm_val <= st1_opcode[6:2] == OPCODE_STORE[6:2] ? rval_t'($signed(st1_imm_s)) :
+                                 st1_funct3 == FUNCT3_SLTU ? rval_t'($unsigned(st1_imm_i)) : rval_t'($signed(st1_imm_i));
 
             // shifter
             st2_shifter_arithmetic <= st1_funct7[5] ;
@@ -670,8 +675,10 @@ module jelly3_jfive_instruction_decode
     assign m_rd_idx             = st2_rd_idx                ;
     assign m_rd_val             = st2_rd_val                ;
     assign m_rs1_en             = st2_rs1_en                ;
+    assign m_rs1_idx            = st2_rs1_idx               ;
     assign m_rs1_val            = st2_rs1_val               ;
     assign m_rs2_en             = st2_rs2_en                ;
+    assign m_rs2_idx            = st2_rs2_idx               ;
     assign m_rs2_val            = st2_rs2_val               ;
 
     assign m_offset             = st2_offset                ;

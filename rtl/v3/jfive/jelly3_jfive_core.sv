@@ -201,8 +201,10 @@ module jelly3_jfive_core
     ridx_t              id_rd_idx               ;
     rval_t              id_rd_val               ;
     logic               id_rs1_en               ;
+    ridx_t              id_rs1_idx              ;
     rval_t              id_rs1_val              ;
     logic               id_rs2_en               ;
+    ridx_t              id_rs2_idx              ;
     rval_t              id_rs2_val              ;
     logic               id_offset               ;
     logic               id_adder                ;
@@ -280,8 +282,10 @@ module jelly3_jfive_core
                 .m_rd_idx               (id_rd_idx              ),
                 .m_rd_val               (id_rd_val              ),
                 .m_rs1_en               (id_rs1_en              ),
+                .m_rs1_idx              (id_rs1_idx             ),
                 .m_rs1_val              (id_rs1_val             ),
                 .m_rs2_en               (id_rs2_en              ),
+                .m_rs2_idx              (id_rs2_idx             ),
                 .m_rs2_val              (id_rs2_val             ),
                 .m_offset               (id_offset              ),
                 .m_adder                (id_adder               ),
@@ -387,8 +391,10 @@ module jelly3_jfive_core
                 .s_rd_idx               (id_rd_idx              ),
                 .s_rd_val               (id_rd_val              ),
                 .s_rs1_en               (id_rs1_en              ),
+                .s_rs1_idx              (id_rs1_idx             ),
                 .s_rs1_val              (id_rs1_val             ),
                 .s_rs2_en               (id_rs2_en              ),
+                .s_rs2_idx              (id_rs2_idx             ),
                 .s_rs2_val              (id_rs2_val             ),
                 .s_offset               (id_offset              ),
                 .s_adder                (id_adder               ),

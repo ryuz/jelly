@@ -26,14 +26,14 @@ module tb_main
 //  localparam  type                    ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ;
 //  localparam  int                     IBUS_DATA_BITS = INSTR_BITS                         ;
 //  localparam  type                    ibus_data_t    = logic         [IBUS_DATA_BITS-1:0] ;
-    localparam  int                     DBUS_ADDR_BITS = 10                                 ;
+    localparam  int                     DBUS_ADDR_BITS = 16                                 ;
     localparam  type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ;
     localparam  int                     DBUS_DATA_BITS = XLEN                               ;
     localparam  type                    dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ;
     localparam  int                     DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ;
     localparam  type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ;
-//  localparam  type                    ridx_t         = logic         [4:0]                ;
-//  localparam  type                    rval_t         = logic signed  [XLEN-1:0]           ;
+    localparam  type                    ridx_t         = logic         [4:0]                ;
+    localparam  type                    rval_t         = logic signed  [XLEN-1:0]           ;
 //  localparam  type                    shamt_t        = logic         [$clog2(XLEN)-1:0]   ;
 //  localparam  int                     EXES           = 4                                  ;
 //  localparam  bit                     RAW_HAZARD     = 1'b1                               ;
@@ -278,15 +278,75 @@ module tb_main
     wire    mnemonic_t   branch_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.branch_instr));
     wire    mnemonic_t   wb_mnemonic     = mnemonic_t'(instr2mnemonic(u_jfive_core.wb_instr));
 
-    int fp;
+    int fp_exe_log;
+    initial fp_exe_log = $fopen("exe_log.txt", "w");
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( u_jfive_core.u_jfive_execution.st1_valid ) begin
+                automatic   logic   rs1_en ;
+                automatic   ridx_t  rs1_idx;
+                automatic   rval_t  rs1_val;
+                automatic   logic   rs2_en ;
+                automatic   ridx_t  rs2_idx;
+                automatic   rval_t  rs2_val;
+                rs1_en  = u_jfive_core.u_jfive_execution.st1_rs1_en ;
+                rs1_idx = u_jfive_core.u_jfive_execution.st1_rs1_idx;
+                rs1_val = u_jfive_core.u_jfive_execution.st1_rs1_val;
+                rs2_en  = u_jfive_core.u_jfive_execution.st1_rs2_en ;
+                rs2_idx = u_jfive_core.u_jfive_execution.st1_rs2_idx;
+                rs2_val = u_jfive_core.u_jfive_execution.st1_rs2_val;
+                if ( !rs1_en ) rs1_idx = 0;
+                if ( !rs2_en ) rs2_idx = 0;
+                if ( rs1_idx == 0 ) rs1_val = '0;
+                if ( rs2_idx == 0 ) rs2_val = '0;
+
+                $fwrite(fp_exe_log, "pc:%08x instr:%08x rs1(%2d):%08x rs2(%2d):%08x %s\n",
+                    u_jfive_core.u_jfive_execution.st1_pc,
+                    u_jfive_core.u_jfive_execution.st1_instr,
+                    rs1_idx,
+                    rs1_val,
+                    rs2_idx,
+                    rs2_val,
+                    string'(ex1_mnemonic)
+                    );
+            end
+        end
+    end
+
+    int fp_dbus_log;
+    initial fp_dbus_log = $fopen("dbus_log.txt", "w");
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( dbus_cmd_valid && dbus_cmd_wr ) begin
+                $fwrite(fp_dbus_log, "w addr:%08x wdata:%08x strb:%b\n", int'(dbus_cmd_addr) << 2, dbus_cmd_wdata, dbus_cmd_strb);
+            end
+        end
+    end
+
+    int fp_wb_rd_log;
     initial begin
-        fp = $fopen("wb_rd_log.txt", "w");
+        fp_wb_rd_log = $fopen("wb_rd_log.txt", "w");
+    end
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( u_jfive_core.wb_rd_en ) begin
+                $fwrite(fp_wb_rd_log, "%2d %08x %s\n", u_jfive_core.wb_rd_idx, u_jfive_core.wb_rd_val, string'(wb_mnemonic));
+            end
+        end
     end
 
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
-            if ( u_jfive_core.wb_rd_en ) begin
-                $fwrite(fp, "%2d %08x %s\n", u_jfive_core.wb_rd_idx, u_jfive_core.wb_rd_val, string'(wb_mnemonic));
+            if ( dbus_cmd_valid && dbus_cmd_wr && dbus_cmd_addr == 0 ) begin
+                $display("%08x %08x %s\n", dbus_cmd_addr, dbus_cmd_wdata, string'(ids_mnemonic));
+            end
+        end
+    end
+
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( dbus_cmd_valid ) begin
+                $display("%08x %b %08x", dbus_cmd_addr, dbus_cmd_wr, dbus_cmd_wdata);
             end
         end
     end

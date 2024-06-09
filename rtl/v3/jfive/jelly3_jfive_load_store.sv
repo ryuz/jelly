@@ -185,7 +185,7 @@ module jelly3_jfive_load_store
                  cmd0_valid  <= 1'b0;
             end
             if ( s_acceptable ) begin
-                cmd0_addr   <= s_addr    ;
+                cmd0_addr   <= addr_t'(s_addr >> $clog2($bits(strb_t)));
                 cmd0_wr     <= s_wr      ;
                 cmd0_strb   <= s_strb    ;
                 cmd0_wdata  <= s_wdata   ;
