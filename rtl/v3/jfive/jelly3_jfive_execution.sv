@@ -307,7 +307,7 @@ module jelly3_jfive_execution
             st0_branch_pc           <= 'x;
             st0_mem_size            <= 'x;
             st0_mem_unsigned        <= 'x;
-            st0_mem_strb            <= 'x;
+            st0_mem_strb            <= '0;
             st0_mem_wdata           <= 'x;
             st0_mem_valid           <= 1'b0;
             st0_valid               <= 1'b0;
@@ -347,7 +347,7 @@ module jelly3_jfive_execution
             st0_branch_pc           <= s_branch_pc          ;
             st0_mem_size            <= s_mem_size           ;
             st0_mem_unsigned        <= s_mem_unsigned       ;
-            st0_mem_strb            <= make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val));
+            st0_mem_strb            <= (s_store & s_valid) ? make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val)) : '0;
             st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)            ;
             st0_mem_valid           <= (s_load || s_store) && s_valid               ;
             st0_valid               <= s_valid                                      ;

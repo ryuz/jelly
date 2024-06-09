@@ -282,7 +282,7 @@ module tb_main
     initial fp_exe_log = $fopen("exe_log.txt", "w");
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
-            if ( u_jfive_core.u_jfive_execution.st1_valid ) begin
+            if ( u_jfive_core.u_jfive_execution.st1_valid && u_jfive_core.u_jfive_execution.s_acceptable ) begin
                 automatic   logic   rs1_en ;
                 automatic   ridx_t  rs1_idx;
                 automatic   rval_t  rs1_val;

@@ -623,7 +623,25 @@ module jelly3_jfive_instruction_decode
 
     // control
     always_ff @(posedge clk) begin
-        if ( cke && s_acceptable ) begin
+        if ( reset ) begin
+            st2_offset             <= 'x;
+            st2_adder              <= 'x;
+            st2_logical            <= 'x;
+            st2_shifter            <= 'x;
+            st2_load               <= 'x;
+            st2_store              <= 'x;
+            st2_branch             <= 'x;
+            st2_adder_sub          <= 'x;
+            st2_adder_imm_en       <= 'x;
+            st2_adder_imm_val      <= 'x;
+            st2_shifter_arithmetic <= 'x;
+            st2_shifter_left       <= 'x;
+            st2_shifter_imm_en     <= 'x;
+            st2_shifter_imm_val    <= 'x;
+            st2_branch_mode        <= 'x;
+            st2_branch_pc          <= 'x;
+        end
+        else if ( cke && s_acceptable ) begin
             // type
             st2_offset    <= st1_lui || st1_auipc || st1_jal || st1_jalr;
             st2_adder     <= st1_alu && (st1_funct3 == FUNCT3_ADD || st1_funct3 == FUNCT3_SLT || st1_funct3 == FUNCT3_SLTU);
@@ -640,9 +658,9 @@ module jelly3_jfive_instruction_decode
                             || st1_instr[6:2] == OPCODE_ALUI[6:2]                   // ADDI/STLI/STLIU/XORI/ORI/ANDI
                             || st1_instr[6:2] == OPCODE_LOAD[6:2]                   // LB/LH/LW/LBU/LHU
                             || st1_instr[6:2] == OPCODE_STORE[6:2];                 // SB/SH/SW
-            st2_adder_imm_val <= st1_opcode[6:2] == OPCODE_STORE[6:2] ? rval_t'($signed(st1_imm_s)) :
-                                 st1_funct3 == FUNCT3_SLTU ? rval_t'($unsigned(st1_imm_i)) : rval_t'($signed(st1_imm_i));
-
+            st2_adder_imm_val <= st1_store                 ? rval_t'($signed(st1_imm_s))   :
+                                 st1_funct3 == FUNCT3_SLTU ? rval_t'($unsigned(st1_imm_i)) :
+                                                             rval_t'($signed(st1_imm_i))   ;
             // shifter
             st2_shifter_arithmetic <= st1_funct7[5] ;
             st2_shifter_left       <= ~st1_funct3[2];
