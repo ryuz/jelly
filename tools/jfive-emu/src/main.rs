@@ -12,7 +12,8 @@ use emulation::*;
 use std::fs::File;
 
 fn main() {
-    let mut logfile = File::create("emu_exe_log.txt").expect("file open error");
+    let mut exe_log = File::create("emu_exe_log.txt").expect("file open error");
+    let mut mem_log = File::create("emu_mem_log.txt").expect("file open error");
 
     let mut map = MemoryMap::new();
 
@@ -25,6 +26,6 @@ fn main() {
 
     map.load_hex32("./mem.hex", 0x8000_0000);
 
-    run_jfive(&mut map, 0x80000000, 100000, &mut logfile, false);
+    run_jfive(&mut map, 0x80000000, 100000, &mut exe_log, &mut mem_log, true);
 }
 

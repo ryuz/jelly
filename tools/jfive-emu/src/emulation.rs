@@ -36,8 +36,7 @@ fn bit_sign((v, l): (u32, u32)) -> (i32, u32) {
 
 fn ridx_to_name(idx: u32) -> String {
     // RISC-Vの対応するレジスタ名を返す
-    format!("x{}", idx)
-    /*
+//  format!("x{}", idx)
     match idx {
         0 => "zero",
         1 => "ra",
@@ -71,11 +70,11 @@ fn ridx_to_name(idx: u32) -> String {
         29 => "t4",
         30 => "t5",
         31 => "t6",
-    }
-    */
+        _ => "", 
+    }.to_string()
 }
 
-pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, logfile: &mut File, logmem: bool) {
+pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, exe_log: &mut File, mem_log: &mut File, logmem: bool) {
     let mut pc: u32 = init_pc;
     let mut regs: [i32; 32] = [0; 32];
 
@@ -132,7 +131,6 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
         let mut rd_val: i32 = 0;
         let mut branch_pc: u32 = pc + 4;
         let mut mem_access: String = String::new();
-
 
         match (opcode, funct3, funct7) {
             (0b0110111, _, _) => {
@@ -221,19 +219,19 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
                 mem_access = format!("read hu {:x} => {:08x}", (rs1_val + imm_i) as u32 as usize, rd_val);
             }
             (0b0100011, 0b000, _) => {
-                mnemonic = format!("sb    {}, {}, 0x{:x}", ridx_to_name(rs2_idx), ridx_to_name(rs1_idx), imm_i);
+                mnemonic = format!("sb    {}, {}, 0x{:x}", ridx_to_name(rs2_idx), ridx_to_name(rs1_idx), imm_s);
                 mem.write8((rs1_val + imm_s) as u32 as usize, rs2_val as u8);
                 mem_access = format!("write b {:x} <= {:02x}", (rs1_val + imm_s) as u32 as usize, rs2_val as u8);
                 rd_idx = 0;
             }
             (0b0100011, 0b001, _) => {
-                mnemonic = format!("sh    {}, {}, 0x{:x}", ridx_to_name(rs2_idx), ridx_to_name(rs1_idx), imm_i);
+                mnemonic = format!("sh    {}, {}, 0x{:x}", ridx_to_name(rs2_idx), ridx_to_name(rs1_idx), imm_s);
                 mem.write16((rs1_val + imm_s) as u32 as usize, rs2_val as u16);
                 mem_access = format!("write h {:x} <= {:04x}", (rs1_val + imm_s) as u32 as usize, rs2_val as u16);
                 rd_idx = 0;
             }
             (0b0100011, 0b010, _) => {
-                mnemonic = format!("sw    {}, {}, 0x{:x}", ridx_to_name(rs2_idx), ridx_to_name(rs1_idx), imm_i);
+                mnemonic = format!("sw    {}, {}, 0x{:x}", ridx_to_name(rs2_idx), ridx_to_name(rs1_idx), imm_s);
                 mem.write32((rs1_val + imm_s) as u32 as usize, rs2_val as u32);
                 mem_access = format!("write w {:x} <= {:08x}", (rs1_val + imm_s) as u32 as usize, rs2_val as u32);
                 rd_idx = 0;
@@ -346,19 +344,23 @@ pub fn run_jfive<T: memory::MemAccess>(mem:&mut T, init_pc: u32, cycle: usize, l
         }
         
         
-        writeln!(logfile,
+        writeln!(exe_log,
             "pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x} {:8}",
             pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val, mnemonic
         ).unwrap();
         /*
-        writeln!(logfile,
+        writeln!(exe_log,
             "pc:{:08x} instr:{:08x} rd({:2}):{:08x} rs1({:2}):{:08x} rs2({:2}):{:08x}",
             pc, instr, rd_idx, rd_val, rs1_idx, rs1_val, rs2_idx, rs2_val
         ).unwrap();
         */
 
         if logmem && mem_access.len() > 0 {
-            writeln!(logfile, "{}", mem_access).unwrap();
+            writeln!(exe_log, "{}", mem_access).unwrap();
+        }
+
+        if mem_access.len() > 0 {
+            writeln!(mem_log, "{}", mem_access).unwrap();
         }
 
         pc = branch_pc;
