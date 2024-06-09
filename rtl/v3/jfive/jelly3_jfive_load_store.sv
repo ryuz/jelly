@@ -40,48 +40,51 @@ module jelly3_jfive_load_store
             parameter           DEBUG       = "false"                           
         )
         (
-            input   var logic                   reset           ,
-            input   var logic                   clk             ,
-            input   var logic                   cke             ,
+            input   var logic                   reset               ,
+            input   var logic                   clk                 ,
+            input   var logic                   cke                 ,
 
             // data bus 
-            output  var addr_t                  dbus_cmd_addr   ,
-            output  var logic                   dbus_cmd_wr     ,
-            output  var strb_t                  dbus_cmd_strb   ,
-            output  var data_t                  dbus_cmd_wdata  ,
-            output  var logic                   dbus_cmd_valid  ,
-            input   var logic                   dbus_cmd_acceptable   ,
+            output  var addr_t                  dbus_cmd_addr       ,
+            output  var logic                   dbus_cmd_wr         ,
+            output  var strb_t                  dbus_cmd_strb       ,
+            output  var data_t                  dbus_cmd_wdata      ,
+            output  var logic                   dbus_cmd_valid      ,
+            input   var logic                   dbus_cmd_acceptable ,
 
-            input   var data_t                  dbus_res_rdata  ,
-            input   var logic                   dbus_res_valid  ,
-            output  var logic                   dbus_res_acceptable   ,
+            input   var data_t                  dbus_res_rdata      ,
+            input   var logic                   dbus_res_valid      ,
+            output  var logic                   dbus_res_acceptable ,
 
             // execution
-            output  var id_t    [LOAD_QUES-1:0] que_id          ,
-            output  var logic   [LOAD_QUES-1:0] que_rd_en       ,
-            output  var ridx_t  [LOAD_QUES-1:0] que_rd_idx      ,
+            output  var id_t    [LOAD_QUES-1:0] que_id              ,
+            output  var logic   [LOAD_QUES-1:0] que_rd_en           ,
+            output  var ridx_t  [LOAD_QUES-1:0] que_rd_idx          ,
 
             // input
-            input   var id_t                    s_id            ,
-            input   var logic                   s_rd_en         ,
-            input   var ridx_t                  s_rd_idx        ,
-            input   var rval_t                  s_addr          ,
-            input   var size_t                  s_size          ,
-            input   var logic                   s_unsigned      ,
-            input   var logic                   s_rd            ,
-            input   var logic                   s_wr            ,
-            input   var strb_t                  s_strb          ,
-            input   var rval_t                  s_wdata         ,
-            input   var logic                   s_valid         ,
-            output  var logic                   s_acceptable          ,
+            input   var id_t                    s_id                ,
+            input   var phase_t                 s_phase             ,
+            input   var pc_t                    s_pc                ,
+            input   var instr_t                 s_instr             ,
+            input   var logic                   s_rd_en             ,
+            input   var ridx_t                  s_rd_idx            ,
+            input   var rval_t                  s_addr              ,
+            input   var size_t                  s_size              ,
+            input   var logic                   s_unsigned          ,
+            input   var logic                   s_rd                ,
+            input   var logic                   s_wr                ,
+            input   var strb_t                  s_strb              ,
+            input   var rval_t                  s_wdata             ,
+            input   var logic                   s_valid             ,
+            output  var logic                   s_acceptable        ,
 
             // output   
-            output  var id_t                    m_id            ,
-            output  var logic                   m_rd_en         ,
-            output  var ridx_t                  m_rd_idx        ,
-            output  var rval_t                  m_rd_val        ,
-            output  var logic                   m_valid         ,
-            input   var logic                   m_acceptable          
+            output  var id_t                    m_id                ,
+            output  var logic                   m_rd_en             ,
+            output  var ridx_t                  m_rd_idx            ,
+            output  var rval_t                  m_rd_val            ,
+            output  var logic                   m_valid             ,
+            input   var logic                   m_acceptable        
         );
 
 
@@ -96,7 +99,7 @@ module jelly3_jfive_load_store
     size_t      quein_size          ;
     logic       quein_unsigned      ;
     logic       quein_valid         ;
-    logic       quein_acceptable          ;
+    logic       quein_acceptable    ;
 
     id_t        queout_id           ;
     ridx_t      queout_rd_idx       ;
@@ -104,7 +107,7 @@ module jelly3_jfive_load_store
     size_t      queout_size         ;
     logic       queout_unsigned     ;
     logic       queout_valid        ;
-    logic       queout_acceptable         ;
+    logic       queout_acceptable   ;
 
     jelly3_jfive_load_queue
             #(
@@ -140,7 +143,7 @@ module jelly3_jfive_load_store
                 .s_size          (quein_size        ),
                 .s_unsigned      (quein_unsigned    ),
                 .s_valid         (quein_valid       ),
-                .s_acceptable          (quein_acceptable        ),
+                .s_acceptable    (quein_acceptable  ),
 
                 .m_id            (queout_id         ),
                 .m_rd_idx        (queout_rd_idx     ),
@@ -148,15 +151,15 @@ module jelly3_jfive_load_store
                 .m_size          (queout_size       ),
                 .m_unsigned      (queout_unsigned   ),
                 .m_valid         (queout_valid      ),
-                .m_acceptable          (queout_acceptable       )
+                .m_acceptable    (queout_acceptable )
         );
 
-    assign quein_id        = s_id                   ;
-    assign quein_rd_idx    = s_rd_idx               ;
-    assign quein_align     = align_t'(s_addr)       ;
-    assign quein_size      = s_size                 ;
-    assign quein_unsigned  = s_unsigned             ;       
-    assign quein_valid     = s_rd && dbus_cmd_acceptable ;
+    assign quein_id        = s_id                       ;
+    assign quein_rd_idx    = s_rd_idx                   ;
+    assign quein_align     = align_t'(s_addr)           ;
+    assign quein_size      = s_size                     ;
+    assign quein_unsigned  = s_unsigned                 ;       
+    assign quein_valid     = s_rd && dbus_cmd_acceptable;
 
 
 
@@ -164,11 +167,11 @@ module jelly3_jfive_load_store
     //  command
     // ------------------------------------
 
-    assign dbus_cmd_addr  = s_addr                  ;
-    assign dbus_cmd_wr    = s_wr                    ;
-    assign dbus_cmd_strb  = s_strb                  ;
-    assign dbus_cmd_wdata = s_wdata                 ;
-    assign dbus_cmd_valid = s_valid & quein_acceptable   ;
+    assign dbus_cmd_addr  = s_addr                      ;
+    assign dbus_cmd_wr    = s_wr                        ;
+    assign dbus_cmd_strb  = s_strb                      ;
+    assign dbus_cmd_wdata = s_wdata                     ;
+    assign dbus_cmd_valid = s_valid & quein_acceptable  ;
 
     assign s_acceptable = !s_valid || (dbus_cmd_acceptable && quein_acceptable);
 

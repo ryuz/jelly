@@ -121,6 +121,16 @@ module jelly3_jfive_execution
     logic       alu_acceptable    ;
     logic       mem_acceptable    ;
 
+    // branch phase table
+    phase_t [THREADS-1:0]   phase_table;
+
+    // -----------------------------------------
+    //  Input
+    // -----------------------------------------
+
+    logic       s_enable;
+    assign s_enable = s_valid && (phase_table[s_id] == s_phase);
+
 
     // -----------------------------------------
     //  stage 0
@@ -308,9 +318,9 @@ module jelly3_jfive_execution
             st0_phase               <= s_phase              ;
             st0_pc                  <= s_pc                 ;
             st0_instr               <= s_instr              ;
-            st0_rd_en               <= s_rd_en & s_valid    ;
+            st0_rd_en               <= s_rd_en   & s_enable ;
             st0_rd_idx              <= s_rd_idx             ;
-            st0_rd_val              <= s_branch ? rval_t'(s_pc) : s_rd_val;
+            st0_rd_val              <= s_rd_val             ;
             st0_rs1_en              <= s_rs1_en             ;
             st0_rs1_val             <= s_rs1_val            ;
             st0_rs2_en              <= s_rs2_en             ;
@@ -319,9 +329,9 @@ module jelly3_jfive_execution
             st0_adder               <= s_adder              ;
             st0_logical             <= s_logical            ;
             st0_shifter             <= s_shifter            ;
-            st0_load                <= s_load    & s_valid  ;
-            st0_store               <= s_store   & s_valid  ;
-            st0_branch              <= s_branch  & s_valid  ;
+            st0_load                <= s_load    & s_enable ;
+            st0_store               <= s_store   & s_enable ;
+            st0_branch              <= s_branch  & s_enable ;
             st0_adder_sub           <= s_adder_sub          ;
             st0_adder_imm_en        <= s_adder_imm_en       ;
             st0_adder_imm_val       <= s_adder_imm_val      ;
@@ -337,9 +347,9 @@ module jelly3_jfive_execution
             st0_mem_size            <= s_mem_size           ;
             st0_mem_unsigned        <= s_mem_unsigned       ;
             st0_mem_strb            <= make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val));
-            st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)           ;
-            st0_mem_valid           <= (s_load || s_store) && s_valid ;
-            st0_valid               <= s_valid              ;
+            st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)            ;
+            st0_mem_valid           <= (s_load || s_store) && s_enable              ;
+            st0_valid               <= s_enable                                     ;
         end
     end
 
@@ -380,7 +390,6 @@ module jelly3_jfive_execution
             );
 
     // branch
-    phase_t [THREADS-1:0]   st1_phase_table;
     jelly3_jfive_branch
             #(
                 .THREADS        (THREADS                ),
@@ -400,7 +409,7 @@ module jelly3_jfive_execution
                 .clk             ,
                 .cke             ,
 
-                .phase_table     (st1_phase_table       ),
+                .phase_table     (phase_table           ),
 
                 .branch_id       ,
                 .branch_pc       ,
@@ -434,72 +443,74 @@ module jelly3_jfive_execution
     logic                   load_acceptable   ;
     jelly3_jfive_load_store
             #(
-                .LOAD_QUES      (LOAD_QUES              ),
-                .XLEN           (XLEN                   ),
-                .ID_BITS        (ID_BITS                ),
-                .id_t           (id_t                   ),
-                .PHASE_BITS     (PHASE_BITS             ),
-                .phase_t        (phase_t                ),
-                .PC_BITS        (PC_BITS                ),
-                .pc_t           (pc_t                   ),
-                .INSTR_BITS     (INSTR_BITS             ),
-                .instr_t        (instr_t                ),
-                .ridx_t         (ridx_t                 ),
-                .rval_t         (rval_t                 ),
-                .ADDR_BITS      (ADDR_BITS              ),
-                .addr_t         (addr_t                 ),
-                .DATA_BITS      (DATA_BITS              ),
-                .data_t         (data_t                 ),
-                .STRB_BITS      (STRB_BITS              ),
-                .strb_t         (strb_t                 ),
-                .ALIGN_BITS     (ALIGN_BITS             ),
-                .align_t        (align_t                ),
-                .size_t         (size_t                 ),
-                .RAW_HAZARD     (RAW_HAZARD             ),
-                .WAW_HAZARD     (WAW_HAZARD             ),
-                .DEVICE         (DEVICE                 ),
-                .SIMULATION     (SIMULATION             ),
-                .DEBUG          (DEBUG                  )
+                .LOAD_QUES          (LOAD_QUES              ),
+                .XLEN               (XLEN                   ),
+                .ID_BITS            (ID_BITS                ),
+                .id_t               (id_t                   ),
+                .PHASE_BITS         (PHASE_BITS             ),
+                .phase_t            (phase_t                ),
+                .PC_BITS            (PC_BITS                ),
+                .pc_t               (pc_t                   ),
+                .INSTR_BITS         (INSTR_BITS             ),
+                .instr_t            (instr_t                ),
+                .ridx_t             (ridx_t                 ),
+                .rval_t             (rval_t                 ),
+                .ADDR_BITS          (ADDR_BITS              ),
+                .addr_t             (addr_t                 ),
+                .DATA_BITS          (DATA_BITS              ),
+                .data_t             (data_t                 ),
+                .STRB_BITS          (STRB_BITS              ),
+                .strb_t             (strb_t                 ),
+                .ALIGN_BITS         (ALIGN_BITS             ),
+                .align_t            (align_t                ),
+                .size_t             (size_t                 ),
+                .RAW_HAZARD         (RAW_HAZARD             ),
+                .WAW_HAZARD         (WAW_HAZARD             ),
+                .DEVICE             (DEVICE                 ),
+                .SIMULATION         (SIMULATION             ),
+                .DEBUG              (DEBUG                  )
             )
         u_jfive_load_store
             (
-                .reset           ,
-                .clk             ,
-                .cke             ,
+                .reset              ,
+                .clk                ,
+                .cke                ,
 
-                .dbus_cmd_addr   ,
-                .dbus_cmd_wr     ,
-                .dbus_cmd_strb   ,
-                .dbus_cmd_wdata  ,
-                .dbus_cmd_valid  ,
-                .dbus_cmd_acceptable   ,
-                .dbus_res_rdata  ,
-                .dbus_res_valid  ,
-                .dbus_res_acceptable   ,
+                .dbus_cmd_addr      ,
+                .dbus_cmd_wr        ,
+                .dbus_cmd_strb      ,
+                .dbus_cmd_wdata     ,
+                .dbus_cmd_valid     ,
+                .dbus_cmd_acceptable,
+                .dbus_res_rdata     ,
+                .dbus_res_valid     ,
+                .dbus_res_acceptable,
 
-                .que_id          ,
-                .que_rd_en       ,
-                .que_rd_idx      ,
+                .que_id             ,
+                .que_rd_en          ,
+                .que_rd_idx         ,
 
-                .s_id            (st0_id                ),
-                .s_rd_en         (st0_rd_en             ),
-                .s_rd_idx        (st0_rd_idx            ),
-                .s_addr          (st0_adder_rd_val      ),
-                .s_size          (st0_mem_size          ),
-                .s_unsigned      (st0_mem_unsigned      ),
-                .s_rd            (st0_load              ),
-                .s_wr            (st0_store             ),
-                .s_strb          (st0_mem_strb          ),
-                .s_wdata         (st0_mem_wdata         ),
-                .s_valid         (st0_mem_valid         ),
-                .s_acceptable          (mem_acceptable              ),
+                .s_id               (st0_id                 ),
+                .s_pc               (st0_pc                 ),
+                .s_instr            (st0_instr              ),
+                .s_rd_en            (st0_rd_en              ),
+                .s_rd_idx           (st0_rd_idx             ),
+                .s_addr             (st0_adder_rd_val       ),
+                .s_size             (st0_mem_size           ),
+                .s_unsigned         (st0_mem_unsigned       ),
+                .s_rd               (st0_load               ),
+                .s_wr               (st0_store              ),
+                .s_strb             (st0_mem_strb           ),
+                .s_wdata            (st0_mem_wdata          ),
+                .s_valid            (st0_mem_valid          ),
+                .s_acceptable       (mem_acceptable         ),
 
-                .m_id            (load_id               ),
-                .m_rd_en         (load_rd_en            ),
-                .m_rd_idx        (load_rd_idx           ),
-                .m_rd_val        (load_rd_val           ),
-                .m_valid         (load_valid            ),
-                .m_acceptable          (load_acceptable             )
+                .m_id               (load_id                ),
+                .m_rd_en            (load_rd_en             ),
+                .m_rd_idx           (load_rd_idx            ),
+                .m_rd_val           (load_rd_val            ),
+                .m_valid            (load_valid             ),
+                .m_acceptable       (load_acceptable        )
             );
 
     // control
@@ -539,7 +550,7 @@ module jelly3_jfive_execution
             st1_phase   <= st0_phase  ;
             st1_pc      <= st0_pc     ;
             st1_instr   <= st0_instr  ;
-            st1_rd_en   <= st0_rd_en && (st1_phase_table[st0_id] == st0_phase);
+            st1_rd_en   <= st0_rd_en && (phase_table[st0_id] == st0_phase);
             st1_rd_idx  <= st0_rd_idx ;
             st1_rd_val  <= st0_adder   ? st0_adder_rd_val   :
                            st0_logical ? st0_logical_rd_val :
@@ -550,7 +561,7 @@ module jelly3_jfive_execution
             st1_rs2_val <= st0_rs2_val;
             st1_shifter <= st0_shifter;
             st1_load    <= st0_load   ;
-            st1_valid   <= st0_valid && (st1_phase_table[st0_id] == st0_phase);
+            st1_valid   <= st0_valid && (phase_table[st0_id] == st0_phase);
         end
     end
 
