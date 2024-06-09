@@ -237,15 +237,39 @@ module tb_main
     assign port1_we   = dbus_cmd_strb               ;
     assign port1_din  = dbus_cmd_wdata              ;
 
-    logic   dbus_st0_valid  ;
-    logic   dbus_st1_valid  ;
+    dbus_addr_t         dbus_st0_addr       ;
+    logic               dbus_st0_wr         ;
+    dbus_strb_t         dbus_st0_strb       ;
+    dbus_data_t         dbus_st0_wdata      ;
+    logic               dbus_st0_valid      ;
+    dbus_addr_t         dbus_st1_addr       ;
+    logic               dbus_st1_wr         ;
+    dbus_strb_t         dbus_st1_strb       ;
+    dbus_data_t         dbus_st1_wdata      ;
+    logic               dbus_st1_valid      ;
     always_ff @(posedge clk) begin
         if ( reset ) begin
+            dbus_st0_addr   <= 'x   ;
+            dbus_st0_wr     <= 'x   ;
+            dbus_st0_strb   <= 'x   ;
+            dbus_st0_wdata  <= 'x   ;
             dbus_st0_valid  <= 1'b0;
+            dbus_st1_addr   <= 'x   ;
+            dbus_st1_wr     <= 'x   ;
+            dbus_st1_strb   <= 'x   ;
+            dbus_st1_wdata  <= 'x   ;
             dbus_st1_valid  <= 1'b0;
         end
         else if ( cke && dbus_res_acceptable ) begin
+            dbus_st0_addr   <= dbus_cmd_addr ;
+            dbus_st0_wr     <= dbus_cmd_wr   ;
+            dbus_st0_strb   <= dbus_cmd_strb ;
+            dbus_st0_wdata  <= dbus_cmd_wdata;
             dbus_st0_valid  <= dbus_cmd_valid && !dbus_cmd_wr;
+            dbus_st1_addr   <= dbus_st0_addr ;
+            dbus_st1_wr     <= dbus_st0_wr   ;
+            dbus_st1_strb   <= dbus_st0_strb ;
+            dbus_st1_wdata  <= dbus_st0_wdata;
             dbus_st1_valid  <= dbus_st0_valid;
         end
     end
@@ -319,6 +343,9 @@ module tb_main
         if ( !reset && cke ) begin
             if ( dbus_cmd_valid && dbus_cmd_wr ) begin
                 $fwrite(fp_dbus_log, "w addr:%08x wdata:%08x strb:%b\n", int'(dbus_cmd_addr) << 2, dbus_cmd_wdata, dbus_cmd_strb);
+            end
+            if ( dbus_st1_valid && !dbus_st1_wr ) begin
+                $fwrite(fp_dbus_log, "r addr:%08x rdata:%08x\n", int'(dbus_st1_addr) << 2, dbus_res_rdata);
             end
         end
     end

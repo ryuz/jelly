@@ -250,7 +250,7 @@ module jelly3_jfive_load_store
 
     assign dbus_res_acceptable = m_acceptable;
 
-    assign queout_acceptable  = !dbus_res_valid || dbus_res_acceptable;
+    assign queout_acceptable  = !queout_valid || (dbus_res_valid && dbus_res_acceptable);
 
 
     // ------------------------------------
