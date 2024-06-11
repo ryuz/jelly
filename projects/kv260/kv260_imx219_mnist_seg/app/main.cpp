@@ -32,8 +32,9 @@ void signal_handler(int signo) {
 
 int main(int argc, char *argv[])
 {
-    double  pixel_clock = 91000000.0;
-    bool    binning     = false;
+    // 1000fps用セッティング
+    double  pixel_clock = 139200000.0;
+    bool    binning     = true;
     int     width       = 640;
     int     height      = 132;
     int     aoi_x       = -1;
@@ -220,6 +221,7 @@ int main(int argc, char *argv[])
 
     // IMX219 I2C control
     jelly::Imx219ControlI2c imx219;
+    imx219.SetPixelClock(pixel_clock);
     if ( !imx219.Open("/dev/i2c-6", 0x10) ) {
         std::cout << "I2C open error" << std::endl;
         return 1;
@@ -230,7 +232,6 @@ int main(int argc, char *argv[])
     std::cout << "Model ID : " << std::hex << std::setfill('0') << std::setw(4) << imx219.GetModelId() << std::endl;
 
     // camera 設定
-    imx219.SetPixelClock(pixel_clock);
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
 
@@ -296,6 +297,7 @@ int main(int argc, char *argv[])
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
 
+        // トラックバー値取得
         view_scale  = cv::getTrackbarPos("scale",    "img");
         frame_rate  = cv::getTrackbarPos("fps",      "img");
         exposure    = cv::getTrackbarPos("exposure", "img");
@@ -376,9 +378,9 @@ int main(int argc, char *argv[])
         cv::Mat cls = planes[3];
         for ( int i = 0; i < 10; ++i ) {
             cv::Mat mask = (cls == i);
-//          cv::Mat cls_view = cv::Mat::zeros(cls.size(), CV_8UC1);
-//          cls_view.setTo(255, mask);
-//          cv::imshow("cls" + std::to_string(i), cls_view);
+            cv::Mat cls_view = cv::Mat::zeros(cls.size(), CV_8UC1);
+            cls_view.setTo(255, mask);
+            cv::imshow("clasee" + std::to_string(i), cls_view);
             view_cls.setTo(colmap[i], mask);
         }
         cv::imshow("view_cls", view_cls);
@@ -424,19 +426,25 @@ int main(int argc, char *argv[])
             break;
 
         case 'r': // image record
-            std::cout << "record" << std::endl;
-            vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
-            int offset = 0;
-            for ( int i = 0; i < rec_frame_num; i++ ) {
-                char fname[64];
-                sprintf(fname, "rec_%04d.png", i);
-                cv::Mat imgRec(height, width, CV_8UC4);
-                udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
-                offset += width * height * 4;
-                cv::Mat imgRgb;
-                cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
-                cv::imwrite(fname, imgRgb);
+            {
+                std::cout << "record" << std::endl;
+                vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
+                int offset = 0;
+                for ( int i = 0; i < rec_frame_num; i++ ) {
+                    char fname[64];
+                    sprintf(fname, "rec_%04d.png", i);
+                    cv::Mat imgRec(height, width, CV_8UC4);
+                    udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
+                    offset += width * height * 4;
+                    cv::Mat imgRgb;
+                    cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
+                    cv::imwrite(fname, imgRgb);
+                }
             }
+            break;
+
+        case 'P':
+            imx219.PrintRegisters();
             break;
         }
     }
