@@ -3,7 +3,7 @@
 //  Jelly  -- The platform for real-time computing
 //   reciprocal
 //
-//                                 Copyright (C) 2008-2022 by Ryuz
+//                                 Copyright (C) 2008-2022 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 

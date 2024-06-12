@@ -8,5 +8,5 @@
 	path = rust/pac
 	url = https://github.com/ryuz/jelly-pac.git
 [submodule "jellyvl"]
-	path = jellyvl
+	path = rtl/jellyvl
 	url = https://github.com/ryuz/jellyvl.git

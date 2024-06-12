@@ -41,11 +41,11 @@ clean:
 
 .PHONY : veryl
 veryl:
-	cd ../../../../../../jellyvl; veryl build
+	cd ../../../../../../rtl/jellyvl; veryl build
 
 .PHONY : fmt
 fmt:
-	cd ../../../../../../jellyvl; veryl fmt
+	cd ../../../../../../rtl/jellyvl; veryl fmt
 
 .PHONY : distclean
 distclean: clean

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2024 by Ryuz
+//                                 Copyright (C) 2008-2024 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -13,10 +13,11 @@
 // pipeline insert FF
 module jelly3_data_ff
         #(
-            parameter   type    data_t      = logic [7:0]   ,
-            parameter   bit     S_REGS      = 1             ,
-            parameter   bit     M_REGS      = 1             ,
-            parameter   data_t  INIT_DATA   = 'x
+            parameter   int     DATA_BITS   = 8                     ,
+            parameter   type    data_t      = logic [DATA_BITS-1:0] ,
+            parameter   bit     S_REGS      = 1                     ,
+            parameter   bit     M_REGS      = 1                     ,
+            parameter   data_t  INIT_DATA   = 'x                    
         )
         (
             input   var logic   reset       ,

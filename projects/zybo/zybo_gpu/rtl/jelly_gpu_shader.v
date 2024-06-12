@@ -2,7 +2,7 @@
 //  Jelly  -- the system on fpga system
 //   GPU用シェーダー演算ソース側制御
 //
-//                                 Copyright (C) 2015 by Ryuz
+//                                 Copyright (C) 2015 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
