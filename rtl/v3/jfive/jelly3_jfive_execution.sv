@@ -272,7 +272,9 @@ module jelly3_jfive_execution
     strb_t              st0_mem_strb            ;
     rval_t              st0_mem_wdata           ;
     logic               st0_mem_valid           ;
+    logic               st0_valid_reg           ;
     logic               st0_valid               ;
+    logic               st0_acceptable          ;
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -313,7 +315,7 @@ module jelly3_jfive_execution
             st0_mem_strb            <= '0;
             st0_mem_wdata           <= 'x;
             st0_mem_valid           <= 1'b0;
-            st0_valid               <= 1'b0;
+            st0_valid_reg           <= 1'b0;
         end
         else if ( cke && s_acceptable ) begin
             st0_id                  <= s_id                 ;
@@ -353,15 +355,14 @@ module jelly3_jfive_execution
             st0_mem_strb            <= s_store ? make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val)) : '0;
             st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)            ;
             st0_mem_valid           <= (s_load || s_store) && s_valid               ;
-            st0_valid               <= s_valid                                      ;
+            st0_valid_reg           <= s_valid                                      ;
         end
     end
+    assign st0_valid = st0_valid_reg && (st0_phase == phase_table[st0_id]);;
+//  logic       st0_phase_en    ;
+//  assign st0_phase_en = (st0_phase == phase_table[st0_id]);
 
-    assign s_acceptable = alu_acceptable && mem_acceptable;
-
-
-    logic       st0_phase_en    ;
-    assign st0_phase_en = (st0_phase == phase_table[st0_id]);
+    assign s_acceptable = !st0_valid || st0_acceptable;
 
 
     // -----------------------------------------
@@ -437,7 +438,7 @@ module jelly3_jfive_execution
                 .s_eq            (st0_match_eq              ),
                 .s_jalr_pc       (st0_adder_rd_val          ),
                 .s_imm_pc        (st0_branch_pc             ),
-                .s_valid         (st0_branch & st0_phase_en )
+                .s_valid         (st0_branch & st0_valid    )
             );
 
     // load/store
@@ -505,16 +506,16 @@ module jelly3_jfive_execution
                 .s_phase            (st0_phase              ),
                 .s_pc               (st0_pc                 ),
                 .s_instr            (st0_instr              ),
-                .s_rd_en            (st0_rd_en    & st0_phase_en    ),
+                .s_rd_en            (st0_rd_en    & st0_valid    ),
                 .s_rd_idx           (st0_rd_idx             ),
                 .s_addr             (st0_adder_rd_val       ),
                 .s_size             (st0_mem_size           ),
                 .s_unsigned         (st0_mem_unsigned       ),
-                .s_rd               (st0_load     & st0_phase_en    ),
-                .s_wr               (st0_store    & st0_phase_en    ),
+                .s_rd               (st0_load     & st0_valid    ),
+                .s_wr               (st0_store    & st0_valid    ),
                 .s_strb             (st0_mem_strb           ),
                 .s_wdata            (st0_mem_wdata          ),
-                .s_valid            (st0_mem_valid & st0_phase_en   ),
+                .s_valid            (st0_mem_valid & st0_valid   ),
                 .s_acceptable       (mem_acceptable         ),
 
                 .m_id               (load_id                ),
@@ -568,7 +569,7 @@ module jelly3_jfive_execution
             st1_phase   <= st0_phase  ;
             st1_pc      <= st0_pc     ;
             st1_instr   <= st0_instr  ;
-            st1_rd_en   <= st0_rd_en && !st0_load && st0_phase_en && s_acceptable;
+            st1_rd_en   <= st0_rd_en && !st0_load && st0_valid && s_acceptable;
             st1_rd_idx  <= st0_rd_idx ;
             st1_rd_val  <= st0_adder   ? st0_adder_rd_val   :
                            st0_logical ? st0_logical_rd_val :
@@ -581,9 +582,11 @@ module jelly3_jfive_execution
             st1_rs2_val <= st0_rs2_val;
             st1_shifter <= st0_shifter;
             st1_load    <= st0_load   ;
-            st1_valid   <= st0_valid && st0_phase_en && s_acceptable;
+            st1_valid   <= st0_valid && st0_valid && s_acceptable;
         end
     end
+
+    assign st0_acceptable = alu_acceptable && mem_acceptable;
 
 
     // -----------------------------------------
