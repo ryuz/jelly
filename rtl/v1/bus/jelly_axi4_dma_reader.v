@@ -237,7 +237,7 @@ module jelly_axi4_dma_reader
         
         assign sig_limiter_arready = (semaphore_counter > axi4_ctl_arlen);
     end
-    else begin : blk_acceptable
+    else begin : blk_ready
         // 受け入れ可能サイズから計算
         reg     [ISSUE_COUNTER_WIDTH-1:0]   reg_issue_counter, next_issue_counter;
         always @* begin

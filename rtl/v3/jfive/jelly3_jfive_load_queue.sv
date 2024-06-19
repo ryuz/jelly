@@ -52,7 +52,7 @@ module jelly3_jfive_load_queue
             input   var size_t                  s_size          ,
             input   var logic                   s_unsigned      ,
             input   var logic                   s_valid         ,
-            output  var logic                   s_acceptable    ,
+            output  var logic                   s_ready    ,
 
             // output
             output  var id_t                    m_id            ,
@@ -63,7 +63,7 @@ module jelly3_jfive_load_queue
             output  var size_t                  m_size          ,
             output  var logic                   m_unsigned      ,
             output  var logic                   m_valid         ,
-            input   var logic                   m_acceptable    
+            input   var logic                   m_ready    
         );
 
     localparam  int     COUNT_BITS = $clog2(QUE_SIZE + 1)       ;
@@ -87,7 +87,7 @@ module jelly3_jfive_load_queue
         next_size     = que_size    ;
         next_unsigned = que_unsigned;
         next_valid    = que_valid   ;
-        if ( m_valid && m_acceptable ) begin
+        if ( m_valid && m_ready ) begin
             for ( int i = 0; i < QUE_SIZE-1; i++ ) begin
                 next_id      [i] = next_id      [i+1];
                 next_pc      [i] = que_pc       [i+1];
@@ -107,7 +107,7 @@ module jelly3_jfive_load_queue
             next_unsigned[QUE_SIZE-1] = 'x;
             next_valid   [QUE_SIZE-1] = '0;
         end
-        if ( s_acceptable ) begin
+        if ( s_ready ) begin
             for ( int i = 0; i < QUE_SIZE; i++ ) begin
                 if ( !next_valid[i] ) begin
                     next_id      [i] = s_id      ;
@@ -149,7 +149,7 @@ module jelly3_jfive_load_queue
         end
     end
     
-    assign s_acceptable = !que_valid[QUE_SIZE-1]; // && !m_acceptable;
+    assign s_ready = !que_valid[QUE_SIZE-1]; // && !m_ready;
 
     assign m_id         = que_id      [0] ;
     assign m_pc         = que_pc      [0] ;

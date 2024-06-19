@@ -59,13 +59,13 @@ module jelly3_jfive_core
             output  var phase_t             ibus_cmd_phase  ,
             output  var pc_t                ibus_cmd_pc     ,
             output  var logic               ibus_cmd_valid  ,
-            input   var logic               ibus_cmd_acceptable   ,
+            input   var logic               ibus_cmd_ready   ,
             input   var id_t                ibus_res_id     ,
             input   var phase_t             ibus_res_phase  ,
             input   var pc_t                ibus_res_pc     ,
             input   var instr_t             ibus_res_instr  ,
             input   var logic               ibus_res_valid  ,
-            output  var logic               ibus_res_acceptable   ,
+            output  var logic               ibus_res_ready   ,
 
             // data bus
             output  var dbus_addr_t         dbus_cmd_addr   ,
@@ -73,10 +73,10 @@ module jelly3_jfive_core
             output  var dbus_strb_t         dbus_cmd_strb   ,
             output  var dbus_data_t         dbus_cmd_wdata  ,
             output  var logic               dbus_cmd_valid  ,
-            input   var logic               dbus_cmd_acceptable   ,
+            input   var logic               dbus_cmd_ready   ,
             input   var dbus_data_t         dbus_res_rdata  ,
             input   var logic               dbus_res_valid  ,
-            output  var logic               dbus_res_acceptable   
+            output  var logic               dbus_res_ready   
         );
 
     // -----------------------------
@@ -100,7 +100,7 @@ module jelly3_jfive_core
     pc_t    pc_pc           ;
     instr_t pc_instr        ;
     logic   pc_valid        ;
-    logic   pc_acceptable   ;
+    logic   pc_ready   ;
 
     jelly3_jfive_program_counter
             #(
@@ -135,7 +135,7 @@ module jelly3_jfive_core
                 .m_phase            (pc_phase           ),
                 .m_pc               (pc_pc              ),
                 .m_valid            (pc_valid           ),
-                .m_acceptable       (pc_acceptable      )
+                .m_ready       (pc_ready      )
             );
 
 
@@ -148,20 +148,20 @@ module jelly3_jfive_core
     pc_t    if_pc       ;
     instr_t if_instr    ;
     logic   if_valid    ;
-    logic   if_acceptable     ;
+    logic   if_ready     ;
 
     assign ibus_cmd_id    = pc_id   ;
     assign ibus_cmd_phase = pc_phase;
     assign ibus_cmd_pc    = pc_pc   ;
     assign ibus_cmd_valid = pc_valid;
-    assign pc_acceptable = ibus_cmd_acceptable;
+    assign pc_ready = ibus_cmd_ready;
 
     assign if_id    = ibus_res_id   ;
     assign if_phase = ibus_res_phase;
     assign if_pc    = ibus_res_pc   ;
     assign if_instr = ibus_res_instr;
     assign if_valid = ibus_res_valid;
-    assign ibus_res_acceptable = if_acceptable;
+    assign ibus_res_ready = if_ready;
 
 
     // -----------------------------
@@ -208,6 +208,7 @@ module jelly3_jfive_core
     rval_t              id_rs2_val              ;
     logic               id_offset               ;
     logic               id_adder                ;
+    logic               id_slt                  ;
     logic               id_logical              ;
     logic               id_shifter              ;
     logic               id_load                 ;
@@ -216,6 +217,7 @@ module jelly3_jfive_core
     logic               id_adder_sub            ;
     logic               id_adder_imm_en         ;
     rval_t              id_adder_imm_val        ;
+    logic               id_slt_unsigned         ;
     logic   [1:0]       id_logical_mode         ;
     logic               id_logical_imm_en       ;
     rval_t              id_logical_imm_val      ;
@@ -228,7 +230,7 @@ module jelly3_jfive_core
     size_t              id_mem_size             ;
     logic               id_mem_unsigned         ;
     logic               id_valid                ;
-    logic               id_acceptable                 ;
+    logic               id_ready                 ;
     
     jelly3_jfive_instruction_decode
             #(
@@ -272,7 +274,7 @@ module jelly3_jfive_core
                 .s_pc                   (if_pc                  ),
                 .s_instr                (if_instr               ),
                 .s_valid                (if_valid               ),
-                .s_acceptable                 (if_acceptable                ),
+                .s_ready                 (if_ready                ),
 
                 .m_id                   (id_id                  ),
                 .m_phase                (id_phase               ),
@@ -289,6 +291,7 @@ module jelly3_jfive_core
                 .m_rs2_val              (id_rs2_val             ),
                 .m_offset               (id_offset              ),
                 .m_adder                (id_adder               ),
+                .m_slt                  (id_slt                 ),
                 .m_logical              (id_logical             ),
                 .m_shifter              (id_shifter             ),
                 .m_load                 (id_load                ),
@@ -297,6 +300,7 @@ module jelly3_jfive_core
                 .m_adder_sub            (id_adder_sub           ),
                 .m_adder_imm_en         (id_adder_imm_en        ),
                 .m_adder_imm_val        (id_adder_imm_val       ),
+                .m_slt_unsigned         (id_slt_unsigned        ),
                 .m_logical_mode         (id_logical_mode        ),
                 .m_logical_imm_en       (id_logical_imm_en      ),
                 .m_logical_imm_val      (id_logical_imm_val     ),
@@ -309,7 +313,7 @@ module jelly3_jfive_core
                 .m_mem_size             (id_mem_size            ),
                 .m_mem_unsigned         (id_mem_unsigned        ),
                 .m_valid                (id_valid               ),
-                .m_acceptable                 (id_acceptable                )
+                .m_ready                 (id_ready                )
         );
 
 
@@ -378,10 +382,10 @@ module jelly3_jfive_core
                 .dbus_cmd_strb          ,
                 .dbus_cmd_wdata         ,
                 .dbus_cmd_valid         ,
-                .dbus_cmd_acceptable          ,
+                .dbus_cmd_ready          ,
                 .dbus_res_rdata         ,
                 .dbus_res_valid         ,
-                .dbus_res_acceptable          ,
+                .dbus_res_ready          ,
 
                 .s_id                   (id_id                  ),
                 .s_phase                (id_phase               ),
@@ -398,6 +402,7 @@ module jelly3_jfive_core
                 .s_rs2_val              (id_rs2_val             ),
                 .s_offset               (id_offset              ),
                 .s_adder                (id_adder               ),
+                .s_slt                  (id_slt                 ),
                 .s_logical              (id_logical             ),
                 .s_shifter              (id_shifter             ),
                 .s_load                 (id_load                ),
@@ -406,6 +411,7 @@ module jelly3_jfive_core
                 .s_adder_sub            (id_adder_sub           ),
                 .s_adder_imm_en         (id_adder_imm_en        ),
                 .s_adder_imm_val        (id_adder_imm_val       ),
+                .s_slt_unsigned         (id_slt_unsigned        ),
                 .s_logical_mode         (id_logical_mode        ),
                 .s_logical_imm_en       (id_logical_imm_en      ),
                 .s_logical_imm_val      (id_logical_imm_val     ),
@@ -418,7 +424,7 @@ module jelly3_jfive_core
                 .s_mem_size             (id_mem_size            ),
                 .s_mem_unsigned         (id_mem_unsigned        ),
                 .s_valid                (id_valid               ),
-                .s_acceptable           (id_acceptable          )
+                .s_ready           (id_ready          )
         );
 
 

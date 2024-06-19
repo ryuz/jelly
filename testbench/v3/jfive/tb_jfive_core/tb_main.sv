@@ -50,22 +50,22 @@ module tb_main
     phase_t             ibus_cmd_phase      ;
     pc_t                ibus_cmd_pc         ;
     logic               ibus_cmd_valid      ;
-    logic               ibus_cmd_acceptable ;
+    logic               ibus_cmd_ready ;
     id_t                ibus_res_id         ;
     phase_t             ibus_res_phase      ;
     pc_t                ibus_res_pc         ;
     instr_t             ibus_res_instr      ;
     logic               ibus_res_valid      ;
-    logic               ibus_res_acceptable ;
+    logic               ibus_res_ready ;
     dbus_addr_t         dbus_cmd_addr       ;
     logic               dbus_cmd_wr         ;
     dbus_strb_t         dbus_cmd_strb       ;
     dbus_data_t         dbus_cmd_wdata      ;
     logic               dbus_cmd_valid      ;
-    logic               dbus_cmd_acceptable ;
+    logic               dbus_cmd_ready ;
     dbus_data_t         dbus_res_rdata      ;
     logic               dbus_res_valid      ;
-    logic               dbus_res_acceptable ;
+    logic               dbus_res_ready ;
 
     jelly3_jfive_core
         #(
@@ -112,30 +112,23 @@ module tb_main
                 .ibus_cmd_phase     ,
                 .ibus_cmd_pc        ,
                 .ibus_cmd_valid     ,
-                .ibus_cmd_acceptable,
+                .ibus_cmd_ready,
                 .ibus_res_id        ,
                 .ibus_res_phase     ,
                 .ibus_res_pc        ,
                 .ibus_res_instr     ,
                 .ibus_res_valid     ,
-                .ibus_res_acceptable,
+                .ibus_res_ready,
                 .dbus_cmd_addr      ,
                 .dbus_cmd_wr        ,
                 .dbus_cmd_strb      ,
                 .dbus_cmd_wdata     ,
                 .dbus_cmd_valid     ,
-                .dbus_cmd_acceptable,
+                .dbus_cmd_ready,
                 .dbus_res_rdata     ,
                 .dbus_res_valid     ,
-                .dbus_res_acceptable      
+                .dbus_res_ready      
             );
-    
-    wire    ridx_t  exe_rd_idx0 = u_jfive_core.u_jfive_execution.exe_rd_idx[0];
-    wire    ridx_t  exe_rd_idx1 = u_jfive_core.u_jfive_execution.exe_rd_idx[1];
-    wire    ridx_t  exe_rd_idx2 = u_jfive_core.u_jfive_execution.exe_rd_idx[2];
-    wire    ridx_t  exe_rd_idx3 = u_jfive_core.u_jfive_execution.exe_rd_idx[3];
-    wire    ridx_t  exe_rd_idx4 = u_jfive_core.u_jfive_execution.exe_rd_idx[4];
-    wire    ridx_t  exe_rd_idx5 = u_jfive_core.u_jfive_execution.exe_rd_idx[5];
 
 
     localparam int  MEM_ADDR_BITS  = 14;
@@ -193,7 +186,7 @@ module tb_main
                 .port1_dout     (port1_dout         )
             );
     
-    assign port0_cke   = cke && ibus_res_acceptable;
+    assign port0_cke   = cke && ibus_res_ready;
     assign port0_we    = '0;
     assign port0_addr  = mem_addr_t'(ibus_cmd_pc >> 2);
     assign port0_din   = '0;
@@ -217,7 +210,7 @@ module tb_main
             ibus_st1_pc     <= 'x;
             ibus_st1_valid  <= 1'b0;
         end
-        else if ( cke && ibus_res_acceptable ) begin
+        else if ( cke && ibus_res_ready ) begin
             ibus_st0_id     <= ibus_cmd_id;
             ibus_st0_phase  <= ibus_cmd_phase;
             ibus_st0_pc     <= ibus_cmd_pc;
@@ -229,7 +222,7 @@ module tb_main
         end
     end
 
-    assign ibus_cmd_acceptable  = ibus_res_acceptable   ;
+    assign ibus_cmd_ready  = ibus_res_ready   ;
 
     assign ibus_res_id    = ibus_st1_id     ;
     assign ibus_res_phase = ibus_st1_phase  ;
@@ -239,7 +232,7 @@ module tb_main
 
 
     // dbus
-    assign port1_cke   = cke && dbus_res_acceptable;
+    assign port1_cke   = cke && dbus_res_ready;
     assign port1_addr = mem_addr_t'(dbus_cmd_addr)  ;
     assign port1_we   = dbus_cmd_strb               ;
     assign port1_din  = dbus_cmd_wdata              ;
@@ -267,7 +260,7 @@ module tb_main
             dbus_st1_wdata  <= 'x   ;
             dbus_st1_valid  <= 1'b0;
         end
-        else if ( cke && dbus_res_acceptable ) begin
+        else if ( cke && dbus_res_ready ) begin
             dbus_st0_addr   <= dbus_cmd_addr ;
             dbus_st0_wr     <= dbus_cmd_wr   ;
             dbus_st0_strb   <= dbus_cmd_strb ;
@@ -281,10 +274,14 @@ module tb_main
         end
     end
 
-    assign dbus_cmd_acceptable  = dbus_res_acceptable   ;
+    assign dbus_cmd_ready  = dbus_res_ready   ;
     assign dbus_res_rdata = port1_dout      ;
     assign dbus_res_valid = dbus_st1_valid  ;
 
+
+    // ------------------------------------------------
+    //  Debug
+    // ------------------------------------------------
 
     localparam  type    mnemonic_t = logic [64*8-1:0];
     
@@ -309,12 +306,64 @@ module tb_main
     wire    mnemonic_t   branch_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.branch_instr));
     wire    mnemonic_t   wb_mnemonic     = mnemonic_t'(instr2mnemonic(u_jfive_core.wb_instr));
 
+    
+    wire    ridx_t  exe_rd_idx0 = u_jfive_core.u_jfive_execution.exe_rd_idx[0];
+    wire    ridx_t  exe_rd_idx1 = u_jfive_core.u_jfive_execution.exe_rd_idx[1];
+    wire    ridx_t  exe_rd_idx2 = u_jfive_core.u_jfive_execution.exe_rd_idx[2];
+    wire    ridx_t  exe_rd_idx3 = u_jfive_core.u_jfive_execution.exe_rd_idx[3];
+    wire    ridx_t  exe_rd_idx4 = u_jfive_core.u_jfive_execution.exe_rd_idx[4];
+    wire    ridx_t  exe_rd_idx5 = u_jfive_core.u_jfive_execution.exe_rd_idx[5];
+    
+
+    wire    pc_t        exe_pc        = u_jfive_core.u_jfive_execution.st0_pc       ;
+    wire    instr_t     exe_instr     = u_jfive_core.u_jfive_execution.st0_instr    ;
+    wire    logic       exe_rs1_en    = u_jfive_core.u_jfive_execution.st0_rs1_en   ;
+    wire    ridx_t      exe_rs1_idx   = u_jfive_core.u_jfive_execution.st0_rs1_idx  ;
+    wire    rval_t      exe_rs1_val   = u_jfive_core.u_jfive_execution.st0_rs1_val  ;
+    wire    logic       exe_rs2_en    = u_jfive_core.u_jfive_execution.st0_rs2_en   ;
+    wire    ridx_t      exe_rs2_idx   = u_jfive_core.u_jfive_execution.st0_rs2_idx  ;
+    wire    rval_t      exe_rs2_val   = u_jfive_core.u_jfive_execution.st0_rs2_val  ;
+    wire    logic       exe_valid     = u_jfive_core.u_jfive_execution.st0_valid    ;
+    wire    logic       exe_ready     = u_jfive_core.u_jfive_execution.st0_ready    ;
+    wire    mnemonic_t  exe_mnemonic  = mnemonic_t'(instr2mnemonic(exe_instr));
+
     int exe_counter = 0;
     int fp_exe_log;
     initial fp_exe_log = $fopen("exe_log.txt", "w");
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
-            if ( u_jfive_core.u_jfive_execution.st1_valid && u_jfive_core.u_jfive_execution.alu_acceptable ) begin
+            if ( exe_valid && exe_ready ) begin
+                automatic   logic   rs1_en ;
+                automatic   ridx_t  rs1_idx;
+                automatic   rval_t  rs1_val;
+                automatic   logic   rs2_en ;
+                automatic   ridx_t  rs2_idx;
+                automatic   rval_t  rs2_val;
+                rs1_en  = exe_rs1_en ;
+                rs1_idx = exe_rs1_idx;
+                rs1_val = exe_rs1_val;
+                rs2_en  = exe_rs2_en ;
+                rs2_idx = exe_rs2_idx;
+                rs2_val = exe_rs2_val;
+                if ( !rs1_en ) rs1_idx = 0;
+                if ( !rs2_en ) rs2_idx = 0;
+                if ( rs1_idx == 0 ) rs1_val = '0;
+                if ( rs2_idx == 0 ) rs2_val = '0;
+
+                $fwrite(fp_exe_log, "pc:%08x instr:%08x rs1(%2d):%08x rs2(%2d):%08x %s\n",
+                    exe_pc,
+                    exe_instr,
+                    rs1_idx,
+                    rs1_val,
+                    rs2_idx,
+                    rs2_val,
+                    string'(exe_mnemonic)
+                    );
+                exe_counter <= exe_counter + 1;
+            end
+
+            /*
+            if ( u_jfive_core.u_jfive_execution.st1_valid && u_jfive_core.u_jfive_execution.alu_ready ) begin
                 automatic   logic   rs1_en ;
                 automatic   ridx_t  rs1_idx;
                 automatic   rval_t  rs1_val;
@@ -343,6 +392,7 @@ module tb_main
                     );
                 exe_counter <= exe_counter + 1;
             end
+                */
         end
     end
 

@@ -29,7 +29,7 @@ module jelly3_jfive_match
 
             // output
             output  var logic               m_eq            ,
-            input   var logic               m_acceptable    
+            input   var logic               m_ready    
         );
 
 
@@ -42,7 +42,7 @@ module jelly3_jfive_match
         if ( reset ) begin
             st0_eq <= 'x;
         end
-        else if ( cke && m_acceptable ) begin
+        else if ( cke && m_ready ) begin
             st0_eq <= (s_rs1_val == s_rs2_val);
         end
     end

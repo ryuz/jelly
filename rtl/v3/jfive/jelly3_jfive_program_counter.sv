@@ -51,7 +51,7 @@ module jelly3_jfive_program_counter
             output  var phase_t m_phase         ,
             output  var pc_t    m_pc            ,
             output  var logic   m_valid         ,
-            input   var logic   m_acceptable         
+            input   var logic   m_ready         
         );
 
     // -----------------------------
@@ -112,7 +112,7 @@ module jelly3_jfive_program_counter
             st0_pc    <= INIT_PC;
         end
         else if ( cke ) begin
-            if ( m_acceptable ) begin
+            if ( m_ready ) begin
                 // run id
                 st0_id  <= next_id(st0_id, run);
 
@@ -152,7 +152,7 @@ module jelly3_jfive_program_counter
             st1_valid <= 1'b0;
         end
         else if ( cke ) begin
-            if ( m_acceptable ) begin
+            if ( m_ready ) begin
                 st1_id    <= st0_id;
                 st1_phase <= st0_phase[st0_id];
                 st1_pc    <= st0_pc[st0_id];

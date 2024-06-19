@@ -32,7 +32,7 @@ module jelly3_jfive_logical
 
             // output
             output  var rval_t              m_rd_val        ,
-            input   var logic               m_acceptable
+            input   var logic               m_ready
         );
 
 
@@ -42,7 +42,7 @@ module jelly3_jfive_logical
 
     rval_t              st0_rd_val  ;
     always_ff @(posedge clk) begin
-        if ( cke && m_acceptable ) begin
+        if ( cke && m_ready ) begin
             case ( s_mode )
             2'b00:      st0_rd_val <= s_rs1_val ^ (s_imm_en ? s_imm_val : s_rs2_val);
             2'b10:      st0_rd_val <= s_rs1_val | (s_imm_en ? s_imm_val : s_rs2_val);
