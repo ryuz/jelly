@@ -664,10 +664,10 @@ module jelly3_jfive_instruction_decode
                             || (st1_opcode[6:2] == OPCODE_ALU   [6:2] &&  st1_funct3[1])    // SLT/SLTU
                             || (st1_opcode[6:2] == OPCODE_ALU   [6:2] &&  st1_funct7[5]);   // SUB
 
-            st2_adder_imm_en  <= st1_instr[6:2] == OPCODE_JALR[6:2]                 // JALR
-                            || st1_instr[6:2] == OPCODE_ALUI[6:2]                   // ADDI/SLTI/SLTIU/XORI/ORI/ANDI
-                            || st1_instr[6:2] == OPCODE_LOAD[6:2]                   // LB/LH/LW/LBU/LHU
-                            || st1_instr[6:2] == OPCODE_STORE[6:2];                 // SB/SH/SW
+            st2_adder_imm_en  <= st1_opcode[6:2] == OPCODE_JALR[6:2]                 // JALR
+                            || st1_opcode[6:2] == OPCODE_ALUI[6:2]                   // ADDI/SLTI/SLTIU/XORI/ORI/ANDI
+                            || st1_opcode[6:2] == OPCODE_LOAD[6:2]                   // LB/LH/LW/LBU/LHU
+                            || st1_opcode[6:2] == OPCODE_STORE[6:2];                 // SB/SH/SW
             st2_adder_imm_val <= st1_store                 ? rval_t'($signed(st1_imm_s))   :
                                  st1_funct3 == FUNCT3_SLTU ? rval_t'($unsigned(st1_imm_i)) :
                                                              rval_t'($signed(st1_imm_i))   ;
