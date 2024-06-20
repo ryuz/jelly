@@ -230,7 +230,7 @@ module jelly3_jfive_core
     size_t              id_mem_size             ;
     logic               id_mem_unsigned         ;
     logic               id_valid                ;
-    logic               id_ready                 ;
+    logic               id_ready                ;
     
     jelly3_jfive_instruction_decode
             #(
@@ -274,7 +274,7 @@ module jelly3_jfive_core
                 .s_pc                   (if_pc                  ),
                 .s_instr                (if_instr               ),
                 .s_valid                (if_valid               ),
-                .s_ready                 (if_ready                ),
+                .s_ready                (if_ready               ),
 
                 .m_id                   (id_id                  ),
                 .m_phase                (id_phase               ),
@@ -313,7 +313,7 @@ module jelly3_jfive_core
                 .m_mem_size             (id_mem_size            ),
                 .m_mem_unsigned         (id_mem_unsigned        ),
                 .m_valid                (id_valid               ),
-                .m_ready                 (id_ready                )
+                .m_ready                (id_ready               )
         );
 
 
@@ -344,8 +344,6 @@ module jelly3_jfive_core
                 .data_t                 (dbus_data_t            ),
                 .STRB_BITS              (DBUS_STRB_BITS         ),
                 .strb_t                 (dbus_strb_t            ),
-//              .ALIGN_BITS             (ALIGN_BITS             ),
-//              .align_t                (dbus_align_t           ),
                 .size_t                 (size_t                 ),
                 .EXES                   (EXES                   ),
                 .RAW_HAZARD             (RAW_HAZARD             ),
@@ -382,10 +380,10 @@ module jelly3_jfive_core
                 .dbus_cmd_strb          ,
                 .dbus_cmd_wdata         ,
                 .dbus_cmd_valid         ,
-                .dbus_cmd_ready          ,
+                .dbus_cmd_ready         ,
                 .dbus_res_rdata         ,
                 .dbus_res_valid         ,
-                .dbus_res_ready          ,
+                .dbus_res_ready         ,
 
                 .s_id                   (id_id                  ),
                 .s_phase                (id_phase               ),
@@ -424,9 +422,8 @@ module jelly3_jfive_core
                 .s_mem_size             (id_mem_size            ),
                 .s_mem_unsigned         (id_mem_unsigned        ),
                 .s_valid                (id_valid               ),
-                .s_ready           (id_ready          )
+                .s_ready                (id_ready               )
         );
-
 
 
 endmodule

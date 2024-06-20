@@ -227,7 +227,7 @@ module jelly3_jfive_load_store
     assign dbus_cmd_wdata = cmd0_wdata  ;
     assign dbus_cmd_valid = cmd0_valid  ;
 
-    assign s_ready = (dbus_cmd_ready && quein_ready); // || !s_valid;
+    assign s_ready = (dbus_cmd_ready && quein_ready);
 
 
     // ------------------------------------
@@ -240,12 +240,6 @@ module jelly3_jfive_load_store
     logic               res0_rd_en         ;
     ridx_t              res0_rd_idx        ;
     rval_t              res0_rd_val        ;
-//  rval_t              res0_addr          ;
-//  logic               res0_rd            ;
-//  logic               res0_wr            ;
-//  strb_t              res0_strb          ;
-//  rval_t              res0_wdata         ;
-//  logic               res0_valid         ;
 
     align_t             queout_align_b     ;
     align_t             queout_align_h     ;
@@ -269,12 +263,6 @@ module jelly3_jfive_load_store
             res0_rd_en   <= 1'b0 ;
             res0_rd_idx  <= 'x   ;
             res0_rd_val  <= 'x   ;
-//          res0_addr    <= 'x   ;
-//          res0_rd      <= 'x   ;
-//          res0_wr      <= 'x   ;
-//          res0_strb    <= 'x   ;
-//          res0_wdata   <= 'x   ;
-//          res0_valid   <= 'x   ;
         end
         else if ( cke ) begin
             if ( !m_valid || m_ready ) begin

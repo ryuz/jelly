@@ -72,10 +72,10 @@ module jelly3_jfive_execution
             output  var strb_t              dbus_cmd_strb       ,
             output  var data_t              dbus_cmd_wdata      ,
             output  var logic               dbus_cmd_valid      ,
-            input   var logic               dbus_cmd_ready       ,
+            input   var logic               dbus_cmd_ready      ,
             input   var data_t              dbus_res_rdata      ,
             input   var logic               dbus_res_valid      ,
-            output  var logic               dbus_res_ready       ,
+            output  var logic               dbus_res_ready      ,
 
             // output
             input   var id_t                s_id                ,
@@ -183,8 +183,7 @@ module jelly3_jfive_execution
                 .s_rs1_val      (s_rs1_val          ),
                 .s_rs2_val      (s_rs2_val          ),
                 
-                .m_eq           (st0_match_eq       ),
-                .m_ready        (s_ready            )
+                .m_eq           (st0_match_eq       )
         );
 
 
@@ -210,8 +209,7 @@ module jelly3_jfive_execution
                 .s_rs1_val      (s_rs1_val          ),
                 .s_rs2_val      (s_rs2_val          ),
 
-                .m_rd_val       (st0_logical_rd_val ),
-                .m_ready        (s_ready            )
+                .m_rd_val       (st0_logical_rd_val )
         );
 
     // strobe計算
@@ -277,50 +275,50 @@ module jelly3_jfive_execution
     logic               st0_mem_valid           ;
     logic               st0_valid_reg           ;
     logic               st0_valid               ;
-    logic               st0_ready          ;
+    logic               st0_ready               ;
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            st0_id                  <= 'x;
-            st0_phase               <= 'x;
-            st0_pc                  <= 'x;
-            st0_instr               <= 'x;
-            st0_rd_en               <= 'x;
-            st0_rd_idx              <= 'x;
-            st0_rd_val              <= 'x;
-            st0_rs1_en              <= 'x;
-            st0_rs1_idx             <= 'x;
-            st0_rs1_val             <= 'x;
-            st0_rs2_en              <= 'x;
-            st0_rs2_idx             <= 'x;
-            st0_rs2_val             <= 'x;
-            st0_offset              <= 'x;
-            st0_adder               <= 'x;
-            st0_slt                 <= 'x;
-            st0_logical             <= 'x;
-            st0_shifter             <= 'x;
-            st0_load                <= 1'b0;
-            st0_store               <= 1'b0;
-            st0_branch              <= 1'b0;
-            st0_adder_sub           <= 'x;
-            st0_adder_imm_en        <= 'x;
-            st0_adder_imm_val       <= 'x;
-            st0_slt_unsigned        <= 'x;
-            st0_logical_mode        <= 'x;
-            st0_logical_imm_en      <= 'x;
-            st0_logical_imm_val     <= 'x;
-            st0_shifter_arithmetic  <= 'x;
-            st0_shifter_left        <= 'x;
-            st0_shifter_imm_en      <= 'x;
-            st0_shifter_imm_val     <= 'x;
-            st0_branch_mode         <= 'x;
-            st0_branch_pc           <= 'x;
-            st0_mem_size            <= 'x;
-            st0_mem_unsigned        <= 'x;
-            st0_mem_strb            <= '0;
-            st0_mem_wdata           <= 'x;
-            st0_mem_valid           <= 1'b0;
-            st0_valid_reg           <= 1'b0;
+            st0_id                  <= 'x       ;
+            st0_phase               <= 'x       ;
+            st0_pc                  <= 'x       ;
+            st0_instr               <= 'x       ;
+            st0_rd_en               <= 'x       ;
+            st0_rd_idx              <= 'x       ;
+            st0_rd_val              <= 'x       ;
+            st0_rs1_en              <= 'x       ;
+            st0_rs1_idx             <= 'x       ;
+            st0_rs1_val             <= 'x       ;
+            st0_rs2_en              <= 'x       ;
+            st0_rs2_idx             <= 'x       ;
+            st0_rs2_val             <= 'x       ;
+            st0_offset              <= 'x       ;
+            st0_adder               <= 'x       ;
+            st0_slt                 <= 'x       ;
+            st0_logical             <= 'x       ;
+            st0_shifter             <= 'x       ;
+            st0_load                <= 1'b0     ;
+            st0_store               <= 1'b0     ;
+            st0_branch              <= 1'b0     ;
+            st0_adder_sub           <= 'x       ;
+            st0_adder_imm_en        <= 'x       ;
+            st0_adder_imm_val       <= 'x       ;
+            st0_slt_unsigned        <= 'x       ;
+            st0_logical_mode        <= 'x       ;
+            st0_logical_imm_en      <= 'x       ;
+            st0_logical_imm_val     <= 'x       ;
+            st0_shifter_arithmetic  <= 'x       ;
+            st0_shifter_left        <= 'x       ;
+            st0_shifter_imm_en      <= 'x       ;
+            st0_shifter_imm_val     <= 'x       ;
+            st0_branch_mode         <= 'x       ;
+            st0_branch_pc           <= 'x       ;
+            st0_mem_size            <= 'x       ;
+            st0_mem_unsigned        <= 'x       ;
+            st0_mem_strb            <= '0       ;
+            st0_mem_wdata           <= 'x       ;
+            st0_mem_valid           <= 1'b0     ;
+            st0_valid_reg           <= 1'b0     ;
         end
         else if ( cke && s_ready ) begin
             st0_id                  <= s_id                 ;
@@ -365,7 +363,8 @@ module jelly3_jfive_execution
             st0_valid_reg           <= s_valid                                      ;
         end
     end
-    assign st0_valid = st0_valid_reg && (st0_phase == phase_table[st0_id]);;
+
+    assign st0_valid = st0_valid_reg && (st0_phase == phase_table[st0_id]);
 //  logic       st0_phase_en    ;
 //  assign st0_phase_en = (st0_phase == phase_table[st0_id]);
 
@@ -583,11 +582,10 @@ module jelly3_jfive_execution
             st1_phase   <= st0_phase  ;
             st1_pc      <= st0_pc     ;
             st1_instr   <= st0_instr  ;
-            st1_rd_en   <= st0_rd_en && !st0_load && st0_valid; //  && s_ready;
+            st1_rd_en   <= st0_rd_en && !st0_load && st0_valid;
             st1_rd_idx  <= st0_rd_idx ;
             st1_rd_val  <= st0_adder   ? st0_adder_rd_val   :
                            st0_logical ? st0_logical_rd_val :
-//                         st0_slt     ? (st0_slt_unsigned ? (st0_adder_carry ? rval_t'(0) : rval_t'(1)) : ((st0_adder_carry ^ st0_adder_msb_c ^ st0_adder_sign) ? rval_t'(0) : rval_t'(1))) :
                            st0_rd_val ;
             st1_rs1_en  <= st0_rs1_en ;
             st1_rs1_idx <= st0_rs1_idx;

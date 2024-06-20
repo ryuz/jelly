@@ -312,7 +312,7 @@ module tb_main
     wire    ridx_t  exe_rd_idx2 = u_jfive_core.u_jfive_execution.exe_rd_idx[2];
     wire    ridx_t  exe_rd_idx3 = u_jfive_core.u_jfive_execution.exe_rd_idx[3];
     wire    ridx_t  exe_rd_idx4 = u_jfive_core.u_jfive_execution.exe_rd_idx[4];
-    wire    ridx_t  exe_rd_idx5 = u_jfive_core.u_jfive_execution.exe_rd_idx[5];
+//  wire    ridx_t  exe_rd_idx5 = u_jfive_core.u_jfive_execution.exe_rd_idx[5];
     
 
     wire    pc_t        exe_pc        = u_jfive_core.u_jfive_execution.st0_pc       ;
