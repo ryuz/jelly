@@ -1,41 +1,35 @@
 #!/usr/bin/env python
 
 import sys
-import io
 import re
 import pandas as pd
 
 def read_table(f):
-    header = next(f).rstrip()
-    separator = next(f).rstrip()
-    data = []
-    line = next(f).rstrip()
-    while line != "":
-        data.append(line)
-        line = next(f).rstrip()
+    # ヘッダ読み込み(2文字以上の空白で区切る)
+    headers = re.split(r'\s{2,}', next(f).strip())
+    if len(headers) == 0:
+        return None
 
-    # 区切り位置を検索
-    seps = [0]
-    for i in range(1, len(separator)):
-        if separator[i-1] == ' ' and separator[i] == '-':
-            seps.append(i)
-    n = len(seps)
+    # テーブル準備
+    tables = {}
+    for header in headers:
+        tables[header] = []
 
-    # データを区切る
-    headers = []
-    datas  = [[] for _ in range(len(data))]
-    for i in range(n):
-        if i < n- 1:
-            headers.append(header[seps[i]:seps[i+1]].strip())
-            for j in range(len(data)):
-                datas[j].append(data[j][seps[i]:seps[i+1]].strip())
-        else:
-            headers.append(header[seps[i]:].strip())
-            for j in range(len(data)):
-                datas[j].append(data[j][seps[i]:].strip())
+    # セパレータを読み飛ばす
+    separeters = re.split(r'\s{2,}', next(f).strip())
+    if len(separeters) != len(headers):
+        return None
+
+    # データ読み込み
+    datas = re.split(r'\s{2,}', next(f).strip())
+    while len(datas) == len(headers):
+        for i, header in enumerate(headers):
+            tables[header].append(datas[i])
+        datas = re.split(r'\s{2,}', next(f).strip())
 
     # データをDataFrameに変換
-    return pd.DataFrame(datas, columns=headers)
+    return pd.DataFrame(tables)
+
 
 def get_table(f, title):
     # タイトル行を検索
