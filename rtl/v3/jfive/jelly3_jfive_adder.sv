@@ -53,6 +53,7 @@ module jelly3_jfive_adder
         2'b00:      s_din1 =  s_rs2_val;
         2'b01:      s_din1 =  s_imm_val;
         2'b10:      s_din1 = ~s_rs2_val;
+        2'b11:      s_din1 = ~s_imm_val;
         default:    s_din1 = 'x;
         endcase
     end

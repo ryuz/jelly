@@ -150,7 +150,7 @@ module jelly3_jfive_execution
             (
                 .reset          ,
                 .clk            ,
-                .cke            ,
+                .cke            (cke & s_ready      ),
 
                 .s_sub          (s_adder_sub        ),
                 .s_imm_en       (s_adder_imm_en     ),
@@ -161,8 +161,7 @@ module jelly3_jfive_execution
                 .m_msb_c        (st0_adder_msb_c    ),
                 .m_carry        (st0_adder_carry    ),
                 .m_sign         (st0_adder_sign     ),
-                .m_rd_val       (st0_adder_rd_val   ),
-                .m_ready        (s_ready            )
+                .m_rd_val       (st0_adder_rd_val   )
             );
 
     // match
@@ -179,7 +178,7 @@ module jelly3_jfive_execution
         (
                 .reset          ,
                 .clk            ,
-                .cke            ,
+                .cke            (cke & s_ready      ),
 
                 .s_rs1_val      (s_rs1_val          ),
                 .s_rs2_val      (s_rs2_val          ),
@@ -203,7 +202,7 @@ module jelly3_jfive_execution
         (
                 .reset          ,
                 .clk            ,
-                .cke            ,
+                .cke            (cke & s_ready      ),
                 
                 .s_mode         (s_logical_mode     ),
                 .s_imm_en       (s_logical_imm_en   ),
@@ -215,7 +214,7 @@ module jelly3_jfive_execution
                 .m_ready        (s_ready            )
         );
 
-    // storobe 計算
+    // strobe計算
     function automatic strb_t make_strb(input size_t size, input align_t align);
         case ( size )
         2'b00:   return strb_t'('b0001) << (align & ~align_t'('b0000));
@@ -551,6 +550,8 @@ module jelly3_jfive_execution
     logic               st1_rs2_en      ;
     ridx_t              st1_rs2_idx     ;
     rval_t              st1_rs2_val     ;
+    logic               st1_slt         ;
+    logic               st1_slt_val     ;
     logic               st1_shifter     ;
     logic               st1_load        ;
     logic               st1_valid       ;
@@ -571,6 +572,8 @@ module jelly3_jfive_execution
             st1_rs2_en  <= 'x;
             st1_rs2_idx <= 'x;
             st1_rs2_val <= 'x;
+            st1_slt     <= 'x;
+            st1_slt_val <= 'x;
             st1_shifter <= 'x;
             st1_load    <= 'x;
             st1_valid   <= 1'b0;
@@ -584,7 +587,7 @@ module jelly3_jfive_execution
             st1_rd_idx  <= st0_rd_idx ;
             st1_rd_val  <= st0_adder   ? st0_adder_rd_val   :
                            st0_logical ? st0_logical_rd_val :
-                           st0_slt     ? (st0_slt_unsigned ? (st0_adder_carry ? rval_t'(0) : rval_t'(1)) : ((st0_adder_carry ^ st0_adder_msb_c ^ st0_adder_sign) ? rval_t'(0) : rval_t'(1))) :
+//                         st0_slt     ? (st0_slt_unsigned ? (st0_adder_carry ? rval_t'(0) : rval_t'(1)) : ((st0_adder_carry ^ st0_adder_msb_c ^ st0_adder_sign) ? rval_t'(0) : rval_t'(1))) :
                            st0_rd_val ;
             st1_rs1_en  <= st0_rs1_en ;
             st1_rs1_idx <= st0_rs1_idx;
@@ -592,6 +595,8 @@ module jelly3_jfive_execution
             st1_rs2_en  <= st0_rs2_en ;
             st1_rs2_idx <= st0_rs2_idx;
             st1_rs2_val <= st0_rs2_val;
+            st1_slt     <= st0_slt    ;
+            st1_slt_val <= st0_slt_unsigned ? ~st0_adder_carry : (st0_adder_carry ^ st0_adder_msb_c ^ st0_adder_sign);
             st1_shifter <= st0_shifter;
             st1_load    <= st0_load   ;
             st1_valid   <= st0_valid && st0_valid && s_ready;
@@ -650,7 +655,8 @@ module jelly3_jfive_execution
             st2_instr   <= st1_instr  ;
             st2_rd_en   <= st1_rd_en  ;
             st2_rd_idx  <= st1_rd_idx ;
-            st2_rd_val  <= st1_shifter ? st1_shifter_rd_val :
+            st2_rd_val  <= st1_slt     ? rval_t'(st1_slt_val) :
+                           st1_shifter ? st1_shifter_rd_val   :
                            st1_rd_val ;
             st2_rs1_en  <= st1_rs1_en ;
             st2_rs1_idx <= st1_rs1_idx;
