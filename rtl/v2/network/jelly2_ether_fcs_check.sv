@@ -12,28 +12,29 @@
 
 module jelly2_ether_fcs_check
         #(
+            parameter int          DATA_WIDTH   = 8,
             parameter bit          DEBUG        = 1'b0,
             parameter bit          SIMULATION   = 1'b0
         )
         (
-            input   var logic               reset               ,
-            input   var logic               clk                 ,
-            input   var logic               cke                 ,
+            input   var logic                       reset               ,
+            input   var logic                       clk                 ,
+            input   var logic                       cke                 ,
 
-            output  var logic               crc_ok              ,
-            output  var logic               crc_ng              ,
+            output  var logic                       crc_ok              ,
+            output  var logic                       crc_ng              ,
 
-            input   var logic               s_packet_crc_start  ,
-            input   var logic               s_packet_last       ,
-            input   var logic   [7:0]       s_packet_data       ,
-            input   var logic               s_packet_valid
+            input   var logic                       s_packet_crc_start  ,
+            input   var logic                       s_packet_last       ,
+            input   var logic   [DATA_WIDTH-1:0]    s_packet_data       ,
+            input   var logic                       s_packet_valid
         );
 
     logic   [3:0][7:0]      crc_value;
 
     jelly2_calc_crc
         #(
-            .DATA_WIDTH     (8),
+            .DATA_WIDTH     (DATA_WIDTH),
             .CRC_WIDTH      (32),
             .POLY_REPS      (32'h04c11db7),
             .REVERSED       (0)
