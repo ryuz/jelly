@@ -16,13 +16,13 @@ module bb_lut
     
     generate
     if (  N == 6 && (
-            256'(DEVICE) == 256'("SPARTAN6") ||
-            256'(DEVICE) == 256'("VIRTEX6") ||
-            256'(DEVICE) == 256'("7SERIES") ||
-            256'(DEVICE) == 256'("ULTRASCALE") ||
-            256'(DEVICE) == 256'("ULTRASCALE_PLUS") ||
-            256'(DEVICE) == 256'("ULTRASCALE_PLUS_ES1") ||
-            256'(DEVICE) == 256'("ULTRASCALE_PLUS_ES2")) ) begin
+            DEVICE == "SPARTAN6" ||
+            DEVICE == "VIRTEX6" ||
+            DEVICE == "7SERIES"  ||
+            DEVICE == "ULTRASCALE" ||
+            DEVICE == "ULTRASCALE_PLUS" ||
+            DEVICE == "ULTRASCALE_PLUS_ES1" ||
+            DEVICE == "ULTRASCALE_PLUS_ES2") ) begin
         LUT6
                 #(
                     .INIT	(INIT)

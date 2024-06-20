@@ -17,7 +17,6 @@
 #include "jelly/VideoDmaControl.h"
 
 
-
 static  volatile    bool    g_signal = false;
 void signal_handler(int signo) {
     g_signal = true;
@@ -29,6 +28,7 @@ int main(int argc, char *argv[])
     bool    binning     = false;
     int     width       = 3280;
     int     height      = 2464;
+    int     raw_bits    = 10;
     int     aoi_x       = 0;
     int     aoi_y       = 0;
     bool    flip_h      = false;
@@ -55,6 +55,22 @@ int main(int argc, char *argv[])
             exposure    = 1;
             a_gain      = 20;
             d_gain      = 10;
+            bayer_phase = 0;
+            view_scale  = 1;
+        }
+        else if ( strcmp(argv[i], "vga") == 0 ) {
+            pixel_clock = 139200000.0;
+            binning     = true;
+            width       = 640;
+            height      = 480;
+            aoi_x       = -1;
+            aoi_y       = -1;
+            flip_h      = false;
+            flip_v      = false;
+            frame_rate  = 312;
+            exposure    = 20;
+            a_gain      = 20;
+            d_gain      = 0;
             bayer_phase = 0;
             view_scale  = 1;
         }
@@ -110,6 +126,10 @@ int main(int argc, char *argv[])
         else if ( strcmp(argv[i], "-binning") == 0 && i+1 < argc) {
             ++i;
             binning = (strtol(argv[i], nullptr, 0) != 0);
+        }
+        else if ( strcmp(argv[i], "-raw_bits") == 0 && i+1 < argc) {
+            ++i;
+            raw_bits = strtol(argv[i], nullptr, 0);
         }
         else if ( strcmp(argv[i], "-width") == 0 && i+1 < argc) {
             ++i;
@@ -171,7 +191,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto reg_gid    = uio_acc.GetAccessor(0x00000000);
+    auto reg_sys    = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
 //  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
     auto reg_demos  = uio_acc.GetAccessor(0x00120000);
@@ -181,7 +201,7 @@ int main(int argc, char *argv[])
     
 #if 1
     std::cout << "CORE ID" << std::endl;
-    std::cout << std::hex << reg_gid.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_sys.ReadReg(0) << std::endl;
     std::cout << std::hex << uio_acc.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
@@ -203,9 +223,15 @@ int main(int argc, char *argv[])
 
     jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
 
+    if ( raw_bits == 8 ) {
+        reg_sys.WriteReg(3, 0x2a);
+    }
+    else {
+        reg_sys.WriteReg(3, 0x2b);
+    }
 
     // カメラON
-    uio_acc.WriteReg(2, 1);
+    reg_sys.WriteReg(2, 1);
     usleep(500000);
 
     // IMX219 I2C control
@@ -220,6 +246,7 @@ int main(int argc, char *argv[])
     std::cout << "Model ID : " << std::hex << std::setfill('0') << std::setw(4) << imx219.GetModelId() << std::endl;
 
     // camera 設定
+    imx219.SetRawBits(raw_bits);
     imx219.SetPixelClock(pixel_clock);
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
@@ -242,20 +269,36 @@ int main(int argc, char *argv[])
     usleep(100000);
 
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
-    cv::createTrackbar("scale",    "img", &view_scale, 4);
+    cv::createTrackbar("scale",    "img", nullptr, 4);
     cv::setTrackbarMin("scale",    "img", 1);
-    cv::createTrackbar("fps",      "img", &frame_rate, 1000);
+    cv::setTrackbarPos("scale",    "img", view_scale);
+    cv::createTrackbar("fps",      "img", nullptr, 1000);
     cv::setTrackbarMin("fps",      "img", 5);
-    cv::createTrackbar("exposure", "img", &exposure, 1000);
+    cv::setTrackbarPos("fps",      "img", frame_rate);
+    cv::createTrackbar("exposure", "img", nullptr, 1000);
     cv::setTrackbarMin("exposure", "img", 1);
-    cv::createTrackbar("a_gain",   "img", &a_gain, 20);
-    cv::createTrackbar("d_gain",   "img", &d_gain, 24);
-    cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
-    cv::createTrackbar("fmtsel",   "img", &fmtsel, 3);
+    cv::setTrackbarPos("exposure", "img", exposure);
+    cv::createTrackbar("a_gain",   "img", nullptr, 20);
+    cv::setTrackbarPos("a_gain",   "img", a_gain);
+    cv::createTrackbar("d_gain",   "img", nullptr, 24);
+    cv::setTrackbarPos("d_gain",   "img", d_gain);
+    cv::createTrackbar("bayer" ,   "img", nullptr, 3);
+    cv::setTrackbarPos("bayer",    "img", bayer_phase);
+    cv::createTrackbar("fmtsel",   "img", nullptr, 3);
+    cv::setTrackbarPos("fmtsel",   "img", fmtsel);
     
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
+
+        // トラックバー値取得
+        view_scale  = cv::getTrackbarPos("scale",    "img");
+        frame_rate  = cv::getTrackbarPos("fps",      "img");
+        exposure    = cv::getTrackbarPos("exposure", "img");
+        a_gain      = cv::getTrackbarPos("a_gain",   "img");
+        d_gain      = cv::getTrackbarPos("d_gain",   "img");
+        bayer_phase = cv::getTrackbarPos("bayer" ,   "img");
+        fmtsel      = cv::getTrackbarPos("fmtsel",   "img");
 
         // 設定
         imx219.SetFrameRate(frame_rate);
@@ -331,17 +374,23 @@ int main(int argc, char *argv[])
         case 'r': // image record
             std::cout << "record" << std::endl;
             vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
-            int offset = 0;
-            for ( int i = 0; i < rec_frame_num; i++ ) {
-                char fname[64];
-                sprintf(fname, "rec_%04d.png", i);
-                cv::Mat imgRec(height, width, CV_8UC4);
-                udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
-                offset += width * height * 4;
-                cv::Mat imgRgb;
-                cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
-                cv::imwrite(fname, imgRgb);
+            {
+                int offset = 0;
+                for ( int i = 0; i < rec_frame_num; i++ ) {
+                    char fname[64];
+                    sprintf(fname, "rec_%04d.png", i);
+                    cv::Mat imgRec(height, width, CV_8UC4);
+                    udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
+                    offset += width * height * 4;
+                    cv::Mat imgRgb;
+                    cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
+                    cv::imwrite(fname, imgRgb);
+                }
             }
+            break;
+        
+        case 'P':
+            imx219.PrintRegisters();
             break;
         }
     }
@@ -361,7 +410,6 @@ int main(int argc, char *argv[])
     
     return 0;
 }
-
 
 
 
