@@ -3,49 +3,52 @@
 `default_nettype none
 
 
-module jelly3_jfive_simple
+module jelly3_jfive_controller
         #(
-            parameter  int                     XLEN           = 32                                 ,
-            parameter  int                     THREADS        = 4                                  ,
-            parameter  int                     ID_BITS        = THREADS > 1 ? $clog2(THREADS) : 1  ,
-            parameter  type                    id_t           = logic         [ID_BITS-1:0]        ,
-            parameter  int                     PHASE_BITS     = 1                                  ,
-            parameter  type                    phase_t        = logic         [PHASE_BITS-1:0]     ,
-            parameter  int                     PC_BITS        = 32                                 ,
-            parameter  type                    pc_t           = logic         [PC_BITS-1:0]        ,
-            parameter  pc_t                    PC_MASK        = '0                                 ,
-            parameter  int                     INSTR_BITS     = 32                                 ,
-            parameter  type                    instr_t        = logic         [INSTR_BITS-1:0]     ,
-        //  parameter  int                     IBUS_ADDR_BITS = 10                                 ,
-        //  parameter  type                    ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ,
-        //  parameter  int                     IBUS_DATA_BITS = INSTR_BITS                         ,
-        //  parameter  type                    ibus_data_t    = logic         [IBUS_DATA_BITS-1:0] ,
-            parameter  int                     DBUS_ADDR_BITS = 10                                 ,
-            parameter  type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ,
-            parameter  int                     DBUS_DATA_BITS = XLEN                               ,
-            parameter  type                    dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ,
-            parameter  int                     DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ,
-            parameter  type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ,
-        //  parameter  type                    ridx_t         = logic         [4:0]                ,
-        //  parameter  type                    rval_t         = logic signed  [XLEN-1:0]           ,
-        //  parameter  type                    shamt_t        = logic         [$clog2(XLEN)-1:0]   ,
-        //  parameter  int                     EXES           = 4                                  ,
-        //  parameter  bit                     RAW_HAZARD     = 1'b1                               ,
-        //  parameter  bit                     WAW_HAZARD     = 1'b1                               ,
-            parameter  bit     [THREADS-1:0]   INIT_RUN       = 1                                  ,
-            parameter  id_t                    INIT_ID        = '0                                 ,
-            parameter  pc_t    [THREADS-1:0]   INIT_PC        = '0                                 ,
-            parameter                          DEVICE         = "ULTRASCALE_PLUS", //"RTL"         ,
-            parameter                          SIMULATION     = "false"                            ,
-            parameter                          DEBUG          = "false"                            
+            parameter  int                      XLEN           = 32                                 ,
+            parameter  int                      THREADS        = 4                                  ,
+            parameter  int                      ID_BITS        = THREADS > 1 ? $clog2(THREADS) : 1  ,
+            parameter  type                     id_t           = logic         [ID_BITS-1:0]        ,
+            parameter  int                      PHASE_BITS     = 1                                  ,
+            parameter  type                     phase_t        = logic         [PHASE_BITS-1:0]     ,
+            parameter  int                      PC_BITS        = 32                                 ,
+            parameter  type                     pc_t           = logic         [PC_BITS-1:0]        ,
+            parameter  pc_t                     PC_MASK        = '0                                 ,
+            parameter  int                      INSTR_BITS     = 32                                 ,
+            parameter  type                     instr_t        = logic         [INSTR_BITS-1:0]     ,
+        //  parameter  int                      IBUS_ADDR_BITS = 10                                 ,
+        //  parameter  type                     ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ,
+        //  parameter  int                      IBUS_DATA_BITS = INSTR_BITS                         ,
+        //  parameter  type                     ibus_data_t    = logic         [IBUS_DATA_BITS-1:0] ,
+            parameter  int                      DBUS_ADDR_BITS = 10                                 ,
+            parameter  type                     dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ,
+            parameter  int                      DBUS_DATA_BITS = XLEN                               ,
+            parameter  type                     dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ,
+            parameter  int                      DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ,
+            parameter  type                     dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ,
+        //  parameter  type                     ridx_t         = logic         [4:0]                ,
+        //  parameter  type                     rval_t         = logic signed  [XLEN-1:0]           ,
+        //  parameter  type                     shamt_t        = logic         [$clog2(XLEN)-1:0]   ,
+        //  parameter  int                      EXES           = 4                                  ,
+        //  parameter  bit                      RAW_HAZARD     = 1'b1                               ,
+        //  parameter  bit                      WAW_HAZARD     = 1'b1                               ,
+            parameter  bit                      READMEMB       = 1'b0                               ,
+            parameter  bit                      READMEMH       = 1'b0                               ,
+            parameter                           READMEM_FIlE   = ""                                 ,
+            parameter  bit     [THREADS-1:0]    INIT_RUN       = 1                                  ,
+            parameter  id_t                     INIT_ID        = '0                                 ,
+            parameter  pc_t    [THREADS-1:0]    INIT_PC        = '0                                 ,
+            parameter                           DEVICE         = "ULTRASCALE_PLUS", //"RTL"         ,
+            parameter                           SIMULATION     = "false"                            ,
+            parameter                           DEBUG          = "false"                            
         )
         (
             input   var logic           reset   ,
             input   var logic           clk     ,
+            input   var logic           cke     ,
             output  var logic   [31:0]  monitor
         );
 
-    logic               cke              = 1'b1;
     id_t                ibus_cmd_id     ;
     phase_t             ibus_cmd_phase  ;
     pc_t                ibus_cmd_pc     ;
@@ -108,6 +111,7 @@ module jelly3_jfive_simple
                 .reset              ,
                 .clk                ,
                 .cke                ,
+
                 .ibus_cmd_id        ,
                 .ibus_cmd_phase     ,
                 .ibus_cmd_pc        ,
@@ -118,13 +122,14 @@ module jelly3_jfive_simple
                 .ibus_res_pc        ,
                 .ibus_res_instr     ,
                 .ibus_res_valid     ,
-                .ibus_res_ready,
+                .ibus_res_ready     ,
+
                 .dbus_cmd_addr      ,
                 .dbus_cmd_wr        ,
                 .dbus_cmd_strb      ,
                 .dbus_cmd_wdata     ,
                 .dbus_cmd_valid     ,
-                .dbus_cmd_ready,
+                .dbus_cmd_ready     ,
                 .dbus_res_rdata     ,
                 .dbus_res_valid     ,
                 .dbus_res_ready      
