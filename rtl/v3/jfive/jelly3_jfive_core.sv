@@ -37,7 +37,7 @@ module jelly3_jfive_core
 //          parameter   type                    ridx_t         = logic         [4:0]                ,
 //          parameter   type                    rval_t         = logic signed  [XLEN-1:0]           ,
 //          parameter   type                    shamt_t        = logic         [$clog2(XLEN)-1:0]   ,
-//          parameter   int                     EXES           = 4                                  ,
+//          parameter   int                     BUSY_RDS           = 4                                  ,
 //          parameter   bit                     RAW_HAZARD     = 1'b1                               ,
 //          parameter   bit                     WAW_HAZARD     = 1'b1                               ,
 
@@ -168,7 +168,7 @@ module jelly3_jfive_core
     //  Instruction Decode
     // -----------------------------
 
-    localparam  int     EXES             = 3 + LOAD_QUES                    ;
+    localparam  int     BUSY_RDS            = 3 + LOAD_QUES                    ;
     localparam  bit     RAW_HAZARD       = 1'b1                             ;
     localparam  bit     WAW_HAZARD       = 1'b1                             ;
     localparam  type    ridx_t           = logic         [4:0]              ;
@@ -182,9 +182,9 @@ module jelly3_jfive_core
 
 
 
-    id_t    [EXES-1:0]  exe_id                  ;
-    logic   [EXES-1:0]  exe_rd_en               ;
-    ridx_t  [EXES-1:0]  exe_rd_idx              ;
+    id_t    [BUSY_RDS-1:0]  busy_id             ;
+    logic   [BUSY_RDS-1:0]  busy_rd_en          ;
+    ridx_t  [BUSY_RDS-1:0]  busy_rd_idx         ;
 
     id_t                wb_id                   ;
     pc_t                wb_pc                   ;
@@ -247,7 +247,7 @@ module jelly3_jfive_core
                 .ridx_t                 (ridx_t                 ),
                 .rval_t                 (rval_t                 ),
                 .shamt_t                (shamt_t                ),
-                .EXES                   (EXES                   ),
+                .BUSY_RDS               (BUSY_RDS               ),
                 .RAW_HAZARD             (RAW_HAZARD             ),
                 .WAW_HAZARD             (WAW_HAZARD             ),
                 .DEVICE                 (DEVICE                 ),
@@ -260,9 +260,9 @@ module jelly3_jfive_core
                 .clk                    ,
                 .cke                    ,
                 
-                .exe_id                 ,
-                .exe_rd_en              ,
-                .exe_rd_idx             ,
+                .busy_id                ,
+                .busy_rd_en             ,
+                .busy_rd_idx            ,
 
                 .wb_id                  ,
                 .wb_rd_en               ,
@@ -345,7 +345,7 @@ module jelly3_jfive_core
                 .STRB_BITS              (DBUS_STRB_BITS         ),
                 .strb_t                 (dbus_strb_t            ),
                 .size_t                 (size_t                 ),
-                .EXES                   (EXES                   ),
+                .BUSY_RDS               (BUSY_RDS               ),
                 .RAW_HAZARD             (RAW_HAZARD             ),
                 .WAW_HAZARD             (WAW_HAZARD             ),
                 .DEVICE                 (DEVICE                 ),
@@ -358,9 +358,9 @@ module jelly3_jfive_core
                 .clk                    ,
                 .cke                    ,
                 
-                .exe_id                 ,
-                .exe_rd_en              ,
-                .exe_rd_idx             ,
+                .busy_id                ,
+                .busy_rd_en             ,
+                .busy_rd_idx            ,
                 
                 .branch_id              ,
                 .branch_pc              ,

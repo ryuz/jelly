@@ -34,7 +34,7 @@ module jelly3_jfive_execution
             parameter   type    strb_t      = logic         [STRB_BITS-1:0]     ,
             parameter   type    size_t      = logic         [1:0]               ,
             parameter   int     LOAD_QUES   = 2                                 ,
-            parameter   int     EXES        = 3                                 ,
+            parameter   int     BUSY_RDS    = 3                                 ,
             parameter   bit     RAW_HAZARD  = 1'b1                              ,
             parameter   bit     WAW_HAZARD  = 1'b1                              ,
             parameter           DEVICE      = "RTL"                             ,
@@ -42,80 +42,80 @@ module jelly3_jfive_execution
             parameter           DEBUG       = "false"               
         )
         (
-            input   var logic               reset               ,
-            input   var logic               clk                 ,
-            input   var logic               cke                 ,
+            input   var logic                   reset               ,
+            input   var logic                   clk                 ,
+            input   var logic                   cke                 ,
 
             // executions
-            output  var id_t    [EXES-1:0]  exe_id              ,
-            output  var logic   [EXES-1:0]  exe_rd_en           ,
-            output  var ridx_t  [EXES-1:0]  exe_rd_idx          ,
+            output  var id_t    [BUSY_RDS-1:0]  busy_id             ,
+            output  var logic   [BUSY_RDS-1:0]  busy_rd_en          ,
+            output  var ridx_t  [BUSY_RDS-1:0]  busy_rd_idx         ,
 
             // branch
-            output  var id_t                branch_id           ,
-            output  var pc_t                branch_pc           ,
-            output  var pc_t                branch_old_pc       ,
-            output  var instr_t             branch_instr        ,
-            output  var logic               branch_valid        ,
+            output  var id_t                    branch_id           ,
+            output  var pc_t                    branch_pc           ,
+            output  var pc_t                    branch_old_pc       ,
+            output  var instr_t                 branch_instr        ,
+            output  var logic                   branch_valid        ,
 
             // write-back
-            output  var id_t                wb_id               ,
-            output  var pc_t                wb_pc               ,
-            output  var instr_t             wb_instr            ,
-            output  var logic               wb_rd_en            ,
-            output  var ridx_t              wb_rd_idx           ,
-            output  var rval_t              wb_rd_val           ,
+            output  var id_t                    wb_id               ,
+            output  var pc_t                    wb_pc               ,
+            output  var instr_t                 wb_instr            ,
+            output  var logic                   wb_rd_en            ,
+            output  var ridx_t                  wb_rd_idx           ,
+            output  var rval_t                  wb_rd_val           ,
 
             // data bus 
-            output  var addr_t              dbus_cmd_addr       ,
-            output  var logic               dbus_cmd_wr         ,
-            output  var strb_t              dbus_cmd_strb       ,
-            output  var data_t              dbus_cmd_wdata      ,
-            output  var logic               dbus_cmd_valid      ,
-            input   var logic               dbus_cmd_ready      ,
-            input   var data_t              dbus_res_rdata      ,
-            input   var logic               dbus_res_valid      ,
-            output  var logic               dbus_res_ready      ,
+            output  var addr_t                  dbus_cmd_addr       ,
+            output  var logic                   dbus_cmd_wr         ,
+            output  var strb_t                  dbus_cmd_strb       ,
+            output  var data_t                  dbus_cmd_wdata      ,
+            output  var logic                   dbus_cmd_valid      ,
+            input   var logic                   dbus_cmd_ready      ,
+            input   var data_t                  dbus_res_rdata      ,
+            input   var logic                   dbus_res_valid      ,
+            output  var logic                   dbus_res_ready      ,
 
             // output
-            input   var id_t                s_id                ,
-            input   var phase_t             s_phase             ,
-            input   var pc_t                s_pc                ,
-            input   var instr_t             s_instr             ,
-            input   var logic               s_rd_en             ,
-            input   var ridx_t              s_rd_idx            ,
-            input   var rval_t              s_rd_val            ,
-            input   var logic               s_rs1_en            ,
-            input   var ridx_t              s_rs1_idx           ,
-            input   var rval_t              s_rs1_val           ,
-            input   var logic               s_rs2_en            ,
-            input   var ridx_t              s_rs2_idx           ,
-            input   var rval_t              s_rs2_val           ,
-            input   var logic               s_offset            ,
-            input   var logic               s_adder             ,
-            input   var logic               s_slt               ,
-            input   var logic               s_logical           ,
-            input   var logic               s_shifter           ,
-            input   var logic               s_load              ,
-            input   var logic               s_store             ,
-            input   var logic               s_branch            ,
-            input   var logic               s_adder_sub         ,
-            input   var logic               s_adder_imm_en      ,
-            input   var rval_t              s_adder_imm_val     ,
-            input   var logic               s_slt_unsigned      ,
-            input   var logic   [1:0]       s_logical_mode      ,
-            input   var logic               s_logical_imm_en    ,
-            input   var rval_t              s_logical_imm_val   ,
-            input   var logic               s_shifter_arithmetic,
-            input   var logic               s_shifter_left      ,
-            input   var logic               s_shifter_imm_en    ,
-            input   var shamt_t             s_shifter_imm_val   ,
-            input   var logic   [2:0]       s_branch_mode       ,
-            input   var pc_t                s_branch_pc         ,
-            input   var size_t              s_mem_size          ,
-            input   var logic               s_mem_unsigned      ,
-            input   var logic               s_valid             ,
-            output  var logic               s_ready
+            input   var id_t                    s_id                ,
+            input   var phase_t                 s_phase             ,
+            input   var pc_t                    s_pc                ,
+            input   var instr_t                 s_instr             ,
+            input   var logic                   s_rd_en             ,
+            input   var ridx_t                  s_rd_idx            ,
+            input   var rval_t                  s_rd_val            ,
+            input   var logic                   s_rs1_en            ,
+            input   var ridx_t                  s_rs1_idx           ,
+            input   var rval_t                  s_rs1_val           ,
+            input   var logic                   s_rs2_en            ,
+            input   var ridx_t                  s_rs2_idx           ,
+            input   var rval_t                  s_rs2_val           ,
+            input   var logic                   s_offset            ,
+            input   var logic                   s_adder             ,
+            input   var logic                   s_slt               ,
+            input   var logic                   s_logical           ,
+            input   var logic                   s_shifter           ,
+            input   var logic                   s_load              ,
+            input   var logic                   s_store             ,
+            input   var logic                   s_branch            ,
+            input   var logic                   s_adder_sub         ,
+            input   var logic                   s_adder_imm_en      ,
+            input   var rval_t                  s_adder_imm_val     ,
+            input   var logic                   s_slt_unsigned      ,
+            input   var logic   [1:0]           s_logical_mode      ,
+            input   var logic                   s_logical_imm_en    ,
+            input   var rval_t                  s_logical_imm_val   ,
+            input   var logic                   s_shifter_arithmetic,
+            input   var logic                   s_shifter_left      ,
+            input   var logic                   s_shifter_imm_en    ,
+            input   var shamt_t                 s_shifter_imm_val   ,
+            input   var logic   [2:0]           s_branch_mode       ,
+            input   var pc_t                    s_branch_pc         ,
+            input   var size_t                  s_mem_size          ,
+            input   var logic                   s_mem_unsigned      ,
+            input   var logic                   s_valid             ,
+            output  var logic                   s_ready
         );
 
     localparam  int     ALIGN_BITS  = $clog2($bits(strb_t))             ;
@@ -669,9 +669,9 @@ module jelly3_jfive_execution
     end
 
 
-    assign exe_id     = {que_id    , st0_id,     st1_id,     st2_id    };
-    assign exe_rd_en  = {que_rd_en , st0_rd_en,  st1_rd_en,  st2_rd_en };
-    assign exe_rd_idx = {que_rd_idx, st0_rd_idx, st1_rd_idx, st2_rd_idx};
+    assign busy_id     = {que_id    , st0_id,     st1_id,     st2_id    };
+    assign busy_rd_en  = {que_rd_en , st0_rd_en,  st1_rd_en,  st2_rd_en };
+    assign busy_rd_idx = {que_rd_idx, st0_rd_idx, st1_rd_idx, st2_rd_idx};
 
 
     assign wb_id     = load_valid ? load_id     : st2_id     ;

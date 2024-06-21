@@ -32,7 +32,7 @@ module jelly3_jfive_instruction_decode
             parameter   int     ALIGN_BITS  = $clog2($bits(strb_t))             ,
             parameter   type    align_t     = logic         [ALIGN_BITS-1:0]    ,
             parameter   type    size_t      = logic         [1:0]               ,
-            parameter   int     EXES        = 4                                 ,
+            parameter   int     BUSY_RDS    = 4                                 ,
             parameter   bit     RAW_HAZARD  = 1'b1                              ,
             parameter   bit     WAW_HAZARD  = 1'b1                              ,
             parameter           DEVICE      = "RTL"                             ,
@@ -40,76 +40,76 @@ module jelly3_jfive_instruction_decode
             parameter           DEBUG       = "false"               
         )
         (
-            input   var logic               reset               ,
-            input   var logic               clk                 ,
-            input   var logic               cke                 ,
+            input   var logic                   reset               ,
+            input   var logic                   clk                 ,
+            input   var logic                   cke                 ,
 
             // executions
-            input   var id_t    [EXES-1:0]  exe_id              ,
-            input   var logic   [EXES-1:0]  exe_rd_en           ,
-            input   var ridx_t  [EXES-1:0]  exe_rd_idx          ,
+            input   var id_t    [BUSY_RDS-1:0]  busy_id             ,
+            input   var logic   [BUSY_RDS-1:0]  busy_rd_en          ,
+            input   var ridx_t  [BUSY_RDS-1:0]  busy_rd_idx         ,
 
             // writeback
-            input   var id_t                wb_id               ,
-            input   var logic               wb_rd_en            ,
-            input   var ridx_t              wb_rd_idx           ,
-            input   var rval_t              wb_rd_val           ,
+            input   var id_t                    wb_id               ,
+            input   var logic                   wb_rd_en            ,
+            input   var ridx_t                  wb_rd_idx           ,
+            input   var rval_t                  wb_rd_val           ,
 
             //  input
-            input   var id_t                s_id                ,
-            input   var phase_t             s_phase             ,
-            input   var pc_t                s_pc                ,
-            input   var instr_t             s_instr             ,
-            input   var logic               s_valid             ,
-            output  var logic               s_ready              ,
+            input   var id_t                    s_id                ,
+            input   var phase_t                 s_phase             ,
+            input   var pc_t                    s_pc                ,
+            input   var instr_t                 s_instr             ,
+            input   var logic                   s_valid             ,
+            output  var logic                   s_ready              ,
 
             // output
-            output  var id_t                m_id                ,
-            output  var phase_t             m_phase             ,
-            output  var pc_t                m_pc                ,
-            output  var instr_t             m_instr             ,
-            output  var logic               m_rd_en             ,
-            output  var ridx_t              m_rd_idx            ,
-            output  var rval_t              m_rd_val            ,
-            output  var logic               m_rs1_en            ,
-            output  var ridx_t              m_rs1_idx           ,
-            output  var rval_t              m_rs1_val           ,
-            output  var logic               m_rs2_en            ,
-            output  var ridx_t              m_rs2_idx           ,
-            output  var rval_t              m_rs2_val           ,
+            output  var id_t                    m_id                ,
+            output  var phase_t                 m_phase             ,
+            output  var pc_t                    m_pc                ,
+            output  var instr_t                 m_instr             ,
+            output  var logic                   m_rd_en             ,
+            output  var ridx_t                  m_rd_idx            ,
+            output  var rval_t                  m_rd_val            ,
+            output  var logic                   m_rs1_en            ,
+            output  var ridx_t                  m_rs1_idx           ,
+            output  var rval_t                  m_rs1_val           ,
+            output  var logic                   m_rs2_en            ,
+            output  var ridx_t                  m_rs2_idx           ,
+            output  var rval_t                  m_rs2_val           ,
 
-            output  var logic               m_offset            ,
-            output  var logic               m_adder             ,
-            output  var logic               m_slt               ,
-            output  var logic               m_logical           ,
-            output  var logic               m_shifter           ,
-            output  var logic               m_load              ,
-            output  var logic               m_store             ,
-            output  var logic               m_branch            ,
+            output  var logic                   m_offset            ,
+            output  var logic                   m_adder             ,
+            output  var logic                   m_slt               ,
+            output  var logic                   m_logical           ,
+            output  var logic                   m_shifter           ,
+            output  var logic                   m_load              ,
+            output  var logic                   m_store             ,
+            output  var logic                   m_branch            ,
 
-            output  var logic               m_adder_sub         ,
-            output  var logic               m_adder_imm_en      ,
-            output  var rval_t              m_adder_imm_val     ,
+            output  var logic                   m_adder_sub         ,
+            output  var logic                   m_adder_imm_en      ,
+            output  var rval_t                  m_adder_imm_val     ,
 
-            output  var logic               m_slt_unsigned      ,
+            output  var logic                   m_slt_unsigned      ,
 
-            output  var logic   [1:0]       m_logical_mode      ,
-            output  var logic               m_logical_imm_en    ,
-            output  var rval_t              m_logical_imm_val   ,
+            output  var logic   [1:0]           m_logical_mode      ,
+            output  var logic                   m_logical_imm_en    ,
+            output  var rval_t                  m_logical_imm_val   ,
 
-            output  var logic               m_shifter_arithmetic,
-            output  var logic               m_shifter_left      ,
-            output  var logic               m_shifter_imm_en    ,
-            output  var shamt_t             m_shifter_imm_val   ,
+            output  var logic                   m_shifter_arithmetic,
+            output  var logic                   m_shifter_left      ,
+            output  var logic                   m_shifter_imm_en    ,
+            output  var shamt_t                 m_shifter_imm_val   ,
 
-            output  var logic   [2:0]       m_branch_mode       ,
-            output  var pc_t                m_branch_pc         ,
+            output  var logic   [2:0]           m_branch_mode       ,
+            output  var pc_t                    m_branch_pc         ,
 
-            output  var size_t              m_mem_size          ,
-            output  var logic               m_mem_unsigned      ,
+            output  var size_t                  m_mem_size          ,
+            output  var logic                   m_mem_unsigned      ,
 
-            output  var logic               m_valid             ,
-            input   var logic               m_ready
+            output  var logic                   m_valid             ,
+            input   var logic                   m_ready             
         );
 
 
@@ -431,10 +431,10 @@ module jelly3_jfive_instruction_decode
     logic  sig1_pre_stall;
     always_comb begin
         sig1_pre_stall = 1'b0;
-        for ( int i = 0; i < EXES; i++ ) begin
-            if ( RAW_HAZARD && st0_rs1_en && exe_rd_en[i] && {st0_id, st0_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig1_pre_stall = 1'b1;
-            if ( RAW_HAZARD && st0_rs2_en && exe_rd_en[i] && {st0_id, st0_rs2_idx} == {exe_id[i], exe_rd_idx[i]} ) sig1_pre_stall = 1'b1;
-            if ( WAW_HAZARD && st0_rd_en  && exe_rd_en[i] && {st0_id, st0_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig1_pre_stall = 1'b1;
+        for ( int i = 0; i < BUSY_RDS; i++ ) begin
+            if ( RAW_HAZARD && st0_rs1_en && busy_rd_en[i] && {st0_id, st0_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
+            if ( RAW_HAZARD && st0_rs2_en && busy_rd_en[i] && {st0_id, st0_rs2_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
+            if ( WAW_HAZARD && st0_rd_en  && busy_rd_en[i] && {st0_id, st0_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
         end
         if ( RAW_HAZARD && st0_rs1_en && st1_rd_en && {st0_id, st0_rs1_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
         if ( RAW_HAZARD && st0_rs2_en && st1_rd_en && {st0_id, st0_rs2_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
@@ -543,10 +543,10 @@ module jelly3_jfive_instruction_decode
     logic  sig2_stall;
     always_comb begin
         sig2_stall = 1'b0;
-        for ( int i = 0; i < EXES; i++ ) begin
-            if ( RAW_HAZARD && st2_rs1_en && exe_rd_en[i] && {st2_id, st2_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
-            if ( RAW_HAZARD && st2_rs2_en && exe_rd_en[i] && {st2_id, st2_rs2_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
-            if ( WAW_HAZARD && st2_rd_en  && exe_rd_en[i] && {st2_id, st2_rs1_idx} == {exe_id[i], exe_rd_idx[i]} ) sig2_stall = 1'b1;
+        for ( int i = 0; i < BUSY_RDS; i++ ) begin
+            if ( RAW_HAZARD && st2_rs1_en && busy_rd_en[i] && {st2_id, st2_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( RAW_HAZARD && st2_rs2_en && busy_rd_en[i] && {st2_id, st2_rs2_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( WAW_HAZARD && st2_rd_en  && busy_rd_en[i] && {st2_id, st2_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
         end
     end
 

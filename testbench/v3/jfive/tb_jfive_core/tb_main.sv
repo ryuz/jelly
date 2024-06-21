@@ -44,7 +44,7 @@ module tb_main
     localparam                          DEVICE      = "RTL"                                 ;
     localparam                          SIMULATION  = "false"                               ;
     localparam                          DEBUG       = "false"                               ;
-
+    
     logic               cke              = 1'b1;
     id_t                ibus_cmd_id         ;
     phase_t             ibus_cmd_phase      ;
@@ -56,62 +56,58 @@ module tb_main
     pc_t                ibus_res_pc         ;
     instr_t             ibus_res_instr      ;
     logic               ibus_res_valid      ;
-    logic               ibus_res_ready ;
+    logic               ibus_res_ready      ;
     dbus_addr_t         dbus_cmd_addr       ;
     logic               dbus_cmd_wr         ;
     dbus_strb_t         dbus_cmd_strb       ;
     dbus_data_t         dbus_cmd_wdata      ;
     logic               dbus_cmd_valid      ;
-    logic               dbus_cmd_ready ;
+    logic               dbus_cmd_ready      ;
     dbus_data_t         dbus_res_rdata      ;
     logic               dbus_res_valid      ;
-    logic               dbus_res_ready ;
+    logic               dbus_res_ready      ;
 
-    jelly3_jfive_controller
+    jelly3_jfive_core
         #(
-                .XLEN               (XLEN               ),
-                .THREADS            (THREADS            ),
-                .ID_BITS            (ID_BITS            ),
-                .id_t               (id_t               ),
-                .PHASE_BITS         (PHASE_BITS         ),
-                .phase_t            (phase_t            ),
-                .PC_BITS            (PC_BITS            ),
-                .pc_t               (pc_t               ),
-                .PC_MASK            (PC_MASK            ),
-                .INSTR_BITS         (INSTR_BITS         ),
-                .instr_t            (instr_t            ),
-        //      .IBUS_ADDR_BITS     (IBUS_ADDR_BITS     ),
-        //      .ibus_addr_t        (ibus_addr_t        ),
-        //      .IBUS_DATA_BITS     (IBUS_DATA_BITS     ),
-        //      .ibus_data_t        (ibus_data_t        ),
-                .DBUS_ADDR_BITS     (DBUS_ADDR_BITS     ),
-                .dbus_addr_t        (dbus_addr_t        ),
-                .DBUS_DATA_BITS     (DBUS_DATA_BITS     ),
-                .dbus_data_t        (dbus_data_t        ),
-                .DBUS_STRB_BITS     (DBUS_STRB_BITS     ),
-                .dbus_strb_t        (dbus_strb_t        ),
-        //      .ridx_t             (ridx_t             ),
-        //      .rval_t             (rval_t             ),
-        //      .shamt_t            (shamt_t            ),
-        //      .EXES               (EXES               ),
-        //      .RAW_HAZARD         (RAW_HAZARD         ),
-        //      .WAW_HAZARD         (WAW_HAZARD         ),
-                .READMEMB           (0                  ),
-                .READMEMH           (1                  ),
-                .READMEM_FIlE       ("../mem.hex"       ),
-                .INIT_RUN           (INIT_RUN           ),
-                .INIT_ID            (INIT_ID            ),
-                .INIT_PC            (INIT_PC            ),
-                .DEVICE             (DEVICE             ),
-                .SIMULATION         (SIMULATION         ),
-                .DEBUG              (DEBUG              )
+                .XLEN               (XLEN           ),
+                .THREADS            (THREADS        ),
+                .ID_BITS            (ID_BITS        ),
+                .id_t               (id_t           ),
+                .PHASE_BITS         (PHASE_BITS     ),
+                .phase_t            (phase_t        ),
+                .PC_BITS            (PC_BITS        ),
+                .pc_t               (pc_t           ),
+                .PC_MASK            (PC_MASK        ),
+                .INSTR_BITS         (INSTR_BITS     ),
+                .instr_t            (instr_t        ),
+    //          .IBUS_ADDR_BITS     (IBUS_ADDR_BITS ),
+    //          .ibus_addr_t        (ibus_addr_t    ),
+    //          .IBUS_DATA_BITS     (IBUS_DATA_BITS ),
+    //          .ibus_data_t        (ibus_data_t    ),
+                .DBUS_ADDR_BITS     (DBUS_ADDR_BITS ),
+                .dbus_addr_t        (dbus_addr_t    ),
+                .DBUS_DATA_BITS     (DBUS_DATA_BITS ),
+                .dbus_data_t        (dbus_data_t    ),
+                .DBUS_STRB_BITS     (DBUS_STRB_BITS ),
+                .dbus_strb_t        (dbus_strb_t    ),
+    //          .ridx_t             (ridx_t         ),
+    //          .rval_t             (rval_t         ),
+    //          .shamt_t            (shamt_t        ),
+    //          .EXES               (EXES           ),
+    //          .RAW_HAZARD         (RAW_HAZARD     ),
+    //          .WAW_HAZARD         (WAW_HAZARD     ),
+                .INIT_RUN           (INIT_RUN       ),
+                .INIT_ID            (INIT_ID        ),
+                .INIT_PC            (INIT_PC        ),
+                .DEVICE             (DEVICE         ),
+                .SIMULATION         (SIMULATION     ),
+                .DEBUG              (DEBUG          )
             )
-        u_jfive_controller
+        u_jfive_core
             (
                 .reset              ,
                 .clk                ,
-                .cke                (1'b1)
-                /*
+                .cke                ,
                 .ibus_cmd_id        ,
                 .ibus_cmd_phase     ,
                 .ibus_cmd_pc        ,
@@ -132,10 +128,9 @@ module tb_main
                 .dbus_res_rdata     ,
                 .dbus_res_valid     ,
                 .dbus_res_ready      
-                */
             );
 
-    /*
+
     localparam int  MEM_ADDR_BITS  = 14;
     localparam type mem_addr_t     = logic  [MEM_ADDR_BITS-1:0] ;
     localparam int  MEM_DATA_BITS  = 32;
@@ -312,27 +307,24 @@ module tb_main
     wire    mnemonic_t   wb_mnemonic     = mnemonic_t'(instr2mnemonic(u_jfive_core.wb_instr));
 
     
-    wire    ridx_t  exe_rd_idx0 = u_jfive_core.u_jfive_execution.exe_rd_idx[0];
-    wire    ridx_t  exe_rd_idx1 = u_jfive_core.u_jfive_execution.exe_rd_idx[1];
-    wire    ridx_t  exe_rd_idx2 = u_jfive_core.u_jfive_execution.exe_rd_idx[2];
-    wire    ridx_t  exe_rd_idx3 = u_jfive_core.u_jfive_execution.exe_rd_idx[3];
-    wire    ridx_t  exe_rd_idx4 = u_jfive_core.u_jfive_execution.exe_rd_idx[4];
-//  wire    ridx_t  exe_rd_idx5 = u_jfive_core.u_jfive_execution.exe_rd_idx[5];
+    wire    ridx_t  busy_rd_idx0 = u_jfive_core.u_jfive_execution.busy_rd_idx[0];
+    wire    ridx_t  busy_rd_idx1 = u_jfive_core.u_jfive_execution.busy_rd_idx[1];
+    wire    ridx_t  busy_rd_idx2 = u_jfive_core.u_jfive_execution.busy_rd_idx[2];
+    wire    ridx_t  busy_rd_idx3 = u_jfive_core.u_jfive_execution.busy_rd_idx[3];
+    wire    ridx_t  busy_rd_idx4 = u_jfive_core.u_jfive_execution.busy_rd_idx[4];
+//  wire    ridx_t  busy_rd_idx5 = u_jfive_core.u_jfive_execution.busy_rd_idx[5];
     
 
-    */
-    localparam  type    mnemonic_t = logic [64*8-1:0];
-
-    wire    pc_t        exe_pc        = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_pc       ;
-    wire    instr_t     exe_instr     = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_instr    ;
-    wire    logic       exe_rs1_en    = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_rs1_en   ;
-    wire    ridx_t      exe_rs1_idx   = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_rs1_idx  ;
-    wire    rval_t      exe_rs1_val   = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_rs1_val  ;
-    wire    logic       exe_rs2_en    = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_rs2_en   ;
-    wire    ridx_t      exe_rs2_idx   = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_rs2_idx  ;
-    wire    rval_t      exe_rs2_val   = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_rs2_val  ;
-    wire    logic       exe_valid     = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_valid    ;
-    wire    logic       exe_ready     = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_ready    ;
+    wire    pc_t        exe_pc        = u_jfive_core.u_jfive_execution.st0_pc       ;
+    wire    instr_t     exe_instr     = u_jfive_core.u_jfive_execution.st0_instr    ;
+    wire    logic       exe_rs1_en    = u_jfive_core.u_jfive_execution.st0_rs1_en   ;
+    wire    ridx_t      exe_rs1_idx   = u_jfive_core.u_jfive_execution.st0_rs1_idx  ;
+    wire    rval_t      exe_rs1_val   = u_jfive_core.u_jfive_execution.st0_rs1_val  ;
+    wire    logic       exe_rs2_en    = u_jfive_core.u_jfive_execution.st0_rs2_en   ;
+    wire    ridx_t      exe_rs2_idx   = u_jfive_core.u_jfive_execution.st0_rs2_idx  ;
+    wire    rval_t      exe_rs2_val   = u_jfive_core.u_jfive_execution.st0_rs2_val  ;
+    wire    logic       exe_valid     = u_jfive_core.u_jfive_execution.st0_valid    ;
+    wire    logic       exe_ready     = u_jfive_core.u_jfive_execution.st0_ready    ;
     wire    mnemonic_t  exe_mnemonic  = mnemonic_t'(instr2mnemonic(exe_instr));
 
     int exe_counter = 0;
@@ -369,10 +361,41 @@ module tb_main
                     );
                 exe_counter <= exe_counter + 1;
             end
+
+            /*
+            if ( u_jfive_core.u_jfive_execution.st1_valid && u_jfive_core.u_jfive_execution.alu_ready ) begin
+                automatic   logic   rs1_en ;
+                automatic   ridx_t  rs1_idx;
+                automatic   rval_t  rs1_val;
+                automatic   logic   rs2_en ;
+                automatic   ridx_t  rs2_idx;
+                automatic   rval_t  rs2_val;
+                rs1_en  = u_jfive_core.u_jfive_execution.st1_rs1_en ;
+                rs1_idx = u_jfive_core.u_jfive_execution.st1_rs1_idx;
+                rs1_val = u_jfive_core.u_jfive_execution.st1_rs1_val;
+                rs2_en  = u_jfive_core.u_jfive_execution.st1_rs2_en ;
+                rs2_idx = u_jfive_core.u_jfive_execution.st1_rs2_idx;
+                rs2_val = u_jfive_core.u_jfive_execution.st1_rs2_val;
+                if ( !rs1_en ) rs1_idx = 0;
+                if ( !rs2_en ) rs2_idx = 0;
+                if ( rs1_idx == 0 ) rs1_val = '0;
+                if ( rs2_idx == 0 ) rs2_val = '0;
+
+                $fwrite(fp_exe_log, "pc:%08x instr:%08x rs1(%2d):%08x rs2(%2d):%08x %s\n",
+                    u_jfive_core.u_jfive_execution.st1_pc,
+                    u_jfive_core.u_jfive_execution.st1_instr,
+                    rs1_idx,
+                    rs1_val,
+                    rs2_idx,
+                    rs2_val,
+                    string'(ex1_mnemonic)
+                    );
+                exe_counter <= exe_counter + 1;
+            end
+                */
         end
     end
 
-    /*
     int fp_dbus_log;
     initial fp_dbus_log = $fopen("dbus_log.txt", "w");
     always_ff @(posedge clk) begin
@@ -429,7 +452,6 @@ module tb_main
             end
         end
     end
-    */
 
 endmodule
 
