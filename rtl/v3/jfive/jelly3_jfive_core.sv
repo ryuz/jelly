@@ -36,8 +36,9 @@ module jelly3_jfive_core
             parameter   type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ,
 //          parameter   type                    ridx_t         = logic         [4:0]                ,
 //          parameter   type                    rval_t         = logic signed  [XLEN-1:0]           ,
-//          parameter   type                    shamt_t        = logic         [$clog2(XLEN)-1:0]   ,
-//          parameter   int                     BUSY_RDS           = 4                                  ,
+//          parameter   int                     SHAMT_BITS     = $clog2(XLEN)                       ,
+//          parameter   type                    shamt_tt       = logic         [SHAMT_BITS-1:0] ,
+//          parameter   int                     BUSY_RDS           = 4                              ,
 //          parameter   bit                     RAW_HAZARD     = 1'b1                               ,
 //          parameter   bit                     WAW_HAZARD     = 1'b1                               ,
 
@@ -168,18 +169,15 @@ module jelly3_jfive_core
     //  Instruction Decode
     // -----------------------------
 
-    localparam  int     BUSY_RDS            = 3 + LOAD_QUES                    ;
+    localparam  int     BUSY_RDS         = 3 + LOAD_QUES                    ;
     localparam  bit     RAW_HAZARD       = 1'b1                             ;
     localparam  bit     WAW_HAZARD       = 1'b1                             ;
-    localparam  type    ridx_t           = logic         [4:0]              ;
-    localparam  type    rval_t           = logic signed  [XLEN-1:0]         ;
+    localparam  type    ridx_t           = logic        [4:0]               ;
+    localparam  type    rval_t           = logic signed [XLEN-1:0]          ;
     localparam  int     SHAMT_BITS       = $clog2(XLEN)                     ;
-//  localparam  type    shamt_t          = logic         [SHAMT_BITS-1:0]   ;
-    localparam  type    shamt_t          = logic         [4:0]              ;
-//  localparam  int     ALIGN_BITS       = $clog2($bits(dbus_strb_t))       ;
-//  localparam  type    align_t          = logic        [ALIGN_BITS-1:0]    ;
+//  localparam  type    shamt_t          = logic        [SHAMT_BITS-1:0]    ;   // 何故か verilator がエラーになる
+    localparam  type    shamt_t          = logic        [4:0]               ;
     localparam  type    size_t           = logic        [1:0]               ;
-
 
 
     id_t    [BUSY_RDS-1:0]  busy_id             ;

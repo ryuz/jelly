@@ -110,7 +110,8 @@ module tb_main
             (
                 .reset              ,
                 .clk                ,
-                .cke                (1'b1)
+                .cke                (1'b1),
+                .monitor            ()
                 /*
                 .ibus_cmd_id        ,
                 .ibus_cmd_phase     ,

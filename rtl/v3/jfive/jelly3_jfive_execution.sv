@@ -238,6 +238,7 @@ module jelly3_jfive_execution
     pc_t                st0_pc                  ;
     instr_t             st0_instr               ;
     logic               st0_rd_en               ;
+    logic               st0_rd_en_reg           ;
     ridx_t              st0_rd_idx              ;
     rval_t              st0_rd_val              ;
     logic               st0_rs1_en              ;
@@ -253,8 +254,12 @@ module jelly3_jfive_execution
     logic               st0_logical             ;
     logic               st0_shifter             ;
     logic               st0_load                ;
+    logic               st0_load_reg            ;
     logic               st0_store               ;
+    logic               st0_store_reg           ;
     logic               st0_branch              ;
+    logic               st0_branch_reg          ;
+    logic               st0_branch_valid        ;
     logic               st0_adder_sub           ;
     logic               st0_adder_imm_en        ;
     rval_t              st0_adder_imm_val       ;
@@ -273,6 +278,7 @@ module jelly3_jfive_execution
     strb_t              st0_mem_strb            ;
     rval_t              st0_mem_wdata           ;
     logic               st0_mem_valid           ;
+    logic               st0_mem_valid_reg       ;
     logic               st0_valid_reg           ;
     logic               st0_valid               ;
     logic               st0_ready               ;
@@ -283,7 +289,7 @@ module jelly3_jfive_execution
             st0_phase               <= 'x       ;
             st0_pc                  <= 'x       ;
             st0_instr               <= 'x       ;
-            st0_rd_en               <= 'x       ;
+            st0_rd_en_reg           <=1'b0      ;
             st0_rd_idx              <= 'x       ;
             st0_rd_val              <= 'x       ;
             st0_rs1_en              <= 'x       ;
@@ -297,9 +303,9 @@ module jelly3_jfive_execution
             st0_slt                 <= 'x       ;
             st0_logical             <= 'x       ;
             st0_shifter             <= 'x       ;
-            st0_load                <= 1'b0     ;
-            st0_store               <= 1'b0     ;
-            st0_branch              <= 1'b0     ;
+            st0_load_reg            <= 1'b0     ;
+            st0_store_reg           <= 1'b0     ;
+            st0_branch_reg          <= 1'b0     ;
             st0_adder_sub           <= 'x       ;
             st0_adder_imm_en        <= 'x       ;
             st0_adder_imm_val       <= 'x       ;
@@ -317,7 +323,7 @@ module jelly3_jfive_execution
             st0_mem_unsigned        <= 'x       ;
             st0_mem_strb            <= '0       ;
             st0_mem_wdata           <= 'x       ;
-            st0_mem_valid           <= 1'b0     ;
+            st0_mem_valid_reg       <= 1'b0     ;
             st0_valid_reg           <= 1'b0     ;
         end
         else if ( cke && s_ready ) begin
@@ -325,7 +331,7 @@ module jelly3_jfive_execution
             st0_phase               <= s_phase              ;
             st0_pc                  <= s_pc                 ;
             st0_instr               <= s_instr              ;
-            st0_rd_en               <= s_rd_en   & s_valid  ;
+            st0_rd_en_reg           <= s_rd_en   & s_valid  ;
             st0_rd_idx              <= s_rd_idx             ;
             st0_rd_val              <= s_rd_val             ;
             st0_rs1_en              <= s_rs1_en             ;
@@ -339,9 +345,9 @@ module jelly3_jfive_execution
             st0_slt                 <= s_slt                ;
             st0_logical             <= s_logical            ;
             st0_shifter             <= s_shifter            ;
-            st0_load                <= s_load    & s_valid  ;
-            st0_store               <= s_store   & s_valid  ;
-            st0_branch              <= s_branch  & s_valid  ;
+            st0_load_reg            <= s_load    & s_valid  ;
+            st0_store_reg           <= s_store   & s_valid  ;
+            st0_branch_reg          <= s_branch  & s_valid  ;
             st0_adder_sub           <= s_adder_sub          ;
             st0_adder_imm_en        <= s_adder_imm_en       ;
             st0_adder_imm_val       <= s_adder_imm_val      ;
@@ -359,14 +365,21 @@ module jelly3_jfive_execution
             st0_mem_unsigned        <= s_mem_unsigned       ;
             st0_mem_strb            <= s_store ? make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val)) : '0;
             st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)            ;
-            st0_mem_valid           <= (s_load || s_store) && s_valid               ;
+            st0_mem_valid_reg       <= (s_load || s_store) && s_valid               ;
             st0_valid_reg           <= s_valid                                      ;
         end
     end
 
-    assign st0_valid = st0_valid_reg && (st0_phase == phase_table[st0_id]);
-//  logic       st0_phase_en    ;
-//  assign st0_phase_en = (st0_phase == phase_table[st0_id]);
+    logic       st0_phase_en    ;
+    assign st0_phase_en  = (st0_phase == phase_table[st0_id]);
+
+    assign st0_rd_en        = st0_rd_en_reg     && st0_phase_en;
+    assign st0_load         = st0_load_reg      && st0_phase_en;
+    assign st0_store        = st0_store_reg     && st0_phase_en;
+    assign st0_branch       = st0_branch_reg    && st0_phase_en;
+    assign st0_mem_valid    = st0_mem_valid_reg && st0_phase_en;
+    assign st0_valid        = st0_valid_reg     && st0_phase_en;
+    assign st0_branch_valid = st0_branch  &&  st0_valid  && st0_ready;
 
     assign s_ready = !st0_valid || st0_ready;
 
@@ -444,7 +457,7 @@ module jelly3_jfive_execution
                 .s_eq            (st0_match_eq              ),
                 .s_jalr_pc       (st0_adder_rd_val          ),
                 .s_imm_pc        (st0_branch_pc             ),
-                .s_valid         (st0_branch & st0_valid & st0_ready   )
+                .s_valid         (st0_branch_valid          )
             );
 
     // load/store
