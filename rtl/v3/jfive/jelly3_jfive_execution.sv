@@ -373,7 +373,7 @@ module jelly3_jfive_execution
     logic       st0_phase_en    ;
     assign st0_phase_en  = (st0_phase == phase_table[st0_id]);
 
-    assign st0_rd_en        = st0_rd_en_reg     && st0_phase_en;
+    assign st0_rd_en        = st0_rd_en_reg     && st0_phase_en && st0_valid;
     assign st0_load         = st0_load_reg      && st0_phase_en;
     assign st0_store        = st0_store_reg     && st0_phase_en;
     assign st0_branch       = st0_branch_reg    && st0_phase_en;

@@ -149,7 +149,7 @@ module jelly3_jfive_core
     pc_t    if_pc       ;
     instr_t if_instr    ;
     logic   if_valid    ;
-    logic   if_ready     ;
+    logic   if_ready    ;
 
     assign ibus_cmd_id    = pc_id   ;
     assign ibus_cmd_phase = pc_phase;

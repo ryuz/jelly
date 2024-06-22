@@ -33,6 +33,8 @@ module jelly3_jfive_load_store
             parameter   int     ALIGN_BITS  = $clog2($bits(strb_t))             ,
             parameter   type    align_t     = logic         [ALIGN_BITS-1:0]    ,
             parameter   type    size_t      = logic         [1:0]               ,
+            parameter   rval_t  ADDR_LOW    = '0                                ,
+            parameter   rval_t  ADDR_HIGH   = '1                                ,
             parameter   bit     RAW_HAZARD  = 1'b1                              ,
             parameter   bit     WAW_HAZARD  = 1'b1                              ,
             parameter           DEVICE      = "RTL"                             ,
@@ -50,11 +52,11 @@ module jelly3_jfive_load_store
             output  var strb_t                  dbus_cmd_strb       ,
             output  var data_t                  dbus_cmd_wdata      ,
             output  var logic                   dbus_cmd_valid      ,
-            input   var logic                   dbus_cmd_ready ,
+            input   var logic                   dbus_cmd_ready      ,
 
             input   var data_t                  dbus_res_rdata      ,
             input   var logic                   dbus_res_valid      ,
-            output  var logic                   dbus_res_ready ,
+            output  var logic                   dbus_res_ready      ,
 
             // execution
             output  var id_t    [LOAD_QUES-1:0] que_id              ,
@@ -76,7 +78,7 @@ module jelly3_jfive_load_store
             input   var strb_t                  s_strb              ,
             input   var rval_t                  s_wdata             ,
             input   var logic                   s_valid             ,
-            output  var logic                   s_ready        ,
+            output  var logic                   s_ready             ,
 
             // output   
             output  var id_t                    m_id                ,
@@ -89,9 +91,26 @@ module jelly3_jfive_load_store
             input   var logic                   m_ready        
         );
 
+    // ------------------------------------
+    //  parameter
+    // ------------------------------------
     localparam   align_t  align_mask_b = ~align_t'('b000);
     localparam   align_t  align_mask_h = ~align_t'('b001);
     localparam   align_t  align_mask_w = ~align_t'('b011);
+
+
+    // ------------------------------------
+    //  input
+    // ------------------------------------
+
+    /* verilator lint_off UNSIGNED */
+    /* verilator lint_off CMPCONST */
+    logic       s_addr_en;
+    assign s_addr_en = s_valid 
+                    && $unsigned(s_addr) >= $unsigned(ADDR_LOW)
+                    && $unsigned(s_addr) <= $unsigned(ADDR_HIGH);
+    /* verilator lint_on UNSIGNED */
+    /* verilator lint_on CMPCONST */
 
 
     // ------------------------------------
@@ -106,7 +125,7 @@ module jelly3_jfive_load_store
     size_t      quein_size          ;
     logic       quein_unsigned      ;
     logic       quein_valid         ;
-    logic       quein_ready    ;
+    logic       quein_ready         ;
 
     id_t        queout_id           ;
     pc_t        queout_pc           ;
@@ -116,7 +135,7 @@ module jelly3_jfive_load_store
     size_t      queout_size         ;
     logic       queout_unsigned     ;
     logic       queout_valid        ;
-    logic       queout_ready   ;
+    logic       queout_ready        ;
 
     jelly3_jfive_load_queue
             #(
@@ -138,47 +157,48 @@ module jelly3_jfive_load_store
                 .clk             ,
                 .cke             ,
 
-                .que_id          (que_id            ),
-                .que_pc          (                  ),
-                .que_instr       (                  ),
-                .que_rd_en       (que_rd_en         ),
-                .que_rd_idx      (que_rd_idx        ),
-                .que_align       (                  ),
-                .que_size        (                  ),
-                .que_unsigned    (                  ),
-                .que_valid       (                  ),
+                .que_id         (que_id             ),
+                .que_pc         (                   ),
+                .que_instr      (                   ),
+                .que_rd_en      (que_rd_en          ),
+                .que_rd_idx     (que_rd_idx         ),
+                .que_align      (                   ),
+                .que_size       (                   ),
+                .que_unsigned   (                   ),
+                .que_valid      (                   ),
 
-                .s_id            (quein_id          ),
-                .s_pc            (quein_pc          ),
-                .s_instr         (quein_instr       ),
-                .s_rd_idx        (quein_rd_idx      ),
-                .s_align         (quein_align       ),
-                .s_size          (quein_size        ),
-                .s_unsigned      (quein_unsigned    ),
-                .s_valid         (quein_valid       ),
-                .s_ready    (quein_ready  ),
+                .s_id           (quein_id           ),
+                .s_pc           (quein_pc           ),
+                .s_instr        (quein_instr        ),
+                .s_rd_idx       (quein_rd_idx       ),
+                .s_align        (quein_align        ),
+                .s_size         (quein_size         ),
+                .s_unsigned     (quein_unsigned     ),
+                .s_valid        (quein_valid        ),
+                .s_ready        (quein_ready        ),
 
-                .m_id            (queout_id         ),
-                .m_pc            (queout_pc         ),
-                .m_instr         (queout_instr      ),
-                .m_rd_idx        (queout_rd_idx     ),
-                .m_align         (queout_align      ),
-                .m_size          (queout_size       ),
-                .m_unsigned      (queout_unsigned   ),
-                .m_valid         (queout_valid      ),
-                .m_ready    (queout_ready )
+                .m_id           (queout_id          ),
+                .m_pc           (queout_pc          ),
+                .m_instr        (queout_instr       ),
+                .m_rd_idx       (queout_rd_idx      ),
+                .m_align        (queout_align       ),
+                .m_size         (queout_size        ),
+                .m_unsigned     (queout_unsigned    ),
+                .m_valid        (queout_valid       ),
+                .m_ready        (queout_ready       )
         );
 
-    assign quein_id        = s_id                       ;
-    assign quein_pc        = s_pc                       ;
-    assign quein_instr     = s_instr                    ;
-    assign quein_rd_idx    = s_rd_idx                   ;
-    assign quein_align     = align_t'(s_addr)           ;
-    assign quein_size      = s_size                     ;
-    assign quein_unsigned  = s_unsigned                 ;       
-    assign quein_valid     = s_rd && s_ready       ;
+    assign quein_id        = s_id                           ;
+    assign quein_pc        = s_pc                           ;
+    assign quein_instr     = s_instr                        ;
+    assign quein_rd_idx    = s_rd_idx                       ;
+    assign quein_align     = align_t'(s_addr)               ;
+    assign quein_size      = s_size                         ;
+    assign quein_unsigned  = s_unsigned                     ;
+    assign quein_valid     = s_rd_en && s_addr_en && s_ready;
 
 
+    
     // ------------------------------------
     //  send command
     // ------------------------------------
@@ -212,11 +232,11 @@ module jelly3_jfive_load_store
                 cmd0_id     <= s_id;
                 cmd0_pc     <= s_pc;
                 cmd0_instr  <= s_instr;
-                cmd0_addr   <= addr_t'(s_addr >> $clog2($bits(strb_t)));
-                cmd0_wr     <= s_wr      ;
-                cmd0_strb   <= s_valid ? s_strb : '0;
-                cmd0_wdata  <= s_wdata   ;
-                cmd0_valid  <= s_valid   ;
+                cmd0_addr   <= addr_t'(s_addr >> $clog2($bits(strb_t))) ;
+                cmd0_wr     <= s_wr     && s_addr_en                    ;
+                cmd0_strb   <= (s_valid && s_addr_en) ? s_strb : '0     ;
+                cmd0_wdata  <= s_wdata                                  ;
+                cmd0_valid  <= s_valid  && s_addr_en                    ;
             end
         end
     end
