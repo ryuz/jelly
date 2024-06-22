@@ -46,26 +46,31 @@ module tb_main
     localparam                          DEBUG       = "false"                               ;
 
     logic               cke              = 1'b1;
+    always @(posedge clk) begin
+        // ランダム
+        cke <= $urandom_range(0, 1);
+    end
+
     id_t                ibus_cmd_id         ;
     phase_t             ibus_cmd_phase      ;
     pc_t                ibus_cmd_pc         ;
     logic               ibus_cmd_valid      ;
-    logic               ibus_cmd_ready ;
+    logic               ibus_cmd_ready      ;
     id_t                ibus_res_id         ;
     phase_t             ibus_res_phase      ;
     pc_t                ibus_res_pc         ;
     instr_t             ibus_res_instr      ;
     logic               ibus_res_valid      ;
-    logic               ibus_res_ready ;
+    logic               ibus_res_ready      ;
     dbus_addr_t         dbus_cmd_addr       ;
     logic               dbus_cmd_wr         ;
     dbus_strb_t         dbus_cmd_strb       ;
     dbus_data_t         dbus_cmd_wdata      ;
     logic               dbus_cmd_valid      ;
-    logic               dbus_cmd_ready ;
+    logic               dbus_cmd_ready      ;
     dbus_data_t         dbus_res_rdata      ;
     logic               dbus_res_valid      ;
-    logic               dbus_res_ready ;
+    logic               dbus_res_ready      ;
 
     jelly3_jfive_controller
         #(
@@ -110,7 +115,7 @@ module tb_main
             (
                 .reset              ,
                 .clk                ,
-                .cke                (1'b1),
+                .cke                ,
                 .monitor            ()
                 /*
                 .ibus_cmd_id        ,

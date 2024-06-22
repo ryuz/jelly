@@ -223,7 +223,7 @@ module jelly3_jfive_load_store
             cmd0_wdata <= 'x;
             cmd0_valid <= '0;
         end
-        if ( cke ) begin
+        else if ( cke ) begin
             if ( dbus_cmd_ready ) begin
                  cmd0_valid  <= 1'b0;
                  cmd0_strb   <= '0  ;
