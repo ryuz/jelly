@@ -35,8 +35,6 @@ module jelly3_jfive_load_store
             parameter   type    size_t      = logic         [1:0]               ,
             parameter   rval_t  ADDR_LOW    = '0                                ,
             parameter   rval_t  ADDR_HIGH   = '1                                ,
-            parameter   bit     RAW_HAZARD  = 1'b1                              ,
-            parameter   bit     WAW_HAZARD  = 1'b1                              ,
             parameter           DEVICE      = "RTL"                             ,
             parameter           SIMULATION  = "false"                           ,
             parameter           DEBUG       = "false"                           
@@ -98,6 +96,8 @@ module jelly3_jfive_load_store
     localparam   align_t  align_mask_h = ~align_t'('b001);
     localparam   align_t  align_mask_w = ~align_t'('b011);
 
+    rval_t  param_ADDR_LOW    = ADDR_LOW ;
+    rval_t  param_ADDR_HIGH   = ADDR_HIGH;
 
     // ------------------------------------
     //  input

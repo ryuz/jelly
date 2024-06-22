@@ -23,10 +23,15 @@ module jelly3_jfive_core
             parameter   pc_t                    PC_MASK        = '0                                 ,
             parameter   int                     INSTR_BITS     = 32                                 ,
             parameter   type                    instr_t        = logic         [INSTR_BITS-1:0]     ,
+            parameter   type                    ridx_t         = logic         [4:0]                ,
+            parameter   type                    rval_t         = logic signed  [XLEN-1:0]           ,
 //          parameter   int                     IBUS_ADDR_BITS = 10                                 ,
 //          parameter   type                    ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ,
 //          parameter   int                     IBUS_DATA_BITS = INSTR_BITS                         ,
 //          parameter   type                    ibus_data_t    = logic         [IBUS_DATA_BITS-1:0] ,
+            parameter   int                     LS_UNITS       = 2                                  ,
+            parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h8000_0000, 32'h0000_0000}    ,
+            parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff, 32'h7fff_ffff}    ,
             parameter   int                     LOAD_QUES      = 2                                  ,
             parameter   int                     DBUS_ADDR_BITS = 10                                 ,
             parameter   type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ,
@@ -34,13 +39,6 @@ module jelly3_jfive_core
             parameter   type                    dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ,
             parameter   int                     DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ,
             parameter   type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ,
-//          parameter   type                    ridx_t         = logic         [4:0]                ,
-//          parameter   type                    rval_t         = logic signed  [XLEN-1:0]           ,
-//          parameter   int                     SHAMT_BITS     = $clog2(XLEN)                       ,
-//          parameter   type                    shamt_tt       = logic         [SHAMT_BITS-1:0] ,
-//          parameter   int                     BUSY_RDS           = 4                              ,
-//          parameter   bit                     RAW_HAZARD     = 1'b1                               ,
-//          parameter   bit                     WAW_HAZARD     = 1'b1                               ,
 
             parameter   bit     [THREADS-1:0]   INIT_RUN    = 1                                     ,
             parameter   id_t                    INIT_ID     = '0                                    ,
@@ -51,34 +49,35 @@ module jelly3_jfive_core
             parameter                           DEBUG       = "false"                               
         )
         (
-            input   var logic               reset           ,
-            input   var logic               clk             ,
-            input   var logic               cke             ,
+            input   var logic                       reset           ,
+            input   var logic                       clk             ,
+            input   var logic                       cke             ,
 
             // instruction bus
-            output  var id_t                ibus_cmd_id     ,
-            output  var phase_t             ibus_cmd_phase  ,
-            output  var pc_t                ibus_cmd_pc     ,
-            output  var logic               ibus_cmd_valid  ,
-            input   var logic               ibus_cmd_ready   ,
-            input   var id_t                ibus_res_id     ,
-            input   var phase_t             ibus_res_phase  ,
-            input   var pc_t                ibus_res_pc     ,
-            input   var instr_t             ibus_res_instr  ,
-            input   var logic               ibus_res_valid  ,
-            output  var logic               ibus_res_ready   ,
+            output  var id_t                        ibus_cmd_id     ,
+            output  var phase_t                     ibus_cmd_phase  ,
+            output  var pc_t                        ibus_cmd_pc     ,
+            output  var logic                       ibus_cmd_valid  ,
+            input   var logic                       ibus_cmd_ready  ,
+            input   var id_t                        ibus_res_id     ,
+            input   var phase_t                     ibus_res_phase  ,
+            input   var pc_t                        ibus_res_pc     ,
+            input   var instr_t                     ibus_res_instr  ,
+            input   var logic                       ibus_res_valid  ,
+            output  var logic                       ibus_res_ready  ,
 
             // data bus
-            output  var dbus_addr_t         dbus_cmd_addr   ,
-            output  var logic               dbus_cmd_wr     ,
-            output  var dbus_strb_t         dbus_cmd_strb   ,
-            output  var dbus_data_t         dbus_cmd_wdata  ,
-            output  var logic               dbus_cmd_valid  ,
-            input   var logic               dbus_cmd_ready   ,
-            input   var dbus_data_t         dbus_res_rdata  ,
-            input   var logic               dbus_res_valid  ,
-            output  var logic               dbus_res_ready   
+            output  var dbus_addr_t [LS_UNITS-1:0]  dbus_cmd_addr   ,
+            output  var logic       [LS_UNITS-1:0]  dbus_cmd_wr     ,
+            output  var dbus_strb_t [LS_UNITS-1:0]  dbus_cmd_strb   ,
+            output  var dbus_data_t [LS_UNITS-1:0]  dbus_cmd_wdata  ,
+            output  var logic       [LS_UNITS-1:0]  dbus_cmd_valid  ,
+            input   var logic       [LS_UNITS-1:0]  dbus_cmd_ready  ,
+            input   var dbus_data_t [LS_UNITS-1:0]  dbus_res_rdata  ,
+            input   var logic       [LS_UNITS-1:0]  dbus_res_valid  ,
+            output  var logic       [LS_UNITS-1:0]  dbus_res_ready   
         );
+
 
     // -----------------------------
     //  Program Counter
@@ -169,11 +168,9 @@ module jelly3_jfive_core
     //  Instruction Decode
     // -----------------------------
 
-    localparam  int     BUSY_RDS         = 3 + LOAD_QUES                    ;
+    localparam  int     BUSY_RDS         = 3 + LS_UNITS * LOAD_QUES         ;
     localparam  bit     RAW_HAZARD       = 1'b1                             ;
     localparam  bit     WAW_HAZARD       = 1'b1                             ;
-    localparam  type    ridx_t           = logic        [4:0]               ;
-    localparam  type    rval_t           = logic signed [XLEN-1:0]          ;
     localparam  int     SHAMT_BITS       = $clog2(XLEN)                     ;
 //  localparam  type    shamt_t          = logic        [SHAMT_BITS-1:0]    ;   // 何故か verilator がエラーになる
     localparam  type    shamt_t          = logic        [4:0]               ;
@@ -317,7 +314,7 @@ module jelly3_jfive_core
 
 
     // -----------------------------
-    //  Instruction Decode
+    //  Execution
     // -----------------------------
 
     jelly3_jfive_execution
@@ -343,6 +340,10 @@ module jelly3_jfive_core
                 .STRB_BITS              (DBUS_STRB_BITS         ),
                 .strb_t                 (dbus_strb_t            ),
                 .size_t                 (size_t                 ),
+                .LS_UNITS               (LS_UNITS               ),
+                .LS_ADDRS_LOW           (LS_ADDRS_LOW           ),
+                .LS_ADDRS_HIGH          (LS_ADDRS_HIGH          ),
+                .LOAD_QUES              (LOAD_QUES              ),
                 .BUSY_RDS               (BUSY_RDS               ),
                 .RAW_HAZARD             (RAW_HAZARD             ),
                 .WAW_HAZARD             (WAW_HAZARD             ),

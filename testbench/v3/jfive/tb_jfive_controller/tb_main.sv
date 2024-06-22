@@ -38,6 +38,11 @@ module tb_main
 //  localparam  int                     EXES           = 4                                  ;
 //  localparam  bit                     RAW_HAZARD     = 1'b1                               ;
 //  localparam  bit                     WAW_HAZARD     = 1'b1                               ;
+
+    localparam  int                     LS_UNITS       = 2                                  ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h8000_0000, 32'h0000_0000}    ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff, 32'h7fff_ffff}    ;
+
     localparam  bit     [THREADS-1:0]   INIT_RUN    = 1                                     ;
     localparam  id_t                    INIT_ID     = '0                                    ;
     localparam  pc_t    [THREADS-1:0]   INIT_PC     = '0                                    ;
@@ -48,9 +53,10 @@ module tb_main
     logic               cke              = 1'b1;
     always @(posedge clk) begin
         // ランダム
-        cke <= $urandom_range(0, 1);
+        cke <= 1'b1; // $urandom_range(0, 1);
     end
 
+    /*
     id_t                ibus_cmd_id         ;
     phase_t             ibus_cmd_phase      ;
     pc_t                ibus_cmd_pc         ;
@@ -71,6 +77,7 @@ module tb_main
     dbus_data_t         dbus_res_rdata      ;
     logic               dbus_res_valid      ;
     logic               dbus_res_ready      ;
+    */
 
     jelly3_jfive_controller
         #(
@@ -101,9 +108,9 @@ module tb_main
         //      .EXES               (EXES               ),
         //      .RAW_HAZARD         (RAW_HAZARD         ),
         //      .WAW_HAZARD         (WAW_HAZARD         ),
-                .READMEMB           (0                  ),
-                .READMEMH           (1                  ),
-                .READMEM_FIlE       ("../mem.hex"       ),
+                .TCM_READMEMB       (0                  ),
+                .TCM_READMEMH       (1                  ),
+                .TCM_READMEM_FIlE   ("../mem.hex"       ),
                 .INIT_RUN           (INIT_RUN           ),
                 .INIT_ID            (INIT_ID            ),
                 .INIT_PC            (INIT_PC            ),
@@ -329,6 +336,9 @@ module tb_main
     */
     localparam  type    mnemonic_t = logic [64*8-1:0];
 
+    wire    mnemonic_t   wb_mnemonic     = mnemonic_t'(instr2mnemonic(u_jfive_controller.u_jfive_core.wb_instr));
+
+
     wire    pc_t        exe_pc        = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_pc       ;
     wire    instr_t     exe_instr     = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_instr    ;
     wire    logic       exe_rs1_en    = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_rs1_en   ;
@@ -374,6 +384,45 @@ module tb_main
                     string'(exe_mnemonic)
                     );
                 exe_counter <= exe_counter + 1;
+            end
+        end
+    end
+
+    // dbus
+    dbus_addr_t [LS_UNITS-1:0]  dbus_cmd_addr   ;
+    logic       [LS_UNITS-1:0]  dbus_cmd_wr     ;
+    dbus_strb_t [LS_UNITS-1:0]  dbus_cmd_strb   ;
+    dbus_data_t [LS_UNITS-1:0]  dbus_cmd_wdata  ;
+    logic       [LS_UNITS-1:0]  dbus_cmd_valid  ;
+    logic       [LS_UNITS-1:0]  dbus_cmd_ready  ;
+    dbus_data_t [LS_UNITS-1:0]  dbus_res_rdata  ;
+    logic       [LS_UNITS-1:0]  dbus_res_valid  ;
+    logic       [LS_UNITS-1:0]  dbus_res_ready  ;    
+
+    assign dbus_cmd_addr  =  u_jfive_controller.dbus_cmd_addr ;
+    assign dbus_cmd_wr    =  u_jfive_controller.dbus_cmd_wr   ;
+    assign dbus_cmd_strb  =  u_jfive_controller.dbus_cmd_strb ;
+    assign dbus_cmd_wdata =  u_jfive_controller.dbus_cmd_wdata;
+    assign dbus_cmd_valid =  u_jfive_controller.dbus_cmd_valid;
+    assign dbus_cmd_ready =  u_jfive_controller.dbus_cmd_ready;
+    assign dbus_res_rdata =  u_jfive_controller.dbus_res_rdata;
+    assign dbus_res_valid =  u_jfive_controller.dbus_res_valid;
+    assign dbus_res_ready =  u_jfive_controller.dbus_res_ready; 
+
+    int fp_dbus0_log;
+    initial fp_dbus0_log = $fopen("dbus0_log.txt", "w");
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( dbus_cmd_valid[0] && dbus_cmd_ready[0] ) begin
+                if ( dbus_cmd_wr ) begin
+                    $fwrite(fp_dbus0_log, "%d w addr:%08x %08x wdata:%08x strb:%b\n", exe_counter, dbus_cmd_addr[0], int'(dbus_cmd_addr[0]) << 2, dbus_cmd_wdata[0], dbus_cmd_strb[0]);
+                end
+                else begin
+                    $fwrite(fp_dbus0_log, "%d r addr:%08x %08x\n", exe_counter, dbus_cmd_addr[0], int'(dbus_cmd_addr[0]) << 2);
+                end
+            end
+            if ( dbus_res_valid[0] && dbus_res_ready[0] ) begin
+                $fwrite(fp_dbus0_log, "r rdata:%08x\n", dbus_res_rdata[0]);
             end
         end
     end

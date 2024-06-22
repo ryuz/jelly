@@ -108,7 +108,7 @@ pub unsafe extern "C" fn main() -> ! {
 
 
 fn write_byte(c: u8) {
-    let mmio_putc = 0x10000000  as *mut u8;
+    let mmio_putc = 0x8000_0000  as *mut u8;
     unsafe {
         core::ptr::write_volatile(mmio_putc, c);
     }

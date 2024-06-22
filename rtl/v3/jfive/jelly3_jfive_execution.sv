@@ -12,34 +12,38 @@
 
 module jelly3_jfive_execution
         #(
-            parameter   int     XLEN        = 32                                ,
-            parameter   int     THREADS     = 4                                 ,
-            parameter   int     ID_BITS     = THREADS > 1 ? $clog2(THREADS) : 1 ,
-            parameter   type    id_t        = logic         [ID_BITS-1:0]       ,
-            parameter   int     PHASE_BITS  = 1                                 ,
-            parameter   type    phase_t     = logic         [PHASE_BITS-1:0]    ,
-            parameter   int     PC_BITS     = 32                                ,
-            parameter   type    pc_t        = logic         [PC_BITS-1:0]       ,
-            parameter   int     INSTR_BITS  = 32                                ,
-            parameter   type    instr_t     = logic         [INSTR_BITS-1:0]    ,
-            parameter   type    ridx_t      = logic         [4:0]               ,
-            parameter   type    rval_t      = logic signed  [XLEN-1:0]          ,
-            parameter   int     SHAMT_BITS  = $clog2(XLEN)                      ,
-            parameter   type    shamt_t     = logic         [$clog2(XLEN)-1:0]  ,
-            parameter   int     ADDR_BITS   = $bits(rval_t)                     ,
-            parameter   type    addr_t      = logic         [ADDR_BITS-1:0]     ,
-            parameter   int     DATA_BITS   = $bits(rval_t)                     ,
-            parameter   type    data_t      = logic         [DATA_BITS-1:0]     ,
-            parameter   int     STRB_BITS   = $bits(data_t) / 8                 ,
-            parameter   type    strb_t      = logic         [STRB_BITS-1:0]     ,
-            parameter   type    size_t      = logic         [1:0]               ,
-            parameter   int     LOAD_QUES   = 2                                 ,
-            parameter   int     BUSY_RDS    = 3                                 ,
-            parameter   bit     RAW_HAZARD  = 1'b1                              ,
-            parameter   bit     WAW_HAZARD  = 1'b1                              ,
-            parameter           DEVICE      = "RTL"                             ,
-            parameter           SIMULATION  = "false"                           ,
-            parameter           DEBUG       = "false"               
+            parameter   int                     XLEN           = 32                                 ,
+            parameter   int                     THREADS        = 4                                  ,
+            parameter   int                     ID_BITS        = THREADS > 1 ? $clog2(THREADS) : 1  ,
+            parameter   type                    id_t           = logic         [ID_BITS-1:0]        ,
+            parameter   int                     PHASE_BITS     = 1                                  ,
+            parameter   type                    phase_t        = logic         [PHASE_BITS-1:0]     ,
+            parameter   int                     PC_BITS        = 32                                 ,
+            parameter   type                    pc_t           = logic         [PC_BITS-1:0]        ,
+            parameter   int                     INSTR_BITS     = 32                                 ,
+            parameter   type                    instr_t        = logic         [INSTR_BITS-1:0]     ,
+            parameter   type                    ridx_t         = logic         [4:0]                ,
+            parameter   type                    rval_t         = logic signed  [XLEN-1:0]           ,
+            parameter   int                     SHAMT_BITS     = $clog2(XLEN)                       ,
+            parameter   type                    shamt_t        = logic         [$clog2(XLEN)-1:0]   ,
+            parameter   int                     ADDR_BITS      = $bits(rval_t)                      ,
+            parameter   type                    addr_t         = logic         [ADDR_BITS-1:0]      ,
+            parameter   int                     DATA_BITS      = $bits(rval_t)                      ,
+            parameter   type                    data_t         = logic         [DATA_BITS-1:0]      ,
+            parameter   int                     STRB_BITS      = $bits(data_t) / 8                  ,
+            parameter   type                    strb_t         = logic         [STRB_BITS-1:0]      ,
+            parameter   type                    size_t         = logic         [1:0]                ,
+            parameter   int                     LS_UNITS       = 2                                  ,
+            parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h8000_0000, 32'h0000_0000}    ,
+            parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff, 32'h7fff_ffff}    ,
+            parameter   int                     LOAD_QUES      = 2                                  ,
+//          parameter   int                     LOAD_QUES      = 2                                  ,
+            parameter   int                     BUSY_RDS       = 3                                  ,
+            parameter   bit                     RAW_HAZARD     = 1'b1                               ,
+            parameter   bit                     WAW_HAZARD     = 1'b1                               ,
+            parameter                           DEVICE         = "RTL"                              ,
+            parameter                           SIMULATION     = "false"                            ,
+            parameter                           DEBUG          = "false"                            
         )
         (
             input   var logic                   reset               ,
@@ -67,15 +71,15 @@ module jelly3_jfive_execution
             output  var rval_t                  wb_rd_val           ,
 
             // data bus 
-            output  var addr_t                  dbus_cmd_addr       ,
-            output  var logic                   dbus_cmd_wr         ,
-            output  var strb_t                  dbus_cmd_strb       ,
-            output  var data_t                  dbus_cmd_wdata      ,
-            output  var logic                   dbus_cmd_valid      ,
-            input   var logic                   dbus_cmd_ready      ,
-            input   var data_t                  dbus_res_rdata      ,
-            input   var logic                   dbus_res_valid      ,
-            output  var logic                   dbus_res_ready      ,
+            output  var addr_t  [LS_UNITS-1:0]  dbus_cmd_addr       ,
+            output  var logic   [LS_UNITS-1:0]  dbus_cmd_wr         ,
+            output  var strb_t  [LS_UNITS-1:0]  dbus_cmd_strb       ,
+            output  var data_t  [LS_UNITS-1:0]  dbus_cmd_wdata      ,
+            output  var logic   [LS_UNITS-1:0]  dbus_cmd_valid      ,
+            input   var logic   [LS_UNITS-1:0]  dbus_cmd_ready      ,
+            input   var data_t  [LS_UNITS-1:0]  dbus_res_rdata      ,
+            input   var logic   [LS_UNITS-1:0]  dbus_res_valid      ,
+            output  var logic   [LS_UNITS-1:0]  dbus_res_ready      ,
 
             // output
             input   var id_t                    s_id                ,
@@ -121,9 +125,6 @@ module jelly3_jfive_execution
     localparam  int     ALIGN_BITS  = $clog2($bits(strb_t))             ;
     localparam  type    align_t     = logic         [ALIGN_BITS-1:0]    ;
 
-    // stall signal
-//  logic       alu_ready    ;
-//    logic       mem_ready    ;
 
     // branch phase table
     phase_t [THREADS-1:0]   phase_table;
@@ -461,92 +462,95 @@ module jelly3_jfive_execution
             );
 
     // load/store
-    logic                   mem_ready   ;
-    id_t    [LOAD_QUES-1:0] que_id      ;
-    logic   [LOAD_QUES-1:0] que_rd_en   ;
-    ridx_t  [LOAD_QUES-1:0] que_rd_idx  ;
-    id_t                    load_id     ;
-    pc_t                    load_pc     ;
-    instr_t                 load_instr  ;
-    logic                   load_rd_en  ;
-    ridx_t                  load_rd_idx ;
-    rval_t                  load_rd_val ;
-    logic                   load_valid  ;
-    logic                   load_ready  ;
-    jelly3_jfive_load_store
-            #(
-                .LOAD_QUES          (LOAD_QUES              ),
-                .XLEN               (XLEN                   ),
-                .ID_BITS            (ID_BITS                ),
-                .id_t               (id_t                   ),
-                .PHASE_BITS         (PHASE_BITS             ),
-                .phase_t            (phase_t                ),
-                .PC_BITS            (PC_BITS                ),
-                .pc_t               (pc_t                   ),
-                .INSTR_BITS         (INSTR_BITS             ),
-                .instr_t            (instr_t                ),
-                .ridx_t             (ridx_t                 ),
-                .rval_t             (rval_t                 ),
-                .ADDR_BITS          (ADDR_BITS              ),
-                .addr_t             (addr_t                 ),
-                .DATA_BITS          (DATA_BITS              ),
-                .data_t             (data_t                 ),
-                .STRB_BITS          (STRB_BITS              ),
-                .strb_t             (strb_t                 ),
-                .ALIGN_BITS         (ALIGN_BITS             ),
-                .align_t            (align_t                ),
-                .size_t             (size_t                 ),
-                .RAW_HAZARD         (RAW_HAZARD             ),
-                .WAW_HAZARD         (WAW_HAZARD             ),
-                .DEVICE             (DEVICE                 ),
-                .SIMULATION         (SIMULATION             ),
-                .DEBUG              (DEBUG                  )
-            )
-        u_jfive_load_store
-            (
-                .reset              ,
-                .clk                ,
-                .cke                ,
+    logic   [LS_UNITS-1:0]                  mem_ready   ;
+    id_t    [LS_UNITS-1:0][LOAD_QUES-1:0]   que_id      ;
+    logic   [LS_UNITS-1:0][LOAD_QUES-1:0]   que_rd_en   ;
+    ridx_t  [LS_UNITS-1:0][LOAD_QUES-1:0]   que_rd_idx  ;
+    id_t    [LS_UNITS-1:0]                  load_id     ;
+    pc_t    [LS_UNITS-1:0]                  load_pc     ;
+    instr_t [LS_UNITS-1:0]                  load_instr  ;
+    logic   [LS_UNITS-1:0]                  load_rd_en  ;
+    ridx_t  [LS_UNITS-1:0]                  load_rd_idx ;
+    rval_t  [LS_UNITS-1:0]                  load_rd_val ;
+    logic   [LS_UNITS-1:0]                  load_valid  ;
+    logic   [LS_UNITS-1:0]                  load_ready  ;
+    for ( genvar i = 0; i < LS_UNITS; i++ ) begin : load_store
 
-                .dbus_cmd_addr      ,
-                .dbus_cmd_wr        ,
-                .dbus_cmd_strb      ,
-                .dbus_cmd_wdata     ,
-                .dbus_cmd_valid     ,
-                .dbus_cmd_ready,
-                .dbus_res_rdata     ,
-                .dbus_res_valid     ,
-                .dbus_res_ready,
+        jelly3_jfive_load_store
+                #(
+                    .LOAD_QUES          (LOAD_QUES                  ),
+                    .XLEN               (XLEN                       ),
+                    .ID_BITS            (ID_BITS                    ),
+                    .id_t               (id_t                       ),
+                    .PHASE_BITS         (PHASE_BITS                 ),
+                    .phase_t            (phase_t                    ),
+                    .PC_BITS            (PC_BITS                    ),
+                    .pc_t               (pc_t                       ),
+                    .INSTR_BITS         (INSTR_BITS                 ),
+                    .instr_t            (instr_t                    ),
+                    .ridx_t             (ridx_t                     ),
+                    .rval_t             (rval_t                     ),
+                    .ADDR_BITS          (ADDR_BITS                  ),
+                    .addr_t             (addr_t                     ),
+                    .DATA_BITS          (DATA_BITS                  ),
+                    .data_t             (data_t                     ),
+                    .STRB_BITS          (STRB_BITS                  ),
+                    .strb_t             (strb_t                     ),
+                    .ALIGN_BITS         (ALIGN_BITS                 ),
+                    .align_t            (align_t                    ),
+                    .size_t             (size_t                     ),
+                    .ADDR_LOW           (LS_ADDRS_LOW[i]            ),
+                    .ADDR_HIGH          (LS_ADDRS_HIGH[i]           ),
+                    .DEVICE             (DEVICE                     ),
+                    .SIMULATION         (SIMULATION                 ),
+                    .DEBUG              (DEBUG                      )
+                )
+            u_jfive_load_store
+                (
+                    .reset              ,
+                    .clk                ,
+                    .cke                ,
 
-                .que_id             ,
-                .que_rd_en          ,
-                .que_rd_idx         ,
+                    .dbus_cmd_addr      (dbus_cmd_addr  [i]         ),
+                    .dbus_cmd_wr        (dbus_cmd_wr    [i]         ),
+                    .dbus_cmd_strb      (dbus_cmd_strb  [i]         ),
+                    .dbus_cmd_wdata     (dbus_cmd_wdata [i]         ),
+                    .dbus_cmd_valid     (dbus_cmd_valid [i]         ),
+                    .dbus_cmd_ready     (dbus_cmd_ready [i]         ),
+                    .dbus_res_rdata     (dbus_res_rdata [i]         ),
+                    .dbus_res_valid     (dbus_res_valid [i]         ),
+                    .dbus_res_ready     (dbus_res_ready [i]         ),
 
-                .s_id               (st0_id                     ),
-                .s_phase            (st0_phase                  ),
-                .s_pc               (st0_pc                     ),
-                .s_instr            (st0_instr                  ),
-                .s_rd_en            (st0_rd_en     & st0_valid  ),
-                .s_rd_idx           (st0_rd_idx                 ),
-                .s_addr             (st0_adder_rd_val           ),
-                .s_size             (st0_mem_size               ),
-                .s_unsigned         (st0_mem_unsigned           ),
-                .s_rd               (st0_load      & st0_valid  ),
-                .s_wr               (st0_store     & st0_valid  ),
-                .s_strb             (st0_mem_strb               ),
-                .s_wdata            (st0_mem_wdata              ),
-                .s_valid            (st0_mem_valid & st0_valid  ),
-                .s_ready            (mem_ready                  ),
+                    .que_id             (que_id    [i]              ),
+                    .que_rd_en          (que_rd_en [i]              ),
+                    .que_rd_idx         (que_rd_idx[i]              ),
 
-                .m_id               (load_id                    ),
-                .m_pc               (load_pc                    ),
-                .m_instr            (load_instr                 ),
-                .m_rd_en            (load_rd_en                 ),
-                .m_rd_idx           (load_rd_idx                ),
-                .m_rd_val           (load_rd_val                ),
-                .m_valid            (load_valid                 ),
-                .m_ready            (load_ready                 )
-            );
+                    .s_id               (st0_id                     ),
+                    .s_phase            (st0_phase                  ),
+                    .s_pc               (st0_pc                     ),
+                    .s_instr            (st0_instr                  ),
+                    .s_rd_en            (st0_rd_en     & st0_valid  ),
+                    .s_rd_idx           (st0_rd_idx                 ),
+                    .s_addr             (st0_adder_rd_val           ),
+                    .s_size             (st0_mem_size               ),
+                    .s_unsigned         (st0_mem_unsigned           ),
+                    .s_rd               (st0_load      & st0_valid  ),
+                    .s_wr               (st0_store     & st0_valid  ),
+                    .s_strb             (st0_mem_strb               ),
+                    .s_wdata            (st0_mem_wdata              ),
+                    .s_valid            (st0_mem_valid & st0_valid & st0_ready  ),
+                    .s_ready            (mem_ready[i]               ),
+
+                    .m_id               (load_id    [i]             ),
+                    .m_pc               (load_pc    [i]             ),
+                    .m_instr            (load_instr [i]             ),
+                    .m_rd_en            (load_rd_en [i]             ),
+                    .m_rd_idx           (load_rd_idx[i]             ),
+                    .m_rd_val           (load_rd_val[i]             ),
+                    .m_valid            (load_valid [i]             ),
+                    .m_ready            (load_ready [i]             )
+                );
+    end
 
     // control
     id_t                st1_id          ;
@@ -614,7 +618,7 @@ module jelly3_jfive_execution
         end
     end
 
-    assign st0_ready = !st1_valid || (st1_ready && mem_ready);
+    assign st0_ready = !st1_valid || (st1_ready && &mem_ready);
 
 
     // -----------------------------------------
@@ -638,7 +642,6 @@ module jelly3_jfive_execution
     logic               st2_shifter     ;
     logic               st2_load        ;
     logic               st2_valid       ;
-    logic               st2_ready       ;
 
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -681,21 +684,44 @@ module jelly3_jfive_execution
         end
     end
 
+    // busy
+    assign busy_id      = {que_id,     st0_id,     st1_id,     st2_id    };
+    assign busy_rd_en   = {que_rd_en,  st0_rd_en,  st1_rd_en,  st2_rd_en };
+    assign busy_rd_idx  = {que_rd_idx, st0_rd_idx, st1_rd_idx, st2_rd_idx};
 
-    assign busy_id     = {que_id    , st0_id,     st1_id,     st2_id    };
-    assign busy_rd_en  = {que_rd_en , st0_rd_en,  st1_rd_en,  st2_rd_en };
-    assign busy_rd_idx = {que_rd_idx, st0_rd_idx, st1_rd_idx, st2_rd_idx};
+    // writeback
+    always_comb begin
+        wb_id     = st2_id     ;
+        wb_pc     = st2_pc     ;
+        wb_instr  = st2_instr  ;
+        wb_rd_en  = st2_rd_en  ;
+        wb_rd_idx = st2_rd_idx ;
+        wb_rd_val = st2_rd_val ;
+        for ( int i = 0; i < LS_UNITS; i++ ) begin
+            if ( load_valid[i] ) begin
+                wb_id     = load_id    [i];
+                wb_pc     = load_pc    [i];
+                wb_instr  = load_instr [i];
+                wb_rd_en  = load_rd_en [i];
+                wb_rd_idx = load_rd_idx[i];
+                wb_rd_val = load_rd_val[i];
+                break;
+            end
+        end
+    end
 
+    // ready
+    always_comb begin
+        automatic logic ready = 1'b1;
+        for ( int i = 0; i < LS_UNITS; i++ ) begin
+            load_ready[i] = ready;
+            if ( load_valid[i] ) begin
+                ready = 1'b0;
+            end
+        end
 
-    assign wb_id     = load_valid ? load_id     : st2_id     ;
-    assign wb_pc     = load_valid ? load_pc     : st2_pc     ;
-    assign wb_instr  = load_valid ? load_instr  : st2_instr  ;
-    assign wb_rd_en  = load_valid ? load_rd_en  : st2_rd_en  ;
-    assign wb_rd_idx = load_valid ? load_rd_idx : st2_rd_idx ;
-    assign wb_rd_val = load_valid ? load_rd_val : st2_rd_val ;
-
-    assign st1_ready  = !st2_valid || !(st2_rd_en && load_rd_en);
-    assign load_ready = 1'b1;
+        st1_ready = !(st2_valid && st2_rd_en) || ready;
+    end
 
 endmodule
 
