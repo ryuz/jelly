@@ -427,6 +427,14 @@ module tb_main
         end
     end
 
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( dbus_cmd_wr[1] && dbus_cmd_valid[1] && dbus_cmd_ready[1] ) begin
+                $write("%c", dbus_cmd_wdata[1][7:0]);
+            end
+        end
+    end
+
     /*
     int fp_dbus_log;
     initial fp_dbus_log = $fopen("dbus_log.txt", "w");

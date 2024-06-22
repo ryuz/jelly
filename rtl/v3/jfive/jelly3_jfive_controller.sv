@@ -32,9 +32,6 @@ module jelly3_jfive_controller
             parameter   int                     LS_UNITS       = 2                                  ,
             parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h8000_0000, 32'h0000_0000}    ,
             parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff, 32'h7fff_ffff}    ,
-//            parameter   int                     LS_UNITS       = 1                                  ,
-//            parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h0000_0000}                   ,
-//            parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff}                   ,
 
             parameter   int                     LOAD_QUES      = 2                                  ,
 
@@ -283,7 +280,7 @@ module jelly3_jfive_controller
     assign dbus_res_rdata[DBUS_MEM] = tcm_port1_dout            ;
     assign dbus_res_valid[DBUS_MEM] = mem_dbus_st1_valid        ;
 
-
+ 
 
     // ---------------------------------------------------------
     //  Peripheral BUS
