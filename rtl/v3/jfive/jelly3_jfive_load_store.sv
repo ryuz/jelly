@@ -33,8 +33,8 @@ module jelly3_jfive_load_store
             parameter   int     ALIGN_BITS  = $clog2($bits(strb_t))             ,
             parameter   type    align_t     = logic         [ALIGN_BITS-1:0]    ,
             parameter   type    size_t      = logic         [1:0]               ,
-            parameter   rval_t  ADDR_LOW    = '0                                ,
-            parameter   rval_t  ADDR_HIGH   = '1                                ,
+            parameter   rval_t  ADDR_LO     = '0                                ,
+            parameter   rval_t  ADDR_HI     = '1                                ,
             parameter           DEVICE      = "RTL"                             ,
             parameter           SIMULATION  = "false"                           ,
             parameter           DEBUG       = "false"                           
@@ -96,8 +96,9 @@ module jelly3_jfive_load_store
     localparam   align_t  align_mask_h = ~align_t'('b001);
     localparam   align_t  align_mask_w = ~align_t'('b011);
 
-    rval_t  param_ADDR_LOW    = ADDR_LOW ;
-    rval_t  param_ADDR_HIGH   = ADDR_HIGH;
+    rval_t  param_ADDR_LO = ADDR_LO;
+    rval_t  param_ADDR_HI = ADDR_HI;
+
 
     // ------------------------------------
     //  input
@@ -107,8 +108,8 @@ module jelly3_jfive_load_store
     /* verilator lint_off CMPCONST */
     logic       s_addr_en;
     assign s_addr_en = s_valid 
-                    && $unsigned(s_addr) >= $unsigned(ADDR_LOW)
-                    && $unsigned(s_addr) <= $unsigned(ADDR_HIGH);
+                    && $unsigned(s_addr) >= $unsigned(ADDR_LO)
+                    && $unsigned(s_addr) <= $unsigned(ADDR_HI);
     /* verilator lint_on UNSIGNED */
     /* verilator lint_on CMPCONST */
 

@@ -39,9 +39,24 @@ module tb_main
 //  localparam  bit                     RAW_HAZARD     = 1'b1                               ;
 //  localparam  bit                     WAW_HAZARD     = 1'b1                               ;
 
-    localparam  int                     LS_UNITS       = 2                                  ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h8000_0000, 32'h0000_0000}    ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff, 32'h7fff_ffff}    ;
+    localparam   int                     TCM_MEM_SIZE     = 512 * 1024                       ;
+    localparam   rval_t                  TCM_ADDR_LO      = 32'h0000_0000                   ;
+    localparam   rval_t                  TCM_ADDR_HI      = 32'h7fff_ffff                   ;
+    localparam                           TCM_RAM_TYPE     = "block"                         ;
+    localparam   bit                     TCM_READMEMB     = 1'b0                            ;
+    localparam   bit                     TCM_READMEMH     = 1'b1                            ;
+    localparam                           TCM_READMEM_FIlE = "../mem.hex"                    ;
+
+    localparam   int                          M_AXI4L_PORTS      = 1                         ;
+    localparam   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_LO = '{32'h8000_0000}            ;
+    localparam   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_HI = '{32'hffff_ffff}            ;
+//    localparam  int                     LS_UNITS       = 2                                  ;
+//    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h8000_0000, 32'h0000_0000}    ;
+//    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff, 32'h7fff_ffff}    ;
+
+    localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                  ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO   = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}     ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI   = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}     ;
 
     localparam  bit     [THREADS-1:0]   INIT_RUN    = 1                                     ;
     localparam  id_t                    INIT_ID     = '0                                    ;
@@ -83,34 +98,35 @@ module tb_main
         #(
                 .XLEN               (XLEN               ),
                 .THREADS            (THREADS            ),
-                .ID_BITS            (ID_BITS            ),
-                .id_t               (id_t               ),
-                .PHASE_BITS         (PHASE_BITS         ),
-                .phase_t            (phase_t            ),
-                .PC_BITS            (PC_BITS            ),
-                .pc_t               (pc_t               ),
+//                .ID_BITS            (ID_BITS            ),
+//                .id_t               (id_t               ),
+//                .PHASE_BITS         (PHASE_BITS         ),
+//                .phase_t            (phase_t            ),
+//                .PC_BITS            (PC_BITS            ),
+//                .pc_t               (pc_t               ),
                 .PC_MASK            (PC_MASK            ),
-                .INSTR_BITS         (INSTR_BITS         ),
-                .instr_t            (instr_t            ),
+//                .INSTR_BITS         (INSTR_BITS         ),
+//                .instr_t            (instr_t            ),
         //      .IBUS_ADDR_BITS     (IBUS_ADDR_BITS     ),
         //      .ibus_addr_t        (ibus_addr_t        ),
         //      .IBUS_DATA_BITS     (IBUS_DATA_BITS     ),
         //      .ibus_data_t        (ibus_data_t        ),
-                .DBUS_ADDR_BITS     (DBUS_ADDR_BITS     ),
-                .dbus_addr_t        (dbus_addr_t        ),
-                .DBUS_DATA_BITS     (DBUS_DATA_BITS     ),
-                .dbus_data_t        (dbus_data_t        ),
-                .DBUS_STRB_BITS     (DBUS_STRB_BITS     ),
-                .dbus_strb_t        (dbus_strb_t        ),
+//                .DBUS_ADDR_BITS     (DBUS_ADDR_BITS     ),
+//                .dbus_addr_t        (dbus_addr_t        ),
+//                .DBUS_DATA_BITS     (DBUS_DATA_BITS     ),
+//                .dbus_data_t        (dbus_data_t        ),
+//                .DBUS_STRB_BITS     (DBUS_STRB_BITS     ),
+//                .dbus_strb_t        (dbus_strb_t        ),
         //      .ridx_t             (ridx_t             ),
         //      .rval_t             (rval_t             ),
         //      .shamt_t            (shamt_t            ),
         //      .EXES               (EXES               ),
         //      .RAW_HAZARD         (RAW_HAZARD         ),
         //      .WAW_HAZARD         (WAW_HAZARD         ),
-                .TCM_READMEMB       (0                  ),
-                .TCM_READMEMH       (1                  ),
-                .TCM_READMEM_FIlE   ("../mem.hex"       ),
+                .TCM_MEM_SIZE       (TCM_MEM_SIZE       ),
+                .TCM_READMEMB       (TCM_READMEMB       ),
+                .TCM_READMEMH       (TCM_READMEMH       ),
+                .TCM_READMEM_FIlE   (TCM_READMEM_FIlE   ),
                 .INIT_RUN           (INIT_RUN           ),
                 .INIT_ID            (INIT_ID            ),
                 .INIT_PC            (INIT_PC            ),

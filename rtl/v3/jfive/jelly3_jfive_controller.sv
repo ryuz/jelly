@@ -5,45 +5,55 @@
 
 module jelly3_jfive_controller
         #(
-            parameter  int                      XLEN           = 32                                 ,
-            parameter  int                      THREADS        = 4                                  ,
-            parameter  int                      ID_BITS        = THREADS > 1 ? $clog2(THREADS) : 1  ,
-            parameter  type                     id_t           = logic         [ID_BITS-1:0]        ,
-            parameter  int                      PHASE_BITS     = 1                                  ,
-            parameter  type                     phase_t        = logic         [PHASE_BITS-1:0]     ,
-            parameter  int                      PC_BITS        = 32                                 ,
-            parameter  type                     pc_t           = logic         [PC_BITS-1:0]        ,
-            parameter  pc_t                     PC_MASK        = '0                                 ,
-            parameter  int                      INSTR_BITS     = 32                                 ,
-            parameter  type                     instr_t        = logic         [INSTR_BITS-1:0]     ,
-            parameter  type                     ridx_t         = logic         [4:0]                ,
-            parameter  type                     rval_t         = logic signed  [XLEN-1:0]           ,
-        //  parameter  int                      IBUS_ADDR_BITS = 10                                 ,
-        //  parameter  type                     ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ,
-        //  parameter  int                      IBUS_DATA_BITS = INSTR_BITS                         ,
-        //  parameter  type                     ibus_data_t    = logic         [IBUS_DATA_BITS-1:0] ,
-            parameter  int                      DBUS_ADDR_BITS = 10                                 ,
-            parameter  type                     dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ,
-            parameter  int                      DBUS_DATA_BITS = XLEN                               ,
-            parameter  type                     dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ,
-            parameter  int                      DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ,
-            parameter  type                     dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ,
+            parameter   int                     XLEN           = 32                                 ,
+            parameter   int                     THREADS        = 4                                  ,
+            localparam  int                     ID_BITS        = THREADS > 1 ? $clog2(THREADS) : 1  ,
+            localparam  type                    id_t           = logic         [ID_BITS-1:0]        ,
+//          parameter   int                     PHASE_BITS     = 1                                  ,
+//          localparam  type                    phase_t        = logic         [PHASE_BITS-1:0]     ,
+            localparam  int                     PC_BITS        = 32                                 ,
+            localparam  type                    pc_t           = logic         [PC_BITS-1:0]        ,
+            parameter   pc_t                    PC_MASK        = '0                                 ,
+        //  parameter   int                     INSTR_BITS     = 32                                 ,
+        //  parameter   type                    instr_t        = logic         [INSTR_BITS-1:0]     ,
+        //  parameter   type                    ridx_t         = logic         [4:0]                ,
+            localparam  type                    rval_t         = logic signed  [XLEN-1:0]           ,
 
-            parameter   int                     LS_UNITS       = 2                                  ,
-            parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h8000_0000, 32'h0000_0000}    ,
-            parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff, 32'h7fff_ffff}    ,
+        //  parameter   int                     IBUS_ADDR_BITS = 10                                 ,
+        //  parameter   type                    ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ,
+        //  parameter   int                     IBUS_DATA_BITS = INSTR_BITS                         ,
+        //  parameter   type                    ibus_data_t    = logic         [IBUS_DATA_BITS-1:0] ,
+        //  parameter   int                     DBUS_ADDR_BITS = 10                                 ,
+        //  parameter   type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ,
+        //  parameter   int                     DBUS_DATA_BITS = XLEN                               ,
+        //  parameter   type                    dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ,
+        //  parameter   int                     DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ,
+        //  parameter   type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ,
 
+//          parameter   int                     LS_UNITS       = 2                                  ,
+//          parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO   = '{32'h8000_0000, 32'h0000_0000}    ,
+//          parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI  = '{32'hffff_ffff, 32'h7fff_ffff}    ,
+
+            parameter   int                          M_AXI4L_PORTS     = 1                           ,
+            parameter   int                          M_AXI4L_ADDR_BITS = 32                          ,
+            parameter   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_LO  = '{32'h8000_0000}            ,
+            parameter   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_HI  = '{32'hffff_ffff}            ,
+
+  
             parameter   int                     LOAD_QUES      = 2                                  ,
 
-            parameter   int                     TCM_ADDR_BITS    = 14                               ,
-            parameter   type                    tcm_addr_t       = logic  [TCM_ADDR_BITS-1:0]       ,
-            parameter   int                     TCM_DATA_BITS    = 32                               ,
-            parameter   type                    tcm_data_t       = logic  [TCM_DATA_BITS-1:0]       ,
-            parameter                           TCM_RAM_TYPE     = "block"                          ,
-            parameter  bit                      TCM_READMEMB     = 1'b0                             ,
-            parameter  bit                      TCM_READMEMH     = 1'b0                             ,
-            parameter                           TCM_READMEM_FIlE = ""                               ,
+//          parameter   int                     TCM_ADDR_BITS    = 14                               ,
+//          parameter   type                    tcm_addr_t       = logic  [TCM_ADDR_BITS-1:0]       ,
+//          parameter   int                     TCM_DATA_BITS    = 32                               ,
+//          parameter   type                    tcm_data_t       = logic  [TCM_DATA_BITS-1:0]       ,
 
+            parameter   int                     TCM_MEM_SIZE     = 64 * 1024                        ,
+            parameter   rval_t                  TCM_ADDR_LO      = 32'h0000_0000                    ,
+            parameter   rval_t                  TCM_ADDR_HI      = 32'h7fff_ffff                    ,
+            parameter                           TCM_RAM_TYPE     = "block"                          ,
+            parameter   bit                     TCM_READMEMB     = 1'b0                             ,
+            parameter   bit                     TCM_READMEMH     = 1'b0                             ,
+            parameter                           TCM_READMEM_FIlE = ""                               ,
             parameter  bit     [THREADS-1:0]    INIT_RUN       = 1                                  ,
             parameter  id_t                     INIT_ID        = '0                                 ,
             parameter  pc_t    [THREADS-1:0]    INIT_PC        = '0                                 ,
@@ -58,6 +68,46 @@ module jelly3_jfive_controller
             output  var logic   [31:0]  monitor
         );
 
+
+    // ---------------------------------------------------------
+    //  parameter
+    // ---------------------------------------------------------
+
+    localparam   int                     PHASE_BITS     = 1                                 ;
+    localparam  type                    phase_t        = logic         [PHASE_BITS-1:0]     ;
+
+    localparam  int                     INSTR_BITS     = 32                                 ;
+    localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]     ;
+    localparam  type                    ridx_t         = logic         [4:0]                ;
+
+
+
+    localparam  int     TCM_SIZE      = (TCM_MEM_SIZE + $bits(rval_t)-1) / $bits(rval_t);
+    localparam  int     TCM_ADDR_BITS = $clog2(TCM_SIZE);
+    
+//    parameter   int                     TCM_ADDR_BITS    = 14                               ;
+    localparam   type                    tcm_addr_t       = logic  [TCM_ADDR_BITS-1:0]       ;
+    localparam   int                     TCM_DATA_BITS    = 32                               ;
+    localparam   type                    tcm_data_t       = logic  [TCM_DATA_BITS-1:0]       ;
+
+    localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                  ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO   = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}     ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI   = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}     ;
+
+    rval_t  [LS_UNITS-1:0]  param_LS_ADDRS_LO  = LS_ADDRS_LO;
+    rval_t  [LS_UNITS-1:0]  param_LS_ADDRS_HI  = LS_ADDRS_HI;
+
+
+    localparam  int                      IBUS_ADDR_BITS = TCM_ADDR_BITS                      ;
+    localparam  type                     ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ;
+    localparam  int                      IBUS_DATA_BITS = INSTR_BITS                         ;
+    localparam  type                     ibus_data_t    = logic         [IBUS_DATA_BITS-1:0] ;
+    localparam  int                      DBUS_ADDR_BITS = TCM_ADDR_BITS > M_AXI4L_ADDR_BITS  ? TCM_ADDR_BITS : M_AXI4L_ADDR_BITS;
+    localparam  type                     dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ;
+    localparam  int                      DBUS_DATA_BITS = XLEN                               ;
+    localparam  type                     dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ;
+    localparam  int                      DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ;
+    localparam  type                     dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ;
 
     // ---------------------------------------------------------
     //  JFive Core
@@ -98,10 +148,6 @@ module jelly3_jfive_controller
                 .PC_MASK            (PC_MASK        ),
                 .INSTR_BITS         (INSTR_BITS     ),
                 .instr_t            (instr_t        ),
-    //          .IBUS_ADDR_BITS     (IBUS_ADDR_BITS ),
-    //          .ibus_addr_t        (ibus_addr_t    ),
-    //          .IBUS_DATA_BITS     (IBUS_DATA_BITS ),
-    //          .ibus_data_t        (ibus_data_t    ),
                 .DBUS_ADDR_BITS     (DBUS_ADDR_BITS ),
                 .dbus_addr_t        (dbus_addr_t    ),
                 .DBUS_DATA_BITS     (DBUS_DATA_BITS ),
@@ -109,16 +155,9 @@ module jelly3_jfive_controller
                 .DBUS_STRB_BITS     (DBUS_STRB_BITS ),
                 .dbus_strb_t        (dbus_strb_t    ),
                 .LS_UNITS           (LS_UNITS       ),
-                .LS_ADDRS_LOW       (LS_ADDRS_LOW   ),
-                .LS_ADDRS_HIGH      (LS_ADDRS_HIGH  ),
+                .LS_ADDRS_LO        (LS_ADDRS_LO    ),
+                .LS_ADDRS_HI        (LS_ADDRS_HI    ),
                 .LOAD_QUES          (LOAD_QUES      ),
-
-    //          .ridx_t             (ridx_t         ),
-    //          .rval_t             (rval_t         ),
-    //          .shamt_t            (shamt_t        ),
-    //          .EXES               (EXES           ),
-    //          .RAW_HAZARD         (RAW_HAZARD     ),
-    //          .WAW_HAZARD         (WAW_HAZARD     ),
                 .INIT_RUN           (INIT_RUN       ),
                 .INIT_ID            (INIT_ID        ),
                 .INIT_PC            (INIT_PC        ),
