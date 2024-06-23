@@ -31,7 +31,7 @@ module jelly3_jfive_controller
             parameter   pc_t    [THREADS-1:0]       INIT_PC           = '0                                  ,
             parameter                               DEVICE            = "ULTRASCALE_PLUS", //"RTL"          ,
             parameter                               SIMULATION        = "false"                             ,
-            parameter                               DEBUG              = "false"                                
+            parameter                               DEBUG              = "false"                            
         )
         (
             input   var logic           reset   ,
@@ -99,15 +99,18 @@ module jelly3_jfive_controller
     logic                       ibus_res_valid  ;
     logic                       ibus_res_ready  ;
 
-    dbus_addr_t [LS_UNITS-1:0]  dbus_cmd_addr   ;
-    logic       [LS_UNITS-1:0]  dbus_cmd_wr     ;
-    dbus_strb_t [LS_UNITS-1:0]  dbus_cmd_strb   ;
-    dbus_data_t [LS_UNITS-1:0]  dbus_cmd_wdata  ;
-    logic       [LS_UNITS-1:0]  dbus_cmd_valid  ;
-    logic       [LS_UNITS-1:0]  dbus_cmd_ready  ;
-    dbus_data_t [LS_UNITS-1:0]  dbus_res_rdata  ;
-    logic       [LS_UNITS-1:0]  dbus_res_valid  ;
-    logic       [LS_UNITS-1:0]  dbus_res_ready  ;
+    dbus_addr_t [LS_UNITS-1:0]  dbus_aaddr  ;
+    logic       [LS_UNITS-1:0]  dbus_awrite ;
+    logic       [LS_UNITS-1:0]  dbus_aread  ;
+    logic       [LS_UNITS-1:0]  dbus_avalid ;
+    logic       [LS_UNITS-1:0]  dbus_aready ;
+    dbus_strb_t [LS_UNITS-1:0]  dbus_wstrb  ;
+    dbus_data_t [LS_UNITS-1:0]  dbus_wdata  ;
+    logic       [LS_UNITS-1:0]  dbus_wvalid ;
+    logic       [LS_UNITS-1:0]  dbus_wready ;
+    dbus_data_t [LS_UNITS-1:0]  dbus_rdata  ;
+    logic       [LS_UNITS-1:0]  dbus_rvalid ;
+    logic       [LS_UNITS-1:0]  dbus_rready ;
 
     jelly3_jfive_core
         #(
@@ -157,15 +160,18 @@ module jelly3_jfive_controller
                 .ibus_res_valid     ,
                 .ibus_res_ready     ,
 
-                .dbus_cmd_addr      ,
-                .dbus_cmd_wr        ,
-                .dbus_cmd_strb      ,
-                .dbus_cmd_wdata     ,
-                .dbus_cmd_valid     ,
-                .dbus_cmd_ready     ,
-                .dbus_res_rdata     ,
-                .dbus_res_valid     ,
-                .dbus_res_ready      
+                .dbus_aaddr         ,
+                .dbus_awrite        ,
+                .dbus_aread         ,
+                .dbus_avalid        ,
+                .dbus_aready        ,
+                .dbus_wstrb         ,
+                .dbus_wdata         ,
+                .dbus_wvalid        ,
+                .dbus_wready        ,
+                .dbus_rdata         ,
+                .dbus_rvalid        ,
+                .dbus_rready         
             );
 
 
@@ -271,27 +277,29 @@ module jelly3_jfive_controller
 
     // dbus
     localparam DBUS_MEM = 0;
-    assign tcm_port1_cke  = cke & dbus_res_ready[DBUS_MEM]         ;
-    assign tcm_port1_addr = tcm_addr_t'(dbus_cmd_addr[DBUS_MEM])   ;
-    assign tcm_port1_we   = dbus_cmd_strb [DBUS_MEM]               ;
-    assign tcm_port1_din  = dbus_cmd_wdata[DBUS_MEM]               ;
+    assign tcm_port1_cke  = cke && dbus_aready[DBUS_MEM]        ;
+    assign tcm_port1_addr = tcm_addr_t'(dbus_aaddr[DBUS_MEM])   ;
+    assign tcm_port1_we   = dbus_wstrb[DBUS_MEM]                ;
+    assign tcm_port1_din  = dbus_wdata[DBUS_MEM]                ;
 
-    logic   mem_dbus_st0_valid  ;
-    logic   mem_dbus_st1_valid  ;
+    logic   tcm_dbus_st0_valid  ;
+    logic   tcm_dbus_st1_valid  ;
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            mem_dbus_st0_valid  <= 1'b0;
-            mem_dbus_st1_valid  <= 1'b0;
+            tcm_dbus_st0_valid  <= 1'b0;
+            tcm_dbus_st1_valid  <= 1'b0;
         end
-        else if ( cke && dbus_res_ready[DBUS_MEM] ) begin
-            mem_dbus_st0_valid  <= dbus_cmd_valid[DBUS_MEM] && !dbus_cmd_wr[DBUS_MEM];
-            mem_dbus_st1_valid  <= mem_dbus_st0_valid;
+        else if ( cke && dbus_rready[DBUS_MEM] ) begin
+            tcm_dbus_st0_valid  <= dbus_aread[DBUS_MEM];
+            tcm_dbus_st1_valid  <= tcm_dbus_st0_valid;
         end
     end
 
-    assign dbus_cmd_ready[DBUS_MEM] = !dbus_res_valid[DBUS_MEM] || dbus_res_ready[DBUS_MEM]  ;
-    assign dbus_res_rdata[DBUS_MEM] = tcm_port1_dout            ;
-    assign dbus_res_valid[DBUS_MEM] = mem_dbus_st1_valid        ;
+    assign dbus_aready[DBUS_MEM] = !dbus_rvalid[DBUS_MEM] || dbus_rready[DBUS_MEM]  ;
+    assign dbus_wready[DBUS_MEM] = !dbus_rvalid[DBUS_MEM] || dbus_rready[DBUS_MEM]  ;
+
+    assign dbus_rdata [DBUS_MEM] = tcm_port1_dout            ;
+    assign dbus_rvalid[DBUS_MEM] = tcm_dbus_st1_valid        ;
 
  
 
@@ -299,14 +307,32 @@ module jelly3_jfive_controller
     //  Peripheral BUS
     // ---------------------------------------------------------
 
-    localparam DBUS_PERI = 1;
+//  localparam DBUS_PERI = 1;
+//  assign monitor = dbus_cmd_wdata[DBUS_PERI];
+//  assign dbus_cmd_ready[DBUS_PERI] = !dbus_res_valid[DBUS_PERI] || dbus_res_ready[DBUS_PERI]  ;
+//  assign dbus_res_rdata[DBUS_PERI] = 'x  ;
+//  assign dbus_res_valid[DBUS_PERI] = dbus_cmd_valid[DBUS_PERI] && !dbus_cmd_wr[DBUS_PERI];
 
-    assign monitor = dbus_cmd_wdata[DBUS_PERI];
-    
-    assign dbus_cmd_ready[DBUS_PERI] = !dbus_res_valid[DBUS_PERI] || dbus_res_ready[DBUS_PERI]  ;
+    localparam DBUS_AXI4L = 1;
+    for ( genvar i = 0; i < M_AXI4L_PORTS ; i++ ) begin
+        assign m_axi4l[i].awaddr  = dbus_aaddr [DBUS_AXI4L+i];
+        assign m_axi4l[i].awprot  = '0;
+        assign m_axi4l[i].awvalid = dbus_awrite[DBUS_AXI4L+i];
+        assign m_axi4l[i].wdata   = dbus_wdata[DBUS_AXI4L+i];
+        assign m_axi4l[i].wstrb   = dbus_wstrb[DBUS_AXI4L+i];
+        assign m_axi4l[i].wvalid  = dbus_wvalid[DBUS_AXI4L+i];
 
-    assign dbus_res_rdata[DBUS_PERI] = 'x  ;
-    assign dbus_res_valid[DBUS_PERI] = dbus_cmd_valid[DBUS_PERI] && !dbus_cmd_wr[DBUS_PERI];
+        assign m_axi4l[i].araddr  = dbus_aaddr [DBUS_AXI4L+i];
+        assign m_axi4l[i].arprot  = '0;
+        assign m_axi4l[i].arvalid = dbus_aread[DBUS_AXI4L+i];
+
+        assign dbus_aready[DBUS_AXI4L+i] = m_axi4l[i].awvalid ? m_axi4l[i].awready : m_axi4l[i].arready;
+        assign dbus_wready[DBUS_AXI4L+i] = m_axi4l[i].wready;
+
+        assign dbus_rdata[DBUS_AXI4L+i]  = m_axi4l[i].rdata ;
+        assign dbus_rvalid[DBUS_AXI4L+i] = m_axi4l[i].rvalid;
+        assign m_axi4l[i].rready = dbus_rready[DBUS_AXI4L+i];
+    end
 
 endmodule
 

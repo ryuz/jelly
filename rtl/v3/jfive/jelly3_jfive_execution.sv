@@ -37,7 +37,6 @@ module jelly3_jfive_execution
             parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = '{32'h8000_0000, 32'h0000_0000}    ,
             parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = '{32'hffff_ffff, 32'h7fff_ffff}    ,
             parameter   int                     LOAD_QUES      = 2                                  ,
-//          parameter   int                     LOAD_QUES      = 2                                  ,
             parameter   int                     BUSY_RDS       = 3                                  ,
             parameter   bit                     RAW_HAZARD     = 1'b1                               ,
             parameter   bit                     WAW_HAZARD     = 1'b1                               ,
@@ -71,15 +70,18 @@ module jelly3_jfive_execution
             output  var rval_t                  wb_rd_val           ,
 
             // data bus 
-            output  var addr_t  [LS_UNITS-1:0]  dbus_cmd_addr       ,
-            output  var logic   [LS_UNITS-1:0]  dbus_cmd_wr         ,
-            output  var strb_t  [LS_UNITS-1:0]  dbus_cmd_strb       ,
-            output  var data_t  [LS_UNITS-1:0]  dbus_cmd_wdata      ,
-            output  var logic   [LS_UNITS-1:0]  dbus_cmd_valid      ,
-            input   var logic   [LS_UNITS-1:0]  dbus_cmd_ready      ,
-            input   var data_t  [LS_UNITS-1:0]  dbus_res_rdata      ,
-            input   var logic   [LS_UNITS-1:0]  dbus_res_valid      ,
-            output  var logic   [LS_UNITS-1:0]  dbus_res_ready      ,
+            output  var addr_t  [LS_UNITS-1:0]  dbus_aaddr          ,
+            output  var logic   [LS_UNITS-1:0]  dbus_awrite         ,
+            output  var logic   [LS_UNITS-1:0]  dbus_aread          ,
+            output  var logic   [LS_UNITS-1:0]  dbus_avalid         ,
+            input   var logic   [LS_UNITS-1:0]  dbus_aready         ,
+            output  var strb_t  [LS_UNITS-1:0]  dbus_wstrb          ,
+            output  var data_t  [LS_UNITS-1:0]  dbus_wdata          ,
+            output  var logic   [LS_UNITS-1:0]  dbus_wvalid         ,
+            input   var logic   [LS_UNITS-1:0]  dbus_wready         ,
+            input   var data_t  [LS_UNITS-1:0]  dbus_rdata          ,
+            input   var logic   [LS_UNITS-1:0]  dbus_rvalid         ,
+            output  var logic   [LS_UNITS-1:0]  dbus_rready         ,
 
             // output
             input   var id_t                    s_id                ,
@@ -276,7 +278,7 @@ module jelly3_jfive_execution
     pc_t                st0_branch_pc           ;
     size_t              st0_mem_size            ;
     logic               st0_mem_unsigned        ;
-    strb_t              st0_mem_strb            ;
+    strb_t              st0_mem_wstrb           ;
     rval_t              st0_mem_wdata           ;
     logic               st0_mem_valid           ;
     logic               st0_mem_valid_reg       ;
@@ -322,7 +324,7 @@ module jelly3_jfive_execution
             st0_branch_pc           <= 'x       ;
             st0_mem_size            <= 'x       ;
             st0_mem_unsigned        <= 'x       ;
-            st0_mem_strb            <= '0       ;
+            st0_mem_wstrb           <= '0       ;
             st0_mem_wdata           <= 'x       ;
             st0_mem_valid_reg       <= 1'b0     ;
             st0_valid_reg           <= 1'b0     ;
@@ -364,7 +366,7 @@ module jelly3_jfive_execution
             st0_branch_pc           <= s_branch_pc          ;
             st0_mem_size            <= s_mem_size           ;
             st0_mem_unsigned        <= s_mem_unsigned       ;
-            st0_mem_strb            <= s_store ? make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val)) : '0;
+            st0_mem_wstrb           <= s_store ? make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val)) : '0;
             st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)            ;
             st0_mem_valid_reg       <= (s_load || s_store) && s_valid               ;
             st0_valid_reg           <= s_valid                                      ;
@@ -511,15 +513,18 @@ module jelly3_jfive_execution
                     .clk                ,
                     .cke                ,
 
-                    .dbus_cmd_addr      (dbus_cmd_addr  [i]         ),
-                    .dbus_cmd_wr        (dbus_cmd_wr    [i]         ),
-                    .dbus_cmd_strb      (dbus_cmd_strb  [i]         ),
-                    .dbus_cmd_wdata     (dbus_cmd_wdata [i]         ),
-                    .dbus_cmd_valid     (dbus_cmd_valid [i]         ),
-                    .dbus_cmd_ready     (dbus_cmd_ready [i]         ),
-                    .dbus_res_rdata     (dbus_res_rdata [i]         ),
-                    .dbus_res_valid     (dbus_res_valid [i]         ),
-                    .dbus_res_ready     (dbus_res_ready [i]         ),
+                    .dbus_aaddr         (dbus_aaddr [i]             ) ,
+                    .dbus_awrite        (dbus_awrite[i]             ) ,
+                    .dbus_aread         (dbus_aread [i]             ) ,
+                    .dbus_avalid        (dbus_avalid[i]             ) ,
+                    .dbus_aready        (dbus_aready[i]             ) ,
+                    .dbus_wstrb         (dbus_wstrb [i]             ) ,
+                    .dbus_wdata         (dbus_wdata [i]             ) ,
+                    .dbus_wvalid        (dbus_wvalid[i]             ) ,
+                    .dbus_wready        (dbus_wready[i]             ) ,
+                    .dbus_rdata         (dbus_rdata [i]             ) ,
+                    .dbus_rvalid        (dbus_rvalid[i]             ) ,
+                    .dbus_rready        (dbus_rready[i]             ) ,
 
                     .que_id             (que_id    [i]              ),
                     .que_rd_en          (que_rd_en [i]              ),
@@ -536,7 +541,7 @@ module jelly3_jfive_execution
                     .s_unsigned         (st0_mem_unsigned           ),
                     .s_rd               (st0_load      & st0_valid  ),
                     .s_wr               (st0_store     & st0_valid  ),
-                    .s_strb             (st0_mem_strb               ),
+                    .s_wstrb            (st0_mem_wstrb              ),
                     .s_wdata            (st0_mem_wdata              ),
                     .s_valid            (st0_mem_valid & st0_valid & st0_ready  ),
                     .s_ready            (mem_ready[i]               ),

@@ -11,17 +11,39 @@ module tb_main
         );
     
 
-    localparam  int                     XLEN           = 32                                 ;
-    localparam  int                     THREADS        = 4                                  ;
-    localparam  int                     ID_BITS        = THREADS > 1 ? $clog2(THREADS) : 1  ;
-    localparam  type                    id_t           = logic         [ID_BITS-1:0]        ;
-    localparam  int                     PHASE_BITS     = 1                                  ;
-    localparam  type                    phase_t        = logic         [PHASE_BITS-1:0]     ;
-    localparam  int                     PC_BITS        = 32                                 ;
-    localparam  type                    pc_t           = logic         [PC_BITS-1:0]        ;
-    localparam  pc_t                    PC_MASK        = '0                                 ;
-    localparam  int                     INSTR_BITS     = 32                                 ;
-    localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]     ;
+    localparam  int                         XLEN             = 32                                   ;
+    localparam  int                         THREADS          = 4                                    ;
+    localparam  int                         ID_BITS          = THREADS > 1 ? $clog2(THREADS) : 1    ;
+    localparam  type                        id_t             = logic         [ID_BITS-1:0]          ;
+    localparam  int                         PC_BITS          = 32                                   ;
+    localparam  type                        pc_t             = logic         [PC_BITS-1:0]          ;
+    localparam  pc_t                        PC_MASK          = '0                                   ;
+    localparam  type                        rval_t           = logic signed  [XLEN-1:0]             ;
+    localparam  int                         LOAD_QUES        = 2                                    ;
+    localparam   int                        TCM_MEM_SIZE     = 512 * 1024                           ;
+    localparam   rval_t                     TCM_ADDR_LO      = 32'h0000_0000                        ;
+    localparam   rval_t                     TCM_ADDR_HI      = 32'h7fff_ffff                        ;
+    localparam                              TCM_RAM_TYPE     = "block"                              ;
+    localparam   bit                        TCM_READMEMB     = 1'b0                                 ;
+    localparam   bit                        TCM_READMEMH     = 1'b1                                 ;
+    localparam                              TCM_READMEM_FIlE = "../mem.hex"                         ;
+    localparam  int                         M_AXI4L_PORTS     = 1                                   ;
+    localparam  int                         M_AXI4L_ADDR_BITS = 32                                  ;
+    localparam  type                        m_axi4l_data_t    = logic   [M_AXI4L_ADDR_BITS-1:0]     ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'h8000_0000}                    ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'hffff_ffff}                    ;
+    localparam  bit     [THREADS-1:0]       INIT_RUN          = 1                                   ;
+    localparam  id_t                        INIT_ID           = '0                                  ;
+    localparam  pc_t    [THREADS-1:0]       INIT_PC           = '0                                  ;
+`ifdef __VERILATOR__
+    localparam                              DEVICE            = "RTL"                               ;
+`else
+    localparam                              DEVICE            = "ULTRASCALE_PLUS";                  ;
+`endif
+    localparam                              SIMULATION        = "false"                             ;
+    localparam                              DEBUG             = "false"                             ;
+
+
 //  localparam  int                     IBUS_ADDR_BITS = 10                                 ;
 //  localparam  type                    ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ;
 //  localparam  int                     IBUS_DATA_BITS = INSTR_BITS                         ;
@@ -33,23 +55,16 @@ module tb_main
     localparam  int                     DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ;
     localparam  type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ;
     localparam  type                    ridx_t         = logic         [4:0]                ;
-    localparam  type                    rval_t         = logic signed  [XLEN-1:0]           ;
-//  localparam  type                    shamt_t        = logic         [$clog2(XLEN)-1:0]   ;
-//  localparam  int                     EXES           = 4                                  ;
-//  localparam  bit                     RAW_HAZARD     = 1'b1                               ;
-//  localparam  bit                     WAW_HAZARD     = 1'b1                               ;
+//  localparam  type                    rval_t         = logic signed  [XLEN-1:0]           ;
 
-    localparam   int                     TCM_MEM_SIZE     = 512 * 1024                       ;
-    localparam   rval_t                  TCM_ADDR_LO      = 32'h0000_0000                   ;
-    localparam   rval_t                  TCM_ADDR_HI      = 32'h7fff_ffff                   ;
-    localparam                           TCM_RAM_TYPE     = "block"                         ;
-    localparam   bit                     TCM_READMEMB     = 1'b0                            ;
-    localparam   bit                     TCM_READMEMH     = 1'b1                            ;
-    localparam                           TCM_READMEM_FIlE = "../mem.hex"                    ;
 
-    localparam   int                          M_AXI4L_PORTS      = 1                         ;
-    localparam   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_LO = '{32'h8000_0000}            ;
-    localparam   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_HI = '{32'hffff_ffff}            ;
+    localparam  int                     INSTR_BITS     = 32                                 ;
+    localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]     ;
+
+
+//    localparam   int                          M_AXI4L_PORTS      = 1                         ;
+//    localparam   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_LO = '{32'h8000_0000}            ;
+//    localparam   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_HI = '{32'hffff_ffff}            ;
 //    localparam  int                     LS_UNITS       = 2                                  ;
 //    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h8000_0000, 32'h0000_0000}    ;
 //    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff, 32'h7fff_ffff}    ;
@@ -58,12 +73,12 @@ module tb_main
     localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO   = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}     ;
     localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI   = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}     ;
 
-    localparam  bit     [THREADS-1:0]   INIT_RUN    = 1                                     ;
-    localparam  id_t                    INIT_ID     = '0                                    ;
-    localparam  pc_t    [THREADS-1:0]   INIT_PC     = '0                                    ;
-    localparam                          DEVICE      = "RTL"                                 ;
-    localparam                          SIMULATION  = "false"                               ;
-    localparam                          DEBUG       = "false"                               ;
+//    localparam  bit     [THREADS-1:0]   INIT_RUN    = 1                                     ;
+//    localparam  id_t                    INIT_ID     = '0                                    ;
+//    localparam  pc_t    [THREADS-1:0]   INIT_PC     = '0                                    ;
+//    localparam                          DEVICE      = "RTL"                                 ;
+ //   localparam                          SIMULATION  = "false"                               ;
+ //   localparam                          DEBUG       = "false"                               ;
 
     logic               cke              = 1'b1;
     always @(posedge clk) begin
@@ -97,38 +112,22 @@ module tb_main
 
 
     jelly3_jfive_controller
-        #(
+            #(
                 .XLEN               (XLEN               ),
                 .THREADS            (THREADS            ),
-//                .ID_BITS            (ID_BITS            ),
-//                .id_t               (id_t               ),
-//                .PHASE_BITS         (PHASE_BITS         ),
-//                .phase_t            (phase_t            ),
-//                .PC_BITS            (PC_BITS            ),
-//                .pc_t               (pc_t               ),
                 .PC_MASK            (PC_MASK            ),
-//                .INSTR_BITS         (INSTR_BITS         ),
-//                .instr_t            (instr_t            ),
-        //      .IBUS_ADDR_BITS     (IBUS_ADDR_BITS     ),
-        //      .ibus_addr_t        (ibus_addr_t        ),
-        //      .IBUS_DATA_BITS     (IBUS_DATA_BITS     ),
-        //      .ibus_data_t        (ibus_data_t        ),
-//                .DBUS_ADDR_BITS     (DBUS_ADDR_BITS     ),
-//                .dbus_addr_t        (dbus_addr_t        ),
-//                .DBUS_DATA_BITS     (DBUS_DATA_BITS     ),
-//                .dbus_data_t        (dbus_data_t        ),
-//                .DBUS_STRB_BITS     (DBUS_STRB_BITS     ),
-//                .dbus_strb_t        (dbus_strb_t        ),
-        //      .ridx_t             (ridx_t             ),
-        //      .rval_t             (rval_t             ),
-        //      .shamt_t            (shamt_t            ),
-        //      .EXES               (EXES               ),
-        //      .RAW_HAZARD         (RAW_HAZARD         ),
-        //      .WAW_HAZARD         (WAW_HAZARD         ),
+                .LOAD_QUES          (LOAD_QUES          ),
                 .TCM_MEM_SIZE       (TCM_MEM_SIZE       ),
+                .TCM_ADDR_LO        (TCM_ADDR_LO        ),
+                .TCM_ADDR_HI        (TCM_ADDR_HI        ),
+                .TCM_RAM_TYPE       (TCM_RAM_TYPE       ),
                 .TCM_READMEMB       (TCM_READMEMB       ),
                 .TCM_READMEMH       (TCM_READMEMH       ),
                 .TCM_READMEM_FIlE   (TCM_READMEM_FIlE   ),
+                .M_AXI4L_PORTS      (M_AXI4L_PORTS      ),
+                .M_AXI4L_ADDR_BITS  (M_AXI4L_ADDR_BITS  ),
+                .M_AXI4L_ADDRS_LO   (M_AXI4L_ADDRS_LO   ),
+                .M_AXI4L_ADDRS_HI   (M_AXI4L_ADDRS_HI   ),
                 .INIT_RUN           (INIT_RUN           ),
                 .INIT_ID            (INIT_ID            ),
                 .INIT_PC            (INIT_PC            ),
@@ -144,29 +143,16 @@ module tb_main
                 .s_axi4l            (s_axi4l    ),
                 .m_axi4l            ('{m_axi4l} ),
                 .monitor            (           )
-                /*
-                .ibus_cmd_id        ,
-                .ibus_cmd_phase     ,
-                .ibus_cmd_pc        ,
-                .ibus_cmd_valid     ,
-                .ibus_cmd_ready,
-                .ibus_res_id        ,
-                .ibus_res_phase     ,
-                .ibus_res_pc        ,
-                .ibus_res_instr     ,
-                .ibus_res_valid     ,
-                .ibus_res_ready,
-                .dbus_cmd_addr      ,
-                .dbus_cmd_wr        ,
-                .dbus_cmd_strb      ,
-                .dbus_cmd_wdata     ,
-                .dbus_cmd_valid     ,
-                .dbus_cmd_ready,
-                .dbus_res_rdata     ,
-                .dbus_res_valid     ,
-                .dbus_res_ready      
-                */
+
             );
+
+    assign m_axi4l.awready = 1'b1;
+    assign m_axi4l.wready  = 1'b1;
+    assign m_axi4l.bresp   = '0;
+    assign m_axi4l.bvalid  = m_axi4l.awvalid & m_axi4l.awready;
+    assign m_axi4l.arready = m_axi4l.rready;
+    assign m_axi4l.rdata   = '0;
+    assign m_axi4l.rvalid  =  m_axi4l.arvalid; 
 
     /*
     localparam int  MEM_ADDR_BITS  = 14;
@@ -409,48 +395,54 @@ module tb_main
     end
 
     // dbus
-    dbus_addr_t [LS_UNITS-1:0]  dbus_cmd_addr   ;
-    logic       [LS_UNITS-1:0]  dbus_cmd_wr     ;
-    dbus_strb_t [LS_UNITS-1:0]  dbus_cmd_strb   ;
-    dbus_data_t [LS_UNITS-1:0]  dbus_cmd_wdata  ;
-    logic       [LS_UNITS-1:0]  dbus_cmd_valid  ;
-    logic       [LS_UNITS-1:0]  dbus_cmd_ready  ;
-    dbus_data_t [LS_UNITS-1:0]  dbus_res_rdata  ;
-    logic       [LS_UNITS-1:0]  dbus_res_valid  ;
-    logic       [LS_UNITS-1:0]  dbus_res_ready  ;    
+    dbus_addr_t [LS_UNITS-1:0]  dbus_aaddr      ;
+    logic       [LS_UNITS-1:0]  dbus_awrite     ;
+    logic       [LS_UNITS-1:0]  dbus_aread      ;
+    logic       [LS_UNITS-1:0]  dbus_avalid     ;
+    logic       [LS_UNITS-1:0]  dbus_aready     ;
+    dbus_strb_t [LS_UNITS-1:0]  dbus_wstrb      ;
+    dbus_data_t [LS_UNITS-1:0]  dbus_wdata      ;
+    logic       [LS_UNITS-1:0]  dbus_wvalid     ;
+    logic       [LS_UNITS-1:0]  dbus_wready     ;
+    dbus_data_t [LS_UNITS-1:0]  dbus_rdata      ;
+    logic       [LS_UNITS-1:0]  dbus_rvalid     ;
+    logic       [LS_UNITS-1:0]  dbus_rready     ;
 
-    assign dbus_cmd_addr  =  u_jfive_controller.dbus_cmd_addr ;
-    assign dbus_cmd_wr    =  u_jfive_controller.dbus_cmd_wr   ;
-    assign dbus_cmd_strb  =  u_jfive_controller.dbus_cmd_strb ;
-    assign dbus_cmd_wdata =  u_jfive_controller.dbus_cmd_wdata;
-    assign dbus_cmd_valid =  u_jfive_controller.dbus_cmd_valid;
-    assign dbus_cmd_ready =  u_jfive_controller.dbus_cmd_ready;
-    assign dbus_res_rdata =  u_jfive_controller.dbus_res_rdata;
-    assign dbus_res_valid =  u_jfive_controller.dbus_res_valid;
-    assign dbus_res_ready =  u_jfive_controller.dbus_res_ready; 
+    assign dbus_aaddr   = u_jfive_controller.dbus_aaddr ;
+    assign dbus_awrite  = u_jfive_controller.dbus_awrite;
+    assign dbus_aread   = u_jfive_controller.dbus_aread ;
+    assign dbus_avalid  = u_jfive_controller.dbus_avalid;
+    assign dbus_aready  = u_jfive_controller.dbus_aready;
+    assign dbus_wstrb   = u_jfive_controller.dbus_wstrb ;
+    assign dbus_wdata   = u_jfive_controller.dbus_wdata ;
+    assign dbus_wvalid  = u_jfive_controller.dbus_wvalid;
+    assign dbus_wready  = u_jfive_controller.dbus_wready;
+    assign dbus_rdata   = u_jfive_controller.dbus_rdata ;
+    assign dbus_rvalid  = u_jfive_controller.dbus_rvalid;
+    assign dbus_rready  = u_jfive_controller.dbus_rready;
 
     int fp_dbus0_log;
     initial fp_dbus0_log = $fopen("dbus0_log.txt", "w");
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
-            if ( dbus_cmd_valid[0] && dbus_cmd_ready[0] ) begin
-                if ( dbus_cmd_wr ) begin
-                    $fwrite(fp_dbus0_log, "%d w addr:%08x %08x wdata:%08x strb:%b\n", exe_counter, dbus_cmd_addr[0], int'(dbus_cmd_addr[0]) << 2, dbus_cmd_wdata[0], dbus_cmd_strb[0]);
+            if ( dbus_avalid[0] && dbus_aready[0] ) begin
+                if ( dbus_awrite ) begin
+                    $fwrite(fp_dbus0_log, "%d w addr:%08x %08x wdata:%08x strb:%b\n", exe_counter, dbus_aaddr[0], int'(dbus_aaddr[0]) << 2, dbus_wdata[0], dbus_wstrb[0]);
                 end
                 else begin
-                    $fwrite(fp_dbus0_log, "%d r addr:%08x %08x\n", exe_counter, dbus_cmd_addr[0], int'(dbus_cmd_addr[0]) << 2);
+                    $fwrite(fp_dbus0_log, "%d r addr:%08x %08x\n", exe_counter, dbus_aaddr[0], int'(dbus_aaddr[0]) << 2);
                 end
             end
-            if ( dbus_res_valid[0] && dbus_res_ready[0] ) begin
-                $fwrite(fp_dbus0_log, "r rdata:%08x\n", dbus_res_rdata[0]);
+            if ( dbus_rvalid[0] && dbus_rready[0] ) begin
+                $fwrite(fp_dbus0_log, "r rdata:%08x\n", dbus_rdata[0]);
             end
         end
     end
 
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
-            if ( dbus_cmd_wr[1] && dbus_cmd_valid[1] && dbus_cmd_ready[1] ) begin
-                $write("%c", dbus_cmd_wdata[1][7:0]);
+            if ( dbus_awrite[1] && dbus_avalid[1] && dbus_aready[1] ) begin
+                $write("%c", dbus_wdata[1][7:0]);
             end
         end
     end

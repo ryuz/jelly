@@ -45,16 +45,18 @@ module jelly3_jfive_load_store
             input   var logic                   cke                 ,
 
             // data bus 
-            output  var addr_t                  dbus_cmd_addr       ,
-            output  var logic                   dbus_cmd_wr         ,
-            output  var strb_t                  dbus_cmd_strb       ,
-            output  var data_t                  dbus_cmd_wdata      ,
-            output  var logic                   dbus_cmd_valid      ,
-            input   var logic                   dbus_cmd_ready      ,
-
-            input   var data_t                  dbus_res_rdata      ,
-            input   var logic                   dbus_res_valid      ,
-            output  var logic                   dbus_res_ready      ,
+            output  var addr_t                  dbus_aaddr          ,
+            output  var logic                   dbus_awrite         ,
+            output  var logic                   dbus_aread          ,
+            output  var logic                   dbus_avalid         ,
+            input   var logic                   dbus_aready         ,
+            output  var strb_t                  dbus_wstrb          ,
+            output  var data_t                  dbus_wdata          ,
+            output  var logic                   dbus_wvalid         ,
+            input   var logic                   dbus_wready         ,
+            input   var data_t                  dbus_rdata          ,
+            input   var logic                   dbus_rvalid         ,
+            output  var logic                   dbus_rready         ,
 
             // execution
             output  var id_t    [LOAD_QUES-1:0] que_id              ,
@@ -73,7 +75,7 @@ module jelly3_jfive_load_store
             input   var logic                   s_unsigned          ,
             input   var logic                   s_rd                ,
             input   var logic                   s_wr                ,
-            input   var strb_t                  s_strb              ,
+            input   var strb_t                  s_wstrb             ,
             input   var rval_t                  s_wdata             ,
             input   var logic                   s_valid             ,
             output  var logic                   s_ready             ,
@@ -92,6 +94,7 @@ module jelly3_jfive_load_store
     // ------------------------------------
     //  parameter
     // ------------------------------------
+
     localparam   align_t  align_mask_b = ~align_t'('b000);
     localparam   align_t  align_mask_h = ~align_t'('b001);
     localparam   align_t  align_mask_w = ~align_t'('b011);
@@ -106,8 +109,8 @@ module jelly3_jfive_load_store
 
     /* verilator lint_off UNSIGNED */
     /* verilator lint_off CMPCONST */
-    logic       s_addr_en;
-    assign s_addr_en = s_valid 
+    logic       s_addr_valid;
+    assign s_addr_valid = s_valid 
                     && $unsigned(s_addr) >= $unsigned(ADDR_LO)
                     && $unsigned(s_addr) <= $unsigned(ADDR_HI);
     /* verilator lint_on UNSIGNED */
@@ -196,7 +199,7 @@ module jelly3_jfive_load_store
     assign quein_align     = align_t'(s_addr)               ;
     assign quein_size      = s_size                         ;
     assign quein_unsigned  = s_unsigned                     ;
-    assign quein_valid     = s_rd_en && s_addr_en && s_ready;
+    assign quein_valid     = s_rd_en && s_addr_valid && s_ready;
 
 
     
@@ -207,48 +210,61 @@ module jelly3_jfive_load_store
     id_t        cmd0_id     ;
     pc_t        cmd0_pc     ;
     instr_t     cmd0_instr  ;
-    addr_t      cmd0_addr   ;
-    logic       cmd0_wr     ;
-    strb_t      cmd0_strb   ;
+    addr_t      cmd0_aaddr  ;
+    logic       cmd0_awrite ;
+    logic       cmd0_aread  ;
+    logic       cmd0_avalid ;
+    strb_t      cmd0_wstrb  ;
     data_t      cmd0_wdata  ;
-    logic       cmd0_valid  ;
+    logic       cmd0_wvalid ;
 
     always_ff @(posedge clk ) begin
         if ( reset ) begin
-            cmd0_id    <= 'x;
-            cmd0_pc    <= 'x;
-            cmd0_instr <= 'x;
-            cmd0_addr  <= 'x;
-            cmd0_wr    <= '0;
-            cmd0_strb  <= '0;
-            cmd0_wdata <= 'x;
-            cmd0_valid <= '0;
+            cmd0_id     <= 'x;
+            cmd0_pc     <= 'x;
+            cmd0_instr  <= 'x;
+            cmd0_aaddr  <= 'x;
+            cmd0_awrite <= 1'b0;
+            cmd0_aread  <= 1'b0;
+            cmd0_avalid <= 1'b0;
+            cmd0_wstrb  <= '0;
+            cmd0_wdata  <= 'x;
+            cmd0_wvalid <= 1'b0;
         end
         else if ( cke ) begin
-            if ( dbus_cmd_ready ) begin
-                 cmd0_valid  <= 1'b0;
-                 cmd0_strb   <= '0  ;
+            if ( dbus_aready ) begin
+                 cmd0_awrite <= 1'b0;
+                 cmd0_aread  <= 1'b0;
+                 cmd0_avalid <= 1'b0;
+            end
+            if ( dbus_aready ) begin
+                 cmd0_wstrb  <= '0  ;
+                 cmd0_wvalid <= 1'b0;
             end
             if ( s_ready ) begin
-                cmd0_id     <= s_id;
-                cmd0_pc     <= s_pc;
-                cmd0_instr  <= s_instr;
-                cmd0_addr   <= addr_t'(s_addr >> $clog2($bits(strb_t))) ;
-                cmd0_wr     <= s_wr     && s_addr_en                    ;
-                cmd0_strb   <= (s_valid && s_addr_en) ? s_strb : '0     ;
-                cmd0_wdata  <= s_wdata                                  ;
-                cmd0_valid  <= s_valid  && s_addr_en                    ;
+                cmd0_id     <= s_id     ;
+                cmd0_pc     <= s_pc     ;
+                cmd0_instr  <= s_instr  ;
+                cmd0_aaddr  <= addr_t'(s_addr >> $clog2($bits(strb_t))) ;
+                cmd0_awrite <= s_addr_valid &&  s_wr        ;
+                cmd0_aread  <= s_addr_valid && !s_wr        ;
+                cmd0_avalid <= s_addr_valid                 ;
+                cmd0_wstrb  <= s_addr_valid ? s_wstrb : '0  ;
+                cmd0_wdata  <= s_wdata                      ;
+                cmd0_wvalid <= s_addr_valid &&  s_wr        ;
             end
         end
     end
 
-    assign dbus_cmd_addr  = cmd0_addr   ;
-    assign dbus_cmd_wr    = cmd0_wr     ;
-    assign dbus_cmd_strb  = cmd0_strb   ;
-    assign dbus_cmd_wdata = cmd0_wdata  ;
-    assign dbus_cmd_valid = cmd0_valid  ;
+    assign dbus_aaddr  = cmd0_aaddr     ;
+    assign dbus_awrite = cmd0_awrite    ;
+    assign dbus_aread  = cmd0_aread     ;
+    assign dbus_avalid = cmd0_avalid    ;
+    assign dbus_wstrb  = cmd0_wstrb     ;
+    assign dbus_wdata  = cmd0_wdata     ;
+    assign dbus_wvalid = cmd0_wvalid    ;
 
-    assign s_ready = (dbus_cmd_ready && quein_ready);
+    assign s_ready = (!dbus_avalid || dbus_aready) && (!dbus_wvalid || dbus_wready) && quein_ready;
 
 
     // ------------------------------------
@@ -269,12 +285,12 @@ module jelly3_jfive_load_store
     assign queout_align_h = queout_align & ~align_t'('b001);
     assign queout_align_w = queout_align & ~align_t'('b011);
 
-    rval_t              dbus_res_rdata_alignd_b;
-    rval_t              dbus_res_rdata_alignd_h;
-    rval_t              dbus_res_rdata_alignd_w;
-    assign dbus_res_rdata_alignd_b = (dbus_res_rdata >> (8 * int'(queout_align_b)));
-    assign dbus_res_rdata_alignd_h = (dbus_res_rdata >> (8 * int'(queout_align_h)));
-    assign dbus_res_rdata_alignd_w = (dbus_res_rdata >> (8 * int'(queout_align_w)));
+    rval_t              dbus_rdata_alignd_b;
+    rval_t              dbus_rdata_alignd_h;
+    rval_t              dbus_rdata_alignd_w;
+    assign dbus_rdata_alignd_b = (dbus_rdata >> (8 * int'(queout_align_b)));
+    assign dbus_rdata_alignd_h = (dbus_rdata >> (8 * int'(queout_align_h)));
+    assign dbus_rdata_alignd_w = (dbus_rdata >> (8 * int'(queout_align_w)));
 
     always_ff @(posedge clk ) begin
         if ( reset ) begin
@@ -288,7 +304,7 @@ module jelly3_jfive_load_store
         else if ( cke ) begin
             if ( !m_valid || m_ready ) begin
                 res0_rd_en  <= 1'b0          ;  
-                if ( dbus_res_valid && dbus_res_ready ) begin
+                if ( dbus_rvalid && dbus_rready ) begin
                     res0_id     <= queout_id     ;
                     res0_pc     <= queout_pc     ;
                     res0_instr  <= queout_instr  ;
@@ -297,18 +313,18 @@ module jelly3_jfive_load_store
 
                     if ( queout_unsigned ) begin
                         case ( queout_size )
-                        2'b00:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata_alignd_b[ 7:0]));
-                        2'b01:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata_alignd_h[15:0]));
-                        2'b10:      res0_rd_val <= rval_t'($unsigned(dbus_res_rdata_alignd_w[31:0]));
-                        default:    res0_rd_val <= rval_t'($unsigned(dbus_res_rdata));
+                        2'b00:      res0_rd_val <= rval_t'($unsigned(dbus_rdata_alignd_b[ 7:0]));
+                        2'b01:      res0_rd_val <= rval_t'($unsigned(dbus_rdata_alignd_h[15:0]));
+                        2'b10:      res0_rd_val <= rval_t'($unsigned(dbus_rdata_alignd_w[31:0]));
+                        default:    res0_rd_val <= rval_t'($unsigned(dbus_rdata));
                         endcase
                     end
                     else begin
                         case ( queout_size )
-                        2'b00:      res0_rd_val <= rval_t'($signed(dbus_res_rdata_alignd_b[ 7:0]));
-                        2'b01:      res0_rd_val <= rval_t'($signed(dbus_res_rdata_alignd_h[15:0]));
-                        2'b10:      res0_rd_val <= rval_t'($signed(dbus_res_rdata_alignd_w[31:0]));
-                        default:    res0_rd_val <= rval_t'($signed(dbus_res_rdata));
+                        2'b00:      res0_rd_val <= rval_t'($signed(dbus_rdata_alignd_b[ 7:0]));
+                        2'b01:      res0_rd_val <= rval_t'($signed(dbus_rdata_alignd_h[15:0]));
+                        2'b10:      res0_rd_val <= rval_t'($signed(dbus_rdata_alignd_w[31:0]));
+                        default:    res0_rd_val <= rval_t'($signed(dbus_rdata));
                         endcase
                     end
                 end
@@ -316,9 +332,9 @@ module jelly3_jfive_load_store
         end
     end
 
-    assign dbus_res_ready = m_ready;
+    assign dbus_rready = m_ready;
 
-    assign queout_ready  = !queout_valid || (dbus_res_valid && dbus_res_ready);
+    assign queout_ready  = (dbus_rvalid && dbus_rready); // || !queout_valid;
 
 
     // ------------------------------------

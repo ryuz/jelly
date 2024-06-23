@@ -63,16 +63,20 @@ module jelly3_jfive_core
             output  var logic                       ibus_res_ready  ,
 
             // data bus
-            output  var dbus_addr_t [LS_UNITS-1:0]  dbus_cmd_addr   ,
-            output  var logic       [LS_UNITS-1:0]  dbus_cmd_wr     ,
-            output  var dbus_strb_t [LS_UNITS-1:0]  dbus_cmd_strb   ,
-            output  var dbus_data_t [LS_UNITS-1:0]  dbus_cmd_wdata  ,
-            output  var logic       [LS_UNITS-1:0]  dbus_cmd_valid  ,
-            input   var logic       [LS_UNITS-1:0]  dbus_cmd_ready  ,
-            input   var dbus_data_t [LS_UNITS-1:0]  dbus_res_rdata  ,
-            input   var logic       [LS_UNITS-1:0]  dbus_res_valid  ,
-            output  var logic       [LS_UNITS-1:0]  dbus_res_ready   
+            output  var dbus_addr_t [LS_UNITS-1:0]  dbus_aaddr  ,
+            output  var logic       [LS_UNITS-1:0]  dbus_awrite ,
+            output  var logic       [LS_UNITS-1:0]  dbus_aread  ,
+            output  var logic       [LS_UNITS-1:0]  dbus_avalid ,
+            input   var logic       [LS_UNITS-1:0]  dbus_aready ,
+            output  var dbus_strb_t [LS_UNITS-1:0]  dbus_wstrb  ,
+            output  var dbus_data_t [LS_UNITS-1:0]  dbus_wdata  ,
+            output  var logic       [LS_UNITS-1:0]  dbus_wvalid ,
+            input   var logic       [LS_UNITS-1:0]  dbus_wready ,
+            input   var dbus_data_t [LS_UNITS-1:0]  dbus_rdata  ,
+            input   var logic       [LS_UNITS-1:0]  dbus_rvalid ,
+            output  var logic       [LS_UNITS-1:0]  dbus_rready  
         );
+
 
 
     // -----------------------------
@@ -370,15 +374,18 @@ module jelly3_jfive_core
                 .wb_rd_idx              ,
                 .wb_rd_val              ,
 
-                .dbus_cmd_addr          ,
-                .dbus_cmd_wr            ,
-                .dbus_cmd_strb          ,
-                .dbus_cmd_wdata         ,
-                .dbus_cmd_valid         ,
-                .dbus_cmd_ready         ,
-                .dbus_res_rdata         ,
-                .dbus_res_valid         ,
-                .dbus_res_ready         ,
+                .dbus_aaddr             ,
+                .dbus_awrite            ,
+                .dbus_aread             ,
+                .dbus_avalid            ,
+                .dbus_aready            ,
+                .dbus_wstrb             ,
+                .dbus_wdata             ,
+                .dbus_wvalid            ,
+                .dbus_wready            ,
+                .dbus_rdata             ,
+                .dbus_rvalid            ,
+                .dbus_rready            ,
 
                 .s_id                   (id_id                  ),
                 .s_phase                (id_phase               ),
