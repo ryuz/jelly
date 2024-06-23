@@ -76,9 +76,21 @@ module tb_top();
                 .m_axi4l        (axi4l  )
             );
 
+    logic   [31:0]    mem   [0:1023];
+    
+    logic   [39:0]  base_mem = 40'ha010_0000;
+
     initial begin
         $display("start");
         #1000;
+
+        $readmemh("../../mem.hex", mem);
+        for (int i=0; i < 400; i++) begin
+            u_axi4l_accessor.write_reg(base_mem, i, mem[i], 4'hf);
+        end
+
+        #100;
+        // リセット解除
         u_axi4l_accessor.write_reg(0, 4, 1, 4'hf);
     end
 

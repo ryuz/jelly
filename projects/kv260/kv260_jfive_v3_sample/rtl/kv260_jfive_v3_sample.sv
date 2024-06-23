@@ -116,7 +116,7 @@ module kv260_jfive_v3_sample
     localparam                              TCM_RAM_TYPE     = "block"                              ;
     localparam   bit                        TCM_READMEMB     = 1'b0                                 ;
     localparam   bit                        TCM_READMEMH     = 1'b1                                 ;
-    localparam                              TCM_READMEM_FIlE = "../../../mem.hex"                   ;
+    localparam                              TCM_READMEM_FIlE = "";//"../../../mem.hex"                   ;
     localparam  int                         M_AXI4L_PORTS     = 1                                   ;
     localparam  int                         M_AXI4L_ADDR_BITS = 32                                  ;
     localparam  type                        m_axi4l_data_t    = logic   [M_AXI4L_ADDR_BITS-1:0]     ;
