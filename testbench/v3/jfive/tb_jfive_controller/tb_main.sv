@@ -44,42 +44,6 @@ module tb_main
     localparam                              DEBUG             = "false"                             ;
 
 
-//  localparam  int                     IBUS_ADDR_BITS = 10                                 ;
-//  localparam  type                    ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ;
-//  localparam  int                     IBUS_DATA_BITS = INSTR_BITS                         ;
-//  localparam  type                    ibus_data_t    = logic         [IBUS_DATA_BITS-1:0] ;
-    localparam  int                     DBUS_ADDR_BITS = 16                                 ;
-    localparam  type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ;
-    localparam  int                     DBUS_DATA_BITS = XLEN                               ;
-    localparam  type                    dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ;
-    localparam  int                     DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ;
-    localparam  type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ;
-    localparam  type                    ridx_t         = logic         [4:0]                ;
-//  localparam  type                    rval_t         = logic signed  [XLEN-1:0]           ;
-
-
-    localparam  int                     INSTR_BITS     = 32                                 ;
-    localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]     ;
-
-
-//    localparam   int                          M_AXI4L_PORTS      = 1                         ;
-//    localparam   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_LO = '{32'h8000_0000}            ;
-//    localparam   rval_t  [M_AXI4L_PORTS-1:0]  M_AXI4L_ADDRS_HI = '{32'hffff_ffff}            ;
-//    localparam  int                     LS_UNITS       = 2                                  ;
-//    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LOW   = '{32'h8000_0000, 32'h0000_0000}    ;
-//    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HIGH  = '{32'hffff_ffff, 32'h7fff_ffff}    ;
-
-    localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                  ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO   = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}     ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI   = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}     ;
-
-//    localparam  bit     [THREADS-1:0]   INIT_RUN    = 1                                     ;
-//    localparam  id_t                    INIT_ID     = '0                                    ;
-//    localparam  pc_t    [THREADS-1:0]   INIT_PC     = '0                                    ;
-//    localparam                          DEVICE      = "RTL"                                 ;
- //   localparam                          SIMULATION  = "false"                               ;
- //   localparam                          DEBUG       = "false"                               ;
-
     logic               cke              = 1'b1;
     always @(posedge clk) begin
         // ランダム
@@ -141,11 +105,31 @@ module tb_main
                 .clk                ,
                 .cke                ,
                 .s_axi4l            (s_axi4l    ),
-                .m_axi4l            ('{m_axi4l} ),
-                .monitor            (           )
-
+                .m_axi4l            ('{m_axi4l} )
             );
 
+
+    jelly3_axi4l_register
+            #(
+                .NUM        (8          ),
+                .BITS       (1          ),
+                .INIT       ('0         )
+            )
+        u_axi4l_register
+            (
+                .s_axi4l    (m_axi4l    ),
+                .value      (           )
+            );
+
+    always_ff @(posedge m_axi4l.aclk) begin
+        if (  m_axi4l.aresetn == 1'b1 ) begin
+            if ( m_axi4l.wvalid && m_axi4l.wready ) begin
+                $write("%c", m_axi4l.wdata[7:0]);
+            end
+        end
+    end
+
+    /*
     assign m_axi4l.awready = 1'b1;
     assign m_axi4l.wready  = 1'b1;
     assign m_axi4l.bresp   = '0;
@@ -153,6 +137,26 @@ module tb_main
     assign m_axi4l.arready = m_axi4l.rready;
     assign m_axi4l.rdata   = '0;
     assign m_axi4l.rvalid  =  m_axi4l.arvalid; 
+    */
+
+
+
+    // ------------------------------------------------
+    //  Debug
+    // ------------------------------------------------
+
+    localparam  int                     DBUS_ADDR_BITS = 16                                 ;
+    localparam  type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ;
+    localparam  int                     DBUS_DATA_BITS = XLEN                               ;
+    localparam  type                    dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ;
+    localparam  int                     DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ;
+    localparam  type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ;
+    localparam  type                    ridx_t         = logic         [4:0]                ;
+    localparam  int                     INSTR_BITS     = 32                                 ;
+    localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]     ;
+    localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                  ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO   = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}     ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI   = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}     ;
 
     /*
     localparam int  MEM_ADDR_BITS  = 14;
@@ -439,6 +443,7 @@ module tb_main
         end
     end
 
+    /*
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
             if ( dbus_awrite[1] && dbus_avalid[1] && dbus_aready[1] ) begin
@@ -446,6 +451,7 @@ module tb_main
             end
         end
     end
+    */
 
     /*
     int fp_dbus_log;

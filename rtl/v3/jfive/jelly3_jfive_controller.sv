@@ -23,25 +23,23 @@ module jelly3_jfive_controller
             parameter                               TCM_READMEM_FIlE  = ""                                  ,
             parameter   int                         M_AXI4L_PORTS     = 1                                   ,
             parameter   int                         M_AXI4L_ADDR_BITS = 32                                  ,
-            localparam  type                        m_axi4l_data_t    = logic         [M_AXI4L_ADDR_BITS-1:0],
+            localparam  type                        m_axi4l_data_t    = logic   [M_AXI4L_ADDR_BITS-1:0]     ,
             parameter   rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'h8000_0000}                    ,
             parameter   rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'hffff_ffff}                    ,
             parameter   bit     [THREADS-1:0]       INIT_RUN          = 1                                   ,
             parameter   id_t                        INIT_ID           = '0                                  ,
             parameter   pc_t    [THREADS-1:0]       INIT_PC           = '0                                  ,
-            parameter                               DEVICE            = "ULTRASCALE_PLUS", //"RTL"          ,
+            parameter                               DEVICE            = "RTL"                               ,
             parameter                               SIMULATION        = "false"                             ,
-            parameter                               DEBUG              = "false"                            
+            parameter                               DEBUG             = "false"                            
         )
         (
-            input   var logic           reset   ,
-            input   var logic           clk     ,
-            input   var logic           cke     ,
+            input   var logic           reset                           ,
+            input   var logic           clk                             ,
+            input   var logic           cke                             ,
 
             jelly3_axi4l_if.s           s_axi4l                         ,
-            jelly3_axi4l_if.m           m_axi4l   [0:M_AXI4L_PORTS-1]   ,
-
-            output  var logic   [31:0]  monitor
+            jelly3_axi4l_if.m           m_axi4l   [0:M_AXI4L_PORTS-1]   
         );
 
 
@@ -307,20 +305,17 @@ module jelly3_jfive_controller
     //  Peripheral BUS
     // ---------------------------------------------------------
 
-//  localparam DBUS_PERI = 1;
-//  assign monitor = dbus_cmd_wdata[DBUS_PERI];
-//  assign dbus_cmd_ready[DBUS_PERI] = !dbus_res_valid[DBUS_PERI] || dbus_res_ready[DBUS_PERI]  ;
-//  assign dbus_res_rdata[DBUS_PERI] = 'x  ;
-//  assign dbus_res_valid[DBUS_PERI] = dbus_cmd_valid[DBUS_PERI] && !dbus_cmd_wr[DBUS_PERI];
-
     localparam DBUS_AXI4L = 1;
     for ( genvar i = 0; i < M_AXI4L_PORTS ; i++ ) begin
         assign m_axi4l[i].awaddr  = dbus_aaddr [DBUS_AXI4L+i];
         assign m_axi4l[i].awprot  = '0;
         assign m_axi4l[i].awvalid = dbus_awrite[DBUS_AXI4L+i];
+
         assign m_axi4l[i].wdata   = dbus_wdata[DBUS_AXI4L+i];
         assign m_axi4l[i].wstrb   = dbus_wstrb[DBUS_AXI4L+i];
         assign m_axi4l[i].wvalid  = dbus_wvalid[DBUS_AXI4L+i];
+
+        assign m_axi4l[i].bready  = 1'b1;
 
         assign m_axi4l[i].araddr  = dbus_aaddr [DBUS_AXI4L+i];
         assign m_axi4l[i].arprot  = '0;
