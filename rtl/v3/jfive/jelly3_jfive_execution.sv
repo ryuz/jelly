@@ -728,6 +728,32 @@ module jelly3_jfive_execution
         st1_ready = !(st2_valid && st2_rd_en) || ready;
     end
 
+
+    (* mark_debug = DEBUG *)    id_t        exe_id        ;
+    (* mark_debug = DEBUG *)    pc_t        exe_pc        ;
+    (* mark_debug = DEBUG *)    instr_t     exe_instr     ;
+    (* mark_debug = DEBUG *)    logic       exe_rs1_en    ;
+    (* mark_debug = DEBUG *)    ridx_t      exe_rs1_idx   ;
+    (* mark_debug = DEBUG *)    rval_t      exe_rs1_val   ;
+    (* mark_debug = DEBUG *)    logic       exe_rs2_en    ;
+    (* mark_debug = DEBUG *)    ridx_t      exe_rs2_idx   ;
+    (* mark_debug = DEBUG *)    rval_t      exe_rs2_val   ;
+    (* mark_debug = DEBUG *)    logic       exe_valid     ;
+
+    always_ff @(posedge clk) begin
+        exe_id        <= st0_id       ;
+        exe_pc        <= st0_pc       ;
+        exe_instr     <= st0_instr    ;
+        exe_rs1_en    <= st0_rs1_en   ;
+        exe_rs1_idx   <= st0_rs1_idx  ;
+        exe_rs1_val   <= st0_rs1_val  ;
+        exe_rs2_en    <= st0_rs2_en   ;
+        exe_rs2_idx   <= st0_rs2_idx  ;
+        exe_rs2_val   <= st0_rs2_val  ;
+        exe_valid     <= cke && st0_valid && st0_ready   ;
+    end
+
+
 endmodule
 
 

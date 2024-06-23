@@ -7,7 +7,7 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-PROJECT_NAME = kv260_imx219
+PROJECT_NAME = kv260_jfive_v3_sample
 BOARD_NAME   = kv260
 export PRJ_NAME     = $(PROJECT_NAME)_tcl
 export TOP_MODULE   = $(PROJECT_NAME)
@@ -34,13 +34,12 @@ HLS_IP =
 export HLS_IP
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/kv260_imx219.sv
-SOURCES += $(PRJ_DIR)/rtl/video_raw_to_rgb.sv
+SOURCES  = $(PRJ_DIR)/rtl/kv260_jfive_v3_sample.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
 # IP cores
-IP_CORES = ../../ip/vivado$(VIVADO_VERSION)/mipi_dphy_cam/mipi_dphy_cam.xci
+IP_CORES = 
 export IP_CORES
 
 # block design
@@ -75,19 +74,10 @@ bit_scp: $(BIT_FILE)
 bit_cp: $(BIT_FILE)
 	cp $(BIT_FILE) ../../app
 
-$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS)
+$(BIT_FILE): $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS)
 	rm -f $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl | tee vivado_create_project.log
-
-$(BIT_FILE): $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl | tee vivado_implementation.log
-
-.PHONY : check_log
-check_log:
-	@echo "----- synth_1 -----"
-	@cat $(PRJ_NAME).runs/synth_1/runme.log | grep encountered.
-	@echo "----- impl_1 -----"
-	@cat $(PRJ_NAME).runs/impl_1/runme.log | grep encountered.
 
 .PHONY : report_csv
 report_csv:
@@ -99,6 +89,13 @@ report_csv:
 	$(TOP_DIR)/scripts/vivado_timing_rpt_to_csv.py other         $(PRJ_NAME).runs/impl_1/$(TOP_MODULE)_timing_summary_routed.rpt timing_other_path_group.csv
 	$(TOP_DIR)/scripts/vivado_timing_rpt_to_csv.py ignore        $(PRJ_NAME).runs/impl_1/$(TOP_MODULE)_timing_summary_routed.rpt timing_ignore_path.csv
 	$(TOP_DIR)/scripts/vivado_timing_rpt_to_csv.py unconstrained $(PRJ_NAME).runs/impl_1/$(TOP_MODULE)_timing_summary_routed.rpt timing_unconstrained_path.csv
+
+.PHONY : check_log
+check_log:
+	@echo "----- synth_1 -----"
+	@cat $(PRJ_NAME).runs/synth_1/runme.log | grep encountered.
+	@echo "----- impl_1 -----"
+	@cat $(PRJ_NAME).runs/impl_1/runme.log | grep encountered.
 
 .PHONY : clean
 clean:

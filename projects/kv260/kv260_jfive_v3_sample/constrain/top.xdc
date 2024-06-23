@@ -32,7 +32,7 @@
 # 500MHz (URAMの限界)
 #create_clock -period 2.000 -name clk -waveform {0.000 1.000} [get_ports clk]
 
-# -mode out_of_context 
+# -mode out_of_context
 
 
 # FAN
@@ -56,4 +56,3 @@ set_property IOSTANDARD LVCMOS33 [get_ports {pmod[4]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod[5]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod[6]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod[7]}]
-

@@ -7,7 +7,7 @@ module kv260_jfive_v3_sample
         #(
             parameter   DEVICE            = "ULTRASCALE_PLUS"   ,
             parameter   SIMULATION        = "false"             ,
-            parameter   DEBUG             = "false"             
+            parameter   DEBUG             = "true"             
         )
         (
             output  var logic           fan_en  ,
@@ -122,16 +122,25 @@ module kv260_jfive_v3_sample
 
     jelly3_axi4l_register
             #(
-                .NUM                (8          ),
+                .NUM                (4          ),
                 .BITS               (1          ),
                 .INIT               ('0         )
             )
         u_axi4l_register
             (
                 .s_axi4l            (m_axi4l    ),
-                .value              (pmod       )
+                .value              (pmod[3:0]  )
             );
 
+    logic   [27:0]    counter;
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            counter <= 28'h0;
+        end else begin
+            counter <= counter + 28'h1;
+        end
+    end
+    assign pmod[7:4] = counter[27:24];
 
 endmodule
 
