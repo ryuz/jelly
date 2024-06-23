@@ -6,6 +6,8 @@
 
 
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <unistd.h>
 
 #include "jelly/UioAccessor.h"
@@ -18,34 +20,34 @@ int main()
 {
     std::cout << "Hello" << std::endl;
 
-    /*
-    std::cout << "--- udmabuf test ---" << std::endl;
-
-    // mmap udmabuf
-    std::cout << "\nudmabuf open" << std::endl;
-    UdmabufAccessor udmabuf_acc("udmabuf-jelly-sample");
-    if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf mmap error" << std::endl;
-        return 1;
-    }
-    std::cout << "udmabuf phys addr : " << std::hex << udmabuf_acc.GetPhysAddr() << std::endl;
-    std::cout << "udmabuf size      : " << std::hex << udmabuf_acc.GetSize()     << std::endl;
-
     // mmap uio
     std::cout << "\nuio open" << std::endl;
-    UioAccessor uio_acc("uio_pl_peri", 0x08000000);
+    UioAccessor32 uio_acc("uio_pl_peri", 0x08000000);
     if ( !uio_acc.IsMapped() ) {
         std::cout << "uio_pl_peri mmap error" << std::endl;
         return 1;
     }
 
     // UIOの中をさらにコアごとに割り当て
-    auto dma0_acc = uio_acc.GetAccessor(0x00000);
-    auto dma1_acc = uio_acc.GetAccessor(0x00800);
-    auto led_acc  = uio_acc.GetAccessor(0x08000);
-    auto tim_acc  = uio_acc.GetAccessor(0x10000);
-    */
-   
+    auto jfive_ctl = uio_acc.GetAccessor32(0x000000);
+    auto jfive_mem = uio_acc.GetAccessor32(0x100000);
+
+    std::cout << "CORE_ID  : " << jfive_ctl.ReadReg32(0x00) << std::endl;
+    std::cout << "CORE_VER : " << jfive_ctl.ReadReg32(0x01) << std::endl;
+
+    // 16進数のテキストファイルを１行づつ読み込む
+    std::ifstream ifs("../mem.hex");
+    std::uint32_t val;
+    for ( int i = 0; i < 65536; i++ ) {
+        if ( !(ifs >> std::hex >> val) ) {
+            break;
+        }
+//      std::cout << std::hex << val << std::endl;
+        jfive_mem.WriteReg32(i, val);
+    }
+
+    jfive_ctl.WriteReg32(4, 1);
+
     return 0;
 }
 

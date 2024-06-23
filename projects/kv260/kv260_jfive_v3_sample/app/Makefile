@@ -22,27 +22,19 @@ OBJS = main.o
 
 
 .PHONY: all
-all: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+all: jfive $(TARGET) $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: clean
 clean:
 	rm -rf $(TARGET) $(OBJS) $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: run
-run: $(TARGET) load
+run: $(TARGET) jfive load
 	./$(TARGET) $(RUN_OPT)
 
-.PHONY: run_rust
-run_rust: load
-	cd rust; cargo run
-
-.PHONY: build_rust
-build_rust:
-	cd rust; cargo build
-
-.PHONY: server
-server: load
-	cd grpc/server; cargo run
+.PHONY: jfive
+jfive:
+	make -C ../jfive_app
 
 
 $(TARGET): $(OBJS)
