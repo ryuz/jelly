@@ -6,8 +6,8 @@
 module tb_main
     import jelly3_jfive32_pkg::*;
         (
-            input   wire                        reset,
-            input   wire                        clk
+            input   var logic   reset,
+            input   var logic   clk
         );
     
 
@@ -155,164 +155,12 @@ module tb_main
     localparam  int                     INSTR_BITS     = 32                                 ;
     localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]     ;
     localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                  ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO   = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}     ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI   = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}     ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}     ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}     ;
 
+    localparam  type                    mnemonic_t     = logic [64*8-1:0];
+    
     /*
-    localparam int  MEM_ADDR_BITS  = 14;
-    localparam type mem_addr_t     = logic  [MEM_ADDR_BITS-1:0] ;
-    localparam int  MEM_DATA_BITS  = 32;
-    localparam type mem_data_t     = logic  [MEM_DATA_BITS-1:0] ;
-    localparam int  MEM_WE_BITS    = $bits(mem_data_t) / 8;
-    localparam type mem_we_t       = logic  [MEM_WE_BITS-1:0]   ;
-
-    logic           port0_cke   ;
-    mem_we_t        port0_we    ;
-    mem_addr_t      port0_addr  ;
-    mem_data_t      port0_din   ;
-    mem_data_t      port0_dout  ;
-
-    logic           port1_cke   ;
-    mem_we_t        port1_we    ;
-    mem_addr_t      port1_addr  ;
-    mem_data_t      port1_din   ;
-    mem_data_t      port1_dout  ;
-
-    jelly2_ram_dualport
-            #(
-                .ADDR_WIDTH     ($bits(mem_addr_t)  ),
-                .DATA_WIDTH     (32                 ),
-                .WE_WIDTH       (4                  ),
-                .WORD_WIDTH     (8                  ),
-                .RAM_TYPE       ("block"            ),
-                .DOUT_REGS0     (1                  ),
-                .DOUT_REGS1     (1                  ),
-                .MODE0          ("WRITE_FIRST"      ),
-                .MODE1          ("WRITE_FIRST"      ),
-                .FILLMEM        (0                  ),
-                .FILLMEM_DATA   (0                  ),
-                .READMEMB       (0                  ),
-                .READMEMH       (1                  ),
-                .READMEM_FIlE   ("../mem.hex"       )
-            )
-        u_ram_dualport
-            (
-                .port0_clk      (clk                ),
-                .port0_en       (port0_cke          ),
-                .port0_regcke   (port0_cke          ),
-                .port0_we       (port0_we           ),
-                .port0_addr     (port0_addr         ),
-                .port0_din      (port0_din          ),
-                .port0_dout     (port0_dout         ),
-
-                .port1_clk      (clk                ),
-                .port1_en       (port1_cke          ),
-                .port1_regcke   (port1_cke          ),
-                .port1_we       (port1_we           ),
-                .port1_addr     (port1_addr         ),
-                .port1_din      (port1_din          ),
-                .port1_dout     (port1_dout         )
-            );
-    
-    assign port0_cke   = cke && ibus_res_ready;
-    assign port0_we    = '0;
-    assign port0_addr  = mem_addr_t'(ibus_cmd_pc >> 2);
-    assign port0_din   = '0;
-    
-    id_t    ibus_st0_id     ;
-    phase_t ibus_st0_phase  ;
-    pc_t    ibus_st0_pc     ;
-    logic   ibus_st0_valid  ;
-    id_t    ibus_st1_id     ;
-    phase_t ibus_st1_phase  ;
-    pc_t    ibus_st1_pc     ;
-    logic   ibus_st1_valid  ;
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            ibus_st0_id     <= 'x;
-            ibus_st0_phase  <= 'x;
-            ibus_st0_pc     <= 'x;
-            ibus_st0_valid  <= 1'b0;
-            ibus_st1_id     <= 'x;
-            ibus_st1_phase  <= 'x;
-            ibus_st1_pc     <= 'x;
-            ibus_st1_valid  <= 1'b0;
-        end
-        else if ( cke && ibus_res_ready ) begin
-            ibus_st0_id     <= ibus_cmd_id;
-            ibus_st0_phase  <= ibus_cmd_phase;
-            ibus_st0_pc     <= ibus_cmd_pc;
-            ibus_st0_valid  <= ibus_cmd_valid;
-            ibus_st1_id     <= ibus_st0_id;
-            ibus_st1_phase  <= ibus_st0_phase;
-            ibus_st1_pc     <= ibus_st0_pc;
-            ibus_st1_valid  <= ibus_st0_valid;
-        end
-    end
-
-    assign ibus_cmd_ready  = ibus_res_ready   ;
-
-    assign ibus_res_id    = ibus_st1_id     ;
-    assign ibus_res_phase = ibus_st1_phase  ;
-    assign ibus_res_pc    = ibus_st1_pc     ;
-    assign ibus_res_instr = port0_dout      ;
-    assign ibus_res_valid = ibus_st1_valid  ;
-
-
-    // dbus
-    assign port1_cke   = cke && dbus_res_ready;
-    assign port1_addr = mem_addr_t'(dbus_cmd_addr)  ;
-    assign port1_we   = dbus_cmd_strb               ;
-    assign port1_din  = dbus_cmd_wdata              ;
-
-    dbus_addr_t         dbus_st0_addr       ;
-    logic               dbus_st0_wr         ;
-    dbus_strb_t         dbus_st0_strb       ;
-    dbus_data_t         dbus_st0_wdata      ;
-    logic               dbus_st0_valid      ;
-    dbus_addr_t         dbus_st1_addr       ;
-    logic               dbus_st1_wr         ;
-    dbus_strb_t         dbus_st1_strb       ;
-    dbus_data_t         dbus_st1_wdata      ;
-    logic               dbus_st1_valid      ;
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            dbus_st0_addr   <= 'x   ;
-            dbus_st0_wr     <= 'x   ;
-            dbus_st0_strb   <= 'x   ;
-            dbus_st0_wdata  <= 'x   ;
-            dbus_st0_valid  <= 1'b0;
-            dbus_st1_addr   <= 'x   ;
-            dbus_st1_wr     <= 'x   ;
-            dbus_st1_strb   <= 'x   ;
-            dbus_st1_wdata  <= 'x   ;
-            dbus_st1_valid  <= 1'b0;
-        end
-        else if ( cke && dbus_res_ready ) begin
-            dbus_st0_addr   <= dbus_cmd_addr ;
-            dbus_st0_wr     <= dbus_cmd_wr   ;
-            dbus_st0_strb   <= dbus_cmd_strb ;
-            dbus_st0_wdata  <= dbus_cmd_wdata;
-            dbus_st0_valid  <= dbus_cmd_valid && !dbus_cmd_wr;
-            dbus_st1_addr   <= dbus_st0_addr ;
-            dbus_st1_wr     <= dbus_st0_wr   ;
-            dbus_st1_strb   <= dbus_st0_strb ;
-            dbus_st1_wdata  <= dbus_st0_wdata;
-            dbus_st1_valid  <= dbus_st0_valid;
-        end
-    end
-
-    assign dbus_cmd_ready  = dbus_res_ready   ;
-    assign dbus_res_rdata = port1_dout      ;
-    assign dbus_res_valid = dbus_st1_valid  ;
-
-
-    // ------------------------------------------------
-    //  Debug
-    // ------------------------------------------------
-
-    localparam  type    mnemonic_t = logic [64*8-1:0];
-    
     wire    mnemonic_t   ibus_res_mnemonic = mnemonic_t'(instr2mnemonic(ibus_res_instr));
 
     wire    mnemonic_t   ids_mnemonic = mnemonic_t'(instr2mnemonic(u_jfive_core.u_jfive_instruction_decode.s_instr));
@@ -341,13 +189,10 @@ module tb_main
     wire    ridx_t  exe_rd_idx3 = u_jfive_core.u_jfive_execution.exe_rd_idx[3];
     wire    ridx_t  exe_rd_idx4 = u_jfive_core.u_jfive_execution.exe_rd_idx[4];
 //  wire    ridx_t  exe_rd_idx5 = u_jfive_core.u_jfive_execution.exe_rd_idx[5];
-    
+        */
 
-    */
-    localparam  type    mnemonic_t = logic [64*8-1:0];
 
-    wire    mnemonic_t   wb_mnemonic     = mnemonic_t'(instr2mnemonic(u_jfive_controller.u_jfive_core.wb_instr));
-
+    wire    mnemonic_t  wb_mnemonic     = mnemonic_t'(instr2mnemonic(u_jfive_controller.u_jfive_core.wb_instr));
 
     wire    pc_t        exe_pc        = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_pc       ;
     wire    instr_t     exe_instr     = u_jfive_controller.u_jfive_core.u_jfive_execution.st0_instr    ;
@@ -442,75 +287,6 @@ module tb_main
             end
         end
     end
-
-    /*
-    always_ff @(posedge clk) begin
-        if ( !reset && cke ) begin
-            if ( dbus_awrite[1] && dbus_avalid[1] && dbus_aready[1] ) begin
-                $write("%c", dbus_wdata[1][7:0]);
-            end
-        end
-    end
-    */
-
-    /*
-    int fp_dbus_log;
-    initial fp_dbus_log = $fopen("dbus_log.txt", "w");
-    always_ff @(posedge clk) begin
-        if ( !reset && cke ) begin
-            if ( dbus_cmd_valid && dbus_cmd_wr ) begin
-                $fwrite(fp_dbus_log, "%d w addr:%08x %08x wdata:%08x strb:%b\n", exe_counter, dbus_cmd_addr, int'(dbus_cmd_addr) << 2, dbus_cmd_wdata, dbus_cmd_strb);
-            end
-            if ( dbus_st1_valid && !dbus_st1_wr ) begin
-                $fwrite(fp_dbus_log, "%d r addr:%08x %08x rdata:%08x\n", exe_counter, dbus_st1_addr, int'(dbus_st1_addr) << 2, dbus_res_rdata);
-            end
-        end
-    end
-
-
-    int fp_port1_log;
-    initial fp_port1_log = $fopen("port1_log.txt", "w");
-    always_ff @(posedge clk) begin
-        if ( !reset && cke ) begin
-            if ( port1_cke ) begin
-                if ( port1_we != 0 ) begin
-                    $fwrite(fp_port1_log, "%t w addr:%08x %08x wdata:%08x %b\n", $time, port1_addr, port1_addr*4, port1_din, port1_we);
-                end
-            end
-        end
-    end
-
-
-
-
-    int fp_wb_rd_log;
-    initial begin
-        fp_wb_rd_log = $fopen("wb_rd_log.txt", "w");
-    end
-    always_ff @(posedge clk) begin
-        if ( !reset && cke ) begin
-            if ( u_jfive_core.wb_rd_en ) begin
-                $fwrite(fp_wb_rd_log, "%2d %08x %s\n", u_jfive_core.wb_rd_idx, u_jfive_core.wb_rd_val, string'(wb_mnemonic));
-            end
-        end
-    end
-
-    always_ff @(posedge clk) begin
-        if ( !reset && cke ) begin
-            if ( dbus_cmd_valid && dbus_cmd_wr && dbus_cmd_addr == 0 ) begin
-                $display("%08x %08x %s\n", dbus_cmd_addr, dbus_cmd_wdata, string'(ids_mnemonic));
-            end
-        end
-    end
-
-    always_ff @(posedge clk) begin
-        if ( !reset && cke ) begin
-            if ( dbus_cmd_valid ) begin
-                $display("%08x %b %08x", dbus_cmd_addr, dbus_cmd_wr, dbus_cmd_wdata);
-            end
-        end
-    end
-    */
 
 endmodule
 

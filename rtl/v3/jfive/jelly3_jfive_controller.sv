@@ -307,7 +307,7 @@ module jelly3_jfive_controller
 
     localparam DBUS_AXI4L = 1;
     for ( genvar i = 0; i < M_AXI4L_PORTS ; i++ ) begin
-        assign m_axi4l[i].awaddr  = dbus_aaddr [DBUS_AXI4L+i];
+        assign m_axi4l[i].awaddr  = dbus_aaddr [DBUS_AXI4L+i] << 2;
         assign m_axi4l[i].awprot  = '0;
         assign m_axi4l[i].awvalid = dbus_awrite[DBUS_AXI4L+i];
 
@@ -317,7 +317,7 @@ module jelly3_jfive_controller
 
         assign m_axi4l[i].bready  = 1'b1;
 
-        assign m_axi4l[i].araddr  = dbus_aaddr [DBUS_AXI4L+i];
+        assign m_axi4l[i].araddr  = dbus_aaddr [DBUS_AXI4L+i] << 2;
         assign m_axi4l[i].arprot  = '0;
         assign m_axi4l[i].arvalid = dbus_aread[DBUS_AXI4L+i];
 

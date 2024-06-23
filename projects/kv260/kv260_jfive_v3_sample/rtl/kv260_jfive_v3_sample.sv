@@ -1,0 +1,140 @@
+
+
+`timescale 1ns / 1ps
+`default_nettype none
+
+module kv260_jfive_v3_sample
+        #(
+            parameter   DEVICE            = "ULTRASCALE_PLUS"   ,
+            parameter   SIMULATION        = "false"             ,
+            parameter   DEBUG             = "false"             
+        )
+        (
+            output  var logic           fan_en  ,
+            output  var logic   [7:0]   pmod
+        );
+    
+    // ---------------------------------
+    //  PS
+    // ---------------------------------
+
+    logic   reset;
+    logic   clk;
+    design_1
+        u_design_1
+            (
+                .fan_en             (fan_en     ),
+                .out_reset          (reset      ),
+                .out_clk            (clk        )
+            );
+
+
+    // ---------------------------------
+    //  JFive Core
+    // ---------------------------------
+
+    localparam  int                         XLEN             = 32                                   ;
+    localparam  int                         THREADS          = 4                                    ;
+    localparam  int                         ID_BITS          = THREADS > 1 ? $clog2(THREADS) : 1    ;
+    localparam  type                        id_t             = logic         [ID_BITS-1:0]          ;
+    localparam  int                         PC_BITS          = 32                                   ;
+    localparam  type                        pc_t             = logic         [PC_BITS-1:0]          ;
+    localparam  pc_t                        PC_MASK          = '0                                   ;
+    localparam  type                        rval_t           = logic signed  [XLEN-1:0]             ;
+    localparam  int                         LOAD_QUES        = 2                                    ;
+    localparam   int                        TCM_MEM_SIZE     = 32 * 1024                            ;
+    localparam   rval_t                     TCM_ADDR_LO      = 32'h0000_0000                        ;
+    localparam   rval_t                     TCM_ADDR_HI      = 32'h7fff_ffff                        ;
+    localparam                              TCM_RAM_TYPE     = "block"                              ;
+    localparam   bit                        TCM_READMEMB     = 1'b0                                 ;
+    localparam   bit                        TCM_READMEMH     = 1'b1                                 ;
+    localparam                              TCM_READMEM_FIlE = "../../../mem.hex"                   ;
+    localparam  int                         M_AXI4L_PORTS     = 1                                   ;
+    localparam  int                         M_AXI4L_ADDR_BITS = 32                                  ;
+    localparam  type                        m_axi4l_data_t    = logic   [M_AXI4L_ADDR_BITS-1:0]     ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'h8000_0000}                    ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'hffff_ffff}                    ;
+
+    localparam  bit     [THREADS-1:0]       INIT_RUN          = 3                                   ;
+    localparam  id_t                        INIT_ID           = '0                                  ;
+    localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'hc, 32'h8, 32'h4, 32'h0}       ;
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS          (32          ),
+                .DATA_BITS          (32          )
+            )
+        s_axi4l
+            (
+                .aresetn            (~reset     ),
+                .aclk               (clk        )
+            );
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS          (32          ),
+                .DATA_BITS          (32          )
+            )
+        m_axi4l
+            (
+                .aresetn            (~reset     ),
+                .aclk               (clk        )
+            );
+
+    jelly3_jfive_controller
+            #(
+                .XLEN               (XLEN               ),
+                .THREADS            (THREADS            ),
+                .PC_MASK            (PC_MASK            ),
+                .LOAD_QUES          (LOAD_QUES          ),
+                .TCM_MEM_SIZE       (TCM_MEM_SIZE       ),
+                .TCM_ADDR_LO        (TCM_ADDR_LO        ),
+                .TCM_ADDR_HI        (TCM_ADDR_HI        ),
+                .TCM_RAM_TYPE       (TCM_RAM_TYPE       ),
+                .TCM_READMEMB       (TCM_READMEMB       ),
+                .TCM_READMEMH       (TCM_READMEMH       ),
+                .TCM_READMEM_FIlE   (TCM_READMEM_FIlE   ),
+                .M_AXI4L_PORTS      (M_AXI4L_PORTS      ),
+                .M_AXI4L_ADDR_BITS  (M_AXI4L_ADDR_BITS  ),
+                .M_AXI4L_ADDRS_LO   (M_AXI4L_ADDRS_LO   ),
+                .M_AXI4L_ADDRS_HI   (M_AXI4L_ADDRS_HI   ),
+                .INIT_RUN           (INIT_RUN           ),
+                .INIT_ID            (INIT_ID            ),
+                .INIT_PC            (INIT_PC            ),
+                .DEVICE             (DEVICE             ),
+                .SIMULATION         (SIMULATION         ),
+                .DEBUG              (DEBUG              )
+            )
+        u_jfive_controller
+            (
+                .reset              (reset      ),
+                .clk                (clk        ),
+                .cke                (1'b1       ),
+
+                .s_axi4l            (s_axi4l    ),
+                .m_axi4l            ('{m_axi4l} )
+            );
+
+
+    // ---------------------------------
+    //  PMOD
+    // ---------------------------------
+
+    jelly3_axi4l_register
+            #(
+                .NUM                (8          ),
+                .BITS               (1          ),
+                .INIT               ('0         )
+            )
+        u_axi4l_register
+            (
+                .s_axi4l            (m_axi4l    ),
+                .value              (pmod       )
+            );
+
+
+endmodule
+
+`default_nettype wire
+
+// end of file
