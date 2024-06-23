@@ -53,9 +53,13 @@ SECTIONS
     .stacks ALIGN(0x08):
     {
         ___stack0 = . ; 
-        . += 1024;
+        . += 256;
         ___stack0_end = . ;
-        . += 1024;
+        . += 256;
         ___stack1_end = . ;
+        . += 256;
+        ___stack2_end = . ;
+        . += 256;
+        ___stack3_end = . ;
     } > ram
 }

@@ -15,15 +15,15 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 pub unsafe extern "C" fn main(id: u32) -> ! {
     loop {
         write_value(id, 1);
-        wait(100);
+        wait(100 + id*100);
         write_value(id, 0);
-        wait(200);
+        wait(200 + id*100);
     }
 }
 
 // ループによるウェイト
-fn wait(n: i32) {
-    let mut v: i32 = 0;
+fn wait(n: u32) {
+    let mut v: u32 = 0;
     for i in 1..n {
         unsafe { core::ptr::write_volatile(&mut v, i) };
     }

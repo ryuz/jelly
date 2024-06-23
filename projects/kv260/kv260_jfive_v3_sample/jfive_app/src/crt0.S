@@ -23,6 +23,8 @@
 _rst_handler:   
                 j       thread0_start
                 j       thread1_start
+                j       thread2_start
+                j       thread3_start
 
 thread0_start:
                 lui     sp, %hi(___stack0_end)
@@ -35,6 +37,20 @@ thread1_start:
                 lui     sp, %hi(___stack1_end)
                 addi    sp, sp, %lo(___stack1_end)
                 addi    a0, zero, 1
+                jal     main
+                j       end_loop
+
+thread2_start:
+                lui     sp, %hi(___stack2_end)
+                addi    sp, sp, %lo(___stack2_end)
+                addi    a0, zero, 2
+                jal     main
+                j       end_loop
+
+thread3_start:
+                lui     sp, %hi(___stack3_end)
+                addi    sp, sp, %lo(___stack3_end)
+                addi    a0, zero, 3
                 jal     main
                 j       end_loop
 

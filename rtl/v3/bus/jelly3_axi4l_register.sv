@@ -18,7 +18,7 @@ module jelly3_axi4l_register
     )
     (
         jelly3_axi4l_if.s                       s_axi4l,
-        output  logic   [NUM-1:0][BITS-1:0]     value
+        output  var logic   [NUM-1:0][BITS-1:0] value
     );
 
     
