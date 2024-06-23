@@ -87,17 +87,17 @@ module jelly3_jfive_controller
     //  JFive Core
     // ---------------------------------------------------------
 
-    id_t                        ibus_cmd_id     ;
-    phase_t                     ibus_cmd_phase  ;
-    pc_t                        ibus_cmd_pc     ;
-    logic                       ibus_cmd_valid  ;
-    logic                       ibus_cmd_ready  ;
-    id_t                        ibus_res_id     ;
-    phase_t                     ibus_res_phase  ;
-    pc_t                        ibus_res_pc     ;
-    instr_t                     ibus_res_instr  ;
-    logic                       ibus_res_valid  ;
-    logic                       ibus_res_ready  ;
+    id_t                        ibus_aid    ;
+    phase_t                     ibus_aphase ;
+    pc_t                        ibus_apc    ;
+    logic                       ibus_avalid ;
+    logic                       ibus_aready ;
+    id_t                        ibus_rid    ;
+    phase_t                     ibus_rphase ;
+    pc_t                        ibus_rpc    ;
+    instr_t                     ibus_rinstr ;
+    logic                       ibus_rvalid ;
+    logic                       ibus_rready ;
 
     dbus_addr_t [LS_UNITS-1:0]  dbus_aaddr  ;
     logic       [LS_UNITS-1:0]  dbus_awrite ;
@@ -148,17 +148,17 @@ module jelly3_jfive_controller
                 .clk                ,
                 .cke                ,
 
-                .ibus_cmd_id        ,
-                .ibus_cmd_phase     ,
-                .ibus_cmd_pc        ,
-                .ibus_cmd_valid     ,
-                .ibus_cmd_ready     ,
-                .ibus_res_id        ,
-                .ibus_res_phase     ,
-                .ibus_res_pc        ,
-                .ibus_res_instr     ,
-                .ibus_res_valid     ,
-                .ibus_res_ready     ,
+                .ibus_aid           ,
+                .ibus_aphase        ,
+                .ibus_apc           ,
+                .ibus_avalid        ,
+                .ibus_aready        ,
+                .ibus_rid           ,
+                .ibus_rphase        ,
+                .ibus_rpc           ,
+                .ibus_rinstr        ,
+                .ibus_rvalid        ,
+                .ibus_rready        ,
 
                 .dbus_aaddr         ,
                 .dbus_awrite        ,
@@ -230,9 +230,9 @@ module jelly3_jfive_controller
                 .port1_dout     (tcm_port1_dout     )
             );
     
-    assign tcm_port0_cke  = cke & ibus_res_ready;
+    assign tcm_port0_cke  = cke & ibus_rready;
     assign tcm_port0_we   = '0;
-    assign tcm_port0_addr = tcm_addr_t'(ibus_cmd_pc >> 2);
+    assign tcm_port0_addr = tcm_addr_t'(ibus_apc >> 2);
     assign tcm_port0_din  = '0;
     
     id_t    tcm_ibus_st0_id     ;
@@ -254,11 +254,11 @@ module jelly3_jfive_controller
             tcm_ibus_st1_pc     <= 'x;
             tcm_ibus_st1_valid  <= 1'b0;
         end
-        else if ( cke && ibus_res_ready ) begin
-            tcm_ibus_st0_id     <= ibus_cmd_id;
-            tcm_ibus_st0_phase  <= ibus_cmd_phase;
-            tcm_ibus_st0_pc     <= ibus_cmd_pc;
-            tcm_ibus_st0_valid  <= ibus_cmd_valid;
+        else if ( cke && ibus_aready ) begin
+            tcm_ibus_st0_id     <= ibus_aid;
+            tcm_ibus_st0_phase  <= ibus_aphase;
+            tcm_ibus_st0_pc     <= ibus_apc;
+            tcm_ibus_st0_valid  <= ibus_avalid;
             tcm_ibus_st1_id     <= tcm_ibus_st0_id;
             tcm_ibus_st1_phase  <= tcm_ibus_st0_phase;
             tcm_ibus_st1_pc     <= tcm_ibus_st0_pc;
@@ -266,13 +266,13 @@ module jelly3_jfive_controller
         end
     end
 
-    assign ibus_cmd_ready  = ibus_res_ready   ;
+    assign ibus_aready    = !ibus_rvalid || ibus_rready ;
 
-    assign ibus_res_id    = tcm_ibus_st1_id     ;
-    assign ibus_res_phase = tcm_ibus_st1_phase  ;
-    assign ibus_res_pc    = tcm_ibus_st1_pc     ;
-    assign ibus_res_instr = tcm_port0_dout      ;
-    assign ibus_res_valid = tcm_ibus_st1_valid  ;
+    assign ibus_rid    = tcm_ibus_st1_id    ;
+    assign ibus_rphase = tcm_ibus_st1_phase ;
+    assign ibus_rpc    = tcm_ibus_st1_pc    ;
+    assign ibus_rinstr = tcm_port0_dout     ;
+    assign ibus_rvalid = tcm_ibus_st1_valid ;
 
 
     // dbus

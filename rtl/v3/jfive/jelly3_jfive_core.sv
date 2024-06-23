@@ -45,22 +45,22 @@ module jelly3_jfive_core
             parameter                           DEBUG       = "false"                               
         )
         (
-            input   var logic                       reset           ,
-            input   var logic                       clk             ,
-            input   var logic                       cke             ,
+            input   var logic                       reset       ,
+            input   var logic                       clk         ,
+            input   var logic                       cke         ,
 
             // instruction bus
-            output  var id_t                        ibus_cmd_id     ,
-            output  var phase_t                     ibus_cmd_phase  ,
-            output  var pc_t                        ibus_cmd_pc     ,
-            output  var logic                       ibus_cmd_valid  ,
-            input   var logic                       ibus_cmd_ready  ,
-            input   var id_t                        ibus_res_id     ,
-            input   var phase_t                     ibus_res_phase  ,
-            input   var pc_t                        ibus_res_pc     ,
-            input   var instr_t                     ibus_res_instr  ,
-            input   var logic                       ibus_res_valid  ,
-            output  var logic                       ibus_res_ready  ,
+            output  var id_t                        ibus_aid    ,
+            output  var phase_t                     ibus_aphase ,
+            output  var pc_t                        ibus_apc    ,
+            output  var logic                       ibus_avalid ,
+            input   var logic                       ibus_aready ,
+            input   var id_t                        ibus_rid    ,
+            input   var phase_t                     ibus_rphase ,
+            input   var pc_t                        ibus_rpc    ,
+            input   var instr_t                     ibus_rinstr ,
+            input   var logic                       ibus_rvalid ,
+            output  var logic                       ibus_rready ,
 
             // data bus
             output  var dbus_addr_t [LS_UNITS-1:0]  dbus_aaddr  ,
@@ -150,18 +150,18 @@ module jelly3_jfive_core
     logic   if_valid    ;
     logic   if_ready    ;
 
-    assign ibus_cmd_id    = pc_id   ;
-    assign ibus_cmd_phase = pc_phase;
-    assign ibus_cmd_pc    = pc_pc   ;
-    assign ibus_cmd_valid = pc_valid;
-    assign pc_ready = ibus_cmd_ready;
+    assign ibus_aid    = pc_id   ;
+    assign ibus_aphase = pc_phase;
+    assign ibus_apc    = pc_pc   ;
+    assign ibus_avalid = pc_valid;
+    assign pc_ready = ibus_aready;
 
-    assign if_id    = ibus_res_id   ;
-    assign if_phase = ibus_res_phase;
-    assign if_pc    = ibus_res_pc   ;
-    assign if_instr = ibus_res_instr;
-    assign if_valid = ibus_res_valid;
-    assign ibus_res_ready = if_ready;
+    assign if_id    = ibus_rid   ;
+    assign if_phase = ibus_rphase;
+    assign if_pc    = ibus_rpc   ;
+    assign if_instr = ibus_rinstr;
+    assign if_valid = ibus_rvalid;
+    assign ibus_rready = if_ready;
 
 
     // -----------------------------
