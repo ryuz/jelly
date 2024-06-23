@@ -29,6 +29,9 @@ module jelly3_jfive_controller
             parameter   bit     [THREADS-1:0]       INIT_RUN          = 1                                   ,
             parameter   id_t                        INIT_ID           = '0                                  ,
             parameter   pc_t    [THREADS-1:0]       INIT_PC           = '0                                  ,
+            parameter                               CORE_ID           = 32'h527a_ffff                       ,
+            parameter                               CORE_VERSION      = 32'h0001_0000                       ,
+            parameter   bit     [0:0]               INIT_CTL_CONTROL  = 1'b0                                ,
             parameter                               DEVICE            = "RTL"                               ,
             parameter                               SIMULATION        = "false"                             ,
             parameter                               DEBUG             = "false"                            
@@ -38,8 +41,9 @@ module jelly3_jfive_controller
             input   var logic           clk                             ,
             input   var logic           cke                             ,
 
-            jelly3_axi4l_if.s           s_axi4l                         ,
-            jelly3_axi4l_if.m           m_axi4l   [0:M_AXI4L_PORTS-1]   
+            jelly3_axi4l_if.s           s_axi4l_ctl                     ,
+            jelly3_axi4l_if.s           s_axi4l_mem                     ,
+            jelly3_axi4l_if.m           m_axi4l_ext [0:M_AXI4L_PORTS-1] 
         );
 
 
@@ -77,8 +81,151 @@ module jelly3_jfive_controller
     localparam  type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ;
 
 
-    rval_t  [LS_UNITS-1:0]  param_LS_ADDRS_LO  = LS_ADDRS_LO;
-    rval_t  [LS_UNITS-1:0]  param_LS_ADDRS_HI  = LS_ADDRS_HI;
+    // ---------------------------------------------------------
+    //  Control from host
+    // ---------------------------------------------------------
+    
+    localparam  type regadr_t     = logic [4:0];
+    localparam  type axi4l_data_t = logic [s_axi4l_ctl.DATA_BITS-1:0];
+   
+    // register address offset
+    localparam  regadr_t REGADR_CORE_ID            = regadr_t'('h00);
+    localparam  regadr_t REGADR_CORE_VERSION       = regadr_t'('h01);
+    localparam  regadr_t REGADR_CTL_CONTROL        = regadr_t'('h04);
+    localparam  regadr_t REGADR_CTL_STATUS         = regadr_t'('h05);
+    localparam  regadr_t REGADR_CTL_INDEX          = regadr_t'('h07);
+    localparam  regadr_t REGADR_CTL_SKIP           = regadr_t'('h08);
+    localparam  regadr_t REGADR_CTL_FRM_TIMER_EN   = regadr_t'('h0a);
+    localparam  regadr_t REGADR_CTL_FRM_TIMEOUT    = regadr_t'('h0b);
+    localparam  regadr_t REGADR_PARAM_WIDTH        = regadr_t'('h10);
+    localparam  regadr_t REGADR_PARAM_HEIGHT       = regadr_t'('h11);
+    localparam  regadr_t REGADR_PARAM_FILL         = regadr_t'('h12);
+    localparam  regadr_t REGADR_PARAM_TIMEOUT      = regadr_t'('h13);
+
+    
+    // registers
+    logic   [0:0]   reg_ctl_control;
+
+    function [s_axi4l_ctl.DATA_BITS-1:0] write_mask(
+                                        input [s_axi4l_ctl.DATA_BITS-1:0] org,
+                                        input [s_axi4l_ctl.DATA_BITS-1:0] data,
+                                        input [s_axi4l_ctl.STRB_BITS-1:0] strb
+                                    );
+        for ( int i = 0; i < s_axi4l_ctl.DATA_BITS; i++ ) begin
+            write_mask[i] = strb[i/8] ? data[i] : org[i];
+        end
+    endfunction
+
+    regadr_t  regadr_write;
+    regadr_t  regadr_read;
+    assign regadr_write = regadr_t'(s_axi4l_ctl.awaddr / s_axi4l_ctl.ADDR_BITS'(s_axi4l_ctl.STRB_BITS));
+    assign regadr_read  = regadr_t'(s_axi4l_ctl.araddr / s_axi4l_ctl.ADDR_BITS'(s_axi4l_ctl.STRB_BITS));
+
+    always_ff @(posedge s_axi4l_ctl.aclk) begin
+        if ( ~s_axi4l_ctl.aresetn ) begin
+            reg_ctl_control      <= INIT_CTL_CONTROL;
+        end
+        else begin
+            if ( s_axi4l_ctl.awvalid && s_axi4l_ctl.awready && s_axi4l_ctl.wvalid && s_axi4l_ctl.wready ) begin
+                case ( regadr_write )
+                REGADR_CTL_CONTROL: reg_ctl_control <= 1'(write_mask(axi4l_data_t'(reg_ctl_control), s_axi4l_ctl.wdata, s_axi4l_ctl.wstrb));
+                default: ;
+                endcase
+            end
+        end
+    end
+
+    always_ff @(posedge s_axi4l_ctl.aclk ) begin
+        if ( ~s_axi4l_ctl.aresetn ) begin
+            s_axi4l_ctl.bvalid <= 0;
+        end
+        else begin
+            if ( s_axi4l_ctl.bready ) begin
+                s_axi4l_ctl.bvalid <= 0;
+            end
+            if ( s_axi4l_ctl.awvalid && s_axi4l_ctl.awready ) begin
+                s_axi4l_ctl.bvalid <= 1'b1;
+            end
+        end
+    end
+
+    assign s_axi4l_ctl.awready = (~s_axi4l_ctl.bvalid || s_axi4l_ctl.bready) && s_axi4l_ctl.wvalid;
+    assign s_axi4l_ctl.wready  = (~s_axi4l_ctl.bvalid || s_axi4l_ctl.bready) && s_axi4l_ctl.awvalid;
+    assign s_axi4l_ctl.bresp   = '0;
+
+
+    // read
+    always_ff @(posedge s_axi4l_ctl.aclk ) begin
+        if ( s_axi4l_ctl.arvalid && s_axi4l_ctl.arready ) begin
+            case ( regadr_read )
+            REGADR_CORE_ID:            s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_ID             );
+            REGADR_CORE_VERSION:       s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_VERSION        );
+            REGADR_CTL_CONTROL:        s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
+            REGADR_CTL_STATUS:         s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
+            default: ;
+            endcase
+        end
+    end
+
+    logic           axi4l_rvalid;
+    always_ff @(posedge s_axi4l_ctl.aclk ) begin
+        if ( ~s_axi4l_ctl.aresetn ) begin
+            s_axi4l_ctl.rvalid <= 1'b0;
+        end
+        else begin
+            if ( s_axi4l_ctl.rready ) begin
+                s_axi4l_ctl.rvalid <= 1'b0;
+            end
+            if ( s_axi4l_ctl.arvalid && s_axi4l_ctl.arready ) begin
+                s_axi4l_ctl.rvalid <= 1'b1;
+            end
+        end
+    end
+
+    assign s_axi4l_ctl.arready = ~s_axi4l_ctl.rvalid || s_axi4l_ctl.rready;
+    assign s_axi4l_ctl.rresp   = '0;
+
+
+    // ---------------------------------------------------------
+    //  Memory access from host
+    // ---------------------------------------------------------
+
+    logic   [31:0]  host_addr    ;
+    logic   [3:0]   host_we      ;
+    logic   [31:0]  host_wdata   ;
+    logic           host_valid   ;
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            host_addr   <= 'x;
+            host_we     <= '0;
+            host_wdata  <= 'x;
+            host_valid  <= 1'b0;
+        end
+        else if ( cke ) begin
+            host_we <= '0;
+            if ( host_valid ) begin
+                if ( s_axi4l_mem.bready ) begin
+                    host_valid <= 1'b0;
+                end
+            end
+            else begin
+                if ( s_axi4l_mem.awvalid && s_axi4l_mem.awready ) begin
+                    host_addr  <= s_axi4l_mem.awaddr;
+                end
+                if ( s_axi4l_mem.wvalid && s_axi4l_mem.wready ) begin
+                    host_we    <= s_axi4l_mem.wstrb;
+                    host_wdata <= s_axi4l_mem.wdata;
+                    host_valid <= 1'b1;
+                end
+            end
+        end
+    end
+    
+    assign s_axi4l_mem.awready = !host_valid && s_axi4l_mem.wvalid;
+    assign s_axi4l_mem.wready  = !host_valid && s_axi4l_mem.awvalid;
+    assign s_axi4l_mem.bresp   = 2'b0;
+    assign s_axi4l_mem.bvalid  = host_valid;
+
 
 
     // ---------------------------------------------------------
@@ -112,37 +259,37 @@ module jelly3_jfive_controller
 
     jelly3_jfive_core
         #(
-                .XLEN               (XLEN           ),
-                .THREADS            (THREADS        ),
-                .ID_BITS            (ID_BITS        ),
-                .id_t               (id_t           ),
-                .PHASE_BITS         (PHASE_BITS     ),
-                .phase_t            (phase_t        ),
-                .PC_BITS            (PC_BITS        ),
-                .pc_t               (pc_t           ),
-                .PC_MASK            (PC_MASK        ),
-                .INSTR_BITS         (INSTR_BITS     ),
-                .instr_t            (instr_t        ),
-                .DBUS_ADDR_BITS     (DBUS_ADDR_BITS ),
-                .dbus_addr_t        (dbus_addr_t    ),
-                .DBUS_DATA_BITS     (DBUS_DATA_BITS ),
-                .dbus_data_t        (dbus_data_t    ),
-                .DBUS_STRB_BITS     (DBUS_STRB_BITS ),
-                .dbus_strb_t        (dbus_strb_t    ),
-                .LS_UNITS           (LS_UNITS       ),
-                .LS_ADDRS_LO        (LS_ADDRS_LO    ),
-                .LS_ADDRS_HI        (LS_ADDRS_HI    ),
-                .LOAD_QUES          (LOAD_QUES      ),
-                .INIT_RUN           (INIT_RUN       ),
-                .INIT_ID            (INIT_ID        ),
-                .INIT_PC            (INIT_PC        ),
-                .DEVICE             (DEVICE         ),
-                .SIMULATION         (SIMULATION     ),
-                .DEBUG              (DEBUG          )
+                .XLEN               (XLEN               ),
+                .THREADS            (THREADS            ),
+                .ID_BITS            (ID_BITS            ),
+                .id_t               (id_t               ),
+                .PHASE_BITS         (PHASE_BITS         ),
+                .phase_t            (phase_t            ),
+                .PC_BITS            (PC_BITS            ),
+                .pc_t               (pc_t               ),
+                .PC_MASK            (PC_MASK            ),
+                .INSTR_BITS         (INSTR_BITS         ),
+                .instr_t            (instr_t            ),
+                .DBUS_ADDR_BITS     (DBUS_ADDR_BITS     ),
+                .dbus_addr_t        (dbus_addr_t        ),
+                .DBUS_DATA_BITS     (DBUS_DATA_BITS     ),
+                .dbus_data_t        (dbus_data_t        ),
+                .DBUS_STRB_BITS     (DBUS_STRB_BITS     ),
+                .dbus_strb_t        (dbus_strb_t        ),
+                .LS_UNITS           (LS_UNITS           ),
+                .LS_ADDRS_LO        (LS_ADDRS_LO        ),
+                .LS_ADDRS_HI        (LS_ADDRS_HI        ),
+                .LOAD_QUES          (LOAD_QUES          ),
+                .INIT_RUN           (INIT_RUN           ),
+                .INIT_ID            (INIT_ID            ),
+                .INIT_PC            (INIT_PC            ),
+                .DEVICE             (DEVICE             ),
+                .SIMULATION         (SIMULATION         ),
+                .DEBUG              (DEBUG              )
             )
         u_jfive_core
             (
-                .reset              ,
+                .reset              (~reg_ctl_control   ),
                 .clk                ,
                 .cke                ,
 
@@ -229,9 +376,9 @@ module jelly3_jfive_controller
             );
     
     assign tcm_port0_cke  = cke & ibus_rready;
-    assign tcm_port0_we   = '0;
-    assign tcm_port0_addr = tcm_addr_t'(ibus_apc >> 2);
-    assign tcm_port0_din  = '0;
+    assign tcm_port0_we   = host_we;
+    assign tcm_port0_addr = host_valid ? tcm_addr_t'(host_addr >> 2) : tcm_addr_t'(ibus_apc >> 2);
+    assign tcm_port0_din  = host_wdata;
     
     id_t    tcm_ibus_st0_id     ;
     phase_t tcm_ibus_st0_phase  ;
@@ -307,26 +454,26 @@ module jelly3_jfive_controller
 
     localparam DBUS_AXI4L = 1;
     for ( genvar i = 0; i < M_AXI4L_PORTS ; i++ ) begin
-        assign m_axi4l[i].awaddr  = dbus_aaddr [DBUS_AXI4L+i] << 2;
-        assign m_axi4l[i].awprot  = '0;
-        assign m_axi4l[i].awvalid = dbus_awrite[DBUS_AXI4L+i];
+        assign m_axi4l_ext[i].awaddr  = dbus_aaddr [DBUS_AXI4L+i] << 2;
+        assign m_axi4l_ext[i].awprot  = '0;
+        assign m_axi4l_ext[i].awvalid = dbus_awrite[DBUS_AXI4L+i];
 
-        assign m_axi4l[i].wdata   = dbus_wdata[DBUS_AXI4L+i];
-        assign m_axi4l[i].wstrb   = dbus_wstrb[DBUS_AXI4L+i];
-        assign m_axi4l[i].wvalid  = dbus_wvalid[DBUS_AXI4L+i];
+        assign m_axi4l_ext[i].wdata   = dbus_wdata[DBUS_AXI4L+i];
+        assign m_axi4l_ext[i].wstrb   = dbus_wstrb[DBUS_AXI4L+i];
+        assign m_axi4l_ext[i].wvalid  = dbus_wvalid[DBUS_AXI4L+i];
 
-        assign m_axi4l[i].bready  = 1'b1;
+        assign m_axi4l_ext[i].bready  = 1'b1;
 
-        assign m_axi4l[i].araddr  = dbus_aaddr [DBUS_AXI4L+i] << 2;
-        assign m_axi4l[i].arprot  = '0;
-        assign m_axi4l[i].arvalid = dbus_aread[DBUS_AXI4L+i];
+        assign m_axi4l_ext[i].araddr  = dbus_aaddr [DBUS_AXI4L+i] << 2;
+        assign m_axi4l_ext[i].arprot  = '0;
+        assign m_axi4l_ext[i].arvalid = dbus_aread[DBUS_AXI4L+i];
 
-        assign dbus_aready[DBUS_AXI4L+i] = m_axi4l[i].awvalid ? m_axi4l[i].awready : m_axi4l[i].arready;
-        assign dbus_wready[DBUS_AXI4L+i] = m_axi4l[i].wready;
+        assign dbus_aready[DBUS_AXI4L+i] = m_axi4l_ext[i].awvalid ? m_axi4l_ext[i].awready : m_axi4l_ext[i].arready;
+        assign dbus_wready[DBUS_AXI4L+i] = m_axi4l_ext[i].wready;
 
-        assign dbus_rdata[DBUS_AXI4L+i]  = m_axi4l[i].rdata ;
-        assign dbus_rvalid[DBUS_AXI4L+i] = m_axi4l[i].rvalid;
-        assign m_axi4l[i].rready = dbus_rready[DBUS_AXI4L+i];
+        assign dbus_rdata[DBUS_AXI4L+i]  = m_axi4l_ext[i].rdata ;
+        assign dbus_rvalid[DBUS_AXI4L+i] = m_axi4l_ext[i].rvalid;
+        assign m_axi4l_ext[i].rready = dbus_rready[DBUS_AXI4L+i];
     end
 
 endmodule

@@ -20,13 +20,81 @@ module kv260_jfive_v3_sample
 
     logic   reset;
     logic   clk;
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS          (40          ),
+                .DATA_BITS          (32          )
+            )
+        axi4l_peri
+            (
+                .aresetn            (~reset     ),
+                .aclk               (clk        )
+            );
+
     design_1
         u_design_1
             (
-                .fan_en             (fan_en     ),
-                .out_reset          (reset      ),
-                .out_clk            (clk        )
+                .fan_en             (fan_en             ),
+
+                .out_reset          (reset              ),
+                .out_clk            (clk                ),
+
+                .m_axi4l_awaddr     (axi4l_peri.awaddr  ),
+                .m_axi4l_awprot     (axi4l_peri.awprot  ),
+                .m_axi4l_awvalid    (axi4l_peri.awvalid ),
+                .m_axi4l_awready    (axi4l_peri.awready ),
+                .m_axi4l_wdata      (axi4l_peri.wdata   ),
+                .m_axi4l_wstrb      (axi4l_peri.wstrb   ),
+                .m_axi4l_wvalid     (axi4l_peri.wvalid  ),
+                .m_axi4l_wready     (axi4l_peri.wready  ),
+                .m_axi4l_bresp      (axi4l_peri.bresp   ),
+                .m_axi4l_bvalid     (axi4l_peri.bvalid  ),
+                .m_axi4l_bready     (axi4l_peri.bready  ),
+                .m_axi4l_araddr     (axi4l_peri.araddr  ),
+                .m_axi4l_arprot     (axi4l_peri.arprot  ),
+                .m_axi4l_arvalid    (axi4l_peri.arvalid ),
+                .m_axi4l_arready    (axi4l_peri.arready ),
+                .m_axi4l_rdata      (axi4l_peri.rdata   ),
+                .m_axi4l_rresp      (axi4l_peri.rresp   ),
+                .m_axi4l_rvalid     (axi4l_peri.rvalid  ),
+                .m_axi4l_rready     (axi4l_peri.rready  )
             );
+
+    // ----------------------------------------
+    //  Address decoder
+    // ----------------------------------------
+
+    localparam DEC_CTL  = 0;
+    localparam DEC_MEM  = 1;
+    localparam DEC_NUM  = 2;
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS      (40     ),
+                .DATA_BITS      (32     )
+            )
+        axi4l_dec [DEC_NUM]
+            (
+                .aresetn        (~reset ),
+                .aclk           (clk    )
+            );
+    
+    // address map
+    assign {axi4l_dec[DEC_CTL].addr_base, axi4l_dec[DEC_CTL].addr_high} = {40'ha000_0000, 40'ha000_ffff};
+    assign {axi4l_dec[DEC_MEM].addr_base, axi4l_dec[DEC_MEM].addr_high} = {40'ha010_0000, 40'ha01f_ffff};
+
+    jelly3_axi4l_addr_decoder
+            #(
+                .NUM            (DEC_NUM    ),
+                .DEC_ADDR_BITS  (28         )
+            )
+        u_axi4l_addr_decoder
+            (
+                .s_axi4l        (axi4l_peri   ),
+                .m_axi4l        (axi4l_dec    )
+            );
+
 
 
     // ---------------------------------
@@ -59,16 +127,29 @@ module kv260_jfive_v3_sample
     localparam  id_t                        INIT_ID           = '0                                  ;
     localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'hc, 32'h8, 32'h4, 32'h0}       ;
 
+    /*
     jelly3_axi4l_if
             #(
-                .ADDR_BITS          (32          ),
+                .ADDR_BITS          (40          ),
                 .DATA_BITS          (32          )
             )
-        s_axi4l
+        s_axi4l_ctl
             (
                 .aresetn            (~reset     ),
                 .aclk               (clk        )
             );
+    
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS          (40          ),
+                .DATA_BITS          (32          )
+            )
+        s_axi4l_mem
+            (
+                .aresetn            (~reset     ),
+                .aclk               (clk        )
+            );
+    */
 
     jelly3_axi4l_if
             #(
@@ -107,13 +188,15 @@ module kv260_jfive_v3_sample
             )
         u_jfive_controller
             (
-                .reset              (reset      ),
-                .clk                (clk        ),
-                .cke                (1'b1       ),
+                .reset              (reset              ),
+                .clk                (clk                ),
+                .cke                (1'b1               ),
 
-                .s_axi4l            (s_axi4l    ),
-                .m_axi4l            ('{m_axi4l} )
+                .s_axi4l_ctl        (axi4l_dec[DEC_CTL] ),
+                .s_axi4l_mem        (axi4l_dec[DEC_MEM] ),
+                .m_axi4l_ext        ('{m_axi4l}         )
             );
+
 
 
     // ---------------------------------
