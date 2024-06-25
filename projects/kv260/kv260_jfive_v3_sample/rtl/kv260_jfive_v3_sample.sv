@@ -101,31 +101,32 @@ module kv260_jfive_v3_sample
     //  JFive Core
     // ---------------------------------
 
-    localparam  int                         XLEN             = 32                                   ;
-    localparam  int                         THREADS          = 4                                    ;
-    localparam  int                         ID_BITS          = THREADS > 1 ? $clog2(THREADS) : 1    ;
-    localparam  type                        id_t             = logic         [ID_BITS-1:0]          ;
-    localparam  int                         PC_BITS          = 32                                   ;
-    localparam  type                        pc_t             = logic         [PC_BITS-1:0]          ;
-    localparam  pc_t                        PC_MASK          = '0                                   ;
-    localparam  type                        rval_t           = logic signed  [XLEN-1:0]             ;
-    localparam  int                         LOAD_QUES        = 2                                    ;
-    localparam   int                        TCM_MEM_SIZE     = 16 * 1024                            ;
-    localparam   rval_t                     TCM_ADDR_LO      = 32'h0000_0000                        ;
-    localparam   rval_t                     TCM_ADDR_HI      = 32'h7fff_ffff                        ;
-    localparam                              TCM_RAM_TYPE     = "block"                              ;
-    localparam   bit                        TCM_READMEMB     = 1'b0                                 ;
-    localparam   bit                        TCM_READMEMH     = 1'b1                                 ;
-    localparam                              TCM_READMEM_FIlE = "";//"../../../mem.hex"                   ;
+    localparam  int                         XLEN              = 32                                  ;
+    localparam  int                         THREADS           = 4;//8                                   ;
+    localparam  int                         ID_BITS           = THREADS > 1 ? $clog2(THREADS) : 1   ;
+    localparam  type                        id_t              = logic         [ID_BITS-1:0]         ;
+    localparam  int                         PC_BITS           = 32                                  ;
+    localparam  type                        pc_t              = logic         [PC_BITS-1:0]         ;
+    localparam  pc_t                        PC_MASK           = '0                                  ;
+    localparam  type                        rval_t            = logic signed  [XLEN-1:0]            ;
+    localparam  int                         LOAD_QUES         = 2                                   ;
+    localparam   int                        TCM_MEM_SIZE      = 4 * 1024                            ;
+    localparam   rval_t                     TCM_ADDR_LO       = 32'h0000_0000                       ;
+    localparam   rval_t                     TCM_ADDR_HI       = 32'h7fff_ffff                       ;
+    localparam                              TCM_RAM_TYPE      = "block"                             ;
+    localparam   bit                        TCM_READMEMB      = 1'b0                                ;
+    localparam   bit                        TCM_READMEMH      = 1'b1                                ;
+    localparam                              TCM_READMEM_FIlE  = "../../../mem.hex"                  ;
     localparam  int                         M_AXI4L_PORTS     = 1                                   ;
     localparam  int                         M_AXI4L_ADDR_BITS = 32                                  ;
     localparam  type                        m_axi4l_data_t    = logic   [M_AXI4L_ADDR_BITS-1:0]     ;
     localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'h8000_0000}                    ;
     localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'hffff_ffff}                    ;
 
-    localparam  bit     [THREADS-1:0]       INIT_RUN          = 4'b1111                             ;
+    localparam  bit     [THREADS-1:0]       INIT_RUN          = 4'hf;//8'hff                               ;
     localparam  id_t                        INIT_ID           = '0                                  ;
-    localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'hc, 32'h8, 32'h4, 32'h0}       ;
+    localparam  pc_t    [THREADS-1:0]       INIT_PC           = //'{32'h1c, 32'h18, 32'h14, 32'h10,
+                                                                  '{32'h0c, 32'h08, 32'h04, 32'h00}   ;
 
     /*
     jelly3_axi4l_if

@@ -25,6 +25,10 @@ _rst_handler:
                 j       thread1_start
                 j       thread2_start
                 j       thread3_start
+                j       thread4_start
+                j       thread5_start
+                j       thread6_start
+                j       thread7_start
 
 thread0_start:
                 lui     sp, %hi(___stack0_end)
@@ -51,6 +55,34 @@ thread3_start:
                 lui     sp, %hi(___stack3_end)
                 addi    sp, sp, %lo(___stack3_end)
                 addi    a0, zero, 3
+                jal     main
+                j       end_loop
+
+thread4_start:
+                lui     sp, %hi(___stack4_end)
+                addi    sp, sp, %lo(___stack4_end)
+                addi    a0, zero, 4
+                jal     main
+                j       end_loop
+
+thread5_start:
+                lui     sp, %hi(___stack5_end)
+                addi    sp, sp, %lo(___stack5_end)
+                addi    a0, zero, 5
+                jal     main
+                j       end_loop
+
+thread6_start:
+                lui     sp, %hi(___stack6_end)
+                addi    sp, sp, %lo(___stack6_end)
+                addi    a0, zero, 6
+                jal     main
+                j       end_loop
+
+thread7_start:
+                lui     sp, %hi(___stack7_end)
+                addi    sp, sp, %lo(___stack7_end)
+                addi    a0, zero, 7
                 jal     main
                 j       end_loop
 

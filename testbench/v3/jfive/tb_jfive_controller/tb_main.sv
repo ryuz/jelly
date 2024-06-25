@@ -35,6 +35,8 @@ module tb_main
     localparam  bit     [THREADS-1:0]       INIT_RUN          = 1                                   ;
     localparam  id_t                        INIT_ID           = '0                                  ;
     localparam  pc_t    [THREADS-1:0]       INIT_PC           = '0                                  ;
+    localparam   bit     [0:0]              INIT_CTL_CONTROL  = 1'b1                                ;
+
 `ifdef __VERILATOR__
     localparam                              DEVICE            = "RTL"                               ;
 `else
@@ -56,7 +58,18 @@ module tb_main
                 .ADDR_BITS     (32          ),
                 .DATA_BITS     (32          )
             )
-        s_axi4l
+        s_axi4l_ctl
+            (
+                .aresetn        (~reset     ),
+                .aclk           (clk        )
+            );
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS     (32          ),
+                .DATA_BITS     (32          )
+            )
+        s_axi4l_mem
             (
                 .aresetn        (~reset     ),
                 .aclk           (clk        )
@@ -95,6 +108,7 @@ module tb_main
                 .INIT_RUN           (INIT_RUN           ),
                 .INIT_ID            (INIT_ID            ),
                 .INIT_PC            (INIT_PC            ),
+                .INIT_CTL_CONTROL   (INIT_CTL_CONTROL   ),
                 .DEVICE             (DEVICE             ),
                 .SIMULATION         (SIMULATION         ),
                 .DEBUG              (DEBUG              )
@@ -104,8 +118,9 @@ module tb_main
                 .reset              ,
                 .clk                ,
                 .cke                ,
-                .s_axi4l            (s_axi4l    ),
-                .m_axi4l            ('{m_axi4l} )
+                .s_axi4l_ctl        (s_axi4l_ctl        ),
+                .s_axi4l_mem        (s_axi4l_mem        ),
+                .m_axi4l_ext        ('{m_axi4l}         )
             );
 
 
@@ -120,6 +135,20 @@ module tb_main
                 .s_axi4l    (m_axi4l    ),
                 .value      (           )
             );
+
+    
+    assign s_axi4l_ctl.awvalid = 1'b0;
+    assign s_axi4l_ctl.wvalid  = 1'b0;
+    assign s_axi4l_ctl.bready  = 1'b0;
+    assign s_axi4l_ctl.arvalid = 1'b0;
+    assign s_axi4l_ctl.rready  = 1'b0;
+
+    assign s_axi4l_mem.awvalid = 1'b0;
+    assign s_axi4l_mem.wvalid  = 1'b0;
+    assign s_axi4l_mem.bready  = 1'b0;
+    assign s_axi4l_mem.arvalid = 1'b0;
+    assign s_axi4l_mem.rready  = 1'b0;
+
 
     always_ff @(posedge m_axi4l.aclk) begin
         if (  m_axi4l.aresetn == 1'b1 ) begin

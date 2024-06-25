@@ -231,6 +231,16 @@ module jelly3_jfive_controller
     // ---------------------------------------------------------
     //  JFive Core
     // ---------------------------------------------------------
+    
+    logic                       core_reset;
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            core_reset <= 1'b1;
+        end
+        else if ( cke ) begin
+            core_reset <= ~reg_ctl_control;
+        end
+    end
 
     id_t                        ibus_aid    ;
     phase_t                     ibus_aphase ;
@@ -289,7 +299,7 @@ module jelly3_jfive_controller
             )
         u_jfive_core
             (
-                .reset              (~reg_ctl_control   ),
+                .reset              (core_reset         ),
                 .clk                ,
                 .cke                ,
 

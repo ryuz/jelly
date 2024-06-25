@@ -61,5 +61,13 @@ SECTIONS
         ___stack2_end = . ;
         . += 256;
         ___stack3_end = . ;
+        . += 256;
+        ___stack4_end = . ;
+        . += 256;
+        ___stack5_end = . ;
+        . += 256;
+        ___stack6_end = . ;
+        . += 256;
+        ___stack7_end = . ;
     } > ram
 }

@@ -197,11 +197,22 @@ proc create_root_design { parentCell } {
 
 
   # Create interface ports
+  set m_axi4l [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi4l ]
+  set_property -dict [ list \
+   CONFIG.ADDR_WIDTH {40} \
+   CONFIG.DATA_WIDTH {32} \
+   CONFIG.HAS_REGION {0} \
+   CONFIG.NUM_READ_OUTSTANDING {8} \
+   CONFIG.NUM_WRITE_OUTSTANDING {8} \
+   CONFIG.PROTOCOL {AXI4LITE} \
+   ] $m_axi4l
+
 
   # Create ports
   set fan_en [ create_bd_port -dir O -from 0 -to 0 fan_en ]
   set out_clk [ create_bd_port -dir O -type clk out_clk ]
   set_property -dict [ list \
+   CONFIG.ASSOCIATED_BUSIF {m_axi4l} \
    CONFIG.ASSOCIATED_RESET {out_reset} \
  ] $out_clk
   set out_reset [ create_bd_port -dir O -from 0 -to 0 -type rst out_reset ]
@@ -619,16 +630,31 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
   # Create instance: proc_sys_reset_0, and set properties
   set proc_sys_reset_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0 ]
 
+  # Create instance: axi_interconnect_0, and set properties
+  set axi_interconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_interconnect_0 ]
+  set_property CONFIG.NUM_MI {1} $axi_interconnect_0
+
+
+  # Create instance: proc_sys_reset_1, and set properties
+  set proc_sys_reset_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_1 ]
+
+  # Create interface connections
+  connect_bd_intf_net -intf_net S00_AXI_1 [get_bd_intf_pins axi_interconnect_0/S00_AXI] [get_bd_intf_pins zynq_ultra_ps_e_0/M_AXI_HPM0_FPD]
+  connect_bd_intf_net -intf_net axi_interconnect_0_M00_AXI [get_bd_intf_ports m_axi4l] [get_bd_intf_pins axi_interconnect_0/M00_AXI]
+
   # Create port connections
-  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_ports out_clk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
+  connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_ports out_clk] [get_bd_pins proc_sys_reset_0/slowest_sync_clk] [get_bd_pins axi_interconnect_0/M00_ACLK] [get_bd_pins axi_interconnect_0/ACLK]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_0/dcm_locked]
+  connect_bd_net -net proc_sys_reset_0_interconnect_aresetn [get_bd_pins proc_sys_reset_0/interconnect_aresetn] [get_bd_pins axi_interconnect_0/ARESETN] [get_bd_pins axi_interconnect_0/M00_ARESETN]
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset] [get_bd_ports out_reset]
+  connect_bd_net -net proc_sys_reset_1_interconnect_aresetn [get_bd_pins proc_sys_reset_1/interconnect_aresetn] [get_bd_pins axi_interconnect_0/S00_ARESETN]
   connect_bd_net -net xlslice_0_Dout [get_bd_pins xlslice_0/Dout] [get_bd_ports fan_en]
   connect_bd_net -net zynq_ultra_ps_e_0_emio_ttc0_wave_o [get_bd_pins zynq_ultra_ps_e_0/emio_ttc0_wave_o] [get_bd_pins xlslice_0/Din]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] [get_bd_pins clk_wiz_0/clk_in1] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk]
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0] [get_bd_pins clk_wiz_0/resetn] [get_bd_pins proc_sys_reset_0/ext_reset_in]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] [get_bd_pins clk_wiz_0/clk_in1] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins axi_interconnect_0/S00_ACLK] [get_bd_pins proc_sys_reset_1/slowest_sync_clk]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0] [get_bd_pins clk_wiz_0/resetn] [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins proc_sys_reset_1/ext_reset_in]
 
   # Create address segments
+  assign_bd_address -offset 0xA0000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs m_axi4l/Reg] -force
 
 
   # Restore current instance
