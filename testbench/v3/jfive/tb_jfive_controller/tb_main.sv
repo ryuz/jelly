@@ -61,7 +61,8 @@ module tb_main
         s_axi4l_ctl
             (
                 .aresetn        (~reset     ),
-                .aclk           (clk        )
+                .aclk           (clk        ),
+                .aclken         (1'b1       )
             );
 
     jelly3_axi4l_if
@@ -72,7 +73,8 @@ module tb_main
         s_axi4l_mem
             (
                 .aresetn        (~reset     ),
-                .aclk           (clk        )
+                .aclk           (clk        ),
+                .aclken         (1'b1       )
             );
 
     jelly3_axi4l_if
@@ -83,7 +85,8 @@ module tb_main
         m_axi4l
             (
                 .aresetn        (~reset     ),
-                .aclk           (clk        )
+                .aclk           (clk        ),
+                .aclken         (1'b1       )
             );
 
 

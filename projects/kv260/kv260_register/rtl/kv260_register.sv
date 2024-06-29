@@ -72,13 +72,14 @@ module kv260_register
 
     jelly3_axi4l_if
             #(
-                .ADDR_BITS     (AXI4L_ADDR_BITS),
-                .DATA_BITS     (AXI4L_DATA_BITS)
+                .ADDR_BITS     (AXI4L_ADDR_BITS ),
+                .DATA_BITS     (AXI4L_DATA_BITS )
             )
         i_axi4l_peri
             (
-                .aresetn        (axi4l_aresetn),
-                .aclk           (axi4l_aclk)
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
             );
 
 
@@ -120,7 +121,8 @@ module kv260_register
         i_axi4l_dec [AXI4L_DEC_NUM]
             (
                 .aresetn        (axi4l_aresetn  ),
-                .aclk           (axi4l_aclk     )
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
             );
     
     // address map

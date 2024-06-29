@@ -29,7 +29,8 @@ module kv260_jfive_v3_sample
         axi4l_peri
             (
                 .aresetn            (~reset     ),
-                .aclk               (clk        )
+                .aclk               (clk        ),
+                .aclken             (1'b1       )
             );
 
     design_1
@@ -77,7 +78,8 @@ module kv260_jfive_v3_sample
         axi4l_dec [DEC_NUM]
             (
                 .aresetn        (~reset ),
-                .aclk           (clk    )
+                .aclk           (clk    ),
+                .aclken         (1'b1   )
             );
     
     // address map
@@ -137,7 +139,8 @@ module kv260_jfive_v3_sample
         s_axi4l_ctl
             (
                 .aresetn            (~reset     ),
-                .aclk               (clk        )
+                .aclk               (clk        ),
+                .aclken             (1'b1       )
             );
     
     jelly3_axi4l_if
@@ -148,7 +151,8 @@ module kv260_jfive_v3_sample
         s_axi4l_mem
             (
                 .aresetn            (~reset     ),
-                .aclk               (clk        )
+                .aclk               (clk        ),
+                .aclken             (1'b1       )
             );
     */
 
@@ -160,7 +164,8 @@ module kv260_jfive_v3_sample
         m_axi4l
             (
                 .aresetn            (~reset     ),
-                .aclk               (clk        )
+                .aclk               (clk        ),
+                .aclken             (1'b1       )
             );
 
     jelly3_jfive_controller

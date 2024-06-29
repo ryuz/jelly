@@ -231,7 +231,8 @@ module tb_top();
         axi4l_peri
             (
                 .aresetn    (axi4l_peri_aresetn     ),
-                .aclk       (axi4l_peri_aclk        )
+                .aclk       (axi4l_peri_aclk        ),
+                .aclken     (1'b1                   )
             );
 
     /*

@@ -51,6 +51,7 @@ module video_raw_to_rgb
             (
                 .aresetn        (s_axi4l.aresetn    ),
                 .aclk           (s_axi4l.aclk       )
+                .aclken         (1'b1               )
             );
     
     // address map

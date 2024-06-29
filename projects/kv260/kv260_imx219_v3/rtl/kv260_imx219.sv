@@ -65,6 +65,7 @@ module kv260_imx219
             (
                 .aresetn    (axi4l_peri_aresetn     ),
                 .aclk       (axi4l_peri_aclk        )
+                .aclken     (1'b1                   )
             );
 
     jelly3_axi4_if
@@ -76,7 +77,8 @@ module kv260_imx219
         axi4_mem0
             (
                 .aresetn    (axi4_mem_aresetn       ),
-                .aclk       (axi4_mem_aclk          )
+                .aclk       (axi4_mem_aclk          ),
+                .aclken     (1'b1                   )
             );
     
     design_1
@@ -202,7 +204,8 @@ module kv260_imx219
         axi4l_dec [DEC_NUM]
             (
                 .aresetn        (axi4l_peri_aresetn  ),
-                .aclk           (axi4l_peri_aclk     )
+                .aclk           (axi4l_peri_aclk     ),
+                .aclken         (1'b1                )
             );
     
     // address map

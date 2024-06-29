@@ -98,8 +98,9 @@ module tb_video_format_regularizer();
             )
         i_axi4l
             (
-                .aresetn        (axi4l_aresetn),
-                .aclk           (axi4l_aclk)
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
             );
 
 

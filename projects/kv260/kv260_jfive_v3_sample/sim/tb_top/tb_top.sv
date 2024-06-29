@@ -33,7 +33,8 @@ module tb_top();
         axi4l
             (
                 .aresetn            (~reset     ),
-                .aclk               (clk        )
+                .aclk               (clk        ),
+                .aclken             (1'b1       )
             );
 
     tb_main
