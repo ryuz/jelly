@@ -12,69 +12,73 @@
 
 interface jelly3_axi4s_if
     #(
-        parameter   bit     USE_STRB  = 0,
-        parameter   bit     USE_KEEP  = 0,
-        parameter   bit     USE_LAST  = 1,
-        parameter   bit     USE_ID    = 0,
-        parameter   bit     USE_DEST  = 0,
-        parameter   bit     USE_USER  = 0,
+        parameter   bit     USE_STRB   = 0                      ,
+        parameter   bit     USE_KEEP   = 0                      ,
+        parameter   bit     USE_LAST   = 1                      ,
+        parameter   bit     USE_ID     = 0                      ,
+        parameter   bit     USE_DEST   = 0                      ,
+        parameter   bit     USE_USER   = 0                      ,
 
-        parameter   int     DATA_BITS = 32,
-        parameter   int     BYTE_BITS = 8,
-        parameter   int     STRB_BITS = DATA_BITS / BYTE_BITS,
-        parameter   int     KEEP_BITS = DATA_BITS / BYTE_BITS,
-        parameter   int     ID_BITS   = 8,
-        parameter   int     DEST_BITS = 4,
-        parameter   int     USER_BITS = 1,
+        parameter   int     DATA_BITS  = 32                     ,
+        parameter   int     BYTE_BITS  = 8                      ,
+        parameter   int     STRB_BITS  = DATA_BITS / BYTE_BITS  ,
+        parameter   int     KEEP_BITS  = DATA_BITS / BYTE_BITS  ,
+        parameter   int     ID_BITS    = 8                      ,
+        parameter   int     DEST_BITS  = 4                      ,
+        parameter   int     USER_BITS  = 1                      ,
 
-        parameter           DEBUG     = "false"
+        parameter           SIMULATION = "false"                ,
+        parameter           DEBUG      = "false"                
     )
     (
-        input   var logic   aresetn,
-        input   var logic   aclk
+        input   var logic   aresetn     ,
+        input   var logic   aclk        ,
+        input   var logic   aclken      
     );
 
     // signals
-    (* MARK_DEBUG=DEBUG *)  logic   [DATA_BITS-1:0]     tdata;
-                            logic   [STRB_BITS-1:0]     tstrb;
-                            logic   [STRB_BITS-1:0]     tkeep;
-                            logic                       tlast;
-                            logic   [ID_BITS-1:0]       tid;
-                            logic   [DEST_BITS-1:0]     tdest;
-    (* MARK_DEBUG=DEBUG *)  logic   [USER_BITS-1:0]     tuser;
-    (* MARK_DEBUG=DEBUG *)  logic                       tvalid;
-    (* MARK_DEBUG=DEBUG *)  logic                       tready;
+    (* MARK_DEBUG=DEBUG *)  logic   [DATA_BITS-1:0]     tdata   ;
+                            logic   [STRB_BITS-1:0]     tstrb   ;
+                            logic   [STRB_BITS-1:0]     tkeep   ;
+                            logic                       tlast   ;
+                            logic   [ID_BITS-1:0]       tid     ;
+                            logic   [DEST_BITS-1:0]     tdest   ;
+    (* MARK_DEBUG=DEBUG *)  logic   [USER_BITS-1:0]     tuser   ;
+    (* MARK_DEBUG=DEBUG *)  logic                       tvalid  ;
+    (* MARK_DEBUG=DEBUG *)  logic                       tready  ;
 
     modport m
         (
-            input   aresetn,
-            input   aclk,
+            input   aresetn ,
+            input   aclk    ,
+            input   aclken  ,
     
-            output  tdata,
-            output  tstrb,
-            output  tkeep,
-            output  tlast,
-            output  tid,
-            output  tdest,
-            output  tuser,
-            output  tvalid,
-            input   tready
+            output  tdata   ,
+            output  tstrb   ,
+            output  tkeep   ,
+            output  tlast   ,
+            output  tid     ,
+            output  tdest   ,
+            output  tuser   ,
+            output  tvalid  ,
+            input   tready  
         );
 
     modport s
         (
-            input   aresetn,
-            input   aclk,
+            input   aresetn ,
+            input   aclk    ,
+            input   aclken  ,
     
-            input   tdata,
-            input   tstrb,
-            input   tkeep,
-            input   tlast,
-            input   tid,
-            input   tdest,
-            input   tuser,
-            input   tvalid,
-            output  tready
+            input   tdata   ,
+            input   tstrb   ,
+            input   tkeep   ,
+            input   tlast   ,
+            input   tid     ,
+            input   tdest   ,
+            input   tuser   ,
+            input   tvalid  ,
+            output  tready  
         );
 
 

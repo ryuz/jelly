@@ -12,15 +12,19 @@
 
 interface jelly3_axi4l_if
     #(
-        parameter   int                         ADDR_BITS = 32                      ,
-        parameter   int                         DATA_BITS = 32                      ,
-        parameter   int                         BYTE_BITS = 8                       ,
-        parameter   int                         STRB_BITS = DATA_BITS / BYTE_BITS   ,
-        parameter   int                         PROT_BITS = 3                       ,
-        parameter   int                         RESP_BITS = 2                       ,
-        parameter   int                         LIMIT_AW  = 1                       ,
-        parameter   int                         LIMIT_W   = 1                       ,
-        parameter   int                         LIMIT_AR  = 1                       
+        parameter   int     ADDR_BITS  = 32                     ,
+        parameter   int     DATA_BITS  = 32                     ,
+        parameter   int     BYTE_BITS  = 8                      ,
+        parameter   int     STRB_BITS  = DATA_BITS / BYTE_BITS  ,
+        parameter   int     PROT_BITS  = 3                      ,
+        parameter   int     RESP_BITS  = 2                      ,
+        
+        parameter   int     LIMIT_AW   = 1                      ,
+        parameter   int     LIMIT_W    = 1                      ,
+        parameter   int     LIMIT_AR   = 1                      ,
+
+        parameter           SIMULATION = "false"                ,
+        parameter           DEBUG      = "false"                
     )
     (
         input   var logic   aresetn ,
@@ -36,98 +40,100 @@ interface jelly3_axi4l_if
 
 
     // attributes
-    addr_t      addr_base;
-    addr_t      addr_high;
+    addr_t      addr_base   ;
+    addr_t      addr_high   ;
 
     // signals
-    addr_t      awaddr;
-    prot_t      awprot;
-    logic       awvalid;
-    logic       awready;
+    addr_t      awaddr      ;
+    prot_t      awprot      ;
+    logic       awvalid     ;
+    logic       awready     ;
 
-    data_t      wdata;
-    strb_t      wstrb;
-    logic       wvalid;
-    logic       wready;
+    data_t      wdata       ;
+    strb_t      wstrb       ;
+    logic       wvalid      ;
+    logic       wready      ;
 
-    resp_t      bresp;
-    logic       bvalid;
-    logic       bready;
+    resp_t      bresp       ;
+    logic       bvalid      ;
+    logic       bready      ;
    
-    addr_t      araddr;
-    prot_t      arprot;
-    logic       arvalid;
-    logic       arready;
+    addr_t      araddr      ;
+    prot_t      arprot      ;
+    logic       arvalid     ;
+    logic       arready     ;
 
-    data_t      rdata;
-    resp_t      rresp;
-    logic       rvalid;
-    logic       rready;
+    data_t      rdata       ;
+    resp_t      rresp       ;
+    logic       rvalid      ;
+    logic       rready      ;
     
     modport m
         (
-            input   addr_base,
-            input   addr_high,
+            input   addr_base   ,
+            input   addr_high   ,
         
-            input   aresetn,
-            input   aclk,
+            input   aresetn     ,
+            input   aclk        ,
+            input   aclken      ,
     
-            output  awaddr,
-            output  awprot,
-            output  awvalid,
-            input   awready,
+            output  awaddr      ,
+            output  awprot      ,
+            output  awvalid     ,
+            input   awready     ,
         
-            output  wstrb,
-            output  wdata,
-            output  wvalid,
-            input   wready,
+            output  wstrb       ,
+            output  wdata       ,
+            output  wvalid      ,
+            input   wready      ,
         
-            input   bresp,
-            input   bvalid,
-            output  bready,
+            input   bresp       ,
+            input   bvalid      ,
+            output  bready      ,
         
-            output  araddr,
-            output  arprot,
-            output  arvalid,
-            input   arready,
+            output  araddr      ,
+            output  arprot      ,
+            output  arvalid     ,
+            input   arready     ,
         
-            input   rdata,
-            input   rresp,
-            input   rvalid,
-            output  rready
+            input   rdata       ,
+            input   rresp       ,
+            input   rvalid      ,
+            output  rready      
         );
 
     modport s
         (
-            input   addr_base,
-            input   addr_high,
+            input   addr_base   ,
+            input   addr_high   ,
 
-            input   aresetn,
-            input   aclk,
+            input   aresetn     ,
+            input   aclk        ,
+            input   aclken      ,
     
-            input   awaddr,
-            input   awprot,
-            input   awvalid,
-            output  awready,
+            input   awaddr      ,
+            input   awprot      ,
+            input   awvalid     ,
+            output  awready     ,
         
-            input   wstrb,
-            input   wdata,
-            input   wvalid,
-            output  wready,
+            input   wstrb       ,
+            input   wdata       ,
+            input   wvalid      ,
+            output  wready      ,
         
-            output  bresp,
-            output  bvalid,
-            input   bready,
+            output  bresp       ,
+            output  bvalid      ,
+            input   bready      ,
             
-            input   araddr,
-            input   arprot,
-            input   arvalid,
-            output  arready,
+            input   araddr      ,
+            input   arprot      ,
+            input   arvalid     ,
+            output  arready     ,
         
-            output  rdata,
-            output  rresp,
-            output  rvalid,
-            input   rready
+            output  rdata       ,
+            output  rresp       ,
+            output  rvalid      ,
+            input   rready      
         );
 
 

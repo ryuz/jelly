@@ -12,6 +12,10 @@
 
 interface jelly3_bram_if
     #(
+        parameter   bit     USE_ID    = 1                      ,
+        parameter   bit     USE_STRB  = 1                      ,
+        parameter   bit     USE_LAST  = 1                      ,
+
         parameter   int     ID_BITS   = 8                       ,
         parameter   int     ADDR_BITS = 10                      ,
         parameter   int     DATA_BITS = 32                      ,

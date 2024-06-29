@@ -47,12 +47,15 @@ interface jelly3_axi4_if
         parameter   int     ARUSER_BITS    = USER_REQ_BITS                  ,
         parameter   int     RUSER_BITS     = USER_DATA_BITS + USER_RESP_BITS,
 
-        parameter   int     LIMIT_AW = 255                                  ,
-        parameter   int     LIMIT_W  = 255                                  ,
-        parameter   int     LIMIT_WC = 1023                                 ,
-        parameter   int     LIMIT_AR = 255                                  ,
-        parameter   int     LIMIT_R  = 255                                  ,
-        parameter   int     LIMIT_RC = 1023                                 
+        parameter   int     LIMIT_AW      = 255                             ,
+        parameter   int     LIMIT_W       = 255                             ,
+        parameter   int     LIMIT_WC      = 1023                            ,
+        parameter   int     LIMIT_AR      = 255                             ,
+        parameter   int     LIMIT_R       = 255                             ,
+        parameter   int     LIMIT_RC      = 1023                            ,
+
+        parameter           SIMULATION    = "false"                         ,
+        parameter           DEBUG         = "false"                         
     )
     (
         input   var logic   aresetn ,
@@ -142,6 +145,7 @@ interface jelly3_axi4_if
 
             input   aresetn     ,
             input   aclk        ,
+            input   aclken      ,
 
             output  awid        ,
             output  awaddr      ,
@@ -200,6 +204,7 @@ interface jelly3_axi4_if
 
             input   aresetn     ,
             input   aclk        ,
+            input   aclken      ,
 
             input   awid        ,
             input   awaddr      ,

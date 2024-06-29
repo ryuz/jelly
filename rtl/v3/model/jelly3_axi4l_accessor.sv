@@ -30,11 +30,13 @@ module jelly3_axi4l_accessor
     logic   busy_ar;
     logic   busy_r ;
     always_ff @(posedge m_axi4l.aclk) begin
-        if ( !m_axi4l.awvalid || m_axi4l.awready )  busy_aw <= RAND_RATE_AW > 0 ? $urandom_range(100) < RAND_RATE_AW : 1'b0;
-        if ( !m_axi4l.wvalid  || m_axi4l.wready  )  busy_w  <= RAND_RATE_W  > 0 ? $urandom_range(100) < RAND_RATE_W  : 1'b0;
-                                                    busy_b  <= RAND_RATE_B  > 0 ? $urandom_range(100) < RAND_RATE_B  : 1'b0;
-        if ( !m_axi4l.arvalid || m_axi4l.arready )  busy_ar <= RAND_RATE_AR > 0 ? $urandom_range(100) < RAND_RATE_AR : 1'b0;
-                                                    busy_r  <= RAND_RATE_R  > 0 ? $urandom_range(100) < RAND_RATE_R  : 1'b0;
+        if ( m_axi4l.aclken ) begin
+            if ( !m_axi4l.awvalid || m_axi4l.awready )  busy_aw <= RAND_RATE_AW > 0 ? $urandom_range(100) < RAND_RATE_AW : 1'b0;
+            if ( !m_axi4l.wvalid  || m_axi4l.wready  )  busy_w  <= RAND_RATE_W  > 0 ? $urandom_range(100) < RAND_RATE_W  : 1'b0;
+                                                        busy_b  <= RAND_RATE_B  > 0 ? $urandom_range(100) < RAND_RATE_B  : 1'b0;
+            if ( !m_axi4l.arvalid || m_axi4l.arready )  busy_ar <= RAND_RATE_AR > 0 ? $urandom_range(100) < RAND_RATE_AR : 1'b0;
+                                                        busy_r  <= RAND_RATE_R  > 0 ? $urandom_range(100) < RAND_RATE_R  : 1'b0;
+        end
     end
 
 
