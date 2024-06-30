@@ -39,7 +39,6 @@ interface jelly3_bram_if
     logic       clast       ;
     strb_t      cstrb       ;
     data_t      cdata       ;
-    logic       clast       ;
     logic       cvalid      ;
     logic       cready      ;
 
