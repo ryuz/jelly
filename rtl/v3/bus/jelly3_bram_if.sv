@@ -54,6 +54,7 @@ interface jelly3_bram_if
         (
             input   reset       ,
             input   clk         ,
+            input   cke         ,
     
             output  cid         ,
             output  caddr       ,
@@ -74,6 +75,7 @@ interface jelly3_bram_if
         (
             input   reset       ,
             input   clk         ,
+            input   cke         ,
     
             input   cid         ,
             input   caddr       ,
