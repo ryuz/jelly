@@ -20,17 +20,19 @@ module kv260_jfive_v3_sample
 
     logic   reset;
     logic   clk;
+    logic   axi4l_aresetn;
+    logic   axi4l_aclk;
 
     jelly3_axi4l_if
             #(
-                .ADDR_BITS          (40          ),
-                .DATA_BITS          (32          )
+                .ADDR_BITS      (40             ),
+                .DATA_BITS      (32             )
             )
         axi4l_peri
             (
-                .aresetn            (~reset     ),
-                .aclk               (clk        ),
-                .aclken             (1'b1       )
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
             );
 
     design_1
@@ -40,6 +42,9 @@ module kv260_jfive_v3_sample
 
                 .out_reset          (reset              ),
                 .out_clk            (clk                ),
+
+                .m_axi4l_aresetn    (axi4l_aresetn      ),
+                .m_axi4l_aclk       (axi4l_aclk         ),
 
                 .m_axi4l_awaddr     (axi4l_peri.awaddr  ),
                 .m_axi4l_awprot     (axi4l_peri.awprot  ),
@@ -72,14 +77,14 @@ module kv260_jfive_v3_sample
 
     jelly3_axi4l_if
             #(
-                .ADDR_BITS      (40     ),
-                .DATA_BITS      (32     )
+                .ADDR_BITS      (40             ),
+                .DATA_BITS      (32             )
             )
         axi4l_dec [DEC_NUM]
             (
-                .aresetn        (~reset ),
-                .aclk           (clk    ),
-                .aclken         (1'b1   )
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
             );
     
     // address map
@@ -158,8 +163,25 @@ module kv260_jfive_v3_sample
 
     jelly3_axi4l_if
             #(
-                .ADDR_BITS          (32          ),
-                .DATA_BITS          (32          )
+                .ADDR_BITS      (40             ),
+                .DATA_BITS      (32             )
+            )
+        axi4l_mem
+            (
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
+            );
+    assign axi4l_mem.awvalid = 1'b0;
+    assign axi4l_mem.wvalid  = 1'b0;
+    assign axi4l_mem.bready  = 1'b0;
+    assign axi4l_mem.arvalid = 1'b0;
+    assign axi4l_mem.rready  = 1'b0;
+    
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS          (32         ),
+                .DATA_BITS          (32         )
             )
         m_axi4l
             (
@@ -199,7 +221,7 @@ module kv260_jfive_v3_sample
                 .cke                (1'b1               ),
 
                 .s_axi4l_ctl        (axi4l_dec[DEC_CTL] ),
-                .s_axi4l_mem        (axi4l_dec[DEC_MEM] ),
+                .s_axi4l_mem        (axi4l_mem          ), // (axi4l_dec[DEC_MEM] ),
                 .m_axi4l_ext        ('{m_axi4l}         )
             );
 
