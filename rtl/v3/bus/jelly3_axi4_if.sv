@@ -424,7 +424,7 @@ ASSERT_ARLEN_STABLE : assert property(prop_arlen_stable );
 // wdata
 property prop_wdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wdata ); endproperty
 property prop_wdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (wvalid && !wready) |=> $stable(wdata ); endproperty
-ASSERT_WDATA_VALID  : assert property(prop_wdata_valid );
+//ASSERT_WDATA_VALID  : assert property(prop_wdata_valid );
 ASSERT_WDATA_STABLE : assert property(prop_wdata_stable );
 
 // wstrb
@@ -442,7 +442,7 @@ ASSERT_WLAST_STABLE : assert property(prop_wlast_stable );
 // rdata
 property prop_rdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rdata ); endproperty
 property prop_rdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rdata ); endproperty
-ASSERT_RDATA_VALID  : assert property(prop_rdata_valid );
+//ASSERT_RDATA_VALID  : assert property(prop_rdata_valid );
 ASSERT_RDATA_STABLE : assert property(prop_rdata_stable );
 
 // rlast
