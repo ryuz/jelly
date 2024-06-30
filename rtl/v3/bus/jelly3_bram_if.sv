@@ -39,7 +39,6 @@ interface jelly3_bram_if
     logic       clast       ;
     strb_t      cstrb       ;
     data_t      cdata       ;
-    logic       clast       ;
     logic       cvalid      ;
     logic       cready      ;
 
@@ -87,6 +86,7 @@ interface jelly3_bram_if
         
             output  rid         ,
             output  rlast       ,
+            output  rdata       ,
             output  rvalid      ,
             input   rready      
         );

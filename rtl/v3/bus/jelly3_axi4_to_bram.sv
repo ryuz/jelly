@@ -12,23 +12,18 @@
 
 module jelly3_axi4_to_bram
         #(
-            parameter   int     ADDR_BITS = 10                                                  ,
-            parameter   type    addr_t    = logic [ADDR_BITS-1:0]                               ,
-            parameter   int     DATA_BITS = 32                                                  ,
-            parameter   type    data_t    = logic [DATA_BITS-1:0]                               ,
-            parameter   int     BYTE_BITS = 8                                                   ,
-            parameter   type    byte_t    = logic [BYTE_BITS-1:0]                               ,
-            parameter   int     WE_BITS   = ($bits(data_t) + $bits(byte_t) - 1) / $bits(byte_t) ,
-            parameter   type    we_t      = logic [WE_BITS-1:0]                                 
+            parameter           DEVICE     = "RTL"      ,
+            parameter           SIMULATION = "false"    ,
+            parameter           DEBUG      = "false"    
         )
         (
-            input   var logic       cke     ,
             jelly3_axi4_if.s        s_axi4  ,
             jelly3_bram_if.m        m_bram  
         );
 
-    wire    logic   reset = ~s_axi4.aresetn ;
-    wire    logic   clk   = s_axi4.aclk     ;
+    wire    logic   reset = ~s_axi4.aresetn || m_bram.reset ;
+    wire    logic   clk   = s_axi4.aclk                     ;
+    wire    logic   cke   = s_axi4.aclken                   ;
 
     localparam int  ADDR_UNIT    = s_axi4.STRB_BITS;
 
@@ -178,6 +173,13 @@ module jelly3_axi4_to_bram
         end
         if ( $bits(bram_id_t) != $bits(axi4_id_t) ) begin
             $error("ERROR: ID_BITS of bram and axi4 must be same");
+        end
+    end
+
+    if ( SIMULATION == "true" ) begin
+        always_comb begin
+            sva_clk : assert (s_axi4.aclk   === m_bram.clk);
+            sva_cke : assert (s_axi4.aclken === m_bram.cke);
         end
     end
 
