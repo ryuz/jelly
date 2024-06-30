@@ -20,14 +20,14 @@ module tb_main
     logic       m_valid;
     logic       m_ready;
     
-    jelly3_data_ff
+    jelly3_stream_ff
             #(
                 .DATA_BITS      (DATA_BITS  ),
                 .data_t         (data_t     ),
                 .S_REGS         (1          ),
                 .M_REGS         (1          )
             )
-        i_data_ff
+        u_stream_ff
             (
                 .reset          (reset      ),
                 .clk            (clk        ),

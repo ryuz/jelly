@@ -10,7 +10,7 @@
 `default_nettype none
 
 
-// pipeline insert FF
+// insert FF to stream
 module jelly3_stream_ff
         #(
             parameter   int     DATA_BITS   = 8                     ,
