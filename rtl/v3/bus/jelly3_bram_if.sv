@@ -86,6 +86,7 @@ interface jelly3_bram_if
         
             output  rid         ,
             output  rlast       ,
+            output  rdata       ,
             output  rvalid      ,
             input   rready      
         );
