@@ -24,6 +24,12 @@ module jelly3_axi4l_accessor
 
     localparam EPSILON = 0.01;
 
+    localparam type addr_t = logic [m_axi4l.ADDR_BITS-1:0];
+    localparam type data_t = logic [m_axi4l.DATA_BITS-1:0];
+    localparam type strb_t = logic [m_axi4l.STRB_BITS-1:0];
+    localparam type prot_t = logic [m_axi4l.PROT_BITS-1:0];
+    localparam type resp_t = logic [m_axi4l.RESP_BITS-1:0];
+
     logic   busy_aw;
     logic   busy_w ;
     logic   busy_b ;
@@ -41,25 +47,25 @@ module jelly3_axi4l_accessor
 
 
     // signals
-    logic   [m_axi4l.ADDR_BITS-1:0]     awaddr;
-    logic   [m_axi4l.PROT_BITS-1:0]     awprot;
-    logic                               awvalid = 1'b0;
-    logic                               awready;
-    logic   [m_axi4l.STRB_BITS-1:0]     wstrb;
-    logic   [m_axi4l.DATA_BITS-1:0]     wdata;
-    logic                               wvalid = 1'b0;
-    logic                               wready;
-    logic   [m_axi4l.RESP_BITS-1:0]     bresp;
-    logic                               bvalid;
-    logic                               bready = 1'b0;
-    logic   [m_axi4l.ADDR_BITS-1:0]     araddr;
-    logic   [m_axi4l.PROT_BITS-1:0]     arprot;
-    logic                               arvalid = 1'b0;
-    logic                               arready;
-    logic   [m_axi4l.DATA_BITS-1:0]     rdata;
-    logic   [m_axi4l.RESP_BITS-1:0]     rresp;
-    logic                               rvalid;
-    logic                               rready = 1'b0;
+    addr_t      awaddr  ;
+    prot_t      awprot  ;
+    logic       awvalid = 1'b0;
+    logic       awready ;
+    strb_t      wstrb   ;
+    data_t      wdata   ;
+    logic       wvalid = 1'b0;
+    logic       wready  ;
+    resp_t      bresp   ;
+    logic       bvalid  ;
+    logic       bready = 1'b0;
+    addr_t      araddr  ;
+    prot_t      arprot  ;
+    logic       arvalid = 1'b0;
+    logic       arready ;
+    data_t      rdata   ;
+    resp_t      rresp   ;
+    logic       rvalid  ;
+    logic       rready = 1'b0;
 
     assign m_axi4l.awaddr  = awvalid ? awaddr : 'x  ;
     assign m_axi4l.awprot  = awvalid ? awprot : 'x  ;
@@ -74,21 +80,23 @@ module jelly3_axi4l_accessor
     assign m_axi4l.rready  = !busy_r;
 
     always_ff @(posedge m_axi4l.aclk) begin
-        awready <= m_axi4l.awready;
-        wready  <= m_axi4l.wready ;
-        bresp   <= m_axi4l.bresp  ;
-        bvalid  <= m_axi4l.bvalid ;
-        arready <= m_axi4l.arready;
-        rdata   <= m_axi4l.rdata  ;
-        rresp   <= m_axi4l.rresp  ;
-        rvalid  <= m_axi4l.rvalid ;
+        if ( m_axi4l.aclken ) begin
+            awready <= m_axi4l.awready;
+            wready  <= m_axi4l.wready ;
+            bresp   <= m_axi4l.bresp  ;
+            bvalid  <= m_axi4l.bvalid ;
+            arready <= m_axi4l.arready;
+            rdata   <= m_axi4l.rdata  ;
+            rresp   <= m_axi4l.rresp  ;
+            rvalid  <= m_axi4l.rvalid ;
+        end
     end
 
     logic                               issue_aw;
-    logic                               issue_w;
-    logic                               issue_b;
+    logic                               issue_w ;
+    logic                               issue_b ;
     logic                               issue_ar;
-    logic                               issue_r;
+    logic                               issue_r ;
     always_ff @(posedge m_axi4l.aclk) begin
         issue_aw <= m_axi4l.awvalid & m_axi4l.awready   ;
         issue_w  <= m_axi4l.wvalid  & m_axi4l.wready    ;
@@ -98,9 +106,9 @@ module jelly3_axi4l_accessor
     end
 
     task write(
-                input   logic   [m_axi4l.ADDR_BITS-1:0]     addr,
-                input   logic   [m_axi4l.DATA_BITS-1:0]     data,
-                input   logic   [m_axi4l.STRB_BITS-1:0]     strb
+                input   addr_t  addr,
+                input   data_t  data,
+                input   strb_t  strb
             );
         $display("[axi4l write] addr:%x <= data:%x strb:%x", addr, data, strb);
         @(posedge m_axi4l.aclk); #EPSILON;
@@ -132,8 +140,8 @@ module jelly3_axi4l_accessor
     endtask
 
     task read(
-                input   logic   [m_axi4l.ADDR_BITS-1:0]     addr,
-                output  logic   [m_axi4l.DATA_BITS-1:0]     data
+                input   addr_t  addr,
+                output  data_t  data
             );
         @(posedge m_axi4l.aclk); #EPSILON;
         araddr  = addr;
@@ -158,18 +166,18 @@ module jelly3_axi4l_accessor
     localparam ADDR_UNIT = m_axi4l.DATA_BITS / 8;
 
     task write_reg(
-                input   logic   [m_axi4l.ADDR_BITS-1:0]     base_addr,
-                input   int                                 reg_idx,
-                input   logic   [m_axi4l.DATA_BITS-1:0]     data,
-                input   logic   [m_axi4l.STRB_BITS-1:0]     strb
+                input   addr_t  base_addr,
+                input   int     reg_idx,
+                input   data_t  data,
+                input   strb_t  strb
             );
         write(base_addr + m_axi4l.ADDR_BITS'(reg_idx) * ADDR_UNIT, data, strb);
     endtask
 
     task read_reg(
-                input   logic   [m_axi4l.ADDR_BITS-1:0]     base_addr,
-                input   int                                 reg_idx,
-                output  logic   [m_axi4l.DATA_BITS-1:0]     data
+                input   addr_t  base_addr,
+                input   int     reg_idx,
+                output  data_t  data
             );
         read(base_addr + m_axi4l.ADDR_BITS'(reg_idx) * ADDR_UNIT, data);
     endtask
