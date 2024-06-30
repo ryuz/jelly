@@ -125,7 +125,7 @@ module jelly3_jfive_controller
         if ( ~s_axi4l_ctl.aresetn ) begin
             reg_ctl_control      <= INIT_CTL_CONTROL;
         end
-        else begin
+        else if ( s_axi4l_ctl.aclken ) begin
             if ( s_axi4l_ctl.awvalid && s_axi4l_ctl.awready && s_axi4l_ctl.wvalid && s_axi4l_ctl.wready ) begin
                 case ( regadr_write )
                 REGADR_CTL_CONTROL: reg_ctl_control <= 1'(write_mask(axi4l_data_t'(reg_ctl_control), s_axi4l_ctl.wdata, s_axi4l_ctl.wstrb));
@@ -139,7 +139,7 @@ module jelly3_jfive_controller
         if ( ~s_axi4l_ctl.aresetn ) begin
             s_axi4l_ctl.bvalid <= 0;
         end
-        else begin
+        else if ( s_axi4l_ctl.aclken ) begin
             if ( s_axi4l_ctl.bready ) begin
                 s_axi4l_ctl.bvalid <= 0;
             end
@@ -156,14 +156,16 @@ module jelly3_jfive_controller
 
     // read
     always_ff @(posedge s_axi4l_ctl.aclk ) begin
-        if ( s_axi4l_ctl.arvalid && s_axi4l_ctl.arready ) begin
-            case ( regadr_read )
-            REGADR_CORE_ID:            s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_ID             );
-            REGADR_CORE_VERSION:       s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_VERSION        );
-            REGADR_CTL_CONTROL:        s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
-            REGADR_CTL_STATUS:         s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
-            default: ;
-            endcase
+        if ( s_axi4l_ctl.aclken ) begin
+            if ( s_axi4l_ctl.arvalid && s_axi4l_ctl.arready ) begin
+                case ( regadr_read )
+                REGADR_CORE_ID:            s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_ID             );
+                REGADR_CORE_VERSION:       s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_VERSION        );
+                REGADR_CTL_CONTROL:        s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
+                REGADR_CTL_STATUS:         s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
+                default: ;
+                endcase
+            end
         end
     end
 
@@ -172,7 +174,7 @@ module jelly3_jfive_controller
         if ( ~s_axi4l_ctl.aresetn ) begin
             s_axi4l_ctl.rvalid <= 1'b0;
         end
-        else begin
+        else if ( s_axi4l_ctl.aclken ) begin
             if ( s_axi4l_ctl.rready ) begin
                 s_axi4l_ctl.rvalid <= 1'b0;
             end
@@ -231,17 +233,23 @@ module jelly3_jfive_controller
     // ---------------------------------------------------------
     //  JFive Core
     // ---------------------------------------------------------
-    
+
+    (* ASYNC_REG = "TRUE" *)    logic   reset_ff0, reset_ff1;
+    always_ff @(posedge clk) begin
+        reset_ff0 <= ~reg_ctl_control;
+        reset_ff1 <= reset_ff0;
+    end
+
     logic                       core_reset;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             core_reset <= 1'b1;
         end
         else if ( cke ) begin
-            core_reset <= ~reg_ctl_control;
+            core_reset <= reset_ff1;
         end
     end
-
+    
     id_t                        ibus_aid    ;
     phase_t                     ibus_aphase ;
     pc_t                        ibus_apc    ;
