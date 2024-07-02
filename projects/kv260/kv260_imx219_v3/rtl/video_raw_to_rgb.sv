@@ -50,7 +50,7 @@ module video_raw_to_rgb
         axi4l_dec [DEC_NUM]
             (
                 .aresetn        (s_axi4l.aresetn    ),
-                .aclk           (s_axi4l.aclk       )
+                .aclk           (s_axi4l.aclk       ),
                 .aclken         (1'b1               )
             );
     

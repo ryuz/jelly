@@ -131,7 +131,7 @@ module jelly3_axi4_to_bram
     assign m_bram.cid    = id;
     assign m_bram.caddr  = bram_addr_t'(addr / ADDR_UNIT);
     assign m_bram.clast  = last;
-    assign m_bram.cstrb  = s_axi4.wstrb;
+    assign m_bram.cstrb  = busyw ? s_axi4.wstrb : '0;
     assign m_bram.cdata  = s_axi4.wdata;
     assign m_bram.cvalid = cvalid;
 

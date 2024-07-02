@@ -194,7 +194,7 @@ module jelly3_axi4_accessor
         automatic len_t len = len_t'(data.size() - 1);
         automatic len_t idx = 0;
 
-        $display("[axi4 write] addr:%x <= data:%x strb:%x", addr, data[0], strb[0]);
+        $display("[axi4 write] awaddr:%x", addr);
         @(posedge m_axi4.aclk); #EPSILON;
         awid     = id       ;
         awaddr   = addr     ;
@@ -232,6 +232,7 @@ module jelly3_axi4_accessor
                 awvalid  = 1'b0 ;
             end
             if ( issue_w ) begin
+                $display("[axi4 write] wdata:%x wstrb:%x", data[idx], strb[idx]);
                 if ( wlast ) begin
                     wdata   = 'x;
                     wstrb   = 'x;
@@ -254,31 +255,67 @@ module jelly3_axi4_accessor
         end
     endtask
 
-    /*
     task read(
-                input   addr_t  addr,
-                output  data_t  data []
+                input   id_t        id      ,
+                input   addr_t      addr    ,
+                input   len_t       len     ,
+                input   size_t      size    ,
+                input   burst_t     burst   ,
+                input   lock_t      lock    ,
+                input   cache_t     cache   ,
+                input   prot_t      prot    ,
+                input   qos_t       qos     ,
+                input   region_t    region  ,
+                input   awuser_t    user    ,
+                output  data_t      data [] 
             );
-        @(posedge m_axi4.aclk); #EPSILON;
-        araddr  = addr;
-        arprot  = '0;
-        arvalid = 1'b1;
-        @(posedge m_axi4.aclk); #EPSILON;
-        while ( !issue_ar ) begin
-            @(posedge m_axi4.aclk); #EPSILON;
-        end
+        automatic len_t idx = 0;
+        data = new[int'(len) + 1];
 
-        araddr  = 'x;
-        arprot  = 'x;
-        arvalid = 1'b0;
+        $display("[axi4 read] araddr:%x", addr);
         @(posedge m_axi4.aclk); #EPSILON;
-        while ( !issue_r ) begin
+        arid     = id       ;
+        araddr   = addr     ;
+        arlen    = len      ;
+        arsize   = size     ;
+        arburst  = burst    ;
+        arlock   = lock     ;
+        arcache  = cache    ;
+        arprot   = prot     ;
+        arqos    = qos      ;
+        arregion = region   ;
+        aruser   = user     ;
+        arvalid  = 1'b1     ;
+        @(posedge m_axi4.aclk); #EPSILON;
+
+        forever begin
+            if ( issue_ar ) begin
+                arid     = 'x   ;
+                araddr   = 'x   ;
+                arlen    = 'x   ;
+                arsize   = 'x   ;
+                arburst  = 'x   ;
+                arlock   = 'x   ;
+                arcache  = 'x   ;
+                arprot   = 'x   ;
+                arqos    = 'x   ;
+                arregion = 'x   ;
+                aruser   = 'x   ;
+                arvalid  = 1'b0 ;
+            end
+            if ( issue_r ) begin
+                $display("[axi4l read] rdata:%x", rdata);
+                data[idx] = rdata;
+                idx++;
+                if ( rlast || idx >= int'(len) ) begin
+                    break;
+                end
+            end
             @(posedge m_axi4.aclk); #EPSILON;
         end
-        data = rdata;
-        $display("[axi4l read] addr:%x => data:%x", addr, data);
     endtask
 
+    /*
     localparam ADDR_UNIT = m_axi4.DATA_BITS / 8;
 
     task write_reg(

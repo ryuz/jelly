@@ -79,6 +79,12 @@ module tb_main
                 .m_bram         (bram.m             )
             );
 
+    assign bram.rid    = bram.cid   ;
+    assign bram.rlast  = bram.clast ;
+    assign bram.rdata  = bram.cdata ;
+    assign bram.rvalid = bram.cvalid;
+    assign bram.cready = bram.rready;
+
 
     // -------------------------
     //  Model
@@ -98,6 +104,8 @@ module tb_main
             );
 
     initial begin
+        automatic logic [axi4.DATA_BITS-1:0] rdata [];
+
         #1000;
         u_axi4_accessor.write(
                 '0,     // id     
@@ -112,7 +120,22 @@ module tb_main
                 '0,     // user   
                 '{32'h07060504, 32'h03020100}, // data []
                 '{4'hf, 4'hf}                 // strb []
-                );
+            );
+
+        u_axi4_accessor.read(
+                '0,     // id     
+                '0,     // addr   
+                8'd3,   // len    
+                4'h2,   // size   
+                2'b01,  // burst  
+                '0,     // lock   
+                '0,     // cache  
+                '0,     // prot   
+                '0,     // qos    
+                '0,     // region 
+                '0,     // user   
+                rdata   // data []
+            );
 
     end
 
