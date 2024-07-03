@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <chrono>
-
+#include <arm_neon.h>
 #include "jelly/UioAccessor.h"
 
 #define DUMMY_ARRAY_SIZE    (1024 * 1024 / 8)
@@ -85,6 +85,72 @@ double write_test(void *addr, size_t size, int times) {
 }
 
 
+double read_simd_oneshot(void *addr, size_t size) {   
+    cache_flush();
+
+    auto ptr = (int32_t *)addr;
+    auto len = size / sizeof(int32x4_t);
+
+    // 時間計測開始
+    auto start = std::chrono::system_clock::now();
+
+    // 読み出し
+    for ( size_t i = 0; i < len; i++ ) {
+        volatile int32x4_t s = vld1q_s32(ptr);
+        ptr += 4;
+    }
+
+    // 時間計測終了
+    auto end = std::chrono::system_clock::now();
+
+    // double型でナノ秒に変換
+    double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    return elapsed / (1000*1000*1000);
+}
+
+double read_simd(void *addr, size_t size, int times) {
+    double sum = 0;
+    for ( int i = 0; i < times; i++ ) {
+        sum += read_simd_oneshot(addr, size);
+    }
+    return sum / times;
+}
+
+
+double write_simd_oneshot(void *addr, size_t size) {   
+    cache_flush();
+
+    auto ptr = (int32_t *)addr;
+    auto len = size / sizeof(int32x4_t);
+
+    // 時間計測開始
+    auto start = std::chrono::system_clock::now();
+
+    // 読み出し
+    volatile int32x4_t s = {0, 1, 2, 3};
+    for ( size_t i = 0; i < len; i++ ) {
+        vst1q_s32(ptr, s);
+        ptr += 4;
+    }
+
+    // 時間計測終了
+    auto end = std::chrono::system_clock::now();
+
+    // double型でナノ秒に変換
+    double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    return elapsed / (1000*1000*1000);
+}
+
+double write_simd(void *addr, size_t size, int times) {
+    double sum = 0;
+    for ( int i = 0; i < times; i++ ) {
+        sum += write_simd_oneshot(addr, size);
+    }
+    return sum / times;
+}
+
+
+
 int main(int argc, char *argv[])
 {
     // mmap uio FPD0
@@ -104,26 +170,53 @@ int main(int argc, char *argv[])
     int    test_times = 100;
     size_t test_size  = 32*1024;
 
-    printf("<< Read Test>>\n");
-    auto read_ddr_time = read_test(&test_array[0], test_size, test_times);
-    printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / read_ddr_time / (1024*1024));
+    {
+        printf("<< Read Test >>\n");
+        auto read_ddr_time = read_test(&test_array[0], test_size, test_times);
+        printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / read_ddr_time / (1024*1024));
 
-    auto read_ocm_time = read_test(uio_ocm.GetPtr(), test_size, test_times);
-    printf("[OCM (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_ocm_time / (1024*1024));
+        auto read_ocm_time = read_test(uio_ocm.GetPtr(), test_size, test_times);
+        printf("[OCM (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_ocm_time / (1024*1024));
 
-    auto read_fpd0_time = read_test(uio_fpd0.GetPtr(), test_size, test_times);
-    printf("[PL  (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_time / (1024*1024));
+        auto read_fpd0_time = read_test(uio_fpd0.GetPtr(), test_size, test_times);
+        printf("[PL  (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_time / (1024*1024));
+    }
 
+    {
+        printf("<< Write Test >>\n");
+        auto write_ddr_time = write_test(&test_array[0], test_size, test_times);
+        printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / write_ddr_time / (1024*1024));
 
-    printf("<< Write Test>>\n");
-    auto write_ddr_time = write_test(&test_array[0], test_size, test_times);
-    printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / write_ddr_time / (1024*1024));
+        auto write_ocm_time = write_test(uio_ocm.GetPtr(), test_size, test_times);
+        printf("[OCM (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_time / (1024*1024));
 
-    auto write_ocm_time = write_test(uio_ocm.GetPtr(), test_size, test_times);
-    printf("[OCM (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_time / (1024*1024));
+        auto write_fpd0_time = write_test(uio_fpd0.GetPtr(), test_size, test_times);
+        printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
+    }
 
-    auto write_fpd0_time = write_test(uio_fpd0.GetPtr(), test_size, test_times);
-    printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
+    {
+        printf("<< SIMD Read Test >>\n");
+        auto read_ddr_time = read_simd(&test_array[0], test_size, test_times);
+        printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / read_ddr_time / (1024*1024));
+
+        auto read_ocm_time = read_simd(uio_ocm.GetPtr(), test_size, test_times);
+        printf("[OCM (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_ocm_time / (1024*1024));
+
+        auto read_fpd0_time = read_simd(uio_fpd0.GetPtr(), test_size, test_times);
+        printf("[PL  (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_time / (1024*1024));
+    }
+
+    {
+        printf("<< SIMD Write Test >>\n");
+        auto write_ddr_time = write_simd(&test_array[0], test_size, test_times);
+        printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / write_ddr_time / (1024*1024));
+
+        auto write_ocm_time = write_simd(uio_ocm.GetPtr(), test_size, test_times);
+        printf("[OCM (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_time / (1024*1024));
+
+        auto write_fpd0_time = write_simd(uio_fpd0.GetPtr(), test_size, test_times);
+        printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
+    }
 
     return 0;
 }
