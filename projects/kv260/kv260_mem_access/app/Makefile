@@ -1,7 +1,7 @@
 
-TARGET    = kv260_axi_test.out
-DT_NAME   = kv260_axi_test
-BIT_NAME  = kv260_axi_test
+TARGET    = kv260_mem_access.out
+DT_NAME   = kv260_mem_access
+BIT_NAME  = kv260_mem_access
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -13,8 +13,8 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -Wall -g -O2 `pkg-config --cflags opencv4` -I../../../../include
-LDFLAGS += -g  `pkg-config --libs opencv4`
+CFLAGS  += -Wall -g -O3 -I../../../../include
+LDFLAGS += 
 
 RUN_OPT ?=
 

@@ -6,7 +6,7 @@
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "kv260_axi_test.bit.bin";
+            firmware-name = "kv260_mem_access.bit.bin";
         };
     };
     
@@ -59,9 +59,24 @@
         overlay2: __overlay__ {
             #address-cells = <0x2>;
             #size-cells = <0x2>;
-            uio_pl_peri@a0000000 {
+            uio_pl_fpd0@a0000000 {
                 compatible = "generic-uio";
-                reg = <0x0 0xa0000000 0x0 0x08000000>;
+                reg = <0x0 0xa0000000 0x0 0x10000000>;
+            };
+            /*
+            uio_pl_fpd1@b0000000 {
+                compatible = "generic-uio";
+                reg = <0x0 0xb0000000 0x0 0x10000000>;
+            };
+            uio_pl_lpd0@c0000000 {
+                compatible = "generic-uio";
+                reg = <0x0 0xc0000000 0x0 0x20000000>;
+            };
+            */
+            
+            uio_ocm@fffc0000 {
+                compatible = "generic-uio";
+                reg = <0x0 0xfffc0000 0x0 0x00040000>;
             };
         };
     };
