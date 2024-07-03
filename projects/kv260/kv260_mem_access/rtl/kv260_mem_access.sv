@@ -1,6 +1,6 @@
 `timescale 1 ps / 1 ps
 
-module kv260_axi_test
+module kv260_mem_access
         (
             output   var logic   fan_en
         );
