@@ -200,7 +200,7 @@ proc create_root_design { parentCell } {
   set axi_bram_ctrl_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_bram_ctrl:4.1 axi_bram_ctrl_0 ]
   set_property -dict [list \
     CONFIG.DATA_WIDTH {128} \
-    CONFIG.READ_LATENCY {2} \
+    CONFIG.READ_LATENCY {8} \
     CONFIG.SINGLE_PORT_BRAM {0} \
   ] $axi_bram_ctrl_0
 
@@ -210,8 +210,8 @@ proc create_root_design { parentCell } {
   set_property -dict [list \
     CONFIG.Memory_Type {True_Dual_Port_RAM} \
     CONFIG.PRIM_type_to_Implement {URAM} \
-    CONFIG.READ_LATENCY_A {2} \
-    CONFIG.READ_LATENCY_B {2} \
+    CONFIG.READ_LATENCY_A {8} \
+    CONFIG.READ_LATENCY_B {8} \
     CONFIG.Write_Width_A {128} \
     CONFIG.use_bram_block {BRAM_Controller} \
   ] $blk_mem_gen_0
