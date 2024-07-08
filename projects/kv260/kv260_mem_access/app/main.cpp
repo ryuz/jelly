@@ -237,14 +237,14 @@ int main(int argc, char *argv[])
     }
 
 
-    // mmap uio FPD0
-    jelly::UiomemAccessor uiomem_ocm("uiomem_ocm", 0x08000000);
+    // mmap uiomem OCM
+    jelly::UiomemAccessor uiomem_ocm("uiomem_ocm", 0x40000);
     if ( !uiomem_ocm.IsMapped() ) {
         std::cout << "uiomem_ocm mmap error" << std::endl;
         return 1;
     }
 
-    // mmap uio FPD0
+    // mmap uiomem FPD0
     jelly::UiomemAccessor uiomem_fpd0("uiomem_pl_fpd0", 0x08000000);
     if ( !uiomem_fpd0.IsMapped() ) {
         std::cout << "uiomem_pl_fpd0 mmap error" << std::endl;
@@ -254,35 +254,36 @@ int main(int argc, char *argv[])
     int    test_times = 200;
     size_t test_size  = 32*1024;
     
-    
+    /*
     {
         printf("<< Read Test >>\n");
         auto read_ddr_time = read_test(&test_array[0], test_size, test_times);
-        printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / read_ddr_time / (1024*1024));
+        printf("[DDR4-SDRAM]   : %8.3f  [Mbyte/s]\n", test_size / read_ddr_time / (1024*1024));
 
-        auto read_ocm_time = read_test(uio_ocm.GetPtr(), test_size, test_times);
-        printf("[OCM (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_ocm_time / (1024*1024));
+//        auto read_ocm_time = read_test(uio_ocm.GetPtr(), test_size, test_times);
+//        printf("[OCM (uio)]    : %8.3f  [Mbyte/s]\n", test_size / read_ocm_time / (1024*1024));
 
-        auto read_fpd0_time = read_test(uio_fpd0.GetPtr(), test_size, test_times);
-        printf("[PL  (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_time / (1024*1024));
+//        auto read_fpd0_time = read_test(uio_fpd0.GetPtr(), test_size, test_times);
+//        printf("[PL  (uio)]    : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_time / (1024*1024));
 
         auto read_ocm_mem_time = read_test(uiomem_ocm.GetPtr(), test_size, test_times);
-        printf("[OCM (uiomem)]  : %8.3f  [Mbyte/s]\n", test_size / read_ocm_mem_time / (1024*1024));
+        printf("[OCM (uiomem)] : %8.3f  [Mbyte/s]\n", test_size / read_ocm_mem_time / (1024*1024));
 
         auto read_fpd0_mem_time = read_test(uiomem_fpd0.GetPtr(), test_size, test_times);
-        printf("[PL  (uiomem)]  : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_mem_time / (1024*1024));
+        printf("[PL  (uiomem)] : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_mem_time / (1024*1024));
     }
-
+    */
+    
     {
         printf("<< Write Test >>\n");
         auto write_ddr_time = write_test(&test_array[0], test_size, test_times);
         printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / write_ddr_time / (1024*1024));
 
-        auto write_ocm_time = write_test(uio_ocm.GetPtr(), test_size, test_times);
-        printf("[OCM (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_time / (1024*1024));
+//        auto write_ocm_time = write_test(uio_ocm.GetPtr(), test_size, test_times);
+//        printf("[OCM (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_time / (1024*1024));
 
-        auto write_fpd0_time = write_test(uio_fpd0.GetPtr(), test_size, test_times);
-        printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
+//        auto write_fpd0_time = write_test(uio_fpd0.GetPtr(), test_size, test_times);
+//        printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
 
         auto write_ocm_mem_time = write_test(uiomem_ocm.GetPtr(), test_size, test_times);
         printf("[OCM (uiomem)]  : %8.3f  [Mbyte/s]\n", test_size / write_ocm_mem_time / (1024*1024));
@@ -291,18 +292,22 @@ int main(int argc, char *argv[])
         printf("[PL  (uiomem)]  : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_mem_time / (1024*1024));
     }
     
-
-    /*
     {
         printf("<< SIMD Read Test >>\n");
         auto read_ddr_time = read_simd(&test_array[0], test_size, test_times);
         printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / read_ddr_time / (1024*1024));
 
-        auto read_ocm_time = read_simd(uio_ocm.GetPtr(), test_size, test_times);
-        printf("[OCM (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_ocm_time / (1024*1024));
+//        auto read_ocm_time = read_simd(uio_ocm.GetPtr(), test_size, test_times);
+//        printf("[OCM (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_ocm_time / (1024*1024));
 
-        auto read_fpd0_time = read_simd(uio_fpd0.GetPtr(), test_size, test_times);
-        printf("[PL  (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_time / (1024*1024));
+//        auto read_fpd0_time = read_simd(uio_fpd0.GetPtr(), test_size, test_times);
+//        printf("[PL  (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_time / (1024*1024));
+
+        auto read_ocm_mem_time = read_simd(uiomem_ocm.GetPtr(), test_size, test_times);
+        printf("[OCM (uiomem)]  : %8.3f  [Mbyte/s]\n", test_size / read_ocm_mem_time / (1024*1024));
+
+        auto read_fpd0_mem_time = read_simd(uiomem_fpd0.GetPtr(), test_size, test_times);
+        printf("[PL  (uiomem)]  : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_mem_time / (1024*1024));
     }
 
     {
@@ -310,13 +315,20 @@ int main(int argc, char *argv[])
         auto write_ddr_time = write_simd(&test_array[0], test_size, test_times);
         printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / write_ddr_time / (1024*1024));
 
-        auto write_ocm_time = write_simd(uio_ocm.GetPtr(), test_size, test_times);
-        printf("[OCM (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_time / (1024*1024));
+//        auto write_ocm_time = write_simd(uio_ocm.GetPtr(), test_size, test_times);
+//        printf("[OCM (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_time / (1024*1024));
 
-        auto write_fpd0_time = write_simd(uio_fpd0.GetPtr(), test_size, test_times);
-        printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
+//        auto write_fpd0_time = write_simd(uio_fpd0.GetPtr(), test_size, test_times);
+//        printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
+
+        auto write_ocm_mem_time = write_simd(uiomem_ocm.GetPtr(), test_size, test_times);
+        printf("[OCM (uiomem)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_mem_time / (1024*1024));
+
+        auto write_fpd0_mem_time = write_simd(uiomem_fpd0.GetPtr(), test_size, test_times);
+        printf("[PL  (uiomem)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_mem_time / (1024*1024));
     }
     
+    /*
 
     {
         printf("<< OpenMP and SIMD Read Test >>\n");
