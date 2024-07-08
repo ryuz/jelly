@@ -80,4 +80,21 @@
             };
         };
     };
+    
+
+    fragment@3 {
+        target = <&amba>;
+        overlay3: __overlay__ {
+            #address-cells = <0x2>;
+            #size-cells = <0x2>;
+
+            uiomem_ocm@fffc0000 {
+                compatible = "ikwzm,uiomem";
+                device-name = "uiomem_ocm";
+                minor-number = <0>;
+                reg = <0x0 0xfffc0000 0x0 0x00040000>;
+            };
+        };
+    };
 };
+

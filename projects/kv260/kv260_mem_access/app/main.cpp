@@ -5,6 +5,7 @@
 #include <iostream>
 #include <chrono>
 #include <arm_neon.h>
+#include <omp.h> 
 #include "jelly/UioAccessor.h"
 
 #define DUMMY_ARRAY_SIZE    (1024 * 1024 / 8)
@@ -149,10 +150,77 @@ double write_simd(void *addr, size_t size, int times) {
     return sum / times;
 }
 
+int32x4_t g_s32;
+double read_simd_mp_oneshot(void *addr, size_t size) {   
+    cache_flush();
 
+    auto ptr = (int32_t *)addr;
+    auto len = size / sizeof(int32x4_t);
+
+    // 時間計測開始
+    auto start = std::chrono::system_clock::now();
+
+    // 読み出し
+    volatile int32x4_t s;
+    #pragma omp parallel for
+    for ( size_t i = 0; i < len; i++ ) {
+        s = vld1q_s32(&ptr[i*4]);
+    }
+    g_s32 = s;
+
+    // 時間計測終了
+    auto end = std::chrono::system_clock::now();
+
+    // double型でナノ秒に変換
+    double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    return elapsed / (1000*1000*1000);
+}
+
+double read_simd_mp(void *addr, size_t size, int times) {
+    double sum = 0;
+    for ( int i = 0; i < times; i++ ) {
+        sum += read_simd_mp_oneshot(addr, size);
+    }
+    return sum / times;
+}
+
+double write_simd_mp_oneshot(void *addr, size_t size) {   
+    cache_flush();
+
+    auto ptr = (int32_t *)addr;
+    auto len = size / sizeof(int32x4_t);
+
+    // 時間計測開始
+    auto start = std::chrono::system_clock::now();
+
+    // 書き込み
+    int32x4_t s = {0, 1, 2, 3};
+    #pragma omp parallel for
+    for ( size_t i = 0; i < len; i++ ) {
+        vst1q_s32(&ptr[i*4], s);
+    }
+
+    // 時間計測終了
+    auto end = std::chrono::system_clock::now();
+
+    // double型でナノ秒に変換
+    double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    return elapsed / (1000*1000*1000);
+}
+
+double write_simd_mp(void *addr, size_t size, int times) {
+    double sum = 0;
+    for ( int i = 0; i < times; i++ ) {
+        sum += write_simd_mp_oneshot(addr, size);
+    }
+    return sum / times;
+}
 
 int main(int argc, char *argv[])
 {
+    omp_set_num_threads(2);
+    printf("使用可能な最大スレッド数：%d\n", omp_get_max_threads());
+
     // mmap uio FPD0
     jelly::UioAccessor uio_fpd0("uio_pl_fpd0", 0x08000000);
     if ( !uio_fpd0.IsMapped() ) {
@@ -167,9 +235,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    int    test_times = 100;
+    int    test_times = 200;
     size_t test_size  = 32*1024;
-
+    
+    
     {
         printf("<< Read Test >>\n");
         auto read_ddr_time = read_test(&test_array[0], test_size, test_times);
@@ -193,6 +262,7 @@ int main(int argc, char *argv[])
         auto write_fpd0_time = write_test(uio_fpd0.GetPtr(), test_size, test_times);
         printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
     }
+    
 
     {
         printf("<< SIMD Read Test >>\n");
@@ -215,6 +285,31 @@ int main(int argc, char *argv[])
         printf("[OCM (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_time / (1024*1024));
 
         auto write_fpd0_time = write_simd(uio_fpd0.GetPtr(), test_size, test_times);
+        printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
+    }
+    
+
+    {
+        printf("<< OpenMP and SIMD Read Test >>\n");
+        auto read_ddr_time = read_simd_mp(&test_array[0], test_size, test_times);
+        printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / read_ddr_time / (1024*1024));
+
+        auto read_ocm_time = read_simd_mp(uio_ocm.GetPtr(), test_size, test_times);
+        printf("[OCM (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_ocm_time / (1024*1024));
+
+        auto read_fpd0_time = read_simd_mp(uio_fpd0.GetPtr(), test_size, test_times);
+        printf("[PL  (uio)]  : %8.3f  [Mbyte/s]\n", test_size / read_fpd0_time / (1024*1024));
+    }
+
+    {
+        printf("<< OpenMP and SIMD Write Test >>\n");
+        auto write_ddr_time = write_simd_mp(&test_array[0], test_size, test_times);
+        printf("[DDR4-SDRAM] : %8.3f  [Mbyte/s]\n", test_size / write_ddr_time / (1024*1024));
+
+        auto write_ocm_time = write_simd_mp(uio_ocm.GetPtr(), test_size, test_times);
+        printf("[OCM (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_ocm_time / (1024*1024));
+
+        auto write_fpd0_time = write_simd_mp(uio_fpd0.GetPtr(), test_size, test_times);
         printf("[PL  (uio)]] : %8.3f  [Mbyte/s]\n", test_size / write_fpd0_time / (1024*1024));
     }
 

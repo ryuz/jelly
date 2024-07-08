@@ -13,8 +13,8 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -Wall -g -O3 -I../../../../include
-LDFLAGS += 
+CFLAGS  += -Wall -g -O3 -I../../../../include -fopenmp
+LDFLAGS += -fopenmp
 
 RUN_OPT ?=
 
