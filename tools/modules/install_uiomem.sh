@@ -9,3 +9,7 @@ make
 # install
 sudo cp uiomem.ko /lib/modules/$(uname -r)/ikwzm
 sudo depmod -a
+
+# clean
+cd ..
+rm -fr uiomem

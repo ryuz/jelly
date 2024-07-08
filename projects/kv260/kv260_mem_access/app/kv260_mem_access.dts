@@ -91,8 +91,15 @@
             uiomem_ocm@fffc0000 {
                 compatible = "ikwzm,uiomem";
                 device-name = "uiomem_ocm";
-                minor-number = <0>;
+//               minor-number = <0>;
                 reg = <0x0 0xfffc0000 0x0 0x00040000>;
+            };
+
+            uiomem_pl_fpd0@a0000000 {
+                compatible = "ikwzm,uiomem";
+                device-name = "uiomem_pl_fpd0";
+//              minor-number = <1>;
+                reg = <0x0 0xa0000000 0x0 0x08000000>;
             };
         };
     };
