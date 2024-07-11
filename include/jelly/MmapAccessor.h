@@ -29,7 +29,7 @@ class AccessorMmapManager : public AccessorMemManager
 {
 protected:
     bool    m_mapped = false;
-    int     m_fd   = 0;
+    int     m_fd     = 0;
 
     AccessorMmapManager() {}
     AccessorMmapManager(int fd, size_t size, off_t offset=0) { Mmap(fd, size, offset); }
@@ -43,7 +43,7 @@ public:
     }
 
     bool IsMapped(void) { return m_mapped; }
-    int GetFd(void)     { return m_fd; }
+    int  GetFd(void)    { return m_fd; }
 
 protected:
     bool Mmap(int fd, size_t size, off_t offset=0)

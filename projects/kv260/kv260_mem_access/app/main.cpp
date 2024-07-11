@@ -7,7 +7,25 @@
 #include <arm_neon.h>
 #include <omp.h> 
 #include "jelly/UioAccessor.h"
-#include "jelly/UiomemAccessor.h"
+#include "jelly/UdmabufAccessor.h"
+//#include "jelly/UiomemAccessor.h"
+
+
+int main(int argc, char *argv[])
+{
+    omp_set_num_threads(2);
+    printf("使用可能な最大スレッド数：%d\n", omp_get_max_threads());
+
+    printf("ReadPhysAddr   : 0x%lx\n", jelly::UdmabufAccessor::ReadPhysAddr  ("uiomem_ocm", "uiomem"));
+    printf("ReadSize       : 0x%lx\n", jelly::UdmabufAccessor::ReadSize      ("uiomem_ocm", "uiomem"));
+    printf("ReadSyncMode   : %d\n",    jelly::UdmabufAccessor::ReadSyncMode  ("uiomem_ocm", "uiomem"));
+    printf("ReadSyncOffset : 0x%lx\n", jelly::UdmabufAccessor::ReadSyncOffset("uiomem_ocm", "uiomem"));
+    return 0;
+}
+
+
+
+#if 0 
 
 #define DUMMY_ARRAY_SIZE    (1024 * 1024 / 8)
 static volatile int64_t dummy_array [DUMMY_ARRAY_SIZE];
@@ -222,6 +240,10 @@ int main(int argc, char *argv[])
     omp_set_num_threads(2);
     printf("使用可能な最大スレッド数：%d\n", omp_get_max_threads());
 
+    printf("ReadPhysAddr : 0x%x\n", UdmabufAccessor::ReadPhysAddr("uiomem_ocm", "uiomem"));
+    return 0;
+
+
     // mmap uio FPD0
     jelly::UioAccessor uio_fpd0("uio_pl_fpd0", 0x08000000);
     if ( !uio_fpd0.IsMapped() ) {
@@ -254,6 +276,8 @@ int main(int argc, char *argv[])
     int    test_times = 200;
     size_t test_size  = 32*1024;
     
+    uiomem_fpd0.SyncForDevice();
+
     /*
     {
         printf("<< Read Test >>\n");
@@ -357,5 +381,8 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+#endif
+
 
 // end of file

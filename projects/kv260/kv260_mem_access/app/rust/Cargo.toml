@@ -1,0 +1,7 @@
+[package]
+name = "kv260_mem_access"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jelly-mem_access = {path = "../../../../../rust/mem_access"}

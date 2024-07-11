@@ -102,8 +102,8 @@
                 compatible = "ikwzm,uiomem";
                 device-name = "uiomem_pl_fpd0";
 //              minor-number = <1>;
-//              reg = <0x4 0x00000000 0x0 0x08000000>;
-                reg = <0x0 0xa0000000 0x0 0x10000000>;
+                reg = <0x4 0x00000000 0x0 0x08000000>;
+//              reg = <0x0 0xa0000000 0x0 0x10000000>;
             };
         };
     };
