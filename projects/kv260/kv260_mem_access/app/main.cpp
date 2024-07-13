@@ -11,24 +11,193 @@
 //#include "jelly/UiomemAccessor.h"
 
 
+void   MemoryTest(jelly::UdmabufAccessor& acc, size_t size);
+double WriteTest(jelly::UdmabufAccessor& acc, size_t size, int times);
+double ReadTest (jelly::UdmabufAccessor& acc, size_t size, int times);
+
+jelly::UdmabufAccessor OpenUdmabufAccessor(const char *name, off_t offset, int flags) {
+    jelly::UdmabufAccessor acc(name, offset, flags);
+    if ( !acc.IsMapped() ) {
+        printf("open error %s\n",  name);
+        exit(1);
+    }
+    printf("[%s]\n", name);
+    printf("PhysAddr   : 0x%lx\n", acc.GetPhysAddr  ());
+    printf("Size       : 0x%lx\n", acc.GetSize      ());
+    printf("SyncMode   : %d\n",    acc.GetSyncMode  ());
+    printf("SyncOffset : 0x%lx\n", acc.GetSyncOffset());
+    printf("\n");
+
+    MemoryTest(acc, acc.GetSize());
+
+    return acc;
+}
+
+
 int main(int argc, char *argv[])
 {
-    omp_set_num_threads(2);
-    printf("使用可能な最大スレッド数：%d\n", omp_get_max_threads());
+//  omp_set_num_threads(2);
+//  printf("使用可能な最大スレッド数：%d\n", omp_get_max_threads());
 
-    printf("ReadPhysAddr   : 0x%lx\n", jelly::UdmabufAccessor::ReadPhysAddr  ("uiomem_ocm", "uiomem"));
-    printf("ReadSize       : 0x%lx\n", jelly::UdmabufAccessor::ReadSize      ("uiomem_ocm", "uiomem"));
-    printf("ReadSyncMode   : %d\n",    jelly::UdmabufAccessor::ReadSyncMode  ("uiomem_ocm", "uiomem"));
-    printf("ReadSyncOffset : 0x%lx\n", jelly::UdmabufAccessor::ReadSyncOffset("uiomem_ocm", "uiomem"));
-    
-    auto acc_ocm = jelly::UdmabufAccessor("uiomem_ocm");
-    printf("GetPhysAddr   : 0x%lx\n", acc_ocm.GetPhysAddr  ());
-    printf("GetSize       : 0x%lx\n", acc_ocm.GetSize      ());
-    printf("GetSyncMode   : %d\n",    acc_ocm.GetSyncMode  ());
-    printf("GetSyncOffset : 0x%lx\n", acc_ocm.GetSyncOffset());
+    int flag = O_RDWR;
+//  int flag = (O_RDWR | O_SYNC);
+
+    auto acc_ddr4 = OpenUdmabufAccessor("udmabuf_ddr4", 0, flag);
+    auto acc_ocm  = OpenUdmabufAccessor("uiomem_ocm",   0, flag);
+    auto acc_fpd0 = OpenUdmabufAccessor("uiomem_fpd0",  0, flag);
+
+    printf("test start\n");
+
+    const std::size_t test_size = 0x40000;
+    {
+        auto time = WriteTest(acc_ddr4, test_size, 256);
+        printf("[DDR4] : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
+    }
+    {
+        auto time  = WriteTest(acc_ocm, test_size, 256);
+        printf("[OCM]  : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
+    }
+    {
+        auto time  = WriteTest(acc_fpd0, test_size, 256);
+        printf("[FPD0] : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
+    }
+    return 0;
+
+    {
+        auto start = std::chrono::system_clock::now();
+        acc_ocm.SyncForCpu();
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("%f\n", elapsed);
+    }
+
+    {
+        auto start = std::chrono::system_clock::now();
+        acc_ocm.SyncForDevice();
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("%f\n", elapsed);
+    }
+
+    {
+        auto start = std::chrono::system_clock::now();
+        acc_ocm.SyncForDevice();
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("%f\n", elapsed);
+    }
+
+    {
+        auto start = std::chrono::system_clock::now();
+        for ( size_t i = 0; i < 256*1024/8; i++ ) {
+            acc_ocm.ReadMem64(i*8);
+        }
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("%f\n", elapsed);
+    }
 
     return 0;
 }
+
+
+
+
+#define DUMMY_ARRAY_SIZE    (1024 * 1024 / 8)
+static volatile int64_t dummy_array [DUMMY_ARRAY_SIZE];
+int64_t CacheFlush() {
+    int64_t s = 0;
+    for ( size_t i = 0; i < DUMMY_ARRAY_SIZE; i++ ) {
+        s += dummy_array[i];
+    }
+    return s;
+}
+
+
+void MemoryTest(jelly::UdmabufAccessor& acc, size_t size)
+{
+    CacheFlush();
+    acc.SyncForCpu();
+    for ( size_t i = 0; i < size/8; i++ ) {
+        acc.WriteMem64(i*8, i);
+    }
+    acc.SyncForDevice();
+    CacheFlush();
+    acc.SyncForCpu();
+    for ( size_t i = 0; i < size/8; i++ ) {
+        if ( acc.ReadMem64(i*8) != i ) {
+            printf("memory error\n");
+            exit(1);
+        }
+    }
+}
+
+
+double ReadTestOneshot(jelly::UdmabufAccessor& acc, size_t size)
+{
+    CacheFlush();
+
+    // 時間計測開始
+    auto start = std::chrono::system_clock::now();
+    acc.SyncForCpu();
+
+    // 読み出し
+    for ( size_t i = 0; i < size/8; i++ ) {
+        acc.ReadMem64(i*8);
+    }
+
+    // 時間計測終了
+    auto end = std::chrono::system_clock::now();
+
+    acc.SyncForDevice();
+
+    // double型でナノ秒に変換
+    double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    return elapsed / (1000*1000*1000);
+}
+
+double ReadTest(jelly::UdmabufAccessor& acc, size_t size, int times)
+{
+    double sum = 0;
+    for ( int i = 0; i < times; i++ ) {
+        sum += ReadTestOneshot(acc, size);
+    }
+    return sum / times;
+}
+
+
+double WriteTestOneshot(jelly::UdmabufAccessor& acc, size_t size)
+{   
+    CacheFlush();
+
+    acc.SyncForCpu();
+
+    // 時間計測開始
+    auto start = std::chrono::system_clock::now();
+
+    // 読み出し
+    for ( size_t i = 0; i < size/8; i++ ) {
+        acc.WriteMem64(i*8, i);
+    }
+
+    acc.SyncForDevice();
+
+    // 時間計測終了
+    auto end = std::chrono::system_clock::now();
+
+    // double型でナノ秒に変換
+    double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    return elapsed / (1000*1000*1000);
+}
+
+double WriteTest(jelly::UdmabufAccessor& acc, size_t size, int times) {
+    double sum = 0;
+    for ( int i = 0; i < times; i++ ) {
+        sum += WriteTestOneshot(acc, size);
+    }
+    return sum / times;
+}
+
 
 
 

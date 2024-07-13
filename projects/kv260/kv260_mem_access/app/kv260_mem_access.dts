@@ -54,6 +54,7 @@
         };
     };
 
+    /*
     fragment@2 {
         target = <&amba>;
         overlay2: __overlay__ {
@@ -63,7 +64,7 @@
                 compatible = "generic-uio";
                 reg = <0x0 0xa0000000 0x0 0x10000000>;
             };
-            /*
+
             uio_pl_fpd1@b0000000 {
                 compatible = "generic-uio";
                 reg = <0x0 0xb0000000 0x0 0x10000000>;
@@ -72,7 +73,6 @@
                 compatible = "generic-uio";
                 reg = <0x0 0xc0000000 0x0 0x20000000>;
             };
-            */
             
             uio_ocm@fffc0000 {
                 compatible = "generic-uio";
@@ -80,30 +80,42 @@
             };
         };
     };
+    */
     
-
     fragment@3 {
         target = <&amba>;
         overlay3: __overlay__ {
+            #size-cells = <0x2>;
+            udmabuf4 {
+                compatible = "ikwzm,u-dma-buf";
+                device-name = "udmabuf_ddr4";
+                size = <0x0 0x00040000>;
+            };
+        };
+    };
+
+    fragment@4 {
+        target = <&amba>;
+        overlay4: __overlay__ {
             #address-cells = <0x2>;
             #size-cells = <0x2>;
 
             uiomem_ocm@fffc0000 {
                 compatible = "ikwzm,uiomem";
                 device-name = "uiomem_ocm";
-//               minor-number = <0>;
                 reg = <0x0 0xfffc0000 0x0 0x00040000>;
-//                sync-offset = <0x00000000>;
-//                sync-size = <0x00040000>;
-//                sync-direction = <0>;
+//              sync-offset = <0x00000000>;
+//              sync-size = <0x00040000>;
+//              sync-direction = <0>;
             };
 
-            uiomem_pl_fpd0@400000000 {
+            uiomem_fpd0@400000000 {
                 compatible = "ikwzm,uiomem";
-                device-name = "uiomem_pl_fpd0";
-//              minor-number = <1>;
-                reg = <0x4 0x00000000 0x0 0x08000000>;
-//              reg = <0x0 0xa0000000 0x0 0x10000000>;
+                device-name = "uiomem_fpd0";
+                reg = <0x4 0x00000000 0x0 0x00040000>;
+//              sync-offset = <0x00000000>;
+//              sync-size = <0x00040000>;
+//              sync-direction = <0>;
             };
         };
     };
