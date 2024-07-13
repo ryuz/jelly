@@ -53,7 +53,7 @@ protected:
 public:
     UdmabufAccessor_() {}
 
-    UdmabufAccessor_(const char* device_name, std::size_t offset=0) {
+    UdmabufAccessor_(const char* device_name, std::size_t offset=0, int flags=(O_RDWR | O_SYNC)) {
         // size check
         std::size_t size = 0;
         if ( (size = ReadSize(device_name, "u-dma-buf")) > 0 ) {
@@ -68,22 +68,18 @@ public:
 
         if ( size > 0 ) {
             m_device_name = device_name;
-            m_phys_addr   = GetPhysAddr(device_name, m_module_name.c_str());
-            std::string name = "/dev/";
-            name += device_name;
-            Open(name, size, offset);
+            m_phys_addr   = ReadPhysAddr(device_name, m_module_name.c_str());
+            Open(device_name, size, offset, flags);
         }
     }
 
-    UdmabufAccessor_(const char* device_name, const char* module_name, std::size_t offset=0) {
+    UdmabufAccessor_(const char* device_name, const char* module_name, std::size_t offset=0, int flags=(O_RDWR | O_SYNC)) {
         auto size = ReadSize(device_name, module_name);
         if ( size > 0 ) {
             m_device_name = device_name;
             m_module_name = module_name;
             m_phys_addr = GetPhysAddr(device_name, module_name);
-            std::string name = "/dev/";
-            name += device_name;
-            Open(name, size, offset);
+            Open(device_name, size, offset, flags);
         }
     }
 
@@ -99,6 +95,37 @@ public:
     std::uintptr_t GetPhysAddr(void)
     {
         return m_phys_addr;
+    }
+
+
+    std::size_t GetPhysSize(void)
+    {
+        return ReadSize(m_device_name.c_str(), m_module_name.c_str());
+    }
+
+    int GetSyncMode(void)
+    {
+        return ReadSyncMode(m_device_name.c_str(), m_module_name.c_str());
+    }
+
+    std::uintptr_t GetSyncOffset(void)
+    {
+        return ReadSyncOffset(m_device_name.c_str(), m_module_name.c_str());
+    }
+
+    int GetSyncDirection(void)
+    {
+        return ReadSyncDirection(m_device_name.c_str(), m_module_name.c_str());
+    }
+
+    int SetSyncDirection(int sync_direction)
+    {
+        return WriteSyncDirection(sync_direction, m_device_name.c_str(), m_module_name.c_str());
+    }
+
+    int GetDmaCoherent(void)
+    {
+        return ReadDmaCoherent(m_device_name.c_str(), m_module_name.c_str());
     }
 
     int GetSyncOwner(void)

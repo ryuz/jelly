@@ -21,6 +21,11 @@ int main(int argc, char *argv[])
     printf("ReadSyncMode   : %d\n",    jelly::UdmabufAccessor::ReadSyncMode  ("uiomem_ocm", "uiomem"));
     printf("ReadSyncOffset : 0x%lx\n", jelly::UdmabufAccessor::ReadSyncOffset("uiomem_ocm", "uiomem"));
     
+    auto acc_ocm = jelly::UdmabufAccessor("uiomem_ocm");
+    printf("GetPhysAddr   : 0x%lx\n", acc_ocm.GetPhysAddr  ());
+    printf("GetSize       : 0x%lx\n", acc_ocm.GetSize      ());
+    printf("GetSyncMode   : %d\n",    acc_ocm.GetSyncMode  ());
+    printf("GetSyncOffset : 0x%lx\n", acc_ocm.GetSyncOffset());
 
     return 0;
 }
