@@ -20,6 +20,8 @@ int main(int argc, char *argv[])
     printf("ReadSize       : 0x%lx\n", jelly::UdmabufAccessor::ReadSize      ("uiomem_ocm", "uiomem"));
     printf("ReadSyncMode   : %d\n",    jelly::UdmabufAccessor::ReadSyncMode  ("uiomem_ocm", "uiomem"));
     printf("ReadSyncOffset : 0x%lx\n", jelly::UdmabufAccessor::ReadSyncOffset("uiomem_ocm", "uiomem"));
+    
+
     return 0;
 }
 
