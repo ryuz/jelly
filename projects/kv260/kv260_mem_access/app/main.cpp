@@ -15,10 +15,10 @@ double WriteTest(jelly::UdmabufAccessor& acc, size_t size, int times);
 double ReadTest (jelly::UdmabufAccessor& acc, size_t size, int times);
 void   AccessTest(const char *name, jelly::UdmabufAccessor acc);
 
-jelly::UdmabufAccessor OpenUdmabufAccessor(const char *name, off_t offset, int flags) {
-    jelly::UdmabufAccessor acc(name, offset, flags);
+jelly::UdmabufAccessor OpenUdmabufAccessor(const char *device_name, const char *module_name, off_t offset, int flags) {
+    jelly::UdmabufAccessor acc(device_name, module_name, offset, flags);
     if ( !acc.IsMapped() ) {
-        printf("open error %s\n",  name);
+        printf("open error %s\n", device_name);
         exit(1);
     }
 
@@ -39,12 +39,12 @@ jelly::UdmabufAccessor OpenUdmabufAccessor(const char *name, off_t offset, int f
 
 int main(int argc, char *argv[])
 {
-    AccessTest("[DDR4 cached]",     OpenUdmabufAccessor("udmabuf_ddr4", 0, O_RDWR));
-    AccessTest("[DDR4 non-cached]", OpenUdmabufAccessor("udmabuf_ddr4", 0, O_RDWR | O_SYNC));
-    AccessTest("[OCM  cached]",     OpenUdmabufAccessor("uiomem_ocm",   0, O_RDWR));
-    AccessTest("[OCM  non-cached]", OpenUdmabufAccessor("uiomem_ocm",   0, O_RDWR | O_SYNC));
-    AccessTest("[PL   cached]",     OpenUdmabufAccessor("uiomem_fpd0",  0, O_RDWR));
-    AccessTest("[PL   non-cached]", OpenUdmabufAccessor("uiomem_fpd0",  0, O_RDWR | O_SYNC));
+    AccessTest("[DDR4 cached]",     OpenUdmabufAccessor("udmabuf_ddr4", "u-dma-buf", 0, O_RDWR));
+    AccessTest("[DDR4 non-cached]", OpenUdmabufAccessor("udmabuf_ddr4", "u-dma-buf", 0, O_RDWR | O_SYNC));
+    AccessTest("[OCM  cached]",     OpenUdmabufAccessor("uiomem_ocm",   "uiomem",    0, O_RDWR));
+    AccessTest("[OCM  non-cached]", OpenUdmabufAccessor("uiomem_ocm",   "uiomem",    0, O_RDWR | O_SYNC));
+    AccessTest("[PL   cached]",     OpenUdmabufAccessor("uiomem_fpd0",  "uiomem",    0, O_RDWR));
+    AccessTest("[PL   non-cached]", OpenUdmabufAccessor("uiomem_fpd0",  "uiomem",    0, O_RDWR | O_SYNC));
     
     CacheFlush();
 

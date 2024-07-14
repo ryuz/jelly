@@ -78,7 +78,7 @@ public:
         if ( size > 0 ) {
             m_device_name = device_name;
             m_module_name = module_name;
-            m_phys_addr = GetPhysAddr(device_name, module_name);
+            m_phys_addr = ReadPhysAddr(device_name, module_name);
             Open(device_name, size, offset, flags);
         }
     }
@@ -266,10 +266,10 @@ private:
         char path[256];
         snprintf(path, sizeof(path), "/sys/class/%s/%s/%s", module_name, device_name, name);
         int fd  = open(path, O_RDONLY);
-        if ( fd == -1) { return 0; }
+        if ( fd == -1) { fprintf(stderr, "open error : %s\n", path); return 0; }
         char  buf[64];
         int len = read(fd, buf, sizeof(buf));
-        if ( len < 1 ) { close(fd); return 0; }
+        if ( len < 1 ) { fprintf(stderr, "read error : %s\n", path); close(fd); return 0; }
         close(fd);
         buf[len] = '\0';
         return static_cast<T>(strtoull(buf, NULL, 0));
@@ -280,12 +280,13 @@ private:
     {
         char path[256];
         snprintf(path, sizeof(path), "/sys/class/%s/%s/%s", module_name, device_name, name);
-        int fd  = open(path, O_RDONLY);
-        if ( fd == -1) { return 0; }
+        int fd  = open(path, O_WRONLY);
+        if ( fd == -1) { fprintf(stderr, "open error : %s\n", path); return 0; }
         char  buf[64];
         snprintf(buf, sizeof(buf), "%ld", (std::uint64_t)value);
         int len =  strlen(buf);
-        if ( write(fd, buf, len) != len ) { close(fd); return 0; }
+        int l;
+        if ( (l = write(fd, buf, len)) != len ) { fprintf(stderr, "write error : %s, %d %d\n", path, l, len); close(fd); return 0; }
         close(fd);
         return 1;
     }
