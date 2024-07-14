@@ -14,6 +14,7 @@ void   MemoryTest(jelly::UdmabufAccessor& acc, size_t size);
 double WriteTest(jelly::UdmabufAccessor& acc, size_t size, int times);
 double ReadTest (jelly::UdmabufAccessor& acc, size_t size, int times);
 void   AccessTest(const char *name, jelly::UdmabufAccessor acc);
+void   ApiTest(const char *name, jelly::UdmabufAccessor acc);
 
 jelly::UdmabufAccessor OpenUdmabufAccessor(const char *device_name, const char *module_name, off_t offset, int flags) {
     jelly::UdmabufAccessor acc(device_name, module_name, offset, flags);
@@ -45,12 +46,36 @@ int main(int argc, char *argv[])
     AccessTest("[OCM  non-cached]", OpenUdmabufAccessor("uiomem_ocm",   "uiomem",    0, O_RDWR | O_SYNC));
     AccessTest("[PL   cached]",     OpenUdmabufAccessor("uiomem_fpd0",  "uiomem",    0, O_RDWR));
     AccessTest("[PL   non-cached]", OpenUdmabufAccessor("uiomem_fpd0",  "uiomem",    0, O_RDWR | O_SYNC));
-    
+    printf("\n");
+    ApiTest("[DDR4 cached]",     OpenUdmabufAccessor("udmabuf_ddr4", "u-dma-buf", 0, O_RDWR));
+    ApiTest("[OCM  cached]",     OpenUdmabufAccessor("uiomem_ocm",   "uiomem",    0, O_RDWR));
+    ApiTest("[PL   cached]",     OpenUdmabufAccessor("uiomem_fpd0",  "uiomem",    0, O_RDWR));
+
     CacheFlush();
+
+    // ファイルアクセスタイム
+    /*
+    for ( int i = 0; i < 5; ++ i) {
+        auto start = std::chrono::system_clock::now();
+
+        int fd  = open("/sys/class/uiomem/uiomem_fpd0/sync_owner", O_RDONLY);
+        if ( fd == -1) { fprintf(stderr, "open error\n"); return 0; }
+//      char  buf[64];
+//      int len = read(fd, buf, sizeof(buf));
+//      if ( len < 1 ) { fprintf(stderr, "read error : %s\n", path); close(fd); return 0; }
+        close(fd);
+
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("open-close : %8.3f [us]\n", elapsed / 1000.0);
+    }
+    */
 
     return 0;
 }
 
+
+#define TEST_SIZE   (256*1024)
 
 // L2より大きなサイズをアクセスして確実にキャッシュを飛ばしておく
 #define DUMMY_ARRAY_SIZE    (2 * 1024 * 1024 / 8)
@@ -85,6 +110,78 @@ void MemoryTest(jelly::UdmabufAccessor& acc, size_t size)
         }
     }
 }
+
+void ApiTest(const char *name, jelly::UdmabufAccessor acc)
+{
+    CacheFlush();
+
+    // ファイルアクセス時間
+    /*
+    {
+        acc.GetSyncOwner();
+        auto start = std::chrono::system_clock::now();
+        acc.GetSyncOwner();
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("%-18s api-time        : %8.3f [us]\n", name, elapsed / 1000.0);
+    }
+    */
+
+    acc.SyncForDevice();
+    acc.SyncForCpu();
+    acc.SyncForDevice();
+    acc.SyncForCpu();
+
+    // 読み出し時間
+    {
+        auto start = std::chrono::system_clock::now();
+        for ( size_t i = 0; i < TEST_SIZE/8; i++ ) {
+            acc.ReadMem64(i*8);
+        }
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("%-18s read-time       : %8.3f [us]\n", name, elapsed / 1000.0);
+    }
+
+    // 書き込み時間
+    {
+        auto start = std::chrono::system_clock::now();
+        for ( size_t i = 0; i < TEST_SIZE/8; i++ ) {
+            acc.WriteMem64(i*8, i);
+        }
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("%-18s write-time      : %8.3f [us]\n", name, elapsed / 1000.0);
+    }
+
+    // invalidate 用データを詰めておく
+    for ( size_t i = 0; i < TEST_SIZE/8; ++i ) {
+        acc.ReadMem64(i*8);
+    }
+    acc.SyncForDevice();
+
+    {
+        auto start = std::chrono::system_clock::now();
+        acc.SyncForCpu();
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("%-18s sync_for_cpu    : %8.3f [us]\n", name, elapsed / 1000.0);
+    }
+
+    // flush用データを詰めておく
+    for ( size_t i = 0; i < TEST_SIZE/8; ++i ) {
+        acc.WriteMem64(i*8, i);
+    }
+
+    {
+        auto start = std::chrono::system_clock::now();
+        acc.SyncForDevice();
+        auto end = std::chrono::system_clock::now();
+        double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        printf("%-18s sync_for_device : %8.3f [us]\n", name, elapsed / 1000.0);
+    }
+}
+
 
 // アクセステスト
 void AccessTest(const char *name, jelly::UdmabufAccessor acc) {
