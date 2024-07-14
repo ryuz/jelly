@@ -13,6 +13,8 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
+KERNEL_VERSION := $(shell uname -r)
+
 CFLAGS  += -Wall -g -O3 -I../../../../include -fopenmp
 LDFLAGS += -fopenmp
 
@@ -75,6 +77,9 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	cat $(DEVTREE_PATH)/overlays/full/status
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
+	@if [ ! -e /dev/uiomem0 ] || [ ! -e /dev/uiomem1 ] ; then \
+		sudo insmod /lib/modules/$(KERNEL_VERSION)/ikwzm/uiomem.ko uiomem0_addr=0xfffc0000 uiomem0_size=0x00040000 uiomem1_addr=0xa0000000 uiomem1_size=0x00040000 ; \
+	fi
 	sudo chmod 666 /dev/uio*
 	sudo chmod 666 /dev/udmabuf*
 

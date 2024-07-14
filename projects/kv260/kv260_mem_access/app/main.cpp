@@ -10,10 +10,11 @@
 #include "jelly/UdmabufAccessor.h"
 //#include "jelly/UiomemAccessor.h"
 
-
+void   CacheFlush(void);
 void   MemoryTest(jelly::UdmabufAccessor& acc, size_t size);
 double WriteTest(jelly::UdmabufAccessor& acc, size_t size, int times);
 double ReadTest (jelly::UdmabufAccessor& acc, size_t size, int times);
+void   AccessTest(const char *name, jelly::UdmabufAccessor acc);
 
 jelly::UdmabufAccessor OpenUdmabufAccessor(const char *name, off_t offset, int flags) {
     jelly::UdmabufAccessor acc(name, offset, flags);
@@ -30,7 +31,7 @@ jelly::UdmabufAccessor OpenUdmabufAccessor(const char *name, off_t offset, int f
     printf("\n");
     */
 
-    MemoryTest(acc, acc.GetSize());
+//  MemoryTest(acc, acc.GetSize());
 
     return acc;
 }
@@ -38,16 +39,16 @@ jelly::UdmabufAccessor OpenUdmabufAccessor(const char *name, off_t offset, int f
 
 int main(int argc, char *argv[])
 {
-    bool cache = false;
-    if ( argc > 1 ) {
-        cache = (strtoul(argv[1], 0, 0)  != 0);
-    }
-
-    int flag = cache ? O_RDWR : (O_RDWR | O_SYNC);
+    AccessTest("[DDR4 cached]",     OpenUdmabufAccessor("udmabuf_ddr4", 0, O_RDWR));
+    AccessTest("[OCM  cached]",     OpenUdmabufAccessor("uiomem0", 0, O_RDWR));
+    AccessTest("[PL   cached]",     OpenUdmabufAccessor("uiomem1", 0, O_RDWR));
+    AccessTest("[DDR4 non-cached]", OpenUdmabufAccessor("udmabuf_ddr4", 0, O_RDWR | O_SYNC));
+    return 0;
 
     auto acc_ddr4 = OpenUdmabufAccessor("udmabuf_ddr4", 0, flag);
-    auto acc_ocm  = OpenUdmabufAccessor("uiomem_ocm",   0, flag);
-    auto acc_fpd0 = OpenUdmabufAccessor("uiomem_fpd0",  0, flag);
+    auto acc_ocm  = OpenUdmabufAccessor("uiomem0",   0, flag);
+    auto acc_fpd0 = OpenUdmabufAccessor("uiomem1",  0, flag);
+    return 0;
 
     if ( cache ) {
         printf("[Cache Enable]\n");
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
         auto time  = WriteTest(acc_ocm, test_size, 256);
         printf("[write OCM]  : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
     }
+    /*
     {
         auto time  = ReadTest(acc_ocm, test_size, 256);
         printf("[read  OCM]  : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
@@ -81,20 +83,27 @@ int main(int argc, char *argv[])
         auto time  = ReadTest(acc_fpd0, test_size, 256);
         printf("[read  FPD0] : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
     }
+    */
+    
+    CacheFlush();
 
     return 0;
 }
 
 
-// 空読みして確実にキャッシュを飛ばしておく
-#define DUMMY_ARRAY_SIZE    (1024 * 1024 / 8)
+// L2より大きなサイズをアクセスして確実にキャッシュを飛ばしておく
+#define DUMMY_ARRAY_SIZE    (2 * 1024 * 1024 / 8)
 static volatile int64_t dummy_array [DUMMY_ARRAY_SIZE];
-int64_t CacheFlush() {
-    int64_t s = 0;
+void CacheFlush(void) {
     for ( size_t i = 0; i < DUMMY_ARRAY_SIZE; i++ ) {
-        s += dummy_array[i];
+        dummy_array[i] = i;
     }
-    return s;
+    for ( size_t i = 0; i < DUMMY_ARRAY_SIZE; i++ ) {
+        if ( dummy_array[i] != (int64_t)i ) {
+            printf("memory error\n");
+            exit(1);
+        }
+    }
 }
 
 // メモリテスト
@@ -105,7 +114,7 @@ void MemoryTest(jelly::UdmabufAccessor& acc, size_t size)
     for ( size_t i = 0; i < size/8; i++ ) {
         acc.WriteMem64(i*8, i);
     }
-    acc.SyncForDevice();
+   acc.SyncForDevice();
     CacheFlush();
     acc.SyncForCpu();
     for ( size_t i = 0; i < size/8; i++ ) {
@@ -113,6 +122,19 @@ void MemoryTest(jelly::UdmabufAccessor& acc, size_t size)
             printf("memory error\n");
             exit(1);
         }
+    }
+}
+
+// アクセステスト
+void AccessTest(const char *name, jelly::UdmabufAccessor acc) {
+    const std::size_t test_size = 0x40000;
+    {
+        auto time = WriteTest(acc, test_size, 256);
+        printf("%-18s write : %8.3f  [Mbyte/s]\n", name, test_size / time / (1024*1024));
+    }
+    {
+        auto time = ReadTest(acc, test_size, 256);
+        printf("%-18s read  : %8.3f  [Mbyte/s]\n", name, test_size / time / (1024*1024));
     }
 }
 
