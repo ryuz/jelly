@@ -8,7 +8,6 @@
 #include <omp.h> 
 #include "jelly/UioAccessor.h"
 #include "jelly/UdmabufAccessor.h"
-//#include "jelly/UiomemAccessor.h"
 
 void   CacheFlush(void);
 void   MemoryTest(jelly::UdmabufAccessor& acc, size_t size);
@@ -22,6 +21,7 @@ jelly::UdmabufAccessor OpenUdmabufAccessor(const char *name, off_t offset, int f
         printf("open error %s\n",  name);
         exit(1);
     }
+
     /*
     printf("[%s]\n", name);
     printf("PhysAddr   : 0x%lx\n", acc.GetPhysAddr  ());
@@ -31,7 +31,7 @@ jelly::UdmabufAccessor OpenUdmabufAccessor(const char *name, off_t offset, int f
     printf("\n");
     */
 
-//  MemoryTest(acc, acc.GetSize());
+    MemoryTest(acc, acc.GetSize());
 
     return acc;
 }
@@ -40,50 +40,11 @@ jelly::UdmabufAccessor OpenUdmabufAccessor(const char *name, off_t offset, int f
 int main(int argc, char *argv[])
 {
     AccessTest("[DDR4 cached]",     OpenUdmabufAccessor("udmabuf_ddr4", 0, O_RDWR));
-    AccessTest("[OCM  cached]",     OpenUdmabufAccessor("uiomem0", 0, O_RDWR));
-    AccessTest("[PL   cached]",     OpenUdmabufAccessor("uiomem1", 0, O_RDWR));
     AccessTest("[DDR4 non-cached]", OpenUdmabufAccessor("udmabuf_ddr4", 0, O_RDWR | O_SYNC));
-    return 0;
-
-    auto acc_ddr4 = OpenUdmabufAccessor("udmabuf_ddr4", 0, flag);
-    auto acc_ocm  = OpenUdmabufAccessor("uiomem0",   0, flag);
-    auto acc_fpd0 = OpenUdmabufAccessor("uiomem1",  0, flag);
-    return 0;
-
-    if ( cache ) {
-        printf("[Cache Enable]\n");
-    }
-    else {
-        printf("[Cache Disable]\n");
-    }
-
-    const std::size_t test_size = 0x40000;
-    {
-        auto time = WriteTest(acc_ddr4, test_size, 256);
-        printf("[write DDR4] : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
-    }
-    {
-        auto time = ReadTest(acc_ddr4, test_size, 256);
-        printf("[read  DDR4] : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
-    }
-    {
-        auto time  = WriteTest(acc_ocm, test_size, 256);
-        printf("[write OCM]  : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
-    }
-    /*
-    {
-        auto time  = ReadTest(acc_ocm, test_size, 256);
-        printf("[read  OCM]  : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
-    }
-    {
-        auto time  = WriteTest(acc_fpd0, test_size, 256);
-        printf("[write FPD0] : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
-    }
-    {
-        auto time  = ReadTest(acc_fpd0, test_size, 256);
-        printf("[read  FPD0] : %8.3f  [Mbyte/s]\n", test_size / time / (1024*1024));
-    }
-    */
+    AccessTest("[OCM  cached]",     OpenUdmabufAccessor("uiomem_ocm",   0, O_RDWR));
+    AccessTest("[OCM  non-cached]", OpenUdmabufAccessor("uiomem_ocm",   0, O_RDWR | O_SYNC));
+    AccessTest("[PL   cached]",     OpenUdmabufAccessor("uiomem_fpd0",  0, O_RDWR));
+    AccessTest("[PL   non-cached]", OpenUdmabufAccessor("uiomem_fpd0",  0, O_RDWR | O_SYNC));
     
     CacheFlush();
 

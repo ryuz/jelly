@@ -93,7 +93,6 @@
         };
     };
 
-    /*
     fragment@4 {
         target = <&amba>;
         overlay4: __overlay__ {
@@ -119,6 +118,5 @@
             };
         };
     };
-    */
 };
 
