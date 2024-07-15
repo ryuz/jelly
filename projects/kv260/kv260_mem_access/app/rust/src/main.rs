@@ -5,27 +5,22 @@ use jelly_mem_access::*;
 const TEST_SIZE : usize = 256*1024;
 
 fn main() {
-    let acc_ddr4 = UdmabufAccessor::<usize>::new_with_module_name("udmabuf_ddr4", "u-dma-buf", true).expect("Failed to open uiomem_ocm");
-    let acc_ocm  = UdmabufAccessor::<usize>::new_with_module_name("uiomem_ocm",   "uiomem",    true).expect("Failed to open uiomem_ocm");
-    let acc_fpd0 = UdmabufAccessor::<usize>::new_with_module_name("uiomem_fpd0",  "uiomem",    true).expect("Failed to open uiomem_fpd0");
-//  println!("acc_fpd0 phys addr : 0x{:x}", acc_fpd0.phys_addr().unwrap());
-//  println!("acc_fpd0 size      : 0x{:x}", acc_fpd0.size());
-
-    let time = read_test(&acc_ddr4, TEST_SIZE);
-    println!("[DDR4] read  {:8.2} MByte/s", TEST_SIZE as f64 / time / 1024.0 / 1024.0);
-    let time = write_test(&acc_ddr4, TEST_SIZE);
-    println!("[DDR4] write {:8.2} MByte/s", TEST_SIZE as f64 / time / 1024.0 / 1024.0);
-    let time = read_test(&acc_ocm, TEST_SIZE);
-    println!("[OCM]  read  {:8.2} MByte/s", TEST_SIZE as f64 / time / 1024.0 / 1024.0);
-    let time = write_test(&acc_ocm, TEST_SIZE);
-    println!("[OCM]  write {:8.2} MByte/s", TEST_SIZE as f64 / time / 1024.0 / 1024.0);
-    let time = read_test(&acc_fpd0, TEST_SIZE);
-    println!("[PL]   read  {:8.2} MByte/s", TEST_SIZE as f64 / time / 1024.0 / 1024.0);
-    let time = write_test(&acc_fpd0, TEST_SIZE);
-    println!("[PL]   write {:8.2} MByte/s", TEST_SIZE as f64 / time / 1024.0 / 1024.0);    
+    access_test("[DDR4 chached]   ", "udmabuf_ddr4", "u-dma-buf", true);
+    access_test("[OCM  chached]   ", "uiomem_ocm",   "uiomem",    true);
+    access_test("[PL   chached]   ", "uiomem_fpd0",  "uiomem",    true);
+    access_test("[DDR4 non-chache]", "udmabuf_ddr4", "u-dma-buf", false);
+    access_test("[OCM  non-chache]", "uiomem_ocm",   "uiomem",    false);
+    access_test("[PL   non-chache]", "uiomem_fpd0",  "uiomem",    false);
 }
 
 
+fn access_test(name:&str, device_name: &str, module_name: &str, cache:bool) {
+    let acc = UdmabufAccessor::<usize>::new_with_module_name(device_name, module_name, cache).expect("Failed to open uiomem_ocm");
+    let time = read_test(&acc, TEST_SIZE);
+    println!("{} read  {:8.2} MByte/s", name, TEST_SIZE as f64 / time / 1024.0 / 1024.0);
+    let time = write_test(&acc, TEST_SIZE);
+    println!("{} write {:8.2} MByte/s", name, TEST_SIZE as f64 / time / 1024.0 / 1024.0);
+}
 
 
 fn dummy_read() {
