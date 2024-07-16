@@ -200,7 +200,7 @@ proc create_root_design { parentCell } {
   set axi_bram_ctrl_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_bram_ctrl:4.1 axi_bram_ctrl_0 ]
   set_property -dict [list \
     CONFIG.DATA_WIDTH {128} \
-    CONFIG.READ_LATENCY {8} \
+    CONFIG.READ_LATENCY {4} \
     CONFIG.SINGLE_PORT_BRAM {0} \
   ] $axi_bram_ctrl_0
 
@@ -210,8 +210,8 @@ proc create_root_design { parentCell } {
   set_property -dict [list \
     CONFIG.Memory_Type {True_Dual_Port_RAM} \
     CONFIG.PRIM_type_to_Implement {URAM} \
-    CONFIG.READ_LATENCY_A {8} \
-    CONFIG.READ_LATENCY_B {8} \
+    CONFIG.READ_LATENCY_A {4} \
+    CONFIG.READ_LATENCY_B {4} \
     CONFIG.Write_Width_A {128} \
     CONFIG.use_bram_block {BRAM_Controller} \
   ] $blk_mem_gen_0
@@ -651,7 +651,7 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets axi_interconnect_0_M00_AXI] [get
   connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins clk_wiz_0/resetn] [get_bd_pins proc_sys_reset_0/ext_reset_in] [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0]
 
   # Create address segments
-  assign_bd_address -offset 0xA0000000 -range 0x00002000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_bram_ctrl_0/S_AXI/Mem0] -force
+  assign_bd_address -offset 0xA0000000 -range 0x00040000 -target_address_space [get_bd_addr_spaces zynq_ultra_ps_e_0/Data] [get_bd_addr_segs axi_bram_ctrl_0/S_AXI/Mem0] -force
 
 
   # Restore current instance
