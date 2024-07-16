@@ -116,7 +116,7 @@ dependencies = [
 
 [[package]]
 name = "jelly-pac"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "delegate",
  "jelly-mem_access",

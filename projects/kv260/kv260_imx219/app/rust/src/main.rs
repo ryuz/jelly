@@ -198,10 +198,24 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
+    vdmaw.wait_for_stop(Some(10000))?;
+
+    // 取り込み停止
+    unsafe {
+        reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
+    }
+    thread::sleep(Duration::from_millis(100));
+
     // close
     imx219.stop()?;
+    imx219.close();
 
-    println!("Hello, world!");
+    // カメラOFF
+    unsafe {
+        uio_acc.write_reg(2, 0);
+    }
+
+    println!("close");
 
     Ok(())
 }
