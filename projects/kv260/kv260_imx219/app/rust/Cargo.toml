@@ -9,8 +9,8 @@ edition = "2021"
 
 opencv = "0.92.0"
 
-#jelly-mem_access = "0.1.11"
-jelly-mem_access = { path = "../../../../../rust/mem_access" }
+jelly-mem_access = "0.2.0"
+#jelly-mem_access = { path = "../../../../../rust/mem_access" }
 jelly-lib        = { path = "../../../../../rust/lib" }
 jelly-pac        = { path = "../../../../../rust/pac" }
 #jelly-pac = { git="https://github.com/ryuz/jelly-pac.git", rev="613c7ab680b29189dd3189bd3bf9c354b1a05999"}
