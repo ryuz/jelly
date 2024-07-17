@@ -60,24 +60,24 @@ interface jelly3_axi4_if
     );
 
     // typedef
-    typedef logic   [ID_BITS    -1:0]   id_t;
-    typedef logic   [ADDR_BITS  -1:0]   addr_t;
-    typedef logic   [LEN_BITS   -1:0]   len_t;
-    typedef logic   [SIZE_BITS  -1:0]   size_t;
-    typedef logic   [BURST_BITS -1:0]   burst_t;
-    typedef logic   [LOCK_BITS  -1:0]   lock_t;
-    typedef logic   [CACHE_BITS -1:0]   cache_t;
-    typedef logic   [PROT_BITS  -1:0]   prot_t;
-    typedef logic   [QOS_BITS   -1:0]   qos_t;
+    typedef logic   [ID_BITS    -1:0]   id_t    ;
+    typedef logic   [ADDR_BITS  -1:0]   addr_t  ;
+    typedef logic   [LEN_BITS   -1:0]   len_t   ;
+    typedef logic   [SIZE_BITS  -1:0]   size_t  ;
+    typedef logic   [BURST_BITS -1:0]   burst_t ;
+    typedef logic   [LOCK_BITS  -1:0]   lock_t  ;
+    typedef logic   [CACHE_BITS -1:0]   cache_t ;
+    typedef logic   [PROT_BITS  -1:0]   prot_t  ;
+    typedef logic   [QOS_BITS   -1:0]   qos_t   ;
     typedef logic   [REGION_BITS-1:0]   region_t;
-    typedef logic   [DATA_BITS  -1:0]   data_t;
-    typedef logic   [STRB_BITS  -1:0]   strb_t;
-    typedef logic   [RESP_BITS  -1:0]   resp_t;
+    typedef logic   [DATA_BITS  -1:0]   data_t  ;
+    typedef logic   [STRB_BITS  -1:0]   strb_t  ;
+    typedef logic   [RESP_BITS  -1:0]   resp_t  ;
     typedef logic   [AWUSER_BITS-1:0]   awuser_t;
-    typedef logic   [WUSER_BITS -1:0]   wuser_t;
-    typedef logic   [BUSER_BITS -1:0]   buser_t;
+    typedef logic   [WUSER_BITS -1:0]   wuser_t ;
+    typedef logic   [BUSER_BITS -1:0]   buser_t ;
     typedef logic   [ARUSER_BITS-1:0]   aruser_t;
-    typedef logic   [RUSER_BITS -1:0]   ruser_t;
+    typedef logic   [RUSER_BITS -1:0]   ruser_t ;
  
 
     // attributes

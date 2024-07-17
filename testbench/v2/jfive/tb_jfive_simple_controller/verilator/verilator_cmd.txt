@@ -16,3 +16,4 @@
 -y ../../../../../rtl/v2/model
 -y ../../../../../rtl/v2/video
 -y ../../../../../rtl/v2/math
+-y ../../../../../rtl/v2/primitive

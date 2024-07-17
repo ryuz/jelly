@@ -20,6 +20,7 @@ Untitled.*
 * copy.*
 *コピー
 *コピー.*
+*.tmp
 
 # media file
 *.bmp
@@ -83,6 +84,7 @@ _xmsgs/
 *.ip_user_files/
 *.ioplanning/
 NA/
+bd/
 
 # Gowin
 impl/

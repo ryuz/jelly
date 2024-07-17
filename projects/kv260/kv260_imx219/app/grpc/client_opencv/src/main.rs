@@ -11,6 +11,7 @@ use opencv::core::*;
 //use opencv::imgcodecs::*;
 use opencv::highgui::*;
 
+use std::env;
 
 
 #[tokio::main]
@@ -18,14 +19,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Start");
     println!("OpenCV : {}", opencv::core::CV_VERSION);
 
+    let args: Vec<String> = env::args().collect();
+    let target : String = if args.len() > 1 { args[1].clone() } else { "http://kria:50051".to_string() };
+    println!("TARGET = {}", target);
+
     let mut width:     i32 = 1280;
     let mut height:    i32 = 760;
     let mut framerate: i32 = 60;
     let mut exposure:  i32 = 33;
     let mut gain:      i32 = 10;
 
-    let mut client: CameraControlClient<Channel> = CameraControlClient::connect("http://kria:50051").await?;
-
+    let mut client: CameraControlClient<Channel> = CameraControlClient::connect(target).await?;
+    
     let request = tonic::Request::new(SetAoiRequest {
         id: 1,
         width: width,
@@ -41,8 +46,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let win_name = "img";
     named_window("img", WINDOW_AUTOSIZE)?;
 //  create_trackbar("gain", "img", Some(&mut gain), 20, None)?;
-    create_trackbar("width",     &win_name, None, 2048, None)?; set_trackbar_min("framerate", &win_name, 4)?;
-    create_trackbar("height",    &win_name, None, 2048, None)?; set_trackbar_min("framerate", &win_name, 4)?;
+    create_trackbar("width",     &win_name, None, 2048, None)?; set_trackbar_min("width",     &win_name, 4)?;
+    create_trackbar("height",    &win_name, None, 2048, None)?; set_trackbar_min("height",    &win_name, 4)?;
     create_trackbar("framerate", &win_name, None, 1000, None)?; set_trackbar_min("framerate", &win_name, 1)?;
     create_trackbar("exposure",  &win_name, None,  100, None)?;
     create_trackbar("gain",      &win_name, None,   20, None)?;
@@ -55,19 +60,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         let request = tonic::Request::new(GetImageRequest { id: 1 });
-        let img = client.get_image(request).await?;
-        let mut img = img.into_inner();
-
-        let img= unsafe {
-            Mat::new_rows_cols_with_data(
-                img.height as i32,
-                img.width as i32,
-                CV_8UC4,
-                img.image.as_mut_ptr() as *mut core::ffi::c_void,
-                Mat_AUTO_STEP
-            )?
-        };
-
+        let image = client.get_image(request).await?;
+        let image = image.into_inner();
+        let w = image.width as i32;
+        let h = image.height as i32;
+        let img = Mat::new_rows_cols_with_data(h, w * 4,&image.image).unwrap();
+        let img = img.reshape(4, height)?;
         imshow("img", &img)?;
 
         let new_width     = get_trackbar_pos("width",     &win_name)?;

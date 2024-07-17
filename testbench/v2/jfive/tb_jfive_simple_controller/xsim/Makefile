@@ -8,13 +8,14 @@ all: clean build run
 
 .PHONY: build
 build:
+	make -C ../rust_app
 	xvlog -f xvlog_cmd.txt
 	xelab -debug wave $(TOP_MODULE) -s $(TOP_MODULE)
 
 .PHONY: run
 run:
 	xsim $(TOP_MODULE) -t xsim_run_all.tcl
-
+#	diff <(head -n 5000 jfive_exe_log.txt) <(head -n 5000 jfive_exe_log_exp.txt)
 
 .PHONY: clean
 clean:

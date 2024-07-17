@@ -26,7 +26,7 @@ module jelly_shadow_reg_ctl
             
             input   wire                            core_reset,
             input   wire                            core_clk,
-            input   wire                            core_acceptable,
+            input   wire                            core_ready,
             output  wire                            core_update
         );
     
@@ -73,13 +73,13 @@ module jelly_shadow_reg_ctl
             reg_index <= INIT_INDEX;
         end
         else begin
-            if ( core_acceptable && ff1_update ) begin
+            if ( core_ready && ff1_update ) begin
                 reg_index <= reg_index + 1'b1;
             end
         end
     end
     
-    assign core_update = (core_reset || (core_acceptable && ff1_update));
+    assign core_update = (core_reset || (core_ready && ff1_update));
     assign sig_index   = reg_index;
     
 endmodule
