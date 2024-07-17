@@ -109,5 +109,6 @@ clean:
 	-rm -fr $(PRJ_NAME).srcs
 	-rm -fr $(PRJ_NAME).gen
 	-rm -fr $(PRJ_NAME).xpr
+	-rm -fr bd
 	-rm -f vivado*.jou
 	-rm -f vivado*.log
