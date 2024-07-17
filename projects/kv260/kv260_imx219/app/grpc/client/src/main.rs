@@ -12,8 +12,10 @@ use std::io::Write;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // let mut client = CameraControlClient::connect("http://127.0.0.1:8080").await?;
-    let mut client: CameraControlClient<Channel> = CameraControlClient::connect("http://kria:50051").await?;
+    let args: Vec<String> = std::env::args().collect();
+    let target : String = if args.len() > 1 { args[1].clone() } else { "http://kria:50051".to_string() };
+    println!("TARGET = {}", target);
+    let mut client: CameraControlClient<Channel> = CameraControlClient::connect(target).await?;
 
     let request = tonic::Request::new(SetAoiRequest {
         id: 1,

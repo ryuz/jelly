@@ -754,7 +754,7 @@ module kv260_imx219_mnist_seg
             #(
                 .NUM                    (11 + 3             ),
                 .DATA_WIDTH             (8                  ),
-                .ADDR_WIDTH             (18                 ),
+                .ADDR_WIDTH             (17                 ),
                 .TUSER_WIDTH            (1                  ),
                 .WB_ADR_WIDTH           (8                  ),
                 .WB_DAT_WIDTH           (WB_DAT_WIDTH       ),

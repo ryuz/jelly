@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-
 use std::error::Error;
 use std::thread;
 use std::time::Duration;
@@ -9,15 +8,12 @@ use jelly_mem_access::*;
 
 use opencv::{
     core::*,
-    //    imgcodecs::*,
     highgui::*,
-//    prelude::*,
 };
 
-use jelly_lib::linux_i2c::LinuxI2c;
 use jelly_lib::imx219_control::Imx219Control;
+use jelly_lib::linux_i2c::LinuxI2c;
 use jelly_pac::video_dma_control::VideoDmaControl;
-
 
 // Video format regularizer
 const REG_VIDEO_FMTREG_CORE_ID: usize = 0x00;
@@ -42,16 +38,9 @@ const REG_IMG_DEMOSAIC_CTL_INDEX: usize = 0x07;
 const REG_IMG_DEMOSAIC_PARAM_PHASE: usize = 0x08;
 const REG_IMG_DEMOSAIC_CURRENT_PHASE: usize = 0x18;
 
-
-use std::os::raw::c_void;
-
-
-
 fn usleep() {
     thread::sleep(Duration::from_micros(1));
 }
-
-
 
 fn main() -> Result<(), Box<dyn Error>> {
     // start
@@ -105,7 +94,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         udmabuf_acc.size()
     );
 
-
     // UIO
     println!("\nuio open");
     let uio_acc = UioAccessor::<usize>::new_with_name("uio_pl_peri").expect("Failed to open uio");
@@ -127,7 +115,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("reg_colmat : {:08x}", reg_colmat.read_reg(0));
         println!("reg_wdma   : {:08x}", reg_wdma.read_reg(0));
     }
-    
+
     // DMA制御
     let mut vdmaw = VideoDmaControl::new(reg_wdma, 4, 4, Some(usleep)).unwrap();
 
@@ -139,7 +127,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // IMX219 control
     //    let i2c = Box::new(I2cAccessor::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
-//    let i2c = Box::new(LinuxI2CDevice::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
+    //    let i2c = Box::new(LinuxI2CDevice::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
     let i2c = LinuxI2c::new("/dev/i2c-6", 0x10).unwrap();
     let mut imx219 = Imx219Control::new(i2c);
     println!("reset");
@@ -190,28 +178,44 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // 1frame キャプチャ
-        vdmaw.oneshot(udmabuf_acc.phys_addr(), width, height, 1, 0, 0, 0, 0, Some(100000))?;
+        vdmaw.oneshot(
+            udmabuf_acc.phys_addr(),
+            width,
+            height,
+            1,
+            0,
+            0,
+            0,
+            0,
+            Some(100000),
+        )?;
 
-
-        let mut buf = vec![0u8; (width * height * 4) as usize];
+        let mut buf = vec![VecN::<u8, 4>::new(0, 0, 0, 0); (width * height) as usize];
         unsafe {
-            udmabuf_acc.copy_to(0, buf.as_mut_ptr(), (width * height * 4) as usize);
-            let img = Mat::new_rows_cols_with_data(
-                height,
-                width,
-                CV_8UC4,
-                buf.as_mut_ptr() as *mut c_void,
-                (width * 4) as usize,
-            )
-            .unwrap();
+            udmabuf_acc.copy_to_::<VecN<u8, 4>>(0, buf.as_mut_ptr(), (width * height) as usize);
+            let img = Mat::new_rows_cols_with_data(height, width, &buf).unwrap();
             imshow("img", &img)?;
         }
     }
 
+    vdmaw.wait_for_stop(Some(10000))?;
+
+    // 取り込み停止
+    unsafe {
+        reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
+    }
+    thread::sleep(Duration::from_millis(100));
+
     // close
     imx219.stop()?;
+    imx219.close();
 
-    println!("Hello, world!");
+    // カメラOFF
+    unsafe {
+        uio_acc.write_reg(2, 0);
+    }
+
+    println!("close");
 
     Ok(())
 }

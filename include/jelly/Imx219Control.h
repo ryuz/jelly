@@ -32,6 +32,7 @@ namespace jelly {
 #define IMX219_ROM_ID                      0x0011
 #define IMX219_FRM_CNT                     0x0018
 #define IMX219_PX_ORDER                    0x0019
+#define IMX219_DT_PEDESTAL                 0x001A
 #define IMX219_DT_PEDESTAL_0               0x001A
 #define IMX219_DT_PEDESTAL_1               0x001B
 #define IMX219_FRM_FMT_TYPE                0x0040
@@ -179,10 +180,11 @@ protected:
 
     bool        m_binning_h = true;
     bool        m_binning_v = true;
-    int         m_aoi_x  = 0;
-    int         m_aoi_y  = 0;
-    int         m_width  = 640;
-    int         m_height = 132;
+    int         m_aoi_x    = 0;
+    int         m_aoi_y    = 0;
+    int         m_raw_bits = 10;
+    int         m_width    = 640;
+    int         m_height   = 132;
 
     float       m_framerate = 1000;
     float       m_exposure  = 1;
@@ -246,15 +248,15 @@ public:
         I2cWrite8bit(IMX219_DPHY_CTRL, 0x00);               // MIPI Global timing setting (0: auto mode, 1: manual mode)
         I2cWrite16bit(IMX219_EXCK_FREQ, 0x1800);            // INCK frequency [MHz] 24.00MHz
 
-        I2cWrite16bit(IMX219_CSI_DATA_FORMAT_A, 0x0A0A);    // CSI-2 data format(0x0808:RAW8, 0x0A0A: RAW10)
-        I2cWrite8bit(IMX219_VTPXCK_DIV, 0x05);              // vt_pix_clk_div
-        I2cWrite8bit(IMX219_VTSYCK_DIV, 0x01);              // vt_sys_clk_div
-        I2cWrite8bit(IMX219_PREPLLCK_VT_DIV, 0x03);         // pre_pll_clk_vt_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
-        I2cWrite8bit(IMX219_PREPLLCK_OP_DIV, 0x03);         // pre_pll_clk_op_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
-        I2cWrite16bit(IMX219_PLL_VT_MPY, m_pll_vt_mpy);     // pll_vt_multiplier
-        I2cWrite8bit(IMX219_OPPXCK_DIV, 0x0A);              // op_pix_clk_div
-        I2cWrite8bit(IMX219_OPSYCK_DIV, 0x01);              // op_sys_clk_div
-        I2cWrite16bit(IMX219_PLL_OP_MPY, 0x0072);           // pll_op_multiplier
+        I2cWrite16bit(IMX219_CSI_DATA_FORMAT_A, m_raw_bits == 8 ? 0x0808 : 0x0a0a); // CSI-2 data format(0x0808:RAW8, 0x0A0A: RAW10)
+        I2cWrite8bit(IMX219_VTPXCK_DIV, 0x05);                  // vt_pix_clk_div
+        I2cWrite8bit(IMX219_VTSYCK_DIV, 0x01);                  // vt_sys_clk_div
+        I2cWrite8bit(IMX219_PREPLLCK_VT_DIV, 0x03);             // pre_pll_clk_vt_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+        I2cWrite8bit(IMX219_PREPLLCK_OP_DIV, 0x03);             // pre_pll_clk_op_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
+        I2cWrite16bit(IMX219_PLL_VT_MPY, m_pll_vt_mpy);         // pll_vt_multiplier
+        I2cWrite8bit(IMX219_OPPXCK_DIV, 0x0A);                  // op_pix_clk_div
+        I2cWrite8bit(IMX219_OPSYCK_DIV, 0x01);                  // op_sys_clk_div
+        I2cWrite16bit(IMX219_PLL_OP_MPY, 0x0072);               // pll_op_multiplier
 
         return true;
     }
@@ -272,6 +274,11 @@ public:
         if ( !IsOpend() ) { return false; }
         I2cWrite8bit(IMX219_MODE_SEL, 0x00);    // mode_select [4:0] 0: SW standby, 1: Streaming
         m_running = false;
+        return true;
+    }
+
+    bool SetRawBits(int bits) {
+        m_raw_bits = bits;
         return true;
     }
 
@@ -437,7 +444,7 @@ protected:
 
         I2cWrite8bit(IMX219_MODE_SEL, 0x00);   // mode_select [4:0]  (0: SW standby, 1: Streaming)
 
-        I2cWrite16bit(IMX219_CSI_DATA_FORMAT_A, 0x0A0A);    // CSI-2 data format(0x0808:RAW8, 0x0A0A: RAW10)
+        I2cWrite16bit(IMX219_CSI_DATA_FORMAT_A, m_raw_bits == 8 ? 0x0808 : 0x0a0a); // CSI-2 data format(0x0808:RAW8, 0x0A0A: RAW10)
         I2cWrite8bit(IMX219_VTPXCK_DIV, 0x05);              // vt_pix_clk_div
         I2cWrite8bit(IMX219_VTSYCK_DIV, 0x01);              // vt_sys_clk_div
         I2cWrite8bit(IMX219_PREPLLCK_VT_DIV, 0x03);         // pre_pll_clk_vt_div(EXCK_FREQ 0:6-12MHz, 2:12-24MHz, 3:24-27MHz)
@@ -446,6 +453,7 @@ protected:
         I2cWrite8bit(IMX219_OPPXCK_DIV, 0x0A);              // op_pix_clk_div
         I2cWrite8bit(IMX219_OPSYCK_DIV, 0x01);              // op_sys_clk_div
         I2cWrite16bit(IMX219_PLL_OP_MPY, 0x0072);           // pll_op_multiplier
+        I2cWrite16bit(IMX219_DT_PEDESTAL, m_raw_bits == 8 ? 0x10 : 0x40);
 
         int aoi_x = m_binning_h ? m_aoi_x  * 2 : m_aoi_x;
         int aoi_y = m_binning_v ? m_aoi_y  * 2 : m_aoi_y;
@@ -536,6 +544,32 @@ protected:
         unsigned char buf[2];
         I2cRead(addr, buf, 2);
         return (buf[0] << 8) | buf[1];
+    }
+
+public:
+    void PrintRegisters(void)
+    {
+        std::cout << "IMX219_CSI_DATA_FORMAT_A         (0x" << std::hex << std::setw(4) << IMX219_CSI_DATA_FORMAT_A         << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_CSI_DATA_FORMAT_A        ) << " " << std::dec << (int)I2cRead16bit(IMX219_CSI_DATA_FORMAT_A        ) << std::endl;
+        std::cout << "IMX219_VTPXCK_DIV                (0x" << std::hex << std::setw(4) << IMX219_VTPXCK_DIV                << ") : 0x" << std::setw(2) << (int)I2cRead8bit (IMX219_VTPXCK_DIV               ) << " " << std::dec << (int)I2cRead8bit (IMX219_VTPXCK_DIV               ) << std::endl;
+        std::cout << "IMX219_VTSYCK_DIV                (0x" << std::hex << std::setw(4) << IMX219_VTSYCK_DIV                << ") : 0x" << std::setw(2) << (int)I2cRead8bit (IMX219_VTSYCK_DIV               ) << " " << std::dec << (int)I2cRead8bit (IMX219_VTSYCK_DIV               ) << std::endl;
+        std::cout << "IMX219_PREPLLCK_VT_DIV           (0x" << std::hex << std::setw(4) << IMX219_PREPLLCK_VT_DIV           << ") : 0x" << std::setw(2) << (int)I2cRead8bit (IMX219_PREPLLCK_VT_DIV          ) << " " << std::dec << (int)I2cRead8bit (IMX219_PREPLLCK_VT_DIV          ) << std::endl;
+        std::cout << "IMX219_PREPLLCK_OP_DIV           (0x" << std::hex << std::setw(4) << IMX219_PREPLLCK_OP_DIV           << ") : 0x" << std::setw(2) << (int)I2cRead8bit (IMX219_PREPLLCK_OP_DIV          ) << " " << std::dec << (int)I2cRead8bit (IMX219_PREPLLCK_OP_DIV          ) << std::endl;
+        std::cout << "IMX219_PLL_VT_MPY                (0x" << std::hex << std::setw(4) << IMX219_PLL_VT_MPY                << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_PLL_VT_MPY               ) << " " << std::dec << (int)I2cRead16bit(IMX219_PLL_VT_MPY               ) << std::endl;
+        std::cout << "IMX219_OPPXCK_DIV                (0x" << std::hex << std::setw(4) << IMX219_OPPXCK_DIV                << ") : 0x" << std::setw(2) << (int)I2cRead8bit (IMX219_OPPXCK_DIV               ) << " " << std::dec << (int)I2cRead8bit (IMX219_OPPXCK_DIV               ) << std::endl;
+        std::cout << "IMX219_OPSYCK_DIV                (0x" << std::hex << std::setw(4) << IMX219_OPSYCK_DIV                << ") : 0x" << std::setw(2) << (int)I2cRead8bit (IMX219_OPSYCK_DIV               ) << " " << std::dec << (int)I2cRead8bit (IMX219_OPSYCK_DIV               ) << std::endl;
+        std::cout << "IMX219_PLL_OP_MPY                (0x" << std::hex << std::setw(4) << IMX219_PLL_OP_MPY                << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_PLL_OP_MPY               ) << " " << std::dec << (int)I2cRead16bit(IMX219_PLL_OP_MPY               ) << std::endl;
+        std::cout << "IMX219_DT_PEDESTAL               (0x" << std::hex << std::setw(4) << IMX219_DT_PEDESTAL               << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_DT_PEDESTAL              ) << " " << std::dec << (int)I2cRead16bit(IMX219_DT_PEDESTAL              ) << std::endl;
+        std::cout << "IMX219_X_ADD_STA_A               (0x" << std::hex << std::setw(4) << IMX219_X_ADD_STA_A               << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_X_ADD_STA_A              ) << " " << std::dec << (int)I2cRead16bit(IMX219_X_ADD_STA_A              ) << std::endl;
+        std::cout << "IMX219_X_ADD_END_A               (0x" << std::hex << std::setw(4) << IMX219_X_ADD_END_A               << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_X_ADD_END_A              ) << " " << std::dec << (int)I2cRead16bit(IMX219_X_ADD_END_A              ) << std::endl;
+        std::cout << "IMX219_Y_ADD_STA_A               (0x" << std::hex << std::setw(4) << IMX219_Y_ADD_STA_A               << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_Y_ADD_STA_A              ) << " " << std::dec << (int)I2cRead16bit(IMX219_Y_ADD_STA_A              ) << std::endl;
+        std::cout << "IMX219_Y_ADD_END_A               (0x" << std::hex << std::setw(4) << IMX219_Y_ADD_END_A               << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_Y_ADD_END_A              ) << " " << std::dec << (int)I2cRead16bit(IMX219_Y_ADD_END_A              ) << std::endl;
+        std::cout << "IMX219_X_OUTPUT_SIZE             (0x" << std::hex << std::setw(4) << IMX219_X_OUTPUT_SIZE             << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_X_OUTPUT_SIZE            ) << " " << std::dec << (int)I2cRead16bit(IMX219_X_OUTPUT_SIZE            ) << std::endl;
+        std::cout << "IMX219_Y_OUTPUT_SIZE             (0x" << std::hex << std::setw(4) << IMX219_Y_OUTPUT_SIZE             << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_Y_OUTPUT_SIZE            ) << " " << std::dec << (int)I2cRead16bit(IMX219_Y_OUTPUT_SIZE            ) << std::endl;
+        std::cout << "IMX219_BINNING_MODE_H_A          (0x" << std::hex << std::setw(4) << IMX219_BINNING_MODE_H_A          << ") : 0x" << std::setw(2) << (int)I2cRead8bit (IMX219_BINNING_MODE_H_A         ) << " " << std::dec << (int)I2cRead8bit (IMX219_BINNING_MODE_H_A         ) << std::endl;
+        std::cout << "IMX219_BINNING_MODE_V_A          (0x" << std::hex << std::setw(4) << IMX219_BINNING_MODE_V_A          << ") : 0x" << std::setw(2) << (int)I2cRead8bit (IMX219_BINNING_MODE_V_A         ) << " " << std::dec << (int)I2cRead8bit (IMX219_BINNING_MODE_V_A         ) << std::endl;
+        std::cout << "IMX219_LINE_LENGTH_A             (0x" << std::hex << std::setw(4) << IMX219_LINE_LENGTH_A             << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_LINE_LENGTH_A            ) << " " << std::dec << (int)I2cRead16bit(IMX219_LINE_LENGTH_A            ) << std::endl;
+        std::cout << "IMX219_FRM_LENGTH_A              (0x" << std::hex << std::setw(4) << IMX219_FRM_LENGTH_A              << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_FRM_LENGTH_A             ) << " " << std::dec << (int)I2cRead16bit(IMX219_FRM_LENGTH_A             ) << std::endl;
+        std::cout << "IMX219_COARSE_INTEGRATION_TIME_A (0x" << std::hex << std::setw(4) << IMX219_COARSE_INTEGRATION_TIME_A << ") : 0x" << std::setw(4) << (int)I2cRead16bit(IMX219_COARSE_INTEGRATION_TIME_A) << " " << std::dec << (int)I2cRead16bit(IMX219_COARSE_INTEGRATION_TIME_A) << std::endl;
     }
 };
 

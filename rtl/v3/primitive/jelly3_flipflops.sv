@@ -69,6 +69,7 @@ module jelly3_flipflops
                     else begin : fdce
                         FDCE
                                 #(
+                                    .INIT               (BOOT_INIT[i]       ),
                                     .IS_CLR_INVERTED    (IS_RESET_INVERTED  ),
                                     .IS_C_INVERTED      (IS_CLK_INVERTED    ),
                                     .IS_D_INVERTED      (IS_DIN_INVERTED    )
@@ -104,6 +105,7 @@ module jelly3_flipflops
                     else begin : fdre
                         FDRE
                                 #(
+                                    .INIT               (BOOT_INIT[i]       ),
                                     .IS_C_INVERTED      (IS_CLK_INVERTED    ),
                                     .IS_D_INVERTED      (IS_DIN_INVERTED    ),
                                     .IS_R_INVERTED      (IS_RESET_INVERTED  )
