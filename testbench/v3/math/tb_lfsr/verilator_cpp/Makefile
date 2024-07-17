@@ -30,22 +30,13 @@ endif
 all: build run
 
 .PHONY : build
-build: veryl
+build:
 	mkdir -p build && cd build && cmake $(CMAKE_FLAGS) ..
 	cmake --build build -j
 
 .PHONY : clean
 clean:
 	rm -rf build
-
-
-.PHONY : veryl
-veryl:
-	cd ../../../../../../rtl/jellyvl; veryl build
-
-.PHONY : fmt
-fmt:
-	cd ../../../../../../rtl/jellyvl; veryl fmt
 
 .PHONY : distclean
 distclean: clean
