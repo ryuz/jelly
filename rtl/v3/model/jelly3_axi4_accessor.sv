@@ -304,12 +304,12 @@ module jelly3_axi4_accessor
                 arvalid  = 1'b0 ;
             end
             if ( issue_r ) begin
-                $display("[axi4l read] rdata:%x", rdata);
+                $display("[axi4 read] rdata:%x", rdata);
                 data[idx] = rdata;
-                idx++;
-                if ( rlast || idx >= int'(len) ) begin
+                if ( rlast || idx >= len ) begin
                     break;
                 end
+                idx++;
             end
             @(posedge m_axi4.aclk); #EPSILON;
         end

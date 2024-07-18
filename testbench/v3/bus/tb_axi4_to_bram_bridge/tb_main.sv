@@ -137,6 +137,22 @@ module tb_main
                 rdata   // data []
             );
 
+        u_axi4_accessor.read(
+                '0,     // id     
+                4,     // addr   
+                8'd3,   // len    
+                4'h2,   // size   
+                2'b10,  // burst  
+                '0,     // lock   
+                '0,     // cache  
+                '0,     // prot   
+                '0,     // qos    
+                '0,     // region 
+                '0,     // user   
+                rdata   // data []
+            );
+
+
     end
 
 endmodule
