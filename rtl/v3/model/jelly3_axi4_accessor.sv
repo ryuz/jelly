@@ -318,8 +318,9 @@ module jelly3_axi4_accessor
         end
     endtask
 
-    /*
+    
     localparam ADDR_UNIT = m_axi4.DATA_BITS / 8;
+    localparam ADDR_SIZE = $clog2(ADDR_UNIT);
 
     task write_reg(
                 input   addr_t  base_addr,
@@ -327,7 +328,20 @@ module jelly3_axi4_accessor
                 input   data_t  data,
                 input   strb_t  strb
             );
-        write(base_addr + m_axi4.ADDR_BITS'(reg_idx) * ADDR_UNIT, data, strb);
+        write(
+                '0                                          ,   // id
+                base_addr + addr_t'(reg_idx * ADDR_UNIT)    ,   // addr
+                size_t'($clog2(ADDR_UNIT))                  ,   // size   
+                2'b01                                       ,   // burst  
+                '0                                          ,   // lock   
+                '0                                          ,   // cache  
+                '0                                          ,   // prot   
+                '0                                          ,   // qos    
+                '0                                          ,   // region 
+                '0                                          ,   // user   
+                '{data}                                     ,   // data []
+                '{'1}                                           // strb []
+            );
     endtask
 
     task read_reg(
@@ -335,9 +349,24 @@ module jelly3_axi4_accessor
                 input   int     reg_idx,
                 output  data_t  data
             );
-        read(base_addr + m_axi4.ADDR_BITS'(reg_idx) * ADDR_UNIT, data);
+        automatic data_t    rdata [];
+        read(
+                '0                                          ,   // id
+                base_addr + addr_t'(reg_idx * ADDR_UNIT)    ,   // addr
+                8'd0                                        ,   // len
+                size_t'($clog2(ADDR_UNIT))                  ,   // size   
+                2'b01                                       ,   // burst  
+                '0                                          ,   // lock   
+                '0                                          ,   // cache  
+                '0                                          ,   // prot   
+                '0                                          ,   // qos    
+                '0                                          ,   // region 
+                '0                                          ,   // user   
+                rdata                                           // data []
+            );
+        data = rdata[0];
     endtask
-    */
+    
 
 endmodule
 

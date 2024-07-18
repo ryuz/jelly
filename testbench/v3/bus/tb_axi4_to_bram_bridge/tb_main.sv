@@ -104,13 +104,14 @@ module tb_main
             );
 
     initial begin
-        automatic logic [axi4.DATA_BITS-1:0] rdata [];
+        automatic logic [axi4.DATA_BITS-1:0] rdatas [];
+        automatic logic [axi4.DATA_BITS-1:0] data;
 
         #1000;
         u_axi4_accessor.write(
                 '0,     // id     
                 '0,     // addr   
-                4'h2,   // size   
+                3'h2,   // size   
                 2'b01,  // burst  
                 '0,     // lock   
                 '0,     // cache  
@@ -126,7 +127,7 @@ module tb_main
                 '0,     // id     
                 '0,     // addr   
                 8'd3,   // len    
-                4'h2,   // size   
+                3'h2,   // size   
                 2'b01,  // burst  
                 '0,     // lock   
                 '0,     // cache  
@@ -134,14 +135,14 @@ module tb_main
                 '0,     // qos    
                 '0,     // region 
                 '0,     // user   
-                rdata   // data []
+                rdatas  // data []
             );
 
         u_axi4_accessor.read(
                 '0,     // id     
-                4,     // addr   
+                4,      // addr   
                 8'd3,   // len    
-                4'h2,   // size   
+                3'h2,   // size   
                 2'b10,  // burst  
                 '0,     // lock   
                 '0,     // cache  
@@ -149,10 +150,11 @@ module tb_main
                 '0,     // qos    
                 '0,     // region 
                 '0,     // user   
-                rdata   // data []
+                rdatas  // data []
             );
 
-
+        u_axi4_accessor.write_reg(0, 8, 32'h55aa55aa, 4'hf);
+        u_axi4_accessor.read_reg (0, 8, data);
     end
 
 endmodule
