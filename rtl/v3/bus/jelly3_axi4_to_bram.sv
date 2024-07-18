@@ -42,10 +42,10 @@ module jelly3_axi4_to_bram
 
     function axi4_addr_t calc_inc(axi4_burst_t busrt, axi4_size_t size);
         case ( busrt )
-            2'b00: return '0;                   // FIXED
-            2'b01: return (1 << s_axi4.awsize); // INCR
-            2'b10: return (1 << s_axi4.awsize); // WRAP
-            default: return 'x;                 // reserved
+            2'b00: return '0;          // FIXED
+            2'b01: return (1 << size); // INCR
+            2'b10: return (1 << size); // WRAP
+            default: return 'x;        // reserved
         endcase
     endfunction
 
@@ -129,6 +129,8 @@ module jelly3_axi4_to_bram
     assign cready = m_bram.cready;
 
     assign m_bram.cid    = id;
+    assign m_bram.cread  = busyr;
+    assign m_bram.cwrite = (busyw && s_axi4.wvalid);
     assign m_bram.caddr  = bram_addr_t'(addr / ADDR_UNIT);
     assign m_bram.clast  = last;
     assign m_bram.cstrb  = busyw ? s_axi4.wstrb : '0;
@@ -156,15 +158,16 @@ module jelly3_axi4_to_bram
             end
         end
     end
-    assign s_axi4.bresp = 2'b0;
+    assign s_axi4.bresp = 2'b00;
 
 
     // read response
-    assign m_bram.rid    = s_axi4.rid   ;
-    assign m_bram.rlast  = s_axi4.rlast ;
-    assign m_bram.rdata  = s_axi4.rdata ;
-    assign m_bram.rvalid = s_axi4.rvalid;
-    assign s_axi4.rready = m_bram.rready;
+    assign s_axi4.rid    = m_bram.rid   ;
+    assign s_axi4.rresp  = 2'b00        ;
+    assign s_axi4.rlast  = m_bram.rlast ;
+    assign s_axi4.rdata  = m_bram.rdata ;
+    assign s_axi4.rvalid = m_bram.rvalid;
+    assign m_bram.rready = s_axi4.rready;
 
 
     initial begin

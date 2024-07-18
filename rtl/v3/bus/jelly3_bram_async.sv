@@ -27,10 +27,26 @@ module jelly3_bram_async
         );
 
     // command
+    typedef logic   [s_bram.ID_BITS-1:0]       id_t    ;
+    typedef logic   [s_bram.ADDR_BITS-1:0]     addr_t  ;
+    typedef logic   [s_bram.DATA_BITS-1:0]     data_t  ;
+    typedef logic   [s_bram.STRB_BITS-1:0]     strb_t  ;
+
+    // command
+    id_t        cid         ;
+    logic       cread       ;
+    logic       cwrite      ;
+    addr_t      caddr       ;
+    logic       clast       ;
+    strb_t      cstrb       ;
+    data_t      cdata       ;
+    logic       cvalid      ;
+    logic       cready      ;
     jelly2_fifo_generic_fwtf
             #(
                 .ASYNC          (ASYNC              ),
                 .DATA_WIDTH     (  s_bram.ID_BITS   
+                                 + 2                
                                  + s_bram.ADDR_BITS 
                                  + 1                
                                  + s_bram.STRB_BITS 
@@ -45,10 +61,12 @@ module jelly3_bram_async
                 .s_clk          (s_bram.clk         ),
                 .s_cke          (s_bram.cke         ),
                 .s_data         ({
-                                    s_bram.cid  ,
-                                    s_bram.caddr,
-                                    s_bram.clast,
-                                    s_bram.cstrb,
+                                    s_bram.cid      ,
+                                    s_bram.cwrite   ,
+                                    s_bram.cread    ,
+                                    s_bram.caddr    ,
+                                    s_bram.clast    ,
+                                    s_bram.cstrb    ,
                                     s_bram.cdata
                                 }),
                 .s_valid        (s_bram.cvalid      ),
@@ -59,17 +77,43 @@ module jelly3_bram_async
                 .m_clk          (m_bram.clk         ),
                 .m_cke          (m_bram.cke         ),
                 .m_data         ({
-                                    m_bram.cid  ,
-                                    m_bram.caddr,
-                                    m_bram.clast,
-                                    m_bram.cstrb,
-                                    m_bram.cdata
+                                    cid             ,
+                                    cwrite          ,
+                                    cread           ,
+                                    caddr           ,
+                                    clast           ,
+                                    cstrb           ,
+                                    cdata           
                                 }),
-                .m_valid        (m_bram.cvalid      ),
-                .m_ready        (m_bram.cready      ),
-                .m_data_count   ()
+                .m_valid        (cvalid             ),
+                .m_ready        (cready             ),
+                .m_data_count   (                   )
         );
-    
+    always_ff @( posedge m_bram.clk ) begin
+        if ( m_bram.reset ) begin
+            m_bram.cid    <= 'x     ;
+            m_bram.cwrite <= 1'b0   ;
+            m_bram.cread  <= 1'b0   ;
+            m_bram.caddr  <= 'x     ;
+            m_bram.clast  <= 'x     ;
+            m_bram.cstrb  <= '0     ;
+            m_bram.cdata  <= 'x     ;
+            m_bram.cvalid <= 1'b0   ;
+        end
+        else if ( m_bram.cke && cready ) begin
+            m_bram.cid    <= cid    ;
+            m_bram.cwrite <= cvalid ? cwrite : 1'b0 ;
+            m_bram.cread  <= cvalid ? cread  : 1'b0 ;
+            m_bram.caddr  <= caddr  ;
+            m_bram.clast  <= clast  ;
+            m_bram.cstrb  <= cvalid ? cstrb  : '0   ;
+            m_bram.cdata  <= cdata  ;
+            m_bram.cvalid <= cvalid ;
+        end
+    end
+    assign cready = !m_bram.cvalid || m_bram.cready;
+
+
     // response
     jelly2_fifo_generic_fwtf
             #(

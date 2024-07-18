@@ -81,8 +81,8 @@ module tb_main
 
     assign bram.rid    = bram.cid   ;
     assign bram.rlast  = bram.clast ;
-    assign bram.rdata  = bram.cdata ;
-    assign bram.rvalid = bram.cvalid;
+    assign bram.rdata  = bram.caddr ;
+    assign bram.rvalid = bram.cread ;
     assign bram.cready = bram.rready;
 
 

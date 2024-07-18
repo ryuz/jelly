@@ -35,6 +35,8 @@ interface jelly3_bram_if
 
     // command
     id_t        cid         ;
+    logic       cread       ;
+    logic       cwrite      ;
     addr_t      caddr       ;
     logic       clast       ;
     strb_t      cstrb       ;
@@ -56,13 +58,15 @@ interface jelly3_bram_if
             input   cke         ,
     
             output  cid         ,
+            output  cread       ,
+            output  cwrite      ,
             output  caddr       ,
             output  clast       ,
             output  cstrb       ,
             output  cdata       ,
             output  cvalid      ,
             input   cready      ,
-        
+
             input   rid         ,
             input   rlast       ,
             input   rdata       ,
@@ -77,6 +81,8 @@ interface jelly3_bram_if
             input   cke         ,
     
             input   cid         ,
+            input   cread       ,
+            input   cwrite      ,
             input   caddr       ,
             input   clast       ,
             input   cstrb       ,
