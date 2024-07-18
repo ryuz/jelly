@@ -307,6 +307,9 @@ module jelly3_axi4_accessor
                 $display("[axi4 read] rdata:%x", rdata);
                 data[idx] = rdata;
                 if ( rlast || idx >= len ) begin
+                    if ( !(rlast && idx == len) ) begin
+                        $display("!!ERROR!! axi4 illegal rlast");
+                    end
                     break;
                 end
                 idx++;
