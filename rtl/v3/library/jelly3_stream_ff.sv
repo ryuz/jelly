@@ -17,7 +17,8 @@ module jelly3_stream_ff
             parameter   type    data_t      = logic [DATA_BITS-1:0] ,
             parameter   bit     S_REGS      = 1                     ,
             parameter   bit     M_REGS      = 1                     ,
-            parameter   data_t  INIT_DATA   = 'x                    
+            parameter   data_t  INIT_DATA   = 'x                    ,
+            parameter   bit     RESET_READY = 1'b0                  
         )
         (
             input   var logic   reset       ,
@@ -69,7 +70,7 @@ module jelly3_stream_ff
         
         always_ff @(posedge clk) begin
             if ( reset ) begin
-                reg_s_ready   <= 1'b0;
+                reg_s_ready   <= RESET_READY;
                 reg_buf_valid <= 1'b0;
                 reg_buf_data  <= INIT_DATA;
             end

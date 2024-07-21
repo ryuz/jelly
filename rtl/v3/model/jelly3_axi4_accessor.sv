@@ -323,13 +323,14 @@ module jelly3_axi4_accessor
     localparam ADDR_SIZE = $clog2(ADDR_UNIT);
 
     task write_reg(
-                input   addr_t  base_addr,
-                input   int     reg_idx,
-                input   data_t  data,
-                input   strb_t  strb
+                input   addr_t  base_addr   ,
+                input   int     reg_idx     ,
+                input   data_t  data        ,
+                input   strb_t  strb  = '1  ,
+                input   id_t    id    = '0  
             );
         write(
-                '0                                          ,   // id
+                id                                          ,   // id
                 base_addr + addr_t'(reg_idx * ADDR_UNIT)    ,   // addr
                 size_t'($clog2(ADDR_UNIT))                  ,   // size   
                 2'b01                                       ,   // burst  
@@ -340,18 +341,20 @@ module jelly3_axi4_accessor
                 '0                                          ,   // region 
                 '0                                          ,   // user   
                 '{data}                                     ,   // data []
-                '{'1}                                           // strb []
+                '{strb}                                         // strb []
             );
     endtask
 
     task read_reg(
-                input   addr_t  base_addr,
-                input   int     reg_idx,
-                output  data_t  data
+                input   addr_t  base_addr   ,
+                input   int     reg_idx     ,
+                output  data_t  data        ,
+                input   id_t    id    = '0  
+
             );
         automatic data_t    rdata [];
         read(
-                '0                                          ,   // id
+                id                                          ,   // id
                 base_addr + addr_t'(reg_idx * ADDR_UNIT)    ,   // addr
                 8'd0                                        ,   // len
                 size_t'($clog2(ADDR_UNIT))                  ,   // size   

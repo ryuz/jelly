@@ -32,17 +32,19 @@ int main()
     auto jfive_ctl = uio_acc.GetAccessor32(0x000000);
     auto jfive_mem = uio_acc.GetAccessor32(0x100000);
 
-    std::cout << "CORE_ID  : " << jfive_ctl.ReadReg32(0x00) << std::endl;
-    std::cout << "CORE_VER : " << jfive_ctl.ReadReg32(0x01) << std::endl;
+    jfive_ctl.WriteReg32(4, 0);
+
+    std::cout << "CORE_ID  : 0x" << std::hex << jfive_ctl.ReadReg32(0x00) << std::endl;
+    std::cout << "CORE_VER : 0x" << std::hex << jfive_ctl.ReadReg32(0x01) << std::endl;
 
     // 16進数のテキストファイルを１行づつ読み込む
     std::ifstream ifs("../mem.hex");
     std::uint32_t val;
-    for ( int i = 0; i < 65536; i++ ) {
+    for ( int i = 0; i < 1024; i++ ) {
         if ( !(ifs >> std::hex >> val) ) {
+            std::cout << "size : 0x" << std::hex << i << std::endl;
             break;
         }
-//      std::cout << std::hex << val << std::endl;
         jfive_mem.WriteReg32(i, val);
     }
 

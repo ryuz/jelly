@@ -65,12 +65,12 @@ module tb_main
                 .aclken         (1'b1       )
             );
 
-    jelly3_axi4l_if
+    jelly3_axi4_if
             #(
                 .ADDR_BITS     (32          ),
                 .DATA_BITS     (32          )
             )
-        s_axi4l_mem
+        s_axi4_mem
             (
                 .aresetn        (~reset     ),
                 .aclk           (clk        ),
@@ -122,7 +122,7 @@ module tb_main
                 .clk                ,
                 .cke                ,
                 .s_axi4l_ctl        (s_axi4l_ctl        ),
-                .s_axi4l_mem        (s_axi4l_mem        ),
+                .s_axi4_mem         (s_axi4_mem         ),
                 .m_axi4l_ext        ('{m_axi4l}         )
             );
 
@@ -146,11 +146,11 @@ module tb_main
     assign s_axi4l_ctl.arvalid = 1'b0;
     assign s_axi4l_ctl.rready  = 1'b0;
 
-    assign s_axi4l_mem.awvalid = 1'b0;
-    assign s_axi4l_mem.wvalid  = 1'b0;
-    assign s_axi4l_mem.bready  = 1'b0;
-    assign s_axi4l_mem.arvalid = 1'b0;
-    assign s_axi4l_mem.rready  = 1'b0;
+    assign s_axi4_mem.awvalid = 1'b0;
+    assign s_axi4_mem.wvalid  = 1'b0;
+    assign s_axi4_mem.bready  = 1'b0;
+    assign s_axi4_mem.arvalid = 1'b0;
+    assign s_axi4_mem.rready  = 1'b0;
 
 
     always_ff @(posedge m_axi4l.aclk) begin

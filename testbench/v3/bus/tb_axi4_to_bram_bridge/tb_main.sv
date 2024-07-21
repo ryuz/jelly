@@ -79,11 +79,62 @@ module tb_main
                 .m_bram         (bram.m             )
             );
 
-    assign bram.rid    = bram.cid   ;
-    assign bram.rlast  = bram.clast ;
-    assign bram.rdata  = bram.caddr ;
-    assign bram.rvalid = bram.cread ;
-    assign bram.cready = bram.rready;
+
+    localparam  int     MEM_LATENCY = 2;
+    logic   [MEM_LATENCY-1:0][AXI4_ID_BITS-1:0]  mem_id     ;
+    logic   [MEM_LATENCY-1:0]                    mem_last   ;
+    logic   [MEM_LATENCY-1:0]                    mem_valid  ;
+    always_ff @ ( posedge bram.clk ) begin
+        for (int i = 0; i < MEM_LATENCY; i++ ) begin
+            if ( bram.reset ) begin
+                mem_id   [i] <= 'x;
+                mem_last [i] <= 'x;
+                mem_valid[i] <= '0;
+            end
+            else if ( bram.cready ) begin
+                if ( i == 0 ) begin
+                    mem_id   [i] <= bram.cid   ;
+                    mem_last [i] <= bram.clast ;
+                    mem_valid[i] <= bram.cread ;
+                end
+                else begin
+                    mem_id   [i] <= mem_id   [i-1];
+                    mem_last [i] <= mem_last [i-1];
+                    mem_valid[i] <= mem_valid[i-1];
+                end
+            end
+        end
+    end
+
+    assign bram.rid    = mem_id   [MEM_LATENCY-1];
+    assign bram.rlast  = mem_last [MEM_LATENCY-1];
+    assign bram.rvalid = mem_valid[MEM_LATENCY-1];
+    assign bram.cready = !bram.rvalid || bram.rready;
+
+    jelly2_ram_singleport
+            #(
+                .ADDR_WIDTH     (10             ),
+                .DATA_WIDTH     (32             ),
+                .WE_WIDTH       (4              ),
+                .RAM_TYPE       ("block"        ),
+                .DOUT_REGS      (1              ),
+                .MODE           ("NO_CHANGE"    ),
+                .FILLMEM        (1              ),
+                .FILLMEM_DATA   ('0             ),
+                .READMEMB       (0              ),
+                .READMEMH       (0              ),
+                .READMEM_FILE   (""             )
+            )
+        u_ram_singleport
+            (
+                .clk            (bram.clk       ),
+                .en             (bram.cvalid    ),
+                .regcke         (mem_valid[0]   ),
+                .we             (bram.cstrb     ),
+                .addr           (bram.caddr[9:0]),
+                .din            (bram.cdata     ),
+                .dout           (bram.rdata     )
+            );
 
 
     // -------------------------
@@ -119,8 +170,8 @@ module tb_main
                 '0,     // qos    
                 '0,     // region 
                 '0,     // user   
-                '{32'h07060504, 32'h03020100}, // data []
-                '{4'hf, 4'hf}                 // strb []
+                '{32'h03020100, 32'h07060504},  // data []
+                '{4'hf, 4'hf}                   // strb []
             );
 
         u_axi4_accessor.read(
