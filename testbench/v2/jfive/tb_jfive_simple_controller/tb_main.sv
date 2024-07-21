@@ -116,7 +116,7 @@ module tb_main
                 $write("%c", m_wb_dat_o[7:0]);
             end
             else begin
-                $display("write: %h %10d %b", m_wb_adr_o, $signed(m_wb_dat_o), m_wb_sel_o);
+//              $display("write: %h %10d %b", m_wb_adr_o, $signed(m_wb_dat_o), m_wb_sel_o);
             end
         end
     end

@@ -155,7 +155,7 @@ module jelly_video_resize_half
                 
                 .core_reset         (~aresetn),
                 .core_clk           (aclk),
-                .core_acceptable    (s_axi4s_tuser[0] & s_axi4s_tvalid & s_axi4s_tready),
+                .core_ready    (s_axi4s_tuser[0] & s_axi4s_tvalid & s_axi4s_tready),
                 .core_update        (update)
             );
     

@@ -89,8 +89,8 @@ check_log:
 	@echo "----- impl_1 -----"
 	@cat $(PRJ_NAME).runs/impl_1/runme.log | grep encountered.
 
-.PHONY : make_csv
-make_csv:
+.PHONY : report_csv
+report_csv:
 	$(TOP_DIR)/scripts/vivado_utilization_rpt_to_csv.py $(PRJ_NAME).runs/synth_1/$(TOP_MODULE)_utilization_synth.rpt utilization_synth.csv
 	$(TOP_DIR)/scripts/vivado_utilization_rpt_to_csv.py $(PRJ_NAME).runs/impl_1/$(TOP_MODULE)_utilization_placed.rpt utilization_placed.csv
 	$(TOP_DIR)/scripts/vivado_timing_rpt_to_csv.py summary       $(PRJ_NAME).runs/impl_1/$(TOP_MODULE)_timing_summary_routed.rpt timing_clock_summary.csv

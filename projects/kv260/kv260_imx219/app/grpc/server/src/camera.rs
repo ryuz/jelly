@@ -274,7 +274,7 @@ impl CameraManager {
         let img_size = (self.width * self.height * 4) as usize;
         let mut buf = vec![0u8; img_size];
         unsafe {
-            self.udmabuf_acc.copy_to(0, buf.as_mut_ptr(), img_size);
+            self.udmabuf_acc.copy_to_u8(0, buf.as_mut_ptr(), img_size);
         }
         Ok((self.width, self.height, buf))
     }

@@ -591,7 +591,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../../rtl/v3/library/jelly3_data_ff.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v3/library/jelly3_stream_ff.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

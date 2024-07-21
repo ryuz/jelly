@@ -20,14 +20,12 @@ module tb_main
     logic       m_valid;
     logic       m_ready;
     
-    jelly3_data_ff
+    jelly3_stream_fifo_sr
             #(
                 .DATA_BITS      (DATA_BITS  ),
-                .data_t         (data_t     ),
-                .S_REGS         (1          ),
-                .M_REGS         (1          )
+                .data_t         (data_t     )
             )
-        i_data_ff
+        u_stream_fifo_sr
             (
                 .reset          (reset      ),
                 .clk            (clk        ),
@@ -36,10 +34,12 @@ module tb_main
                 .s_data         (s_data     ),
                 .s_valid        (s_valid    ),
                 .s_ready        (s_ready    ),
+                .s_free_size    (           ),
                 
                 .m_data         (m_data     ),
                 .m_valid        (m_valid    ),
-                .m_ready        (m_ready    )
+                .m_ready        (m_ready    ),
+                .m_data_size    (           )
             );
     
     // write
@@ -83,7 +83,7 @@ module tb_main
             if ( m_valid && m_ready ) begin
                 $fdisplay(fp, "%h %h", m_data, reg_expectation_value);
                 if ( m_data != reg_expectation_value ) begin
-                    $display("error!");
+                    $display("error! %h %h", m_data, reg_expectation_value);
                 end
                 
                 reg_expectation_value <= reg_expectation_value + 1'b1;

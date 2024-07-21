@@ -19,8 +19,7 @@ import numpy as np
 import cv2
 
 
-#channel = grpc.insecure_channel('kria:50051')
-channel = grpc.insecure_channel('10.72.141.86:50051')
+channel = grpc.insecure_channel('kria:50051')
 stub = camera_control_pb2_grpc.CameraControlStub(channel)
 
 stub.SetAoi(camera_control_pb2.SetAoiRequest(id=1, width=640, height=480, x=-1, y=-1))
