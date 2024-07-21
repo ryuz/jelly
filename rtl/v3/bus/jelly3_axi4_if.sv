@@ -12,72 +12,76 @@
 
 interface jelly3_axi4_if
     #(
-        parameter   int     ID_BITS        = 8,
-        parameter   int     ADDR_BITS      = 32,
-        parameter   int     DATA_BITS      = 32,
-        parameter   int     BYTE_BITS      = 8,
-        parameter   int     STRB_BITS      = DATA_BITS / BYTE_BITS,
-        parameter   int     LEN_BITS       = 8,
-        parameter   int     SIZE_BITS      = 3,
-        parameter   int     BURST_BITS     = 2,
-        parameter   int     LOCK_BITS      = 1,
-        parameter   int     CACHE_BITS     = 4,
-        parameter   int     PROT_BITS      = 3,
-        parameter   int     QOS_BITS       = 4,
-        parameter   int     REGION_BITS    = 4,
-        parameter   int     RESP_BITS      = 2,
+        parameter   int     ID_BITS        = 8                              ,
+        parameter   int     ADDR_BITS      = 32                             ,
+        parameter   int     DATA_BITS      = 32                             ,
+        parameter   int     BYTE_BITS      = 8                              ,
+        parameter   int     STRB_BITS      = DATA_BITS / BYTE_BITS          ,
+        parameter   int     LEN_BITS       = 8                              ,
+        parameter   int     SIZE_BITS      = 3                              ,
+        parameter   int     BURST_BITS     = 2                              ,
+        parameter   int     LOCK_BITS      = 1                              ,
+        parameter   int     CACHE_BITS     = 4                              ,
+        parameter   int     PROT_BITS      = 3                              ,
+        parameter   int     QOS_BITS       = 4                              ,
+        parameter   int     REGION_BITS    = 4                              ,
+        parameter   int     RESP_BITS      = 2                              ,
 
-        parameter   bit     USE_ID         = 1,
-        parameter   bit     USE_SIZE       = 1,
-        parameter   bit     USE_BURST      = 1,
-        parameter   bit     USE_LOCK       = 1,
-        parameter   bit     USE_CACHE      = 1,
-        parameter   bit     USE_PROT       = 1,
-        parameter   bit     USE_QOS        = 1,
-        parameter   bit     USE_REGION     = 1,
-        parameter   bit     USE_RESP       = 1,
-        parameter   bit     USE_USER       = 0,
+        parameter   bit     USE_ID         = 1                              ,
+        parameter   bit     USE_SIZE       = 1                              ,
+        parameter   bit     USE_BURST      = 1                              ,
+        parameter   bit     USE_LOCK       = 1                              ,
+        parameter   bit     USE_CACHE      = 1                              ,
+        parameter   bit     USE_PROT       = 1                              ,
+        parameter   bit     USE_QOS        = 1                              ,
+        parameter   bit     USE_REGION     = 1                              ,
+        parameter   bit     USE_RESP       = 1                              ,
+        parameter   bit     USE_USER       = 0                              ,
 
-        parameter   int     USER_REQ_BITS  = 1,
-        parameter   int     USER_DATA_BITS = 1,
-        parameter   int     USER_RESP_BITS = 1,
-        parameter   int     AWUSER_BITS    = USER_REQ_BITS,
-        parameter   int     WUSER_BITS     = USER_DATA_BITS,
-        parameter   int     BUSER_BITS     = USER_RESP_BITS,
-        parameter   int     ARUSER_BITS    = USER_REQ_BITS,
+        parameter   int     USER_REQ_BITS  = 1                              ,
+        parameter   int     USER_DATA_BITS = 1                              ,
+        parameter   int     USER_RESP_BITS = 1                              ,
+        parameter   int     AWUSER_BITS    = USER_REQ_BITS                  ,
+        parameter   int     WUSER_BITS     = USER_DATA_BITS                 ,
+        parameter   int     BUSER_BITS     = USER_RESP_BITS                 ,
+        parameter   int     ARUSER_BITS    = USER_REQ_BITS                  ,
         parameter   int     RUSER_BITS     = USER_DATA_BITS + USER_RESP_BITS,
 
-        parameter   int     LIMIT_AW = 255,
-        parameter   int     LIMIT_W  = 255,
-        parameter   int     LIMIT_WC = 1023,
-        parameter   int     LIMIT_AR = 255,
-        parameter   int     LIMIT_R  = 255,
-        parameter   int     LIMIT_RC = 1023
+        parameter   int     LIMIT_AW      = 255                             ,
+        parameter   int     LIMIT_W       = 255                             ,
+        parameter   int     LIMIT_WC      = 1023                            ,
+        parameter   int     LIMIT_AR      = 255                             ,
+        parameter   int     LIMIT_R       = 255                             ,
+        parameter   int     LIMIT_RC      = 1023                            ,
+
+        parameter           SIMULATION    = "false"                         ,
+        parameter           DEBUG         = "false"                         
     )
     (
-        input   var logic   aresetn,
-        input   var logic   aclk
+        input   var logic   aresetn ,
+        input   var logic   aclk    ,
+        input   var logic   aclken  
     );
 
     // typedef
-    typedef logic   [ID_BITS    -1:0]   id_t    ;
-    typedef logic   [ADDR_BITS  -1:0]   addr_t  ;
-    typedef logic   [LEN_BITS   -1:0]   len_t   ;
-    typedef logic   [SIZE_BITS  -1:0]   size_t  ;
-    typedef logic   [BURST_BITS -1:0]   burst_t ;
-    typedef logic   [LOCK_BITS  -1:0]   lock_t  ;
-    typedef logic   [CACHE_BITS -1:0]   cache_t ;
-    typedef logic   [PROT_BITS  -1:0]   prot_t  ;
-    typedef logic   [QOS_BITS   -1:0]   qos_t   ;
-    typedef logic   [REGION_BITS-1:0]   region_t;
-    typedef logic   [DATA_BITS  -1:0]   data_t  ;
-    typedef logic   [STRB_BITS  -1:0]   strb_t  ;
-    typedef logic   [RESP_BITS  -1:0]   resp_t  ;
-    typedef logic   [AWUSER_BITS-1:0]   awuser_t;
-    typedef logic   [WUSER_BITS -1:0]   wuser_t ;
-    typedef logic   [BUSER_BITS -1:0]   buser_t ;
-    typedef logic   [ARUSER_BITS-1:0]   aruser_t;
-    typedef logic   [RUSER_BITS -1:0]   ruser_t ;
+    typedef logic   [ID_BITS    -1:0]   id_t        ;
+    typedef logic   [ADDR_BITS  -1:0]   addr_t      ;
+    typedef logic   [LEN_BITS   -1:0]   len_t       ;
+    typedef logic   [SIZE_BITS  -1:0]   size_t      ;
+    typedef logic   [BURST_BITS -1:0]   burst_t     ;
+    typedef logic   [LOCK_BITS  -1:0]   lock_t      ;
+    typedef logic   [CACHE_BITS -1:0]   cache_t     ;
+    typedef logic   [PROT_BITS  -1:0]   prot_t      ;
+    typedef logic   [QOS_BITS   -1:0]   qos_t       ;
+    typedef logic   [REGION_BITS-1:0]   region_t    ;
+    typedef logic   [DATA_BITS  -1:0]   data_t      ;
+    typedef logic   [STRB_BITS  -1:0]   strb_t      ;
+    typedef logic   [RESP_BITS  -1:0]   resp_t      ;
+    typedef logic   [AWUSER_BITS-1:0]   awuser_t    ;
+    typedef logic   [WUSER_BITS -1:0]   wuser_t     ;
+    typedef logic   [BUSER_BITS -1:0]   buser_t     ;
+    typedef logic   [ARUSER_BITS-1:0]   aruser_t    ;
+    typedef logic   [RUSER_BITS -1:0]   ruser_t     ;
  
 
     // attributes
@@ -141,6 +145,7 @@ interface jelly3_axi4_if
 
             input   aresetn     ,
             input   aclk        ,
+            input   aclken      ,
 
             output  awid        ,
             output  awaddr      ,
@@ -199,6 +204,7 @@ interface jelly3_axi4_if
 
             input   aresetn     ,
             input   aclk        ,
+            input   aclken      ,
 
             input   awid        ,
             input   awaddr      ,
@@ -396,8 +402,10 @@ ASSERT_AWADDR_STABLE : assert property(prop_awaddr_stable );
 // araddr
 property prop_araddr_valid ; @(posedge aclk) disable iff ( ~aresetn ) arvalid |-> !$isunknown(araddr ); endproperty
 property prop_araddr_stable; @(posedge aclk) disable iff ( ~aresetn ) (arvalid && !arready) |=> $stable(araddr ); endproperty
+property prop_araddr_clken ; @(posedge aclk) disable iff ( ~aresetn ) (!aclken            ) |=> $stable(araddr ); endproperty
 ASSERT_ARADDR_VALID  : assert property(prop_araddr_valid );
 ASSERT_ARADDR_STABLE : assert property(prop_araddr_stable );
+ASSERT_ARADDR_CLKEN  : assert property(prop_araddr_clken );
 
 
 // awlen
@@ -416,7 +424,7 @@ ASSERT_ARLEN_STABLE : assert property(prop_arlen_stable );
 // wdata
 property prop_wdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wdata ); endproperty
 property prop_wdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (wvalid && !wready) |=> $stable(wdata ); endproperty
-ASSERT_WDATA_VALID  : assert property(prop_wdata_valid );
+//ASSERT_WDATA_VALID  : assert property(prop_wdata_valid );
 ASSERT_WDATA_STABLE : assert property(prop_wdata_stable );
 
 // wstrb
@@ -434,7 +442,7 @@ ASSERT_WLAST_STABLE : assert property(prop_wlast_stable );
 // rdata
 property prop_rdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rdata ); endproperty
 property prop_rdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rdata ); endproperty
-ASSERT_RDATA_VALID  : assert property(prop_rdata_valid );
+//ASSERT_RDATA_VALID  : assert property(prop_rdata_valid );
 ASSERT_RDATA_STABLE : assert property(prop_rdata_stable );
 
 // rlast

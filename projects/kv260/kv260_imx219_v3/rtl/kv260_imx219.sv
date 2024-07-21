@@ -64,7 +64,8 @@ module kv260_imx219
         axi4l_peri
             (
                 .aresetn    (axi4l_peri_aresetn     ),
-                .aclk       (axi4l_peri_aclk        )
+                .aclk       (axi4l_peri_aclk        ),
+                .aclken     (1'b1                   )
             );
 
     jelly3_axi4_if
@@ -76,7 +77,8 @@ module kv260_imx219
         axi4_mem0
             (
                 .aresetn    (axi4_mem_aresetn       ),
-                .aclk       (axi4_mem_aclk          )
+                .aclk       (axi4_mem_aclk          ),
+                .aclken     (1'b1                   )
             );
     
     design_1
@@ -202,7 +204,8 @@ module kv260_imx219
         axi4l_dec [DEC_NUM]
             (
                 .aresetn        (axi4l_peri_aresetn  ),
-                .aclk           (axi4l_peri_aclk     )
+                .aclk           (axi4l_peri_aclk     ),
+                .aclken         (1'b1                )
             );
     
     // address map
@@ -445,7 +448,8 @@ module kv260_imx219
         axi4s_csi2
             (
                 .aresetn    (axi4s_cam_aresetn),
-                .aclk       (axi4s_cam_aclk   )
+                .aclk       (axi4s_cam_aclk   ),
+                .aclken     (1'b1             )
             );
     
     logic           mipi_ecc_corrected;
@@ -505,7 +509,8 @@ module kv260_imx219
         axi4s_fmtr
             (
                 .aresetn    (axi4s_cam_aresetn      ),
-                .aclk       (axi4s_cam_aclk         )
+                .aclk       (axi4s_cam_aclk         ),
+                .aclken     (1'b1                   )
             );
     
     jelly3_video_format_regularizer
@@ -539,7 +544,8 @@ module kv260_imx219
         axi4s_rgb
             (
                 .aresetn    (axi4s_cam_aresetn  ),
-                .aclk       (axi4s_cam_aclk     )
+                .aclk       (axi4s_cam_aclk     ),
+                .aclken     (1'b1               )
             );
     
     video_raw_to_rgb
@@ -692,7 +698,8 @@ module kv260_imx219
         axi4s_fifo
             (
                 .aresetn    (axi4s_cam_aresetn),
-                .aclk       (axi4s_cam_aclk   )
+                .aclk       (axi4s_cam_aclk   ),
+                .aclken     (1'b1             )
             );
     
     jelly3_axi4s_fifo
@@ -722,7 +729,8 @@ module kv260_imx219
         axi4s_wdma
             (
                 .aresetn    (axi4s_cam_aresetn),
-                .aclk       (axi4s_cam_aclk   )
+                .aclk       (axi4s_cam_aclk   ),
+                .aclken     (1'b1             )
             );
 
     always_comb begin

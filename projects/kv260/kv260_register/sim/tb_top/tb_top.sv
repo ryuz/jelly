@@ -60,8 +60,9 @@ module tb_top();
             )
         i_axi4l_peri
             (
-                .aresetn    (~reset),
-                .aclk       (clk)
+                .aresetn    (~reset     ),
+                .aclk       (clk        ),
+                .aclken     (1'b1       )
             );
 
 

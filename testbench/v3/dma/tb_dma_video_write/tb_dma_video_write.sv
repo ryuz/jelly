@@ -145,35 +145,38 @@ module tb_dma_video_write();
 
     jelly3_axi4s_if
             #(
-                .USER_BITS     (1),
-                .DATA_BITS     (32)
+                .USER_BITS     (1       ),
+                .DATA_BITS     (32      )
             )
         axi4s
             (
-                .aresetn        (~reset),
-                .aclk           (clk250)
+                .aresetn        (~reset ),
+                .aclk           (clk250 ),
+                .aclken         (1'b1   )
             );
 
     jelly3_axi4_if
             #(
-                .ADDR_BITS     (32  ),
-                .DATA_BITS     (128 )
+                .ADDR_BITS     (32      ),
+                .DATA_BITS     (128     )
             )
         axi4
             (
-                .aresetn        (~reset),
-                .aclk           (clk250)
+                .aresetn        (~reset ),
+                .aclk           (clk250 ),
+                .aclken         (1'b1   )
             );
 
     jelly3_axi4l_if
             #(
-                .ADDR_BITS     (32  ),
-                .DATA_BITS     (64  )
+                .ADDR_BITS     (32      ),
+                .DATA_BITS     (64      )
             )
         axi4l
             (
-                .aresetn        (~reset),
-                .aclk           (clk100)
+                .aresetn        (~reset ),
+                .aclk           (clk100 ),
+                .aclken         (1'b1   )
             );
     
 

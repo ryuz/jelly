@@ -5,6 +5,8 @@
 
 module jelly3_jfive_controller
         #(
+            parameter   bit                         S_AXI4L_CLT_ASYNC = 1'b1                                ,
+            parameter   bit                         S_AXI4_MEM_ASYNC  = 1'b1                                ,
             parameter   int                         XLEN              = 32                                  ,
             parameter   int                         THREADS           = 4                                   ,
             localparam  int                         ID_BITS           = THREADS > 1 ? $clog2(THREADS) : 1   ,
@@ -42,7 +44,7 @@ module jelly3_jfive_controller
             input   var logic           cke                             ,
 
             jelly3_axi4l_if.s           s_axi4l_ctl                     ,
-            jelly3_axi4l_if.s           s_axi4l_mem                     ,
+            jelly3_axi4_if.s            s_axi4_mem                      ,
             jelly3_axi4l_if.m           m_axi4l_ext [0:M_AXI4L_PORTS-1] 
         );
 
@@ -58,12 +60,17 @@ module jelly3_jfive_controller
     localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]                     ;
     localparam  type                    ridx_t         = logic         [4:0]                                ;
 
-    localparam  int                     TCM_SIZE       = (TCM_MEM_SIZE + $bits(rval_t)-1) / $bits(rval_t)   ;
+    localparam  int                     TCM_WORD       = $bits(rval_t) / 8                                  ;
+    localparam  int                     TCM_SIZE       = (TCM_MEM_SIZE + TCM_WORD - 1) / TCM_WORD           ;
     localparam  int                     TCM_ADDR_BITS  = $clog2(TCM_SIZE);
     
     localparam   type                   tcm_addr_t     = logic  [TCM_ADDR_BITS-1:0]                         ;
     localparam   int                    TCM_DATA_BITS  = 32                                                 ;
     localparam   type                   tcm_data_t     = logic  [TCM_DATA_BITS-1:0]                         ;
+    int dbgTCM_MEM_SIZE  = TCM_MEM_SIZE ;
+    int dbgTCM_SIZE      = TCM_SIZE     ;
+    int dbgTCM_ADDR_BITS = TCM_ADDR_BITS;
+    int dbgTCM_DATA_BITS = TCM_DATA_BITS;
 
     localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                                  ;
     localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}                    ;
@@ -125,7 +132,7 @@ module jelly3_jfive_controller
         if ( ~s_axi4l_ctl.aresetn ) begin
             reg_ctl_control      <= INIT_CTL_CONTROL;
         end
-        else begin
+        else if ( s_axi4l_ctl.aclken ) begin
             if ( s_axi4l_ctl.awvalid && s_axi4l_ctl.awready && s_axi4l_ctl.wvalid && s_axi4l_ctl.wready ) begin
                 case ( regadr_write )
                 REGADR_CTL_CONTROL: reg_ctl_control <= 1'(write_mask(axi4l_data_t'(reg_ctl_control), s_axi4l_ctl.wdata, s_axi4l_ctl.wstrb));
@@ -139,7 +146,7 @@ module jelly3_jfive_controller
         if ( ~s_axi4l_ctl.aresetn ) begin
             s_axi4l_ctl.bvalid <= 0;
         end
-        else begin
+        else if ( s_axi4l_ctl.aclken ) begin
             if ( s_axi4l_ctl.bready ) begin
                 s_axi4l_ctl.bvalid <= 0;
             end
@@ -156,14 +163,16 @@ module jelly3_jfive_controller
 
     // read
     always_ff @(posedge s_axi4l_ctl.aclk ) begin
-        if ( s_axi4l_ctl.arvalid && s_axi4l_ctl.arready ) begin
-            case ( regadr_read )
-            REGADR_CORE_ID:            s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_ID             );
-            REGADR_CORE_VERSION:       s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_VERSION        );
-            REGADR_CTL_CONTROL:        s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
-            REGADR_CTL_STATUS:         s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
-            default: ;
-            endcase
+        if ( s_axi4l_ctl.aclken ) begin
+            if ( s_axi4l_ctl.arvalid && s_axi4l_ctl.arready ) begin
+                case ( regadr_read )
+                REGADR_CORE_ID:            s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_ID             );
+                REGADR_CORE_VERSION:       s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_VERSION        );
+                REGADR_CTL_CONTROL:        s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
+                REGADR_CTL_STATUS:         s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
+                default: ;
+                endcase
+            end
         end
     end
 
@@ -172,7 +181,7 @@ module jelly3_jfive_controller
         if ( ~s_axi4l_ctl.aresetn ) begin
             s_axi4l_ctl.rvalid <= 1'b0;
         end
-        else begin
+        else if ( s_axi4l_ctl.aclken ) begin
             if ( s_axi4l_ctl.rready ) begin
                 s_axi4l_ctl.rvalid <= 1'b0;
             end
@@ -186,62 +195,27 @@ module jelly3_jfive_controller
     assign s_axi4l_ctl.rresp   = '0;
 
 
-    // ---------------------------------------------------------
-    //  Memory access from host
-    // ---------------------------------------------------------
-
-    logic   [31:0]  host_addr    ;
-    logic   [3:0]   host_we      ;
-    logic   [31:0]  host_wdata   ;
-    logic           host_valid   ;
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            host_addr   <= 'x;
-            host_we     <= '0;
-            host_wdata  <= 'x;
-            host_valid  <= 1'b0;
-        end
-        else if ( cke ) begin
-            host_we <= '0;
-            if ( host_valid ) begin
-                if ( s_axi4l_mem.bready ) begin
-                    host_valid <= 1'b0;
-                end
-            end
-            else begin
-                if ( s_axi4l_mem.awvalid && s_axi4l_mem.awready ) begin
-                    host_addr  <= s_axi4l_mem.awaddr;
-                end
-                if ( s_axi4l_mem.wvalid && s_axi4l_mem.wready ) begin
-                    host_we    <= s_axi4l_mem.wstrb;
-                    host_wdata <= s_axi4l_mem.wdata;
-                    host_valid <= 1'b1;
-                end
-            end
-        end
-    end
-    
-    assign s_axi4l_mem.awready = !host_valid && s_axi4l_mem.wvalid;
-    assign s_axi4l_mem.wready  = !host_valid && s_axi4l_mem.awvalid;
-    assign s_axi4l_mem.bresp   = 2'b0;
-    assign s_axi4l_mem.bvalid  = host_valid;
-
-
 
     // ---------------------------------------------------------
     //  JFive Core
     // ---------------------------------------------------------
-    
+
+    (* ASYNC_REG = "TRUE" *)    logic   reset_ff0, reset_ff1;
+    always_ff @(posedge clk) begin
+        reset_ff0 <= ~reg_ctl_control;
+        reset_ff1 <= reset_ff0;
+    end
+
     logic                       core_reset;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             core_reset <= 1'b1;
         end
         else if ( cke ) begin
-            core_reset <= ~reg_ctl_control;
+            core_reset <= reset_ff1;
         end
     end
-
+    
     id_t                        ibus_aid    ;
     phase_t                     ibus_aphase ;
     pc_t                        ibus_apc    ;
@@ -385,10 +359,10 @@ module jelly3_jfive_controller
                 .port1_dout     (tcm_port1_dout     )
             );
     
-    assign tcm_port0_cke  = cke & ibus_rready;
-    assign tcm_port0_we   = host_we;
-    assign tcm_port0_addr = host_valid ? tcm_addr_t'(host_addr >> 2) : tcm_addr_t'(ibus_apc >> 2);
-    assign tcm_port0_din  = host_wdata;
+    assign tcm_port0_cke  = cke && ibus_rready  ;
+    assign tcm_port0_we   = bram.cstrb;
+    assign tcm_port0_addr = bram.cvalid ? tcm_addr_t'(bram.caddr) : tcm_addr_t'(ibus_apc >> 2);
+    assign tcm_port0_din  = bram.cdata;
     
     id_t    tcm_ibus_st0_id     ;
     phase_t tcm_ibus_st0_phase  ;
@@ -421,7 +395,7 @@ module jelly3_jfive_controller
         end
     end
 
-    assign ibus_aready    = !ibus_rvalid || ibus_rready ;
+    assign ibus_aready = !ibus_rvalid || ibus_rready ;
 
     assign ibus_rid    = tcm_ibus_st1_id    ;
     assign ibus_rphase = tcm_ibus_st1_phase ;
@@ -456,8 +430,77 @@ module jelly3_jfive_controller
     assign dbus_rdata [DBUS_MEM] = tcm_port1_dout            ;
     assign dbus_rvalid[DBUS_MEM] = tcm_dbus_st1_valid        ;
 
- 
 
+    // ---------------------------------------------------------
+    //  Memory access from host
+    // ---------------------------------------------------------
+
+    jelly3_bram_if
+            #(
+                .USE_ID         (1                      ),
+                .USE_STRB       (1                      ),
+                .USE_LAST       (1                      ),
+                .ID_BITS        (s_axi4_mem.ID_BITS     ),
+                .ADDR_BITS      (s_axi4_mem.ADDR_BITS   ),
+                .DATA_BITS      (s_axi4_mem.DATA_BITS   )
+            )
+        bram
+            (
+                .reset          (reset                  ),
+                .clk            (clk                    ),
+                .cke            (cke                    )
+            );
+
+    jelly3_axi4_to_bram_bridge
+            #(
+                .ASYNC          (S_AXI4_MEM_ASYNC       ),
+                .CFIFO_PTR_BITS (6                      ),
+                .CFIFO_RAM_TYPE ("distributed"          ),
+                .RFIFO_PTR_BITS (6                      ),
+                .RFIFO_RAM_TYPE ("distributed"          ),
+                .DEVICE         (DEVICE                 ),
+                .SIMULATION     (SIMULATION             ),
+                .DEBUG          (DEBUG                  )
+            )
+        u_axi4_to_bram_bridge
+            (
+                .s_axi4         (s_axi4_mem            ),
+                .m_bram         (bram.m                )
+            );
+
+    localparam  int     MEM_LATENCY = 2;
+    logic   [MEM_LATENCY-1:0][s_axi4_mem.ID_BITS-1:0]   mem_id     ;
+    logic   [MEM_LATENCY-1:0]                           mem_last   ;
+    logic   [MEM_LATENCY-1:0]                           mem_valid  ;
+    always_ff @ ( posedge bram.clk ) begin
+        for (int i = 0; i < MEM_LATENCY; i++ ) begin
+            if ( bram.reset ) begin
+                mem_id   [i] <= 'x;
+                mem_last [i] <= 'x;
+                mem_valid[i] <= '0;
+            end
+            else if ( bram.cready ) begin
+                if ( i == 0 ) begin
+                    mem_id   [i] <= bram.cid   ;
+                    mem_last [i] <= bram.clast ;
+                    mem_valid[i] <= bram.cread ;
+                end
+                else begin
+                    mem_id   [i] <= mem_id   [i-1];
+                    mem_last [i] <= mem_last [i-1];
+                    mem_valid[i] <= mem_valid[i-1];
+                end
+            end
+        end
+    end
+
+    assign bram.cready = !bram.rvalid || bram.rready;
+    assign bram.rid    = mem_id   [MEM_LATENCY-1];
+    assign bram.rlast  = mem_last [MEM_LATENCY-1];
+    assign bram.rdata  = tcm_port0_dout;
+    assign bram.rvalid = mem_valid[MEM_LATENCY-1]; 
+
+    
     // ---------------------------------------------------------
     //  Peripheral BUS
     // ---------------------------------------------------------

@@ -14,7 +14,7 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 #[no_mangle]
 pub unsafe extern "C" fn main(id: u32) -> ! {
     loop {
-        let unit : u32 = 1000000;
+        let unit : u32 = 10000000;
         write_value(id, 1);
         wait(unit + id*unit);
         write_value(id, 0);

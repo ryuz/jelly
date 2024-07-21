@@ -34,6 +34,11 @@
 
 # -mode out_of_context
 
+#set_max_delay -datapath_only -from [get_clocks clk_pl_0]                      -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 2.000
+#set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_pl_0]                      2.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks clk_out2_design_1_clk_wiz_0_0] 2.000
+set_max_delay -datapath_only -from [get_clocks clk_out2_design_1_clk_wiz_0_0] -to [get_clocks clk_out1_design_1_clk_wiz_0_0] 2.000
+
 
 # FAN
 set_property PACKAGE_PIN A12 [get_ports fan_en]

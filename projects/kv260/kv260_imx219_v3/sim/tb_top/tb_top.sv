@@ -109,8 +109,9 @@ module tb_top();
             )
         i_axi4s_src
             (
-                .aresetn        (axi4s_src_aresetn),
-                .aclk           (axi4s_src_aclk)
+                .aresetn        (axi4s_src_aresetn  ),
+                .aclk           (axi4s_src_aclk     ),
+                .aclken         (1'b1               )
             );
 
     assign axi4s_src_aresetn = u_top.u_mipi_csi2_rx.m_axi4s_aresetn;
@@ -231,7 +232,8 @@ module tb_top();
         axi4l_peri
             (
                 .aresetn    (axi4l_peri_aresetn     ),
-                .aclk       (axi4l_peri_aclk        )
+                .aclk       (axi4l_peri_aclk        ),
+                .aclken     (1'b1                   )
             );
 
     /*

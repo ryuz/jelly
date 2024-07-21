@@ -98,9 +98,8 @@ module jelly3_jfive_core
     id_t    pc_id           ;
     phase_t pc_phase        ;
     pc_t    pc_pc           ;
-    instr_t pc_instr        ;
     logic   pc_valid        ;
-    logic   pc_ready   ;
+    logic   pc_ready        ;
 
     jelly3_jfive_program_counter
             #(
@@ -135,7 +134,7 @@ module jelly3_jfive_core
                 .m_phase            (pc_phase           ),
                 .m_pc               (pc_pc              ),
                 .m_valid            (pc_valid           ),
-                .m_ready       (pc_ready      )
+                .m_ready            (pc_ready           )
             );
 
 
@@ -156,12 +155,51 @@ module jelly3_jfive_core
     assign ibus_avalid = pc_valid;
     assign pc_ready = ibus_aready;
 
+    /*
     assign if_id    = ibus_rid   ;
     assign if_phase = ibus_rphase;
     assign if_pc    = ibus_rpc   ;
     assign if_instr = ibus_rinstr;
     assign if_valid = ibus_rvalid;
     assign ibus_rready = if_ready;
+    */
+    jelly3_stream_ff
+            #(
+                .DATA_BITS      ($bits({
+                                    if_id       ,
+                                    if_phase    ,
+                                    if_pc       ,
+                                    if_instr    
+                                })),
+                .S_REGS         (1              ),
+                .M_REGS         (0              ),
+                .INIT_DATA      ('x             ),
+                .RESET_READY    (1'b1           )
+            )
+        u_stream_ff
+            (
+                .reset          ,
+                .clk            ,
+                .cke            ,
+
+                .s_data         ({
+                                    ibus_rid    ,
+                                    ibus_rphase ,
+                                    ibus_rpc    ,
+                                    ibus_rinstr
+                                }),
+                .s_valid        (ibus_rvalid    ),
+                .s_ready        (ibus_rready    ),
+
+                .m_data         ({
+                                    if_id       ,
+                                    if_phase    ,
+                                    if_pc       ,
+                                    if_instr
+                                }),
+                .m_valid        (if_valid       ),
+                .m_ready        (if_ready       )
+            );
 
 
     // -----------------------------
@@ -349,7 +387,7 @@ module jelly3_jfive_core
                 .WAW_HAZARD             (WAW_HAZARD             ),
                 .DEVICE                 (DEVICE                 ),
                 .SIMULATION             (SIMULATION             ),
-                .DEBUG                  (DEBUG                  )
+                .DEBUG                  ("true"                 )
             )
         u_jfive_execution
             (

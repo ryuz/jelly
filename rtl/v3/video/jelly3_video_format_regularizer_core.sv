@@ -63,13 +63,13 @@ module jelly3_video_format_regularizer_core
     logic   in_tvalid;
     logic   in_tready;
 
-    jelly3_data_ff
+    jelly3_stream_ff
             #(
                 .data_t         (axi4s_t                                        ),
                 .S_REGS         (S_REGS                                         ),
                 .M_REGS         (1                                              )
             )
-        u_data_ff_s
+        u_stream_ff_s
             (
                 .reset          (~s_axi4s.aresetn                               ),
                 .clk            (s_axi4s.aclk                                   ),
@@ -295,13 +295,13 @@ module jelly3_video_format_regularizer_core
     assign ctl_index = reg_index;
     
     // output FF
-    jelly3_data_ff
+    jelly3_stream_ff
             #(
                 .data_t         (axi4s_t                                        ),
                 .S_REGS         (1                                              ),
                 .M_REGS         (M_REGS                                         )
             )
-        u_data_ff_m
+        u_stream_ff_m
             (
                 .reset          (~s_axi4s.aresetn                               ),
                 .clk            (s_axi4s.aclk                                   ),

@@ -3,7 +3,7 @@ ENTRY(_rst_handler)
 
 MEMORY
 {
-	ram  : o = 0x00000000, l = 0x0010000
+	ram  : o = 0x00000000, l = 0x00001000
 }
 
 SECTIONS

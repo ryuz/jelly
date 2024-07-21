@@ -75,8 +75,9 @@ module tb_video_format_regularizer();
             )
         i_axi4s_src
             (
-                .aresetn        (axi4s_aresetn),
-                .aclk           (axi4s_aclk)
+                .aresetn        (axi4s_aresetn  ),
+                .aclk           (axi4s_aclk     ),
+                .aclken         (1'b1           )
             );
 
 
@@ -87,8 +88,9 @@ module tb_video_format_regularizer();
             )
         i_axi4s_dst
             (
-                .aresetn        (axi4s_aresetn),
-                .aclk           (axi4s_aclk)
+                .aresetn        (axi4s_aresetn  ),
+                .aclk           (axi4s_aclk     ),
+                .aclken         (1'b1           )
             );
 
     jelly3_axi4l_if
@@ -98,8 +100,9 @@ module tb_video_format_regularizer();
             )
         i_axi4l
             (
-                .aresetn        (axi4l_aresetn),
-                .aclk           (axi4l_aclk)
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
             );
 
 

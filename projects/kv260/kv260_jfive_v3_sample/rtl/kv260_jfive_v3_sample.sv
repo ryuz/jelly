@@ -20,16 +20,34 @@ module kv260_jfive_v3_sample
 
     logic   reset;
     logic   clk;
+    logic   axi4l_aresetn;
+    logic   axi4l_aclk;
+    logic   axi4_aresetn;
+    logic   axi4_aclk;
 
     jelly3_axi4l_if
             #(
-                .ADDR_BITS          (40          ),
-                .DATA_BITS          (32          )
+                .ADDR_BITS      (40             ),
+                .DATA_BITS      (32             )
             )
-        axi4l_peri
+        axi4l_ctl
             (
-                .aresetn            (~reset     ),
-                .aclk               (clk        )
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
+            );
+
+    jelly3_axi4_if
+            #(
+                .ID_BITS        (16             ),
+                .ADDR_BITS      (40             ),
+                .DATA_BITS      (32             )
+            )
+        axi4_mem
+            (
+                .aresetn        (axi4_aresetn   ),
+                .aclk           (axi4_aclk      ),
+                .aclken         (1'b1           )
             );
 
     design_1
@@ -37,47 +55,98 @@ module kv260_jfive_v3_sample
             (
                 .fan_en             (fan_en             ),
 
-                .out_reset          (reset              ),
-                .out_clk            (clk                ),
+                .core_reset         (reset              ),
+                .core_clk           (clk                ),
 
-                .m_axi4l_awaddr     (axi4l_peri.awaddr  ),
-                .m_axi4l_awprot     (axi4l_peri.awprot  ),
-                .m_axi4l_awvalid    (axi4l_peri.awvalid ),
-                .m_axi4l_awready    (axi4l_peri.awready ),
-                .m_axi4l_wdata      (axi4l_peri.wdata   ),
-                .m_axi4l_wstrb      (axi4l_peri.wstrb   ),
-                .m_axi4l_wvalid     (axi4l_peri.wvalid  ),
-                .m_axi4l_wready     (axi4l_peri.wready  ),
-                .m_axi4l_bresp      (axi4l_peri.bresp   ),
-                .m_axi4l_bvalid     (axi4l_peri.bvalid  ),
-                .m_axi4l_bready     (axi4l_peri.bready  ),
-                .m_axi4l_araddr     (axi4l_peri.araddr  ),
-                .m_axi4l_arprot     (axi4l_peri.arprot  ),
-                .m_axi4l_arvalid    (axi4l_peri.arvalid ),
-                .m_axi4l_arready    (axi4l_peri.arready ),
-                .m_axi4l_rdata      (axi4l_peri.rdata   ),
-                .m_axi4l_rresp      (axi4l_peri.rresp   ),
-                .m_axi4l_rvalid     (axi4l_peri.rvalid  ),
-                .m_axi4l_rready     (axi4l_peri.rready  )
+                .m_axi4l_aresetn    (axi4l_aresetn      ),
+                .m_axi4l_aclk       (axi4l_aclk         ),
+                .m_axi4l_awaddr     (axi4l_ctl.awaddr   ),
+                .m_axi4l_awprot     (axi4l_ctl.awprot   ),
+                .m_axi4l_awvalid    (axi4l_ctl.awvalid  ),
+                .m_axi4l_awready    (axi4l_ctl.awready  ),
+                .m_axi4l_wdata      (axi4l_ctl.wdata    ),
+                .m_axi4l_wstrb      (axi4l_ctl.wstrb    ),
+                .m_axi4l_wvalid     (axi4l_ctl.wvalid   ),
+                .m_axi4l_wready     (axi4l_ctl.wready   ),
+                .m_axi4l_bresp      (axi4l_ctl.bresp    ),
+                .m_axi4l_bvalid     (axi4l_ctl.bvalid   ),
+                .m_axi4l_bready     (axi4l_ctl.bready   ),
+                .m_axi4l_araddr     (axi4l_ctl.araddr   ),
+                .m_axi4l_arprot     (axi4l_ctl.arprot   ),
+                .m_axi4l_arvalid    (axi4l_ctl.arvalid  ),
+                .m_axi4l_arready    (axi4l_ctl.arready  ),
+                .m_axi4l_rdata      (axi4l_ctl.rdata    ),
+                .m_axi4l_rresp      (axi4l_ctl.rresp    ),
+                .m_axi4l_rvalid     (axi4l_ctl.rvalid   ),
+                .m_axi4l_rready     (axi4l_ctl.rready   ),
+
+                .m_axi4_aresetn     (axi4_aresetn       ),
+                .m_axi4_aclk        (axi4_aclk          ),
+                .m_axi4_awid        (axi4_mem.awid      ),
+                .m_axi4_awaddr      (axi4_mem.awaddr    ),
+                .m_axi4_awlen       (axi4_mem.awlen     ),
+                .m_axi4_awsize      (axi4_mem.awsize    ),
+                .m_axi4_awburst     (axi4_mem.awburst   ),
+                .m_axi4_awlock      (axi4_mem.awlock    ),
+                .m_axi4_awcache     (axi4_mem.awcache   ),
+                .m_axi4_awprot      (axi4_mem.awprot    ),
+                .m_axi4_awqos       (axi4_mem.awqos     ),
+                .m_axi4_awregion    (axi4_mem.awregion  ),
+                .m_axi4_awuser      (axi4_mem.awuser    ),
+                .m_axi4_awvalid     (axi4_mem.awvalid   ),
+                .m_axi4_awready     (axi4_mem.awready   ),
+                .m_axi4_wdata       (axi4_mem.wdata     ),
+                .m_axi4_wstrb       (axi4_mem.wstrb     ),
+                .m_axi4_wlast       (axi4_mem.wlast     ),
+//              .m_axi4_wuser       (axi4_mem.wuser     ),
+                .m_axi4_wvalid      (axi4_mem.wvalid    ),
+                .m_axi4_wready      (axi4_mem.wready    ),
+                .m_axi4_bid         (axi4_mem.bid       ),
+                .m_axi4_bresp       (axi4_mem.bresp     ),
+//              .m_axi4_buser       (axi4_mem.buser     ),
+                .m_axi4_bvalid      (axi4_mem.bvalid    ),
+                .m_axi4_bready      (axi4_mem.bready    ),
+                .m_axi4_arid        (axi4_mem.arid      ),
+                .m_axi4_araddr      (axi4_mem.araddr    ),
+                .m_axi4_arlen       (axi4_mem.arlen     ),
+                .m_axi4_arsize      (axi4_mem.arsize    ),
+                .m_axi4_arburst     (axi4_mem.arburst   ),
+                .m_axi4_arlock      (axi4_mem.arlock    ),
+                .m_axi4_arcache     (axi4_mem.arcache   ),
+                .m_axi4_arprot      (axi4_mem.arprot    ),
+                .m_axi4_arqos       (axi4_mem.arqos     ),
+                .m_axi4_arregion    (axi4_mem.arregion  ),
+                .m_axi4_aruser      (axi4_mem.aruser    ),
+                .m_axi4_arvalid     (axi4_mem.arvalid   ),
+                .m_axi4_arready     (axi4_mem.arready   ),
+                .m_axi4_rid         (axi4_mem.rid       ),
+                .m_axi4_rdata       (axi4_mem.rdata     ),
+                .m_axi4_rresp       (axi4_mem.rresp     ),
+                .m_axi4_rlast       (axi4_mem.rlast     ),
+//              .m_axi4_ruser       (axi4_mem.ruser     ),
+                .m_axi4_rvalid      (axi4_mem.rvalid    ),
+                .m_axi4_rready      (axi4_mem.rready    )
             );
 
     // ----------------------------------------
     //  Address decoder
     // ----------------------------------------
 
+    /*
     localparam DEC_CTL  = 0;
     localparam DEC_MEM  = 1;
     localparam DEC_NUM  = 2;
 
     jelly3_axi4l_if
             #(
-                .ADDR_BITS      (40     ),
-                .DATA_BITS      (32     )
+                .ADDR_BITS      (40             ),
+                .DATA_BITS      (32             )
             )
         axi4l_dec [DEC_NUM]
             (
-                .aresetn        (~reset ),
-                .aclk           (clk    )
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
             );
     
     // address map
@@ -91,10 +160,10 @@ module kv260_jfive_v3_sample
             )
         u_axi4l_addr_decoder
             (
-                .s_axi4l        (axi4l_peri   ),
+                .s_axi4l        (axi4l_ctl   ),
                 .m_axi4l        (axi4l_dec    )
             );
-
+    */
 
 
     // ---------------------------------
@@ -137,7 +206,8 @@ module kv260_jfive_v3_sample
         s_axi4l_ctl
             (
                 .aresetn            (~reset     ),
-                .aclk               (clk        )
+                .aclk               (clk        ),
+                .aclken             (1'b1       )
             );
     
     jelly3_axi4l_if
@@ -148,19 +218,39 @@ module kv260_jfive_v3_sample
         s_axi4l_mem
             (
                 .aresetn            (~reset     ),
-                .aclk               (clk        )
+                .aclk               (clk        ),
+                .aclken             (1'b1       )
             );
+    */
+    /*
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS      (40             ),
+                .DATA_BITS      (32             )
+            )
+        axi4l_mem
+            (
+                .aresetn        (axi4l_aresetn  ),
+                .aclk           (axi4l_aclk     ),
+                .aclken         (1'b1           )
+            );
+    assign axi4l_mem.awvalid = 1'b0;
+    assign axi4l_mem.wvalid  = 1'b0;
+    assign axi4l_mem.bready  = 1'b0;
+    assign axi4l_mem.arvalid = 1'b0;
+    assign axi4l_mem.rready  = 1'b0;
     */
 
     jelly3_axi4l_if
             #(
-                .ADDR_BITS          (32          ),
-                .DATA_BITS          (32          )
+                .ADDR_BITS          (32         ),
+                .DATA_BITS          (32         )
             )
         m_axi4l
             (
                 .aresetn            (~reset     ),
-                .aclk               (clk        )
+                .aclk               (clk        ),
+                .aclken             (1'b1       )
             );
 
     jelly3_jfive_controller
@@ -193,8 +283,8 @@ module kv260_jfive_v3_sample
                 .clk                (clk                ),
                 .cke                (1'b1               ),
 
-                .s_axi4l_ctl        (axi4l_dec[DEC_CTL] ),
-                .s_axi4l_mem        (axi4l_dec[DEC_MEM] ),
+                .s_axi4l_ctl        (axi4l_ctl          ),
+                .s_axi4_mem         (axi4_mem           ),
                 .m_axi4l_ext        ('{m_axi4l}         )
             );
 
