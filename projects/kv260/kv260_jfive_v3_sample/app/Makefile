@@ -1,5 +1,4 @@
 
-TARGET    = kv260_jfive_v3_sample.out
 DT_NAME   = kv260_jfive_v3_sample
 BIT_NAME  = kv260_jfive_v3_sample
 
@@ -13,36 +12,56 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -Wall -g -O2 `pkg-config --cflags opencv4` -I../../../../include
-LDFLAGS += -g  `pkg-config --libs opencv4`
-
-RUN_OPT ?=
-
-OBJS = main.o
-
 
 .PHONY: all
-all: jfive $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+all: jfive build
+
+.PHONY: build
+build: $(DTBO_FILE) $(BIN_FILE) build_rust
 
 .PHONY: clean
-clean:
-	rm -rf $(TARGET) $(OBJS) $(DTBO_FILE) $(BIN_FILE)
+clean: clean_rust
+	rm -rf $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: run
-run: $(TARGET) jfive load
-	./$(TARGET) $(RUN_OPT)
+run: run_rust
 
+
+
+# JFive app
 .PHONY: jfive
 jfive:
 	make -C ../jfive_app
 
+# rust
+.PHONY: build_rust
+build_rust:
+	make -C ./rust build
 
-$(TARGET): $(OBJS)
-	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
+.PHONY: clean_rust
+clean_rust:
+	make -C ./rust clean
 
-%.o : %.cpp
-	g++ $(CFLAGS) -c $< -o $@
+.PHONY: run_rust
+run_rust: jfive load
+	make -C ./rust run
 
+
+# cpp
+.PHONY: build_cpp
+build_cpp:
+	make -C ./cpp build
+
+.PHONY: clean_cpp
+clean_cpp:
+	make -C ./cpp clean
+
+.PHONY: run_cpp
+run_cpp: jfive load 
+	make -C ./cpp run
+
+
+# DeviceTree
 $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
 

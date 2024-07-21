@@ -2,7 +2,7 @@
 
 ## 概要
 
-Kria KV260 で ISC-V 風のバレルプロセッサ を動かすサンプルです。
+Kria KV260 で RISC-V 風のバレルプロセッサ を動かすサンプルです。
 
 
 ## 環境
@@ -17,9 +17,8 @@ vivado2022.2 を用いております。
 [認定Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html) 環境にて試しております。
 
 ```
-image       : iot-kria-classic-desktop-2004-x03-20211110-98.img
-Description : Ubuntu 20.04.4 LTS
-kernel      : 5.4.0-1017-xilinx-zynqmp
+Description : Ubuntu 22.04.4 LTS
+kernel      : 5.15.0-1031-xilinx-zynqmp
 ```
 
 
@@ -28,7 +27,7 @@ kernel      : 5.4.0-1017-xilinx-zynqmp
 ### gitリポジトリ取得
 
 ```
-git clone https://github.com/ryuz/jelly.git -b feature/jfive
+git clone https://github.com/ryuz/jelly.git
 ```
 
 で一式取得してください。

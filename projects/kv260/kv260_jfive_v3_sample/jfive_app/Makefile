@@ -8,3 +8,5 @@ all:
 	python3 bin2hex.py
 	cp ../mem.hex ../syn/
 
+clean:
+	cargo clean
