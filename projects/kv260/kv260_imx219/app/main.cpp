@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <signal.h>
 #include <iostream>
+#include <sstream>
+#include <filesystem>
 
 #include <opencv2/opencv.hpp>
 
@@ -24,39 +26,41 @@ void signal_handler(int signo) {
 
 int main(int argc, char *argv[])
 {
-    double  pixel_clock = 91000000.0;
-    bool    binning     = false;
-    int     width       = 3280;
-    int     height      = 2464;
-    int     raw_bits    = 10;
-    int     aoi_x       = 0;
-    int     aoi_y       = 0;
-    bool    flip_h      = false;
-    bool    flip_v      = false;
-    int     frame_rate  = 20;
-    int     exposure    = 33;
-    int     a_gain      = 20;
-    int     d_gain      = 0;
-    int     bayer_phase = 0;
-    int     fmtsel      = 0;
-    int     view_scale  = 4;
+    double  pixel_clock   = 91000000.0;
+    bool    binning       = false;
+    int     width         = 3280;
+    int     height        = 2464;
+    int     raw_bits      = 10;
+    int     aoi_x         = 0;
+    int     aoi_y         = 0;
+    bool    flip_h        = false;
+    bool    flip_v        = false;
+    int     frame_rate    = 20;
+    int     exposure      = 33;
+    double  exposure_unit = 0.001;
+    int     a_gain        = 20;
+    int     d_gain        = 0;
+    int     bayer_phase   = 0;
+    int     fmtsel        = 0;
+    int     view_scale    = 4;
     
     for ( int i = 1; i < argc; ++i ) {
         if ( strcmp(argv[i], "1000fps") == 0 ) {
-            pixel_clock = 139200000.0;
-            binning     = true;
-            width       = 640;
-            height      = 132;
-            aoi_x       = -1;
-            aoi_y       = -1;
-            flip_h      = false;
-            flip_v      = false;
-            frame_rate  = 1000;
-            exposure    = 1;
-            a_gain      = 20;
-            d_gain      = 10;
-            bayer_phase = 0;
-            view_scale  = 1;
+            pixel_clock   = 139200000.0;
+            binning       = true;
+            width         = 640;
+            height        = 132;
+            aoi_x         = -1;
+            aoi_y         = -1;
+            flip_h        = false;
+            flip_v        = false;
+            frame_rate    = 1000;
+            exposure      = 900;
+            exposure_unit = 0.000001;
+            a_gain        = 20;
+            d_gain        = 10;
+            bayer_phase   = 0;
+            view_scale    = 1;
         }
         else if ( strcmp(argv[i], "vga") == 0 ) {
             pixel_clock = 139200000.0;
@@ -251,7 +255,7 @@ int main(int argc, char *argv[])
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
 
-    int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
+    int     rec_frame_num = std::min(1000, (int)(dmabuf_mem_size / (width * height * 4)));
     int     frame_num     = 1;
 
     if ( rec_frame_num <= 0 ) {
@@ -286,34 +290,49 @@ int main(int argc, char *argv[])
     cv::setTrackbarPos("bayer",    "img", bayer_phase);
     cv::createTrackbar("fmtsel",   "img", nullptr, 3);
     cv::setTrackbarPos("fmtsel",   "img", fmtsel);
-    
+
+    int led_start = 0;
+    int led_end   = 100;
+    cv::createTrackbar("led_start", "img", nullptr, 1000);
+    cv::setTrackbarPos("led_start", "img", led_start);
+    cv::createTrackbar("led_end",   "img", nullptr, 1000);
+    cv::setTrackbarPos("led_end",   "img", led_end);
+
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
 
         // トラックバー値取得
-        view_scale  = cv::getTrackbarPos("scale",    "img");
-        frame_rate  = cv::getTrackbarPos("fps",      "img");
-        exposure    = cv::getTrackbarPos("exposure", "img");
-        a_gain      = cv::getTrackbarPos("a_gain",   "img");
-        d_gain      = cv::getTrackbarPos("d_gain",   "img");
-        bayer_phase = cv::getTrackbarPos("bayer" ,   "img");
-        fmtsel      = cv::getTrackbarPos("fmtsel",   "img");
+        view_scale  = cv::getTrackbarPos("scale",     "img");
+        frame_rate  = cv::getTrackbarPos("fps",       "img");
+        exposure    = cv::getTrackbarPos("exposure",  "img");
+        a_gain      = cv::getTrackbarPos("a_gain",    "img");
+        d_gain      = cv::getTrackbarPos("d_gain",    "img");
+        bayer_phase = cv::getTrackbarPos("bayer" ,    "img");
+        fmtsel      = cv::getTrackbarPos("fmtsel",    "img");
+        led_start   = cv::getTrackbarPos("led_start", "img");
+        led_end     = cv::getTrackbarPos("led_end",   "img");
 
         // 設定
         imx219.SetFrameRate(frame_rate);
-        imx219.SetExposureTime(exposure / 1000.0);
+        imx219.SetExposureTime(exposure * exposure_unit);
         imx219.SetGain(a_gain);
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
         reg_sel.WriteReg(0, fmtsel);
+        reg_sys.WriteReg(8, led_start*100);
+        reg_sys.WriteReg(9, led_end  *100);
 
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
         cv::Mat img;
-        if ( fmtsel == 3 ) {
+        if ( fmtsel == 0 ) {
+            img = cv::Mat(height*frame_num, width, CV_8UC4);
+            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
+        }
+        else {
             img = cv::Mat(height*frame_num, width, CV_32S);
             udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
             cv::Mat img_u16;
@@ -321,10 +340,6 @@ int main(int argc, char *argv[])
 //          cv::Mat img_col;
 //          cv::cvtColor(img_u16, img_col, CV_BayerBG2BGR);
             img = img_u16;
-        }
-        else {
-            img = cv::Mat(height*frame_num, width, CV_8UC4);
-            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
         }
 
 
@@ -361,30 +376,57 @@ int main(int argc, char *argv[])
         case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
 
         case 'd':   // image dump
-            if ( fmtsel == 3 ) {
-                cv::imwrite("img_dump_raw.png", img);
-            }
-            else {
+            if ( fmtsel == 0 ) {
                 cv::Mat imgRgb;
                 cv::cvtColor(img, imgRgb, cv::COLOR_BGRA2BGR);
                 cv::imwrite("img_dump.png", imgRgb);
             }
+            else {
+                cv::imwrite("img_dump_raw.png", img);
+            }
             break;
 
         case 'r': // image record
-            std::cout << "record" << std::endl;
-            vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
             {
-                int offset = 0;
-                for ( int i = 0; i < rec_frame_num; i++ ) {
-                    char fname[64];
-                    sprintf(fname, "rec_%04d.png", i);
-                    cv::Mat imgRec(height, width, CV_8UC4);
-                    udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
-                    offset += width * height * 4;
-                    cv::Mat imgRgb;
-                    cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
-                    cv::imwrite(fname, imgRgb);
+                std::filesystem::create_directory("record");
+                time_t time_now = time(NULL);
+                struct tm *now = localtime(&time_now);
+                char rec_path[64];
+                sprintf(rec_path, "record/%04d%02d%02d-%02d%02d%02d/", now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
+                std::filesystem::create_directory(rec_path);
+
+                std::cout << "[record] " << rec_path << std::endl;
+                vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
+                if ( fmtsel == 0 ) {
+                    int offset = 0;
+                    for ( int i = 0; i < rec_frame_num; i++ ) {
+                        char fname[64];
+                        sprintf(fname, "%s/img_%04d.png", rec_path, i);
+                        cv::Mat imgRec(height, width, CV_8UC4);
+                        udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
+                        offset += width * height * 4;
+                        cv::Mat imgRgb;
+                        cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
+                        cv::imwrite(fname, imgRgb);
+                    }
+                }
+                else {
+                    int offset = 0;
+                    for ( int i = 0; i < rec_frame_num; i++ ) {
+                        char fname[64];
+                        sprintf(fname, "%s/img_%04d.png", rec_path, i);
+                        cv::Mat imgRec(height, width, CV_32S);
+                        udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
+                        offset += width * height * 4;
+                        cv::Mat img_u16;
+                        if ( fmtsel == 3 ) {
+                            imgRec.convertTo(img_u16, CV_16U, 65535.0/2147483647.0);
+                            cv::imwrite(fname, img_u16);
+                        }
+                        else {
+                            cv::imwrite(fname, imgRec);
+                        }
+                    }
                 }
             }
             break;
