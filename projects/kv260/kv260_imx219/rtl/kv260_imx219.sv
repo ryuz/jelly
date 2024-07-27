@@ -287,11 +287,15 @@ module kv260_imx219
     logic                       reg_sw_reset;
     logic                       reg_cam_enable;
     logic   [7:0]               reg_csi_data_type;
+    logic   [31:0]              reg_led_start;
+    logic   [31:0]              reg_led_end;
     always_ff @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
             reg_sw_reset      <= 1'b0;
             reg_cam_enable    <= 1'b0;
             reg_csi_data_type <= 8'h2b;
+            reg_led_start     <= 0;
+            reg_led_end       <= 1000;
         end
         else begin
             if ( wb_sys_stb_i && wb_peri_we_i ) begin
@@ -299,6 +303,8 @@ module kv260_imx219
                 1: reg_sw_reset      <= 1'(wb_peri_dat_i);
                 2: reg_cam_enable    <= 1'(wb_peri_dat_i);
                 3: reg_csi_data_type <= 8'(wb_peri_dat_i);
+                8: reg_led_start     <= 32'(wb_peri_dat_i);
+                9: reg_led_end       <= 32'(wb_peri_dat_i);
                 endcase
             end
         end
@@ -308,6 +314,8 @@ module kv260_imx219
                           wb_peri_adr_i[3:0] == 1 ? WB_DAT_WIDTH'(reg_sw_reset)         :
                           wb_peri_adr_i[3:0] == 2 ? WB_DAT_WIDTH'(reg_cam_enable)       :
                           wb_peri_adr_i[3:0] == 3 ? WB_DAT_WIDTH'(reg_csi_data_type)    :
+                          wb_peri_adr_i[3:0] == 8 ? WB_DAT_WIDTH'(reg_led_start)        :
+                          wb_peri_adr_i[3:0] == 9 ? WB_DAT_WIDTH'(reg_led_end)          :
                           '0;
     assign wb_sys_ack_o = wb_sys_stb_i;
 
@@ -729,7 +737,7 @@ module kv260_imx219
                 .SIZE_OFFSET            (1'b1),
                 .H_SIZE_WIDTH           (14),
                 .V_SIZE_WIDTH           (14),
-                .F_SIZE_WIDTH           (8),
+                .F_SIZE_WIDTH           (14),
                 .LINE_STEP_WIDTH        (AXI4_MEM0_ADDR_WIDTH),
                 .FRAME_STEP_WIDTH       (AXI4_MEM0_ADDR_WIDTH),
                 
@@ -992,12 +1000,32 @@ module kv260_imx219
             reg_frame_count <= reg_frame_count + 1;
         end
     end
-    
+
+    logic   [31:0]  reg_pixel_count;
+    logic           reg_pixel_led;
+    always_ff @(posedge axi4s_cam_aclk) begin
+        reg_pixel_count <= reg_pixel_count + 1;
+        if ( axi4s_csi2_tuser && axi4s_csi2_tvalid ) begin
+            reg_pixel_count <= '0;
+        end
+        if ( reg_pixel_count == reg_led_start ) begin
+            reg_pixel_led <= 1'b1;
+        end
+        if ( reg_pixel_count == reg_led_end ) begin
+            reg_pixel_led <= 1'b0;
+        end
+    end
+
+
     // pmod
-    assign pmod[0] = i2c0_scl_o;
-    assign pmod[1] = i2c0_scl_t;
-    assign pmod[2] = i2c0_sda_o;
-    assign pmod[3] = i2c0_sda_t;
+//    assign pmod[0] = i2c0_scl_o;
+//    assign pmod[1] = i2c0_scl_t;
+//    assign pmod[2] = i2c0_sda_o;
+//    assign pmod[3] = i2c0_sda_t;
+    assign pmod[0] = reg_pixel_led;
+    assign pmod[1] = reg_pixel_led;
+    assign pmod[2] = reg_pixel_led;
+    assign pmod[3] = reg_pixel_led;
     assign pmod[4] = cam_enable;
     assign pmod[5] = reg_frame_count[0];
     assign pmod[6] = reg_frame_count[7];
