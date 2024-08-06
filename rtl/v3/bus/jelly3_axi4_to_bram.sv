@@ -40,6 +40,8 @@ module jelly3_axi4_to_bram
     localparam type bram_data_t  = logic [m_bram.DATA_BITS-1:0] ;
     localparam type bram_strb_t  = logic [m_bram.STRB_BITS-1:0] ;
 
+    localparam axi4_addr_t  ADDR_MASK = axi4_addr_t'('h0fff);
+
     function axi4_addr_t calc_inc(axi4_burst_t busrt, axi4_size_t size);
         case ( busrt )
             2'b00: return '0;          // FIXED
@@ -51,8 +53,8 @@ module jelly3_axi4_to_bram
 
     function axi4_addr_t calc_mask(axi4_burst_t busrt, axi4_len_t len);
         case ( busrt )
-            2'b00: return '1; // FIXED
-            2'b01: return '1; // INCR
+            2'b00: return ADDR_MASK; // FIXED
+            2'b01: return ADDR_MASK; // INCR
             2'b10: // WRAP
                 case ( len )
                 axi4_len_t'(1):  return ADDR_UNIT *  2 - 1;  // 2
