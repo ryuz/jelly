@@ -97,6 +97,79 @@ interface jelly3_bram_if
             input   rready      
         );
 
+    modport mw
+        (
+            input   reset       ,
+            input   clk         ,
+            input   cke         ,
+    
+            output  cid         ,
+            output  cwrite      ,
+            output  caddr       ,
+            output  clast       ,
+            output  cstrb       ,
+            output  cdata       ,
+            output  cvalid      ,
+            input   cready      
+        );
+
+    modport sw
+        (
+            input   reset       ,
+            input   clk         ,
+            input   cke         ,
+    
+            input   cid         ,
+            input   cwrite      ,
+            input   caddr       ,
+            input   clast       ,
+            input   cstrb       ,
+            input   cdata       ,
+            input   cvalid      ,
+            output  cready      
+        );
+
+
+    modport mr
+        (
+            input   reset       ,
+            input   clk         ,
+            input   cke         ,
+    
+            output  cid         ,
+            output  cread       ,
+            output  caddr       ,
+            output  clast       ,
+            output  cvalid      ,
+            input   cready      ,
+
+            input   rid         ,
+            input   rlast       ,
+            input   rdata       ,
+            input   rvalid      ,
+            output  rready      
+        );
+
+    modport sr
+        (
+            input   reset       ,
+            input   clk         ,
+            input   cke         ,
+    
+            input   cid         ,
+            input   cread       ,
+            input   caddr       ,
+            input   clast       ,
+            input   cvalid      ,
+            output  cready      ,
+        
+            output  rid         ,
+            output  rlast       ,
+            output  rdata       ,
+            output  rvalid      ,
+            input   rready      
+        );
+
 
 // caddr
 property prop_caddr_valid  ; @(posedge clk) disable iff ( reset ) cvalid |-> !$isunknown(caddr); endproperty

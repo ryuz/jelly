@@ -195,21 +195,19 @@ module jelly3_axi4_to_bram_dp
         end
     end
 
-    assign r_cvalid = (r_busy && s_axi4.wvalid);
+    assign r_cvalid = r_busy;
     assign r_cready = m_bram_r.cready;
 
     assign m_bram_r.cid    = r_id;
     assign m_bram_r.cread  = r_busy;
-    assign m_bram_r.cwrite = (r_busy && s_axi4.wvalid);
+    assign m_bram_r.cwrite = 1'b0;
     assign m_bram_r.caddr  = bram_addr_t'(r_addr / ADDR_UNIT);
     assign m_bram_r.clast  = r_last;
     assign m_bram_r.cstrb  = '0;
-    assign m_bram_r.cdata  = s_axi4.wdata;
+    assign m_bram_r.cdata  = '0;
     assign m_bram_r.cvalid = r_cvalid;
 
-    assign s_axi4.awready  = (!r_busy || (r_cready && r_last)) && !(s_axi4.bvalid && !s_axi4.bready);
-    assign s_axi4.wready   = r_busy && m_bram_r.cready;
-    assign s_axi4.arready  = (!r_busy || (r_cready && r_last)) && !s_axi4.awvalid;
+    assign s_axi4.arready  = !r_busy || (r_cready && r_last);
 
     // read response
     assign s_axi4.rid      = m_bram_r.rid   ;
