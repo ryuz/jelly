@@ -12,9 +12,9 @@
 
 interface jelly3_bram_if
     #(
-        parameter   bit     USE_ID    = 1                      ,
-        parameter   bit     USE_STRB  = 1                      ,
-        parameter   bit     USE_LAST  = 1                      ,
+        parameter   bit     USE_ID    = 1                       ,
+        parameter   bit     USE_STRB  = 1                       ,
+        parameter   bit     USE_LAST  = 1                       ,
 
         parameter   int     ID_BITS   = 8                       ,
         parameter   int     ADDR_BITS = 10                      ,
@@ -87,6 +87,79 @@ interface jelly3_bram_if
             input   clast       ,
             input   cstrb       ,
             input   cdata       ,
+            input   cvalid      ,
+            output  cready      ,
+        
+            output  rid         ,
+            output  rlast       ,
+            output  rdata       ,
+            output  rvalid      ,
+            input   rready      
+        );
+
+    modport mw
+        (
+            input   reset       ,
+            input   clk         ,
+            input   cke         ,
+    
+            output  cid         ,
+            output  cwrite      ,
+            output  caddr       ,
+            output  clast       ,
+            output  cstrb       ,
+            output  cdata       ,
+            output  cvalid      ,
+            input   cready      
+        );
+
+    modport sw
+        (
+            input   reset       ,
+            input   clk         ,
+            input   cke         ,
+    
+            input   cid         ,
+            input   cwrite      ,
+            input   caddr       ,
+            input   clast       ,
+            input   cstrb       ,
+            input   cdata       ,
+            input   cvalid      ,
+            output  cready      
+        );
+
+
+    modport mr
+        (
+            input   reset       ,
+            input   clk         ,
+            input   cke         ,
+    
+            output  cid         ,
+            output  cread       ,
+            output  caddr       ,
+            output  clast       ,
+            output  cvalid      ,
+            input   cready      ,
+
+            input   rid         ,
+            input   rlast       ,
+            input   rdata       ,
+            input   rvalid      ,
+            output  rready      
+        );
+
+    modport sr
+        (
+            input   reset       ,
+            input   clk         ,
+            input   cke         ,
+    
+            input   cid         ,
+            input   cread       ,
+            input   caddr       ,
+            input   clast       ,
             input   cvalid      ,
             output  cready      ,
         
