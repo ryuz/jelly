@@ -15,13 +15,14 @@ module tb_main
     //  DUT
     // -------------------------
 
-    localparam  int     AXI4_ID_BITS        = 8      ;
-    localparam  int     AXI4_ADDR_BITS      = 32     ;
-    localparam  int     AXI4_DATA_BITS      = 32     ;
+    localparam  int     AXI4_ID_BITS    = 8                 ;
+    localparam  int     AXI4_ADDR_BITS  = 12                ;
+    localparam  int     AXI4_DATA_BITS  = 32                ;
 
-    localparam  int     BRAM_ID_BITS        = 8      ;
-    localparam  int     BRAM_ADDR_BITS      = 30     ;
-    localparam  int     BRAM_DATA_BITS      = 32     ;
+    localparam  int     BRAM_ID_BITS    = 8                 ;
+    localparam  int     BRAM_ADDR_BITS  = 10                ;
+    localparam  int     BRAM_DATA_BITS  = 32                ;
+    localparam  int     BRAM_STRB_BITS  = BRAM_DATA_BITS / 8;
 
     localparam   bit     ASYNC          = 1                 ;
     localparam   int     CFIFO_PTR_BITS = ASYNC ? 5 : 0     ;
@@ -80,6 +81,57 @@ module tb_main
             );
 
 
+
+    logic   [BRAM_STRB_BITS-1:0]   mem_we   ;
+    logic   [BRAM_ADDR_BITS-1:0]   mem_addr ;
+    logic   [BRAM_DATA_BITS-1:0]   mem_din  ;
+    logic   [BRAM_DATA_BITS-1:0]   mem_dout ;
+        
+    jelly2_ram_singleport
+            #(
+                .ADDR_WIDTH     (10             ),
+                .DATA_WIDTH     (32             ),
+                .WE_WIDTH       (4              ),
+                .RAM_TYPE       ("block"        ),
+                .DOUT_REGS      (1              ),
+                .MODE           ("NO_CHANGE"    ),
+                .FILLMEM        (1              ),
+                .FILLMEM_DATA   ('0             ),
+                .READMEMB       (0              ),
+                .READMEMH       (0              ),
+                .READMEM_FILE   (""             )
+            )
+        u_ram_singleport
+            (
+                .clk            (bram.clk       ),
+                .en             (bram.cke       ),
+                .regcke         (bram.cke       ),
+                .we             (mem_we         ),
+                .addr           (mem_addr       ),
+                .din            (mem_din        ),
+                .dout           (mem_dout       )
+            );
+
+    jelly3_bram_accessor
+            #(
+                .WLATENCY       (1              ),
+                .RLATENCY       (3              ),
+                .ADDR_BITS      (10             ),
+                .DATA_BITS      (32             )
+            )
+        u_bram_accessor
+            (
+                .bram           (bram           ),
+
+                .en             (               ),
+                .we             (mem_we         ),
+                .addr           (mem_addr       ),
+                .wdata          (mem_din        ),
+                .rdata          (mem_dout       )
+            );
+
+
+    /*
     localparam  int     MEM_LATENCY = 2;
     logic   [MEM_LATENCY-1:0][AXI4_ID_BITS-1:0]  mem_id     ;
     logic   [MEM_LATENCY-1:0]                    mem_last   ;
@@ -111,6 +163,7 @@ module tb_main
     assign bram.rvalid = mem_valid[MEM_LATENCY-1];
     assign bram.cready = !bram.rvalid || bram.rready;
 
+
     jelly2_ram_singleport
             #(
                 .ADDR_WIDTH     (10             ),
@@ -134,7 +187,9 @@ module tb_main
                 .addr           (bram.caddr[9:0]),
                 .din            (bram.cdata     ),
                 .dout           (bram.rdata     )
+                
             );
+    */
 
 
     // -------------------------
@@ -170,8 +225,13 @@ module tb_main
                 '0,     // qos    
                 '0,     // region 
                 '0,     // user   
-                '{32'h03020100, 32'h07060504},  // data []
-                '{4'hf, 4'hf}                   // strb []
+                '{
+                    32'h03020100,
+                    32'h07ff0504,
+                    32'h0b0aff08,
+                    32'h0f0e0d0c
+                },  // data []
+                '{4'hf, 4'hf, 4'hf, 4'hf}  // strb []
             );
 
         u_axi4_accessor.read(
@@ -188,6 +248,49 @@ module tb_main
                 '0,     // user   
                 rdatas  // data []
             );
+        assert (rdatas[0] == 32'h03020100) else $error("ERROR: rdatas[0] = %h", rdatas[0]);
+        assert (rdatas[1] == 32'h07ff0504) else $error("ERROR: rdatas[1] = %h", rdatas[1]);
+        assert (rdatas[2] == 32'h0b0aff08) else $error("ERROR: rdatas[2] = %h", rdatas[2]);
+        assert (rdatas[3] == 32'h0f0e0d0c) else $error("ERROR: rdatas[3] = %h", rdatas[3]);
+
+        u_axi4_accessor.write(
+                '0,     // id     
+                4,      // addr   
+                3'h2,   // size   
+                2'b01,  // burst  
+                '0,     // lock   
+                '0,     // cache  
+                '0,     // prot   
+                '0,     // qos    
+                '0,     // region 
+                '0,     // user   
+                '{
+                    32'hff06ffff,
+                    32'hffff09ff
+                },  // data []
+                '{
+                    4'h4,
+                    4'h2
+                }  // strb []
+            );
+        u_axi4_accessor.read(
+                '0,     // id     
+                '0,     // addr   
+                8'd3,   // len    
+                3'h2,   // size   
+                2'b01,  // burst  
+                '0,     // lock   
+                '0,     // cache  
+                '0,     // prot   
+                '0,     // qos    
+                '0,     // region 
+                '0,     // user   
+                rdatas  // data []
+            );
+        assert (rdatas[0] == 32'h03020100) else $error("ERROR: rdatas[0] = %h", rdatas[0]);
+        assert (rdatas[1] == 32'h07060504) else $error("ERROR: rdatas[1] = %h", rdatas[1]);
+        assert (rdatas[2] == 32'h0b0a0908) else $error("ERROR: rdatas[2] = %h", rdatas[2]);
+        assert (rdatas[3] == 32'h0f0e0d0c) else $error("ERROR: rdatas[3] = %h", rdatas[3]);
 
         u_axi4_accessor.read(
                 '0,     // id     
@@ -204,8 +307,12 @@ module tb_main
                 rdatas  // data []
             );
 
+        u_axi4_accessor.read_reg (0, 1, data);
+        assert (data == 32'h07060504) else $error("ERROR: data = %h", data);
+
         u_axi4_accessor.write_reg(0, 8, 32'h55aa55aa, 4'hf);
         u_axi4_accessor.read_reg (0, 8, data);
+        assert (data == 32'h55aa55aa) else $error("ERROR: data = %h", data);
     end
 
 endmodule

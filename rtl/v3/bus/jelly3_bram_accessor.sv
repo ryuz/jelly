@@ -61,15 +61,17 @@ module jelly3_bram_accessor
         end
     end
 
-    assign en    = bram.cwrite          ;
+    assign en    = {LATENCY{bram.cke}}  ;
     assign we    = bram.cstrb           ;
     assign addr  = addr_t'(bram.caddr)  ;
     assign wdata = bram.cdata           ;
 
-    assign bram.rid    = mem_id   [LATENCY-1];
-    assign bram.rlast  = mem_last [LATENCY-1];
-    assign bram.rvalid = mem_valid[LATENCY-1];
     assign bram.cready = !bram.rvalid || bram.rready;
+
+    assign bram.rid    = mem_id   [LATENCY-1]   ;
+    assign bram.rlast  = mem_last [LATENCY-1]   ;
+    assign bram.rdata  = rdata                  ;
+    assign bram.rvalid = mem_valid[LATENCY-1]   ;
 
 endmodule
 
