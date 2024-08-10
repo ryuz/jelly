@@ -4,7 +4,7 @@
 module tang_nano_4k_blinking_led
         (
             input   var logic           in_reset_n,
-            input   var logic           in_clk,
+            input   var logic           in_clk,     // 27MHz
 
             output  var logic   [0:0]   led_n
         );
