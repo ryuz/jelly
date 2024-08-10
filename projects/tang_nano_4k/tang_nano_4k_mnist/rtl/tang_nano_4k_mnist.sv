@@ -162,6 +162,74 @@ module tang_nano_4k_mnist
             );
 
 
+    logic          prev_href;
+    logic   [9:0]  cam_x;
+    logic   [8:0]  cam_y;
+    always_ff @(posedge ov2640_pixclk ) begin
+        prev_href <= ov2640_href;
+
+        if ( ~ov2640_href ) begin
+            cam_x <= 0;
+        end
+        else begin
+            cam_x <= cam_x + 1;
+        end
+
+        if ( ~ov2640_vsync ) begin
+            cam_y <= 0;
+        end
+        else begin
+            if ( {prev_href, ov2640_href} == 2'b01 ) begin
+                cam_y <= cam_y + 1;
+            end
+        end
+    end
+
+    logic   [27:0][27:0]    cam_mnist_data;
+    logic   [27:0][27:0]    mnist_data;
+    always_ff @(posedge ov2640_pixclk) begin
+        if ( ov2640_href ) begin
+            if ( cam_x[9:4] < 28 && cam_y[8:4] < 28 && cam_x[3:0] == 0 && cam_y[3:0] == 0 ) begin
+                cam_mnist_data <= (28*28)'({ov2640_pixdata > 512, cam_mnist_data} >> 1);
+            end
+        end
+
+        if ( ~ov2640_vsync ) begin
+            mnist_data <= cam_mnist_data;
+        end
+        /*
+        mnist_data[ 0] <= 28'b0100000000000000000000000000;
+        mnist_data[ 1] <= 28'b0100000000000000000000000000;
+        mnist_data[ 2] <= 28'b0100000000000000000000000000;
+        mnist_data[ 3] <= 28'b0100000000000000000000000000;
+        mnist_data[ 4] <= 28'b0100000000000000000000000000;
+        mnist_data[ 5] <= 28'b0100000000000000000000000000;
+        mnist_data[ 6] <= 28'b0010000000000000000000000000;
+        mnist_data[ 7] <= 28'b0001000000000000000000000000;
+        mnist_data[ 8] <= 28'b0000100000000000000000000000;
+        mnist_data[ 9] <= 28'b0000010000000000000000000000;
+        mnist_data[10] <= 28'b0000000000000000000000000000;
+        mnist_data[11] <= 28'b0000000000000000000000000000;
+        mnist_data[12] <= 28'b0000000000000000000000000000;
+        mnist_data[13] <= 28'b0000000000000000000000000000;
+        mnist_data[14] <= 28'b0000000000000000000000000000;
+        mnist_data[15] <= 28'b0000000000000000000000000000;
+        mnist_data[16] <= 28'b0000000000000000000000000000;
+        mnist_data[17] <= 28'b0000000000000000000000000000;
+        mnist_data[18] <= 28'b0000000000000000000000000000;
+        mnist_data[19] <= 28'b0000000000000000000000000000;
+        mnist_data[20] <= 28'b0000000000000011110000000000;
+        mnist_data[21] <= 28'b0000000000000010010000000000;
+        mnist_data[22] <= 28'b0000000000000011110000000000;
+        mnist_data[23] <= 28'b0000000000000000000000000000;
+        mnist_data[24] <= 28'b0000000000000000000000000000;
+        mnist_data[25] <= 28'b0000000000000000000000000000;
+        mnist_data[26] <= 28'b0000000000000000000000000000;
+        mnist_data[27] <= 28'b1000000000000000000000000001;
+        */
+    end
+
+
 
     // -----------------------------
     //  DVI-TX
@@ -173,21 +241,21 @@ module tang_nano_4k_mnist
     logic   syn_vs;
     syn_gen
         u_syn_gen
-            (                                   
-                .I_pxl_clk  (dvi_pix_clk    ),//40MHz      //65MHz      //74.25MHz    
-                .I_rst_n    (~dvi_reset     ),//800x600    //1024x768   //1280x720       
-                .I_h_total  (16'd1650       ),// 16'd1056  // 16'd1344  // 16'd1650    
-                .I_h_sync   (16'd40         ),// 16'd128   // 16'd136   // 16'd40     
-                .I_h_bporch (16'd220        ),// 16'd88    // 16'd160   // 16'd220     
-                .I_h_res    (16'd1280       ),// 16'd800   // 16'd1024  // 16'd1280    
-                .I_v_total  (16'd750        ),// 16'd628   // 16'd806   // 16'd750      
-                .I_v_sync   (16'd5          ),// 16'd4     // 16'd6     // 16'd5        
-                .I_v_bporch (16'd20         ),// 16'd23    // 16'd29    // 16'd20        
-                .I_v_res    (16'd720        ),// 16'd600   // 16'd768   // 16'd720      
+            (
+                .I_pxl_clk  (dvi_pix_clk    ),
+                .I_rst_n    (~dvi_reset     ),   
+                .I_h_total  (16'd1650       ), 
+                .I_h_sync   (16'd40         ),
+                .I_h_bporch (16'd220        ), 
+                .I_h_res    (16'd1280       ), 
+                .I_v_total  (16'd750        ),  
+                .I_v_sync   (16'd5          ),  
+                .I_v_bporch (16'd20         ),   
+                .I_v_res    (16'd720        ),  
                 .I_rd_hres  (16'd640        ),
                 .I_rd_vres  (16'd480        ),
-                .I_hs_pol   (1'b1           ),//HS polarity , 0:负极性，1：正极性
-                .I_vs_pol   (1'b1           ),//VS polarity , 0:负极性，1：正极性
+                .I_hs_pol   (1'b1           ),
+                .I_vs_pol   (1'b1           ),
                 .O_rden     (syn_re         ),
                 .O_de       (syn_de         ),
                 .O_hs       (syn_hs         ),
@@ -240,6 +308,43 @@ module tang_nano_4k_mnist
             );
 
 
+    logic           prev_de;
+    logic   [10:0]  dvi_x;
+    logic   [9:0]   dvi_y;
+    always_ff @(posedge dvi_pix_clk ) begin
+        prev_de <= dly1_de;
+
+        if ( ~dly1_de ) begin
+            dvi_x <= 0;
+        end
+        else begin
+            dvi_x <= dvi_x + 1;
+        end
+
+        if ( dly1_vs ) begin
+            dvi_y <= 0;
+        end
+        else begin
+            if ( {prev_de, dly1_de} == 2'b10 ) begin
+                dvi_y <= dvi_y + 1;
+            end
+        end
+    end
+
+    logic  mnist_view_en;
+    logic  mnist_view;
+    always_ff @(posedge dvi_pix_clk ) begin
+        if ( dvi_x[10:4] >= 50 && dvi_x[10:4] < 50+28 
+                && dvi_y[9:4] >= 1 && dvi_y[9:4]  < 1+28 ) begin
+            mnist_view_en <= 1;
+            mnist_view <= mnist_data[dvi_y[9:4]-1][dvi_x[10:4]-50];
+        end
+        else begin
+            mnist_view_en <= 0;
+            mnist_view    <= 0;
+        end
+    end
+
     DVI_TX_Top
         u_DVI_TX_Top
             (
@@ -249,9 +354,9 @@ module tang_nano_4k_mnist
                 .I_rgb_vs      (dly1_vs         ),
                 .I_rgb_hs      (dly1_hs         ),
                 .I_rgb_de      (dly1_de         ),
-                .I_rgb_r       (buf_de ? buf_data[9:2] : 8'h00),
-                .I_rgb_g       (buf_de ? buf_data[9:2] : 8'h00),
-                .I_rgb_b       (buf_de ? buf_data[9:2] : 8'hff),
+                .I_rgb_r       (buf_de ? buf_data[9:2] : mnist_view_en ? {8{mnist_view}} : dvi_x),
+                .I_rgb_g       (buf_de ? buf_data[9:2] : mnist_view_en ? {8{mnist_view}} : dvi_y),
+                .I_rgb_b       (buf_de ? buf_data[9:2] : mnist_view_en ? {8{mnist_view}} : 255),
                 .O_tmds_clk_p  (tmds_clk_p      ),
                 .O_tmds_clk_n  (tmds_clk_n      ),
                 .O_tmds_data_p (tmds_data_p     ),
