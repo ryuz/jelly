@@ -185,50 +185,71 @@ module tang_nano_4k_mnist
         end
     end
 
-    logic   [27:0][27:0]    cam_mnist_data;
-    logic   [27:0][27:0]    mnist_data;
+    // 縮小＆バイナライズ
+    logic   [27:0][27:0]    bin_shr;
+    logic   [27:0][27:0]    bin_img;
     always_ff @(posedge ov2640_pixclk) begin
         if ( ov2640_href ) begin
             if ( cam_x[9:4] < 28 && cam_y[8:4] < 28 && cam_x[3:0] == 0 && cam_y[3:0] == 0 ) begin
-                cam_mnist_data <= (28*28)'({ov2640_pixdata > 512, cam_mnist_data} >> 1);
+                bin_shr <= (28*28)'({ov2640_pixdata < 512, bin_shr} >> 1);
             end
         end
 
         if ( ~ov2640_vsync ) begin
-            mnist_data <= cam_mnist_data;
+            bin_img <= bin_shr;
         end
         /*
-        mnist_data[ 0] <= 28'b0100000000000000000000000000;
-        mnist_data[ 1] <= 28'b0100000000000000000000000000;
-        mnist_data[ 2] <= 28'b0100000000000000000000000000;
-        mnist_data[ 3] <= 28'b0100000000000000000000000000;
-        mnist_data[ 4] <= 28'b0100000000000000000000000000;
-        mnist_data[ 5] <= 28'b0100000000000000000000000000;
-        mnist_data[ 6] <= 28'b0010000000000000000000000000;
-        mnist_data[ 7] <= 28'b0001000000000000000000000000;
-        mnist_data[ 8] <= 28'b0000100000000000000000000000;
-        mnist_data[ 9] <= 28'b0000010000000000000000000000;
-        mnist_data[10] <= 28'b0000000000000000000000000000;
-        mnist_data[11] <= 28'b0000000000000000000000000000;
-        mnist_data[12] <= 28'b0000000000000000000000000000;
-        mnist_data[13] <= 28'b0000000000000000000000000000;
-        mnist_data[14] <= 28'b0000000000000000000000000000;
-        mnist_data[15] <= 28'b0000000000000000000000000000;
-        mnist_data[16] <= 28'b0000000000000000000000000000;
-        mnist_data[17] <= 28'b0000000000000000000000000000;
-        mnist_data[18] <= 28'b0000000000000000000000000000;
-        mnist_data[19] <= 28'b0000000000000000000000000000;
-        mnist_data[20] <= 28'b0000000000000011110000000000;
-        mnist_data[21] <= 28'b0000000000000010010000000000;
-        mnist_data[22] <= 28'b0000000000000011110000000000;
-        mnist_data[23] <= 28'b0000000000000000000000000000;
-        mnist_data[24] <= 28'b0000000000000000000000000000;
-        mnist_data[25] <= 28'b0000000000000000000000000000;
-        mnist_data[26] <= 28'b0000000000000000000000000000;
-        mnist_data[27] <= 28'b1000000000000000000000000001;
+        bin_img[ 0] <= 28'b0100000000000000000000000000;
+        bin_img[ 1] <= 28'b0100000000000000000000000000;
+        bin_img[ 2] <= 28'b0100000000000000000000000000;
+        bin_img[ 3] <= 28'b0100000000000000000000000000;
+        bin_img[ 4] <= 28'b0100000000000000000000000000;
+        bin_img[ 5] <= 28'b0100000000000000000000000000;
+        bin_img[ 6] <= 28'b0010000000000000000000000000;
+        bin_img[ 7] <= 28'b0001000000000000000000000000;
+        bin_img[ 8] <= 28'b0000100000000000000000000000;
+        bin_img[ 9] <= 28'b0000010000000000000000000000;
+        bin_img[10] <= 28'b0000000000000000000000000000;
+        bin_img[11] <= 28'b0000000000000000000000000000;
+        bin_img[12] <= 28'b0000000000000000000000000000;
+        bin_img[13] <= 28'b0000000000000000000000000000;
+        bin_img[14] <= 28'b0000000000000000000000000000;
+        bin_img[15] <= 28'b0000000000000000000000000000;
+        bin_img[16] <= 28'b0000000000000000000000000000;
+        bin_img[17] <= 28'b0000000000000000000000000000;
+        bin_img[18] <= 28'b0000000000000000000000000000;
+        bin_img[19] <= 28'b0000000000000000000000000000;
+        bin_img[20] <= 28'b0000000000000011110000000000;
+        bin_img[21] <= 28'b0000000000000010010000000000;
+        bin_img[22] <= 28'b0000000000000011110000000000;
+        bin_img[23] <= 28'b0000000000000000000000000000;
+        bin_img[24] <= 28'b0000000000000000000000000000;
+        bin_img[25] <= 28'b0000000000000000000000000000;
+        bin_img[26] <= 28'b0000000000000000000000000000;
+        bin_img[27] <= 28'b1000000000000000000000000001;
         */
     end
 
+    logic   [9:0]       mnist_class;
+    MnistLut4Simple
+            #(
+                .USER_WIDTH     (0      ),
+                .DEVICE         ("RTL"  )
+            )
+        u_MnistLut4Simple
+            (
+                .reset          (reset          ),
+                .clk            (ov2640_pixclk  ),
+                .cke            (1'b1           ),
+                
+                .in_user        ('0             ),
+                .in_data        (bin_img        ),
+                .in_valid       (1'b1           ),
+
+                .out_user       (               ),
+                .out_data       (mnist_class    ),
+                .out_valid      (               )
+            );
 
 
     // -----------------------------
@@ -331,19 +352,38 @@ module tang_nano_4k_mnist
         end
     end
 
-    logic  mnist_view_en;
-    logic  mnist_view;
+    localparam int  BIN_X = 50;
+    localparam int  BIN_Y = 1;
+    logic  bin_en;
+    logic  bin_view;
     always_ff @(posedge dvi_pix_clk ) begin
-        if ( dvi_x[10:4] >= 50 && dvi_x[10:4] < 50+28 
-                && dvi_y[9:4] >= 1 && dvi_y[9:4]  < 1+28 ) begin
-            mnist_view_en <= 1;
-            mnist_view <= mnist_data[dvi_y[9:4]-1][dvi_x[10:4]-50];
+        if ( dvi_x[10:4] >= BIN_X && dvi_x[10:4] < BIN_X+28 
+                && dvi_y[9:4] >= BIN_Y && dvi_y[9:4]  < BIN_Y+28 ) begin
+            bin_en   <= 1;
+            bin_view <= bin_img[dvi_y[9:4]-BIN_Y][dvi_x[10:4]-BIN_X];
         end
         else begin
-            mnist_view_en <= 0;
-            mnist_view    <= 0;
+            bin_en   <= 0;
+            bin_view <= 0;
         end
     end
+
+    localparam int  MNIST_X = 1;
+    localparam int  MNIST_Y = 18;
+    logic  mnist_en;
+    logic  mnist_view;
+    always_ff @(posedge dvi_pix_clk ) begin
+        if ( dvi_x[10:5] >= MNIST_X && dvi_x[10:5] < MNIST_X+10 
+                && dvi_y[9:5] >= MNIST_Y && dvi_y[9:5] < MNIST_Y+1 ) begin
+            mnist_en   <= 1;
+            mnist_view <= mnist_class[dvi_x[10:5]-MNIST_X];
+        end
+        else begin
+            mnist_en   <= 0;
+            mnist_view <= 0;
+        end
+    end
+
 
     DVI_TX_Top
         u_DVI_TX_Top
@@ -354,9 +394,9 @@ module tang_nano_4k_mnist
                 .I_rgb_vs      (dly1_vs         ),
                 .I_rgb_hs      (dly1_hs         ),
                 .I_rgb_de      (dly1_de         ),
-                .I_rgb_r       (buf_de ? buf_data[9:2] : mnist_view_en ? {8{mnist_view}} : dvi_x),
-                .I_rgb_g       (buf_de ? buf_data[9:2] : mnist_view_en ? {8{mnist_view}} : dvi_y),
-                .I_rgb_b       (buf_de ? buf_data[9:2] : mnist_view_en ? {8{mnist_view}} : 255),
+                .I_rgb_r       (buf_de ? buf_data[9:2] : bin_en ? {8{bin_view}} : mnist_en ? {8{mnist_view}} : dvi_x),
+                .I_rgb_g       (buf_de ? buf_data[9:2] : bin_en ? {8{bin_view}} : mnist_en ? {8{mnist_view}} : dvi_y),
+                .I_rgb_b       (buf_de ? buf_data[9:2] : bin_en ? {8{bin_view}} : mnist_en ? {8{mnist_view}} : 8'hff),
                 .O_tmds_clk_p  (tmds_clk_p      ),
                 .O_tmds_clk_n  (tmds_clk_n      ),
                 .O_tmds_data_p (tmds_data_p     ),
@@ -377,8 +417,9 @@ module tang_nano_4k_mnist
             counter <= counter + 1;
         end
     end
-    assign led_n = ~counter[23];
-//    assign led_n = ov2640_vsync;//~counter[23];
+      assign led_n = ~counter[23];
+//    assign led_n = ^mnist_class;
+//    assign led_n = ov2640_vsync;
 
 endmodule
 

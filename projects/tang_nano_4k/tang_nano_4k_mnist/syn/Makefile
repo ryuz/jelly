@@ -18,6 +18,7 @@ CONSTRAIN_DIR = ../constrain
 
 VLOG_SOURCES  = $(RTL_DIR)/tang_nano_4k_mnist.sv
 VLOG_SOURCES += $(RTL_DIR)/frame_buffer.sv
+VLOG_SOURCES += $(RTL_DIR)/MnistLut4Simple.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
 #VLOG_SOURCES += $(EXSAMPLE_DIR)/video_top.v
 VLOG_SOURCES += $(EXSAMPLE_DIR)/gowin_pllvr/GW_PLLVR.v
