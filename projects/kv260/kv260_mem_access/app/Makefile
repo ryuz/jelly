@@ -67,21 +67,16 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	@if [ -e /configfs/device-tree/overlays/k26-starter-kits_image_1 ] ; then \
 		sudo rmdir /configfs/device-tree/overlays/k26-starter-kits_image_1 ; \
 	fi
-	if [ ! -e $(DEVTREE_PATH)/overlays/full ] ; then \
-		sudo mkdir -p $(FIRMWARE_PATH) ; \
-		sudo cp $(BIN_FILE) $(FIRMWARE_PATH) ; \
-		sudo cp $(DTBO_FILE) $(FIRMWARE_PATH) ; \
-		sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags" ; \
-		sudo mkdir $(DEVTREE_PATH)/overlays/full ; \
-		sudo sh -c "echo -n $(DTBO_FILE) > /configfs/device-tree/overlays/full/path" ; \
-		sleep 1 ; \
-		cat $(DEVTREE_PATH)/overlays/full/status ; \
-		sudo rm /lib/firmware/$(DTBO_FILE) ; \
-		sudo rm /lib/firmware/$(BIN_FILE) ; \
-	fi
-#	@if [ ! -e /dev/uiomem0 ] || [ ! -e /dev/uiomem1 ] ; then \
-#		sudo insmod /lib/modules/$(KERNEL_VERSION)/ikwzm/uiomem.ko uiomem0_addr=0xfffc0000 uiomem0_size=0x00040000 uiomem1_addr=0xa0000000 uiomem1_size=0x00040000 ; \
-#	fi
+	sudo mkdir -p $(FIRMWARE_PATH)
+	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
+	sudo cp $(DTBO_FILE) $(FIRMWARE_PATH)
+	sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
+	sudo mkdir $(DEVTREE_PATH)/overlays/full
+	sudo sh -c "echo -n $(DTBO_FILE) > /configfs/device-tree/overlays/full/path"
+	sleep 1
+	cat $(DEVTREE_PATH)/overlays/full/status
+	sudo rm /lib/firmware/$(DTBO_FILE)
+	sudo rm /lib/firmware/$(BIN_FILE)
 	sudo chmod 666 /dev/uio*
 	sudo chmod 666 /dev/udmabuf*
 #	sudo chmod 666 /sys/class/u-dma-buf/udmabuf_ddr4/*
@@ -90,12 +85,10 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 
 .PHONY: unload
 unload:
-	echo no-unload
-#   Unload すると固まるのでしばらくこのままとする
-#	@if [ -e $(DEVTREE_PATH)/overlays/full ] ; then \
-#		echo unload ; \
-#		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
-#	fi
+	@if [ -e $(DEVTREE_PATH)/overlays/full ] ; then \
+		echo unload ; \
+		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
+	fi
 
 .PHONY: load2
 load2: $(DTBO_FILE) $(BIN_FILE)

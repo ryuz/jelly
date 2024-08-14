@@ -7,6 +7,7 @@
 
 
 `timescale 1ns / 1ps
+`default_nettype none
 
 
 // Simple Dualport-RAM
@@ -14,6 +15,8 @@ module jelly2_ram_simple_dualport
         #(
             parameter   int                         ADDR_WIDTH   = 6,
             parameter   int                         DATA_WIDTH   = 8,
+            parameter   int                         WE_WIDTH     = 1,
+            parameter   int                         WORD_WIDTH   = DATA_WIDTH/WE_WIDTH,
             parameter   int                         MEM_SIZE     = (1 << ADDR_WIDTH),
             parameter                               RAM_TYPE     = "distributed",
             parameter   bit                         DOUT_REGS    = 0,
@@ -26,17 +29,17 @@ module jelly2_ram_simple_dualport
         )
         (
             // write port
-            input       logic                       wr_clk,
-            input       logic                       wr_en,
-            input       logic   [ADDR_WIDTH-1:0]    wr_addr,
-            input       logic   [DATA_WIDTH-1:0]    wr_din,
+            input   var logic                       wr_clk,
+            input   var logic   [WE_WIDTH-1:0]      wr_en,
+            input   var logic   [ADDR_WIDTH-1:0]    wr_addr,
+            input   var logic   [DATA_WIDTH-1:0]    wr_din,
             
             // read port
-            input       logic                       rd_clk,
-            input       logic                       rd_en,
-            input       logic                       rd_regcke,
-            input       logic   [ADDR_WIDTH-1:0]    rd_addr,
-            output      logic   [DATA_WIDTH-1:0]    rd_dout
+            input   var logic                       rd_clk,
+            input   var logic                       rd_en,
+            input   var logic                       rd_regcke,
+            input   var logic   [ADDR_WIDTH-1:0]    rd_addr,
+            output  var logic   [DATA_WIDTH-1:0]    rd_dout
         );
     
     // memory
@@ -46,12 +49,13 @@ module jelly2_ram_simple_dualport
     integer iMEM_SIZE = MEM_SIZE;
     
     // write port
-    always_ff @ ( posedge wr_clk ) begin
-        if ( wr_en ) begin
-            mem[wr_addr] <= wr_din;
+    for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we0
+        always_ff @ ( posedge wr_clk ) begin
+            if ( wr_en[i] ) begin
+                mem[wr_addr][i*WORD_WIDTH +: WORD_WIDTH] <= wr_din[i*WORD_WIDTH +: WORD_WIDTH];
+            end
         end
     end
-    
     
     
     // read port

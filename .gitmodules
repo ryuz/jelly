@@ -10,3 +10,6 @@
 [submodule "jellyvl"]
 	path = rtl/jellyvl
 	url = https://github.com/ryuz/jellyvl.git
+[submodule "projects/tang_nano_4k/tang_nano_4k_mnist/TangNano-4K-example"]
+	path = projects/tang_nano_4k/tang_nano_4k_mnist/TangNano-4K-example
+	url = https://github.com/sipeed/TangNano-4K-example.git
