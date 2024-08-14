@@ -21,8 +21,8 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_dvi_tx_encode.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vsync_generator_core.v
 
-SDC_SOURCES = $(CONSTRAIN_DIR)/tang_nano_9k_hdmi_sample.sdc
-CST_SOURCES = $(CONSTRAIN_DIR)/tang_nano_9k_hdmi_sample.cst
+SDC_SOURCES  = $(CONSTRAIN_DIR)/tang_nano_9k_hdmi_sample.sdc
+CST_SOURCES += $(CONSTRAIN_DIR)/tang_nano_9k_hdmi_sample.cst
 
 
 # for tcl script

@@ -5,24 +5,22 @@
 
 module tb_main
         (
-            input   var logic   axi4_aresetn    ,
-            input   var logic   axi4_aclk       ,
-            input   var logic   bram_reset      ,
-            input   var logic   bram_clk        
+            input   var logic   reset   ,
+            input   var logic   clk     
         );
 
     // -------------------------
     //  DUT
     // -------------------------
 
-    localparam  int     AXI4_ID_BITS    = 8                 ;
-    localparam  int     AXI4_ADDR_BITS  = 12                ;
-    localparam  int     AXI4_DATA_BITS  = 32                ;
+    localparam  int     AXI4_ID_BITS        = 8      ;
+    localparam  int     AXI4_ADDR_BITS      = 12     ;
+    localparam  int     AXI4_DATA_BITS      = 32     ;
 
-    localparam  int     BRAM_ID_BITS    = 8                 ;
-    localparam  int     BRAM_ADDR_BITS  = 10                ;
-    localparam  int     BRAM_DATA_BITS  = 32                ;
-    localparam  int     BRAM_STRB_BITS  = BRAM_DATA_BITS / 8;
+    localparam  int     BRAM_ID_BITS        = 8                 ;
+    localparam  int     BRAM_ADDR_BITS      = 10                ;
+    localparam  int     BRAM_DATA_BITS      = 32                ;
+    localparam  int     BRAM_STRB_BITS      = BRAM_DATA_BITS / 8;
 
     localparam   bit     ASYNC          = 1                 ;
     localparam   int     CFIFO_PTR_BITS = ASYNC ? 5 : 0     ;
@@ -41,8 +39,8 @@ module tb_main
             )
         axi4
             (
-                .aresetn        (axi4_aresetn       ),
-                .aclk           (axi4_aclk          ),
+                .aresetn        (~reset             ),
+                .aclk           (clk                ),
                 .aclken         (1'b1               )
             );
     
@@ -55,141 +53,103 @@ module tb_main
                 .ADDR_BITS      (BRAM_ADDR_BITS     ),
                 .DATA_BITS      (BRAM_DATA_BITS     )
             )
-        bram
+        bram_w
             (
-                .reset          (bram_reset         ),
-                .clk            (bram_clk           ),
+                .reset          (reset              ),
+                .clk            (clk                ),
+                .cke            (1'b1               )
+            );
+
+    jelly3_bram_if
+            #(
+                .USE_ID         (1                  ),
+                .USE_STRB       (1                  ),
+                .USE_LAST       (1                  ),
+                .ID_BITS        (BRAM_ID_BITS       ),
+                .ADDR_BITS      (BRAM_ADDR_BITS     ),
+                .DATA_BITS      (BRAM_DATA_BITS     )
+            )
+        bram_r
+            (
+                .reset          (reset              ),
+                .clk            (clk                ),
                 .cke            (1'b1               )
             );
 
 
-    jelly3_axi4_to_bram_bridge
+    jelly3_axi4_to_bram_dp
             #(
-                .ASYNC          (ASYNC              ),
-                .CFIFO_PTR_BITS (CFIFO_PTR_BITS     ),
-                .CFIFO_RAM_TYPE (CFIFO_RAM_TYPE     ),
-                .RFIFO_PTR_BITS (RFIFO_PTR_BITS     ),
-                .RFIFO_RAM_TYPE (RFIFO_RAM_TYPE     ),
                 .DEVICE         (DEVICE             ),
                 .SIMULATION     (SIMULATION         ),
                 .DEBUG          (DEBUG              )
             )
-        u_axi4_to_bram_bridge
+        u_axi4_to_bram_dp
             (
                 .s_axi4         (axi4.s             ),
-                .m_bram         (bram.m             )
+                .m_bram_w       (bram_w.m           ),
+                .m_bram_r       (bram_r.m           )
             );
 
 
-
-    logic   [BRAM_STRB_BITS-1:0]   mem_we   ;
-    logic   [BRAM_ADDR_BITS-1:0]   mem_addr ;
-    logic   [BRAM_DATA_BITS-1:0]   mem_din  ;
-    logic   [BRAM_DATA_BITS-1:0]   mem_dout ;
-        
-    jelly2_ram_singleport
+    logic   [BRAM_STRB_BITS-1:0]    wr_en       ;
+    logic   [BRAM_ADDR_BITS-1:0]    wr_addr     ;
+    logic   [BRAM_DATA_BITS-1:0]    wr_din      ;
+    logic   [BRAM_ADDR_BITS-1:0]    rd_addr     ;
+    logic   [BRAM_DATA_BITS-1:0]    rd_dout     ;
+    jelly2_ram_simple_dualport
             #(
-                .ADDR_WIDTH     (10             ),
-                .DATA_WIDTH     (32             ),
-                .WE_WIDTH       (4              ),
-                .RAM_TYPE       ("block"        ),
-                .DOUT_REGS      (1              ),
-                .MODE           ("NO_CHANGE"    ),
-                .FILLMEM        (1              ),
-                .FILLMEM_DATA   ('0             ),
-                .READMEMB       (0              ),
-                .READMEMH       (0              ),
-                .READMEM_FILE   (""             )
+                .ADDR_WIDTH     (BRAM_ADDR_BITS     ),
+                .DATA_WIDTH     (BRAM_DATA_BITS     ),
+                .WE_WIDTH       (BRAM_DATA_BITS/8   ),
+                .RAM_TYPE       ("block"            ),
+                .DOUT_REGS      (1                  )
             )
-        u_ram_singleport
+        u_ram_simple_dualport
             (
-                .clk            (bram.clk       ),
-                .en             (bram.cke       ),
-                .regcke         (bram.cke       ),
-                .we             (mem_we         ),
-                .addr           (mem_addr       ),
-                .din            (mem_din        ),
-                .dout           (mem_dout       )
+                .wr_clk         (bram_w.clk         ),
+                .wr_en          ,
+                .wr_addr        ,
+                .wr_din         ,
+
+                .rd_clk         (bram_r.clk         ),
+                .rd_en          (bram_r.cke         ),
+                .rd_regcke      (bram_r.cke         ),
+                .rd_addr        ,
+                .rd_dout        
             );
 
-    jelly3_bram_accessor
+    jelly3_bram_writer
             #(
-                .WLATENCY       (1              ),
-                .RLATENCY       (3              ),
-                .ADDR_BITS      (10             ),
-                .DATA_BITS      (32             )
+                .LATENCY        (1              ),
+                .ADDR_BITS      (BRAM_ADDR_BITS ), 
+                .DATA_BITS      (BRAM_DATA_BITS ) 
             )
-        u_bram_accessor
+        u_bram_writer
             (
-                .bram           (bram           ),
+                .bram           (bram_w.sw      ),
 
                 .en             (               ),
-                .we             (mem_we         ),
-                .addr           (mem_addr       ),
-                .wdata          (mem_din        ),
-                .rdata          (mem_dout       )
+                .we             (wr_en          ),
+                .addr           (wr_addr        ),
+                .wdata          (wr_din         )
             );
 
-
-    /*
-    localparam  int     MEM_LATENCY = 2;
-    logic   [MEM_LATENCY-1:0][AXI4_ID_BITS-1:0]  mem_id     ;
-    logic   [MEM_LATENCY-1:0]                    mem_last   ;
-    logic   [MEM_LATENCY-1:0]                    mem_valid  ;
-    always_ff @ ( posedge bram.clk ) begin
-        for (int i = 0; i < MEM_LATENCY; i++ ) begin
-            if ( bram.reset ) begin
-                mem_id   [i] <= 'x;
-                mem_last [i] <= 'x;
-                mem_valid[i] <= '0;
-            end
-            else if ( bram.cready ) begin
-                if ( i == 0 ) begin
-                    mem_id   [i] <= bram.cid   ;
-                    mem_last [i] <= bram.clast ;
-                    mem_valid[i] <= bram.cread ;
-                end
-                else begin
-                    mem_id   [i] <= mem_id   [i-1];
-                    mem_last [i] <= mem_last [i-1];
-                    mem_valid[i] <= mem_valid[i-1];
-                end
-            end
-        end
-    end
-
-    assign bram.rid    = mem_id   [MEM_LATENCY-1];
-    assign bram.rlast  = mem_last [MEM_LATENCY-1];
-    assign bram.rvalid = mem_valid[MEM_LATENCY-1];
-    assign bram.cready = !bram.rvalid || bram.rready;
-
-
-    jelly2_ram_singleport
+    jelly3_bram_reader
             #(
-                .ADDR_WIDTH     (10             ),
-                .DATA_WIDTH     (32             ),
-                .WE_WIDTH       (4              ),
-                .RAM_TYPE       ("block"        ),
-                .DOUT_REGS      (1              ),
-                .MODE           ("NO_CHANGE"    ),
-                .FILLMEM        (1              ),
-                .FILLMEM_DATA   ('0             ),
-                .READMEMB       (0              ),
-                .READMEMH       (0              ),
-                .READMEM_FILE   (""             )
+                .LATENCY        (2              ),
+                .ADDR_BITS      (BRAM_ADDR_BITS ), 
+                .DATA_BITS      (BRAM_DATA_BITS ) 
             )
-        u_ram_singleport
+        u_bram_reader
             (
-                .clk            (bram.clk       ),
-                .en             (bram.cvalid    ),
-                .regcke         (mem_valid[0]   ),
-                .we             (bram.cstrb     ),
-                .addr           (bram.caddr[9:0]),
-                .din            (bram.cdata     ),
-                .dout           (bram.rdata     )
-                
+                .bram           (bram_r.sr      ),
+
+                .en             (               ),
+                .addr           (rd_addr        ),
+                .rdata          (rd_dout        )
             );
-    */
+
+
 
 
     // -------------------------

@@ -9,6 +9,10 @@
 #include "jelly/UioAccessor.h"
 #include "jelly/UdmabufAccessor.h"
 
+
+#define TEST_SIZE   (128*1024)
+
+
 void   CacheFlush(void);
 void   MemoryTest(jelly::UdmabufAccessor& acc, size_t size);
 double WriteTest(jelly::UdmabufAccessor& acc, size_t size, int times);
@@ -74,8 +78,6 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-
-#define TEST_SIZE   (256*1024)
 
 // L2より大きなサイズをアクセスして確実にキャッシュを飛ばしておく
 #define DUMMY_ARRAY_SIZE    (2 * 1024 * 1024 / 8)
@@ -185,7 +187,7 @@ void ApiTest(const char *name, jelly::UdmabufAccessor acc)
 
 // アクセステスト
 void AccessTest(const char *name, jelly::UdmabufAccessor acc) {
-    const std::size_t test_size = 0x40000;
+    const std::size_t test_size = TEST_SIZE;
     {
         auto time = WriteTest(acc, test_size, 256);
         printf("%-18s write : %8.3f  [Mbyte/s]\n", name, test_size / time / (1024*1024));

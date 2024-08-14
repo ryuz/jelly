@@ -1,0 +1,9 @@
+
+IO_LOC "in_reset_n" 14;
+IO_PORT "in_reset_n" PULL_MODE=UP;
+IO_LOC "in_clk" 45;
+IO_PORT "in_clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+IO_LOC "led_n[0]" 10;
+IO_PORT "led_n[0]" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+

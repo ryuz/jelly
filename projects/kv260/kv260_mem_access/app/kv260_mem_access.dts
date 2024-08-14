@@ -102,7 +102,7 @@
             uiomem_ocm@fffc0000 {
                 compatible = "ikwzm,uiomem";
                 device-name = "uiomem_ocm";
-                reg = <0x0 0xfffc0000 0x0 0x00040000>;
+                reg = <0x0 0xfffc0000 0x0 0x00020000>;
 //              sync-offset = <0x00000000>;
 //              sync-size = <0x00040000>;
 //              sync-direction = <0>;

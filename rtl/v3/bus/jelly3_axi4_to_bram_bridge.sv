@@ -26,15 +26,20 @@ module jelly3_axi4_to_bram_bridge
             jelly3_bram_if.m        m_bram  
         );
 
+    localparam  int     BRAM_ID_BITS   = s_axi4.ID_BITS;
+    localparam  int     BRAM_STRB_BITS = s_axi4.STRB_BITS;
+    localparam  int     BRAM_ADDR_BITS = s_axi4.ADDR_BITS - $clog2(BRAM_STRB_BITS);
+    localparam  int     BRAM_DATA_BITS = s_axi4.DATA_BITS;
+
     jelly3_bram_if
             #(
                 .USE_ID         (1                  ),
                 .USE_STRB       (1                  ),
                 .USE_LAST       (1                  ),
-                .ID_BITS        (s_axi4.ID_BITS     ),
-                .ADDR_BITS      (s_axi4.ADDR_BITS   ),
-                .DATA_BITS      (s_axi4.DATA_BITS   ),
-                .STRB_BITS      (s_axi4.STRB_BITS   )
+                .ID_BITS        (BRAM_ID_BITS       ),
+                .ADDR_BITS      (BRAM_ADDR_BITS     ),
+                .DATA_BITS      (BRAM_DATA_BITS     ),
+                .STRB_BITS      (BRAM_STRB_BITS     )
             )
         bram_internal
             (
