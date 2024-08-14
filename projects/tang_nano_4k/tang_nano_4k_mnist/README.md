@@ -1,11 +1,11 @@
-# Tang Nano 4k の LEDチカチカ
+# Tang Nano 4k の MNIST 認識 (LUT-Network)
 
 
 ## 概要
 
 [Tang Nano 4k](https://wiki.sipeed.com/hardware/en/tang/Tang-Nano-4K/Nano-4K.html) でMNIST認識を動かしてみるサンプルです。
 
-[BinaryBrain](https://github.com/ryuz/BinaryBrain)の[こちら](https://github.com/ryuz/BinaryBrain/blob/master/samples/python/mnist/MnistDifferentiableLut4Simple.ipynb)のサンプルを使って学習させたディープニューラルネットワークを動かすデモです。
+[BinaryBrain](https://github.com/ryuz/BinaryBrain)の[こちら](https://github.com/ryuz/BinaryBrain/blob/master/samples/python/mnist/MnistDifferentiableLut4Simple.ipynb)のサンプルを使って学習させた LUT-Network を動かすデモです。
 
 
 ## 環境
