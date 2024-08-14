@@ -45,17 +45,6 @@ module tang_nano_4k_mnist
                 .lock       (pll_lock   )
             );
 
-    /*
-    logic   sys_reset_n;
-    Reset_Sync
-        u_Reset_Sync
-            (
-                .resetn     (sys_reset_n            ),
-                .ext_reset  (in_reset_n & pll_lock  ),
-                .clk        (in_clk                 )
-            );
-    */
-
     logic   reset;
     jelly_reset
         u_reset
@@ -91,56 +80,6 @@ module tang_nano_4k_mnist
                 .CALIB      (1'b1       )
             );
 
-
-    /*
-    logic   clk_dvi;   //
-    logic   clk_12;
-    logic   lock;
-    PLLVR
-            #(
-                .FCLKIN             ("27"       ),
-                .DYN_IDIV_SEL       ("false"    ),
-                .IDIV_SEL           (3          ),
-                .DYN_FBDIV_SEL      ("false"    ),
-                .FBDIV_SEL          (54         ),
-                .DYN_ODIV_SEL       ("false"    ),
-                .ODIV_SEL           (2          ),
-                .PSDA_SEL           ("0000"     ),
-                .DYN_DA_EN          ("false"    ),
-                .DUTYDA_SEL         ("1000"     ),
-                .CLKOUT_FT_DIR      (1'b1       ),
-                .CLKOUTP_FT_DIR     (1'b1       ),
-                .CLKOUT_DLY_STEP    (0          ),
-                .CLKOUTP_DLY_STEP   (0          ),
-                .CLKFB_SEL          ("internal" ),
-                .CLKOUT_BYPASS      ("false"    ),
-                .CLKOUTP_BYPASS     ("false"    ),
-                .CLKOUTD_BYPASS     ("false"    ),
-                .DYN_SDIV_SEL       (30         ),
-                .CLKOUTD_SRC        ("CLKOUT"   ),
-                .CLKOUTD3_SRC       ("CLKOUT"   ),
-                .DEVICE             ("GW1NSR-4C")
-            )
-        u_pllvr
-            (
-                .CLKOUT             (clk_dvi    ),  // 371.25MHz
-                .LOCK               (lock       ),
-                .CLKOUTP            (           ),
-                .CLKOUTD            (clk_12     ),  // 12.375MHz
-                .CLKOUTD3           (           ),
-                .RESET              (1'b0       ),
-                .RESET_P            (1'b0       ),
-                .CLKIN              (clk27      ),
-                .CLKFB              ('0         ),
-                .FBDSEL             ('0         ),
-                .IDSEL              ('0         ),
-                .ODSEL              ('0         ),
-                .PSDA               ('0         ),
-                .DUTYDA             ('0         ),
-                .FDLY               ('0         ),
-                .VREN               (1'b1       )
-            );
-    */
     
 
     // -----------------------------
@@ -189,54 +128,27 @@ module tang_nano_4k_mnist
     logic   [27:0][27:0]    bin_shr;
     logic   [27:0][27:0]    bin_img;
     always_ff @(posedge ov2640_pixclk) begin
+        // 間引いてシフトレジスタにサンプリング
         if ( ov2640_href ) begin
             if ( cam_x[9:4] < 28 && cam_y[8:4] < 28 && cam_x[3:0] == 0 && cam_y[3:0] == 0 ) begin
                 bin_shr <= (28*28)'({ov2640_pixdata < 512, bin_shr} >> 1);
             end
         end
 
+        // ブランキングでラッチ 
         if ( ~ov2640_vsync ) begin
             bin_img <= bin_shr;
         end
-        /*
-        bin_img[ 0] <= 28'b0100000000000000000000000000;
-        bin_img[ 1] <= 28'b0100000000000000000000000000;
-        bin_img[ 2] <= 28'b0100000000000000000000000000;
-        bin_img[ 3] <= 28'b0100000000000000000000000000;
-        bin_img[ 4] <= 28'b0100000000000000000000000000;
-        bin_img[ 5] <= 28'b0100000000000000000000000000;
-        bin_img[ 6] <= 28'b0010000000000000000000000000;
-        bin_img[ 7] <= 28'b0001000000000000000000000000;
-        bin_img[ 8] <= 28'b0000100000000000000000000000;
-        bin_img[ 9] <= 28'b0000010000000000000000000000;
-        bin_img[10] <= 28'b0000000000000000000000000000;
-        bin_img[11] <= 28'b0000000000000000000000000000;
-        bin_img[12] <= 28'b0000000000000000000000000000;
-        bin_img[13] <= 28'b0000000000000000000000000000;
-        bin_img[14] <= 28'b0000000000000000000000000000;
-        bin_img[15] <= 28'b0000000000000000000000000000;
-        bin_img[16] <= 28'b0000000000000000000000000000;
-        bin_img[17] <= 28'b0000000000000000000000000000;
-        bin_img[18] <= 28'b0000000000000000000000000000;
-        bin_img[19] <= 28'b0000000000000000000000000000;
-        bin_img[20] <= 28'b0000000000000011110000000000;
-        bin_img[21] <= 28'b0000000000000010010000000000;
-        bin_img[22] <= 28'b0000000000000011110000000000;
-        bin_img[23] <= 28'b0000000000000000000000000000;
-        bin_img[24] <= 28'b0000000000000000000000000000;
-        bin_img[25] <= 28'b0000000000000000000000000000;
-        bin_img[26] <= 28'b0000000000000000000000000000;
-        bin_img[27] <= 28'b1000000000000000000000000001;
-        */
     end
 
     logic   [9:0]       mnist_class;
-    MnistLut4Simple
+    MnistLutSimple
             #(
+                .USE_REG        (0      ),
                 .USER_WIDTH     (0      ),
                 .DEVICE         ("RTL"  )
             )
-        u_MnistLut4Simple
+        u_MnistLutSimple
             (
                 .reset          (reset          ),
                 .clk            (ov2640_pixclk  ),
@@ -250,7 +162,6 @@ module tang_nano_4k_mnist
                 .out_data       (mnist_class    ),
                 .out_valid      (               )
             );
-
 
     // -----------------------------
     //  DVI-TX

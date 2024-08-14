@@ -18,18 +18,15 @@ CONSTRAIN_DIR = ../constrain
 
 VLOG_SOURCES  = $(RTL_DIR)/tang_nano_4k_mnist.sv
 VLOG_SOURCES += $(RTL_DIR)/frame_buffer.sv
-VLOG_SOURCES += $(RTL_DIR)/MnistLut4Simple.v
+VLOG_SOURCES += $(RTL_DIR)/MnistLutSimple.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
-#VLOG_SOURCES += $(EXSAMPLE_DIR)/video_top.v
 VLOG_SOURCES += $(EXSAMPLE_DIR)/gowin_pllvr/GW_PLLVR.v
 VLOG_SOURCES += $(EXSAMPLE_DIR)/gowin_pllvr/TMDS_PLLVR.v
 VLOG_SOURCES += $(EXSAMPLE_DIR)/ov2640/I2C_Interface.v
 VLOG_SOURCES += $(EXSAMPLE_DIR)/ov2640/OV2640_Controller.v
 VLOG_SOURCES += $(EXSAMPLE_DIR)/ov2640/OV2640_Registers.v
-
 VLOG_SOURCES += $(EXSAMPLE_DIR)/hyperram_memory_interface/hyperram_memory_interface.v
 VLOG_SOURCES += $(EXSAMPLE_DIR)/video_frame_buffer/video_frame_buffer.v
-
 VLOG_SOURCES += $(EXSAMPLE_DIR)/dvi_tx/dvi_tx.v
 VLOG_SOURCES += $(EXSAMPLE_DIR)/syn_code/syn_gen.v
 
