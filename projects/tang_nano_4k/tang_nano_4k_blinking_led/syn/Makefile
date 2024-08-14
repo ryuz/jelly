@@ -1,10 +1,12 @@
 
 
 
-DEVICE_NAME = GW1NR-LV9QN88PC6/I5
-DEVICE_VERSION = C
+#DEVICE_NAME = GW1NSR-LV4CQN48PC6/I5
+DEVICE_NAME = GW1NSR-LV4CQN48PC6/I5
+#DEVICE_NAME = GW1NR-LV9QN88PC6/I5
+DEVICE_VERSION = 
 
-TOP_MODULE = tang_nano_9k_blinking_led
+TOP_MODULE = tang_nano_4k_blinking_led
 OUTPUT_BASE_NAME = $(TOP_MODULE)
 
 FS_FILE = impl/pnr/$(OUTPUT_BASE_NAME).fs
@@ -13,10 +15,10 @@ TOP_DIR = ../../../..
 RTL_DIR = ../rtl
 CONSTRAIN_DIR = ../constrain
 
-VLOG_SOURCES = $(RTL_DIR)/tang_nano_9k_blinking_led.sv
+VLOG_SOURCES = $(RTL_DIR)/tang_nano_4k_blinking_led.sv
 
-CST_SOURCES  = $(CONSTRAIN_DIR)/tang_nano_9k_blinking_led.sdc
-CST_SOURCES += $(CONSTRAIN_DIR)/tang_nano_9k_blinking_led.cst
+CST_SOURCES  = $(CONSTRAIN_DIR)/tang_nano_4k_blinking_led.sdc
+CST_SOURCES += $(CONSTRAIN_DIR)/tang_nano_4k_blinking_led.cst
 
 # for tcl script
 export DEVICE_NAME
@@ -40,4 +42,4 @@ run: $(FS_FILE)
 	openFPGALoader $(FS_FILE)
 
 run2:
-	programmer_cli --device GW1NR-9C --run 2 --fsFile $(TARGET).fs --location `programmer_cli --scan-cable | grep -oP 'USB location:\K\d+'`
+	programmer_cli --device GW1NSR-4C --run 2 --fsFile $(TARGET).fs --location `programmer_cli --scan-cable | grep -oP 'USB location:\K\d+'`

@@ -1,0 +1,51 @@
+
+IO_LOC "in_reset_n" 14;
+IO_PORT "in_reset_n" PULL_MODE=UP;
+IO_LOC "in_clk" 45;
+IO_PORT "in_clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+
+IO_LOC "led_n[0]" 10;
+IO_PORT "led_n[0]" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+
+
+IO_LOC "ov2640_xclk" 33;
+IO_PORT "ov2640_xclk" IO_TYPE=LVCMOS25 PULL_MODE=NONE DRIVE=8;
+IO_LOC "ov2640_scl" 44;
+IO_PORT "ov2640_scl" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+IO_LOC "ov2640_sda" 46;
+IO_PORT "ov2640_sda" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8;
+IO_LOC "ov2640_pixclk" 41;
+IO_PORT "ov2640_pixclk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[9]" 40;
+IO_PORT "ov2640_pixdata[9]" PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[8]" 39;
+IO_PORT "ov2640_pixdata[8]" PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[7]" 23;
+IO_PORT "ov2640_pixdata[7]" PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[6]" 16;
+IO_PORT "ov2640_pixdata[6]" PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[5]" 18;
+IO_PORT "ov2640_pixdata[5]" PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[4]" 20;
+IO_PORT "ov2640_pixdata[4]" PULL_MODE=UP;
+IO_LOC "ov2640_href" 42;
+IO_PORT "ov2640_href" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "ov2640_vsync" 43;
+IO_PORT "ov2640_vsync" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[3]" 19;
+IO_PORT "ov2640_pixdata[3]" PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[2]" 17;
+IO_PORT "ov2640_pixdata[2]" PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[1]" 21;
+IO_PORT "ov2640_pixdata[1]" PULL_MODE=UP;
+IO_LOC "ov2640_pixdata[0]" 22;
+IO_PORT "ov2640_pixdata[0]" PULL_MODE=UP;
+
+IO_LOC "tmds_clk_p" 28,27;
+#IO_PORT "tmds_clk_p" PULL_MODE=NONE DRIVE=8;
+IO_LOC "tmds_data_p[0]" 30,29;
+#IO_PORT "tmds_data_p[0]" PULL_MODE=NONE DRIVE=8;
+IO_LOC "tmds_data_p[1]" 32,31;
+#IO_PORT "tmds_data_p[1]" PULL_MODE=NONE DRIVE=8;
+IO_LOC "tmds_data_p[2]" 35,34;
+#IO_PORT "tmds_data_p[2]" PULL_MODE=NONE DRIVE=8;

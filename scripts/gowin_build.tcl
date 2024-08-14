@@ -3,10 +3,11 @@
 set device_name $::env(DEVICE_NAME)
 if {[info exists ::env(DEVICE_VERSION)]} {
     set device_version $::env(DEVICE_VERSION)
+    set_device -device_version $device_version $device_name
 } else {
-    set device_version "C"
+#   set device_version "C"
+    set_device $device_name
 }
-set_device -device_version $device_version $device_name
 
 # synthesis_tool
 if {[info exists ::env(SYNTHESIS_TOOL)]} {
