@@ -14,7 +14,7 @@
 
 焼き込みには Windows版の [openFPGALoader](https://github.com/trabucayre/openFPGALoader) を利用させて頂いています。
 
-WSLから Windows 版を利用しやすいようにパスの通ったところに下記のようなスクリプトを作っておいています。
+WSL2 から Windows 版を利用できるようにパスの通ったところに下記のようなスクリプトを作っておいています。
 
 chmod +x などのコマンドで実行権限を与えてパスの通ったところにおいてください。
 
@@ -34,14 +34,25 @@ chmod +x などのコマンドで実行権限を与えてパスの通ったと�
 /mnt/c/openFPGALoader/bin/openFPGALoader.exe $@
 ```
 
+
 ## ビルド
 
+ビルドには [Sipeedさんのサンプル](https://github.com/sipeed/TangNano-4K-example) をサブモジュールとして利用しています。
+
+サブモジュールが取得できていない場合は、例えば下記のようなコマンドで取得しておいてください。
+
+```
+git submodule update --init --recursive
+```
+
+
+ビルドは projects/tang_nano_4k/tang_nano_4k_mnist/syn ディレクトリに移動して
 
 ```
 make
 ```
 
-で合成します。
+とすると合成や配置配線を行います。
 
 tclスクリプトは scripts/gowin_build.tcl にあり、Makefile 内の WSLENV の指定で、環境変数を WSL から Windows に渡しています。
 
@@ -52,5 +63,6 @@ tclスクリプトは scripts/gowin_build.tcl にあり、Makefile 内の WSLENV
 make run
 ```
 
-で、ダウンロード実行します。
+で、openFPGALoader を使ったダウンロード実行します。
+
 
