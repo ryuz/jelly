@@ -83,7 +83,7 @@ module tang_nano_4k_mnist
     
 
     // -----------------------------
-    //  OV2640
+    //  OV2640 カメラ設定
     // -----------------------------
 
     assign  ov2640_xclk = clk_12;
@@ -100,6 +100,10 @@ module tang_nano_4k_mnist
                 .pwdn               (           )
             );
 
+    
+    // -----------------------------
+    //  縮小＆二値化
+    // -----------------------------
 
     logic          prev_href;
     logic   [9:0]  cam_x;
@@ -124,7 +128,6 @@ module tang_nano_4k_mnist
         end
     end
 
-    // 縮小＆バイナライズ
     logic   [27:0][27:0]    bin_shr;
     logic   [27:0][27:0]    bin_img;
     always_ff @(posedge ov2640_pixclk) begin
@@ -140,6 +143,11 @@ module tang_nano_4k_mnist
             bin_img <= bin_shr;
         end
     end
+
+
+    // -----------------------------
+    //  LUT-Network 画像認識
+    // -----------------------------
 
     logic   [9:0]       mnist_class;
     MnistLutSimple
@@ -163,8 +171,9 @@ module tang_nano_4k_mnist
                 .out_valid      (               )
             );
 
+
     // -----------------------------
-    //  DVI-TX
+    //  DVI同期信号生成
     // -----------------------------
 
     logic   syn_re;
@@ -207,6 +216,9 @@ module tang_nano_4k_mnist
     end
 
 
+    // -----------------------------
+    //  フレームバッファ
+    // -----------------------------
 
     logic               buf_de;
     logic   [15:0]      buf_data;
@@ -239,6 +251,9 @@ module tang_nano_4k_mnist
                 .IO_hpram_rwds      
             );
 
+    // -----------------------------
+    //  表示画像オーバーレイ
+    // -----------------------------
 
     logic           prev_de;
     logic   [10:0]  dvi_x;
@@ -295,6 +310,10 @@ module tang_nano_4k_mnist
         end
     end
 
+
+    // -----------------------------
+    //  DVI出力
+    // -----------------------------
 
     DVI_TX_Top
         u_DVI_TX_Top
