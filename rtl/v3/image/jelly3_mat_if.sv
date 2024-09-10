@@ -10,16 +10,16 @@
 `default_nettype none
 
 
-interface jelly3_img_if
+interface jelly3_mat_if
         #(
-            parameter   bit     USE_USER  = 0                           ,
-            parameter   bit     USE_DE    = 1                           ,
-            parameter   bit     USE_VALID = 1                           ,
-
-            parameter   int     DATA_BITS = 32                          ,
-            parameter   int     UNIT_BITS = DATA_BITS                   ,
-            parameter   int     DE_BITS   = DATA_BITS / UNIT_BITS       ,
-            parameter   int     USER_BITS = 1                           
+            parameter   bit     USE_DE       = 1                        ,
+            parameter   bit     USE_USER     = 0                        ,
+            parameter   bit     USE_VALID    = 1                        ,
+            parameter   int     TAPS         = 1                        ,
+            parameter   int     DE_BITS      = TAPS                     ,
+            parameter   int     CH_DEPTH     = 1                        ,
+            parameter   int     CH_BITS      = 8                        ,
+            parameter   int     USER_BITS    = 1                        
         )
         (
             input   var logic   reset   ,
@@ -27,18 +27,19 @@ interface jelly3_img_if
             input   var logic   cke
         );
 
-    localparam  type    data_t    = logic [DATA_BITS-1:0]   ;
+    localparam  type    ch_t      = logic [CH_BITS-1:0]     ;
+    localparam  type    data_t    = ch_t  [CH_DEPTH-1:0]    ;
     localparam  type    de_t      = logic [DE_BITS-1:0]     ;
     localparam  type    user_t    = logic [USER_BITS-1:0]   ;
 
-    logic       row_first   ;
-    logic       row_last    ;
-    logic       col_first   ;
-    logic       col_last    ;
-    de_t        de          ;
-    data_t      data        ;
-    user_t      user        ;
-    logic       valid       ;
+    logic               row_first   ;
+    logic               row_last    ;
+    logic               col_first   ;
+    logic               col_last    ;
+    de_t                de          ;
+    data_t  [TAPS-1:0]  data        ;
+    user_t              user        ;
+    logic               valid       ;
     
     modport m
         (
