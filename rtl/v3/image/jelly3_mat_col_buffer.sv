@@ -45,7 +45,7 @@ module jelly3_mat_col_buffer
             output  var logic                           m_img_row_last      ,
             output  var logic                           m_img_col_first     ,
             output  var logic                           m_img_col_last      ,
-            output  var logic                           m_img_de            ,
+            output  var de_t                            m_img_de            ,
             output  var user_t                          m_img_user          ,
             output  var data_t  [TAPS-1:0][COLS-1:0]    m_img_data          ,
             output  var logic                           m_img_valid         
@@ -63,31 +63,95 @@ module jelly3_mat_col_buffer
     localparam  int     L           = (L_MARGIN + TAPS - 1) / TAPS;
     localparam  int     R           = (R_MARGIN + TAPS - 1) / TAPS;
     localparam  int     BUFS        = L + 1 + R;
-
+    localparam  int     POS_BITS    = $clog2(BUFS);
+    localparam  type    pos_t       = logic [POS_BITS-1:0];
 
     // endian swap
-    data_t  [TAPS-1:0]  s_img_data0  ;
+    data_t  [TAPS-1:0]  s_img_data_endian  ;
     if ( ENDIAN ) begin : s_data_big
         for ( genvar i = 0; i < TAPS; i++ ) begin : s_data_loop
-            assign s_img_data0[i] = s_img_data[TAPS-1 - i];
+            assign s_img_data_endian[i] = s_img_data[TAPS-1 - i];
         end
     end
     else begin : s_data_little
-        assign s_img_data0 = s_img_data;
+        assign s_img_data_endian = s_img_data;
     end
 
     if ( COLS > 1 ) begin : blk_border
         // stage 0
-        logic   [BUFS-1:0]          st0_row_first   ;
-        logic   [BUFS-1:0]          st0_row_last    ;
-        logic   [BUFS-1:0]          st0_col_first   ;
-        logic   [BUFS-1:0]          st0_col_last    ;
-        de_t    [BUFS-1:0]          st0_de          ;
-        user_t  [BUFS-1:0]          st0_user        ;
-        data_t  [BUFS*TAPS-1:0]     st0_data        ;
-        logic   [BUFS-1:0]          st0_valid       ;
+        logic                       st0_last        , next0_last     ;
+        pos_t                       st0_last_pos    , next0_last_pos ;
+        logic   [BUFS-1:0]          st0_row_first   , next0_row_first;
+        logic   [BUFS-1:0]          st0_row_last    , next0_row_last ;
+        logic   [BUFS-1:0]          st0_col_first   , next0_col_first;
+        logic   [BUFS-1:0]          st0_col_last    , next0_col_last ;
+        de_t    [BUFS-1:0]          st0_de          , next0_de       ;
+        user_t  [BUFS-1:0]          st0_user        , next0_user     ;
+        data_t  [BUFS*TAPS-1:0]     st0_data        , next0_data     ;
+        logic   [BUFS-1:0]          st0_valid       , next0_valid    ;
+        always_comb begin
+            automatic int pos = int'(st0_last_pos);
+
+            next0_last      = st0_last      ;
+            next0_last_pos  = st0_last_pos  ;
+            next0_row_first = $bits(next0_row_first)'({s_img_row_first  ,   st0_row_first} >> $bits(s_img_row_first));
+            next0_row_last  = $bits(next0_row_last )'({s_img_row_last   ,   st0_row_last } >> $bits(s_img_row_last ));
+            next0_col_first = $bits(next0_col_first)'({s_img_col_first  ,   st0_col_first} >> $bits(s_img_col_first));
+            next0_col_last  = $bits(next0_col_last )'({s_img_col_last   ,   st0_col_last } >> $bits(s_img_col_last ));
+            next0_de        = $bits(next0_de       )'({s_img_de         ,   st0_de       } >> $bits(s_img_de       ));
+            next0_user      = $bits(next0_user     )'({s_img_user       ,   st0_user     } >> $bits(s_img_user     ));
+            next0_data      = $bits(next0_data     )'({s_img_data_endian,   st0_data     } >> $bits(s_img_data     ));
+            next0_valid     = $bits(next0_valid    )'({s_img_valid      ,   st0_valid    } >> $bits(s_img_valid    ));
+
+            if ( next0_valid[L] && next0_col_first[L] ) begin
+                next0_last     = 1'b0;
+                next0_last_pos = 'x;
+                for ( int i = 0; i < L*TAPS; i++ ) begin
+                    next0_data[L*TAPS-1 - i] = 'x;
+                    if ( string'(BORDER_MODE) == "CONSTANT" ) begin
+                        next0_data[L*TAPS-1 - i] = BORDER_VALUE;
+                    end
+                    else if ( string'(BORDER_MODE) == "REPLICATE" ) begin
+                        next0_data[L*TAPS-1 - i] = next0_data[L*TAPS];
+                    end
+                    else if ( string'(BORDER_MODE) == "REFLECT" ) begin
+                        next0_data[L*TAPS-1 - i] = next0_data[L*TAPS + i];
+                    end
+                    else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
+                        next0_data[L*TAPS-1 - i] = next0_data[L*TAPS + 1 + i];
+                    end
+                end
+            end
+            
+            if ( st0_last ) begin
+                for ( int i = 0; i < TAPS; i++ ) begin
+                    next0_data[(BUFS-1)*TAPS + i] = 'x;
+                    if ( string'(BORDER_MODE) == "CONSTANT" ) begin
+                        next0_data[(BUFS-1)*TAPS + i] = BORDER_VALUE;
+                    end
+                    else if ( string'(BORDER_MODE) == "REPLICATE" ) begin
+                        next0_data[(BUFS-1)*TAPS + i] = st0_data[(BUFS-pos)*TAPS-1];
+                    end
+                    else if ( string'(BORDER_MODE) == "REFLECT" ) begin
+                        next0_data[(BUFS-1)*TAPS + i] = st0_data[(BUFS-pos)*TAPS-1 - (pos*TAPS+i)];
+                    end
+                    else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
+                        next0_data[(BUFS-1)*TAPS + i] = st0_data[(BUFS-pos)*TAPS-1 - (pos*TAPS+i)-1];
+                    end
+                end
+            end
+
+            if ( s_img_valid && s_img_col_last ) begin
+                next0_last     = 1'b1;
+                next0_last_pos = 0;
+            end
+        end
+
+
         always_ff @(posedge clk) begin
             if ( reset ) begin
+                st0_last      <= 'x;
+                st0_last_pos  <= 'x;
                 st0_row_first <= 'x;
                 st0_row_last  <= 'x;
                 st0_col_first <= 'x;
@@ -98,56 +162,16 @@ module jelly3_mat_col_buffer
                 st0_valid     <= '0;
             end
             else if ( cke ) begin
-                st0_row_first <= $bits(st0_row_first)'({s_img_row_first ,   st0_row_first} >> $bits(s_img_row_first));
-                st0_row_last  <= $bits(st0_row_last )'({s_img_row_last  ,   st0_row_last } >> $bits(s_img_row_last ));
-                st0_col_first <= $bits(st0_col_first)'({s_img_col_first ,   st0_col_first} >> $bits(s_img_col_first));
-                st0_col_last  <= $bits(st0_col_last )'({s_img_col_last  ,   st0_col_last } >> $bits(s_img_col_last ));
-                st0_de        <= $bits(st0_de       )'({s_img_de        ,   st0_de       } >> $bits(s_img_de       ));
-                st0_user      <= $bits(st0_user     )'({s_img_user      ,   st0_user     } >> $bits(s_img_user     ));
-                st0_data      <= $bits(st0_data     )'({s_img_data0     ,   st0_data     } >> $bits(s_img_data     ));
-                st0_valid     <= $bits(st0_valid    )'({s_img_valid     ,   st0_valid    } >> $bits(s_img_valid    ));
-            end
-        end
-
-        // border
-        data_t  [BUFS*TAPS-1:0] st0_data0  ;
-        always_comb begin
-            st0_data0 = st0_data;
-            if ( st0_col_first[L] ) begin
-                for ( int i = 0; i < L*TAPS; i++ ) begin
-                    automatic int j;
-                    st0_data0[L*TAPS-1 - i] = 'x;
-                    if ( string'(BORDER_MODE) == "CONSTANT" ) begin
-                        st0_data0[L*TAPS-1 - i] = BORDER_VALUE;
-                    end
-                    else if ( string'(BORDER_MODE) == "REPLICATE" ) begin
-                        st0_data0[L*TAPS-1 - i] = st0_data[L*TAPS];
-                    end
-                    else if ( string'(BORDER_MODE) == "REFLECT" ) begin
-                        st0_data0[L*TAPS-1 - i] = st0_data[L*TAPS + i];
-                    end
-                    else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
-                        st0_data0[L*TAPS-1 - i] = st0_data[L*TAPS + 1 + i];
-                    end
-                end
-            end
-            if ( st0_col_last[L] ) begin
-                for ( int i = 0; i < R*TAPS; i++ ) begin
-                    automatic int j;
-                    st0_data0[(L+BUFS)*TAPS + i] = 'x;
-                    if ( string'(BORDER_MODE) == "CONSTANT" ) begin
-                        st0_data0[(L+BUFS)*TAPS + i] = BORDER_VALUE;
-                    end
-                    else if ( string'(BORDER_MODE) == "REPLICATE" ) begin
-                        st0_data0[(L+BUFS)*TAPS + i] = st0_data[(L+BUFS)*TAPS-1];
-                    end
-                    else if ( string'(BORDER_MODE) == "REFLECT" ) begin
-                        st0_data0[(L+BUFS)*TAPS + i] = st0_data[(L+BUFS)*TAPS-1 - i];
-                    end
-                    else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
-                        st0_data0[(L+BUFS)*TAPS + i] = st0_data[(L+BUFS)*TAPS-2 - i];
-                    end
-                end
+                st0_last      <= next0_last     ;
+                st0_last_pos  <= next0_last_pos ;
+                st0_row_first <= next0_row_first;
+                st0_row_last  <= next0_row_last ;
+                st0_col_first <= next0_col_first;
+                st0_col_last  <= next0_col_last ;
+                st0_de        <= next0_de       ;
+                st0_user      <= next0_user     ;
+                st0_data      <= next0_data     ;
+                st0_valid     <= next0_valid    ;
             end
         end
 
@@ -171,7 +195,7 @@ module jelly3_mat_col_buffer
                 st1_data      <= 'x;
                 st1_valid     <= '0;
             end
-            else begin
+            else if ( cke ) begin
                 st1_row_first <= st0_row_first[L];
                 st1_row_last  <= st0_row_last [L];
                 st1_col_first <= st0_col_first[L];
@@ -182,7 +206,7 @@ module jelly3_mat_col_buffer
 
                 for ( int i = 0; i < TAPS; i++ ) begin
                     for ( int j = 0; j < COLS; j++ ) begin
-                        st1_data[i][j] = st0_data0[L*TAPS + i + j - A];
+                        st1_data[i][j] <= st0_data[L*TAPS + i + j - A];
                     end
                 end
             end
@@ -194,10 +218,12 @@ module jelly3_mat_col_buffer
         assign m_img_col_last  = st1_col_last ;
         assign m_img_de        = st1_de       ;
         assign m_img_user      = st1_user     ;
+        assign m_img_valid     = st1_valid    ;
+
         if ( ENDIAN ) begin : m_data_big
             for ( genvar i = 0; i < TAPS; i++ ) begin : m_data_loop1
                 for ( genvar j = 0; j < COLS; j++ ) begin : m_data_loop2
-                    assign m_img_data[i][j] = st1_data[i][COLS - 1 - j];
+                    assign m_img_data[i][j] = st1_data[TAPS-1 - i][COLS-1 - j];
                 end
             end
         end

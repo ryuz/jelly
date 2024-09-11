@@ -12,9 +12,9 @@ module tb_main
     localparam  bit     USE_DE       = 1    ;
     localparam  bit     USE_USER     = 0    ;
     localparam  bit     USE_VALID    = 1    ;
-    localparam  int     TAPS         = 1    ;
+    localparam  int     TAPS         = 4    ;
     localparam  int     DE_BITS      = TAPS ;
-    localparam  int     CH_DEPTH     = 3    ;
+    localparam  int     CH_DEPTH     = 1    ;
     localparam  int     CH_BITS      = 8    ;
     localparam  int     USER_BITS    = 1    ;
 
@@ -44,8 +44,8 @@ module tb_main
                 .IMG_CH_BITS        (CH_BITS            ),
                 .IMG_COLS           (64                 ),
                 .IMG_ROWS           (48                 ),
-                .COL_BLANK          (8                  ),   // 基本ゼロ
-                .ROW_BLANK          (4                  ),   // 末尾にde落ちラインを追加
+                .COL_BLANK          (0                  ),   // 基本ゼロ
+                .ROW_BLANK          (0                  ),   // 末尾にde落ちラインを追加
                 .FILE_NAME          (""                 ),
                 .FILE_EXT           (""                 ),
                 .FILE_IMG_WIDTH     (640                ),
@@ -69,12 +69,13 @@ module tb_main
             #(
                 .TAPS               (TAPS               ),
                 .DE_BITS            (DE_BITS            ),
-                .COLS               (5                  ),
+                .COLS               (7                  ),
                 .USER_BITS          (1                  ),
-                .DATA_WIDTH         (3*8                ),
-                .ANCHOR             (1                  ),
-                .BORDER_MODE        ("REPLICATE"        ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-                .BORDER_VALUE       ('0                 ),   // BORDER_MODE == "CONSTANT"
+                .DATA_WIDTH         (CH_DEPTH*CH_BITS   ),
+                .ANCHOR             (3                  ),
+//              .BORDER_MODE        ("REPLICATE"        ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+                .BORDER_MODE        ("CONSTANT"         ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+                .BORDER_VALUE       (8'haa              ),   // BORDER_MODE == "CONSTANT"
                 .ENDIAN             (0                  )    // 0: little, 1:big
             )
         u_mat_col_buffer

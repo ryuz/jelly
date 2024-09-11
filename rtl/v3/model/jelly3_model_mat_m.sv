@@ -159,7 +159,7 @@ module jelly3_model_mat_m
                     if ( y >= (TOTAL_ROWS-1) ) begin
                         y <= 0;
                         f <= f + 1;
-                        busy <= 1'b0;
+                        busy <= enable;
                     end
                 end
             end
@@ -174,11 +174,16 @@ module jelly3_model_mat_m
         end
     end
 
+    always_comb begin
+        for ( int tap = 0; tap < $bits(m_mat.de); tap++ ) begin
+            m_mat.de[tap] = m_mat.valid ? (x+tap < IMG_COLS && y < IMG_ROWS) : 'x;
+        end
+    end
+
     assign m_mat.row_first = m_mat.valid ? (y == 0)                       : 'x;
     assign m_mat.row_last  = m_mat.valid ? (y == (IMG_ROWS-1))            : 'x;
     assign m_mat.col_first = m_mat.valid ? (x == 0)                       : 'x;
     assign m_mat.col_last  = m_mat.valid ? (x == (IMG_COLS-1))            : 'x;
-    assign m_mat.de        = m_mat.valid ? (x < IMG_COLS && y < IMG_ROWS) : 'x;
     assign m_mat.valid     = busy;
 
     assign out_x           = x_t'(x);
