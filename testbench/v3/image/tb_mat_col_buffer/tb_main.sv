@@ -12,11 +12,12 @@ module tb_main
     localparam  bit     USE_DE       = 1    ;
     localparam  bit     USE_USER     = 0    ;
     localparam  bit     USE_VALID    = 1    ;
-    localparam  int     TAPS         = 1    ;
+    localparam  int     TAPS         = 4    ;
     localparam  int     DE_BITS      = TAPS ;
     localparam  int     CH_DEPTH     = 1    ;
     localparam  int     CH_BITS      = 8    ;
     localparam  int     USER_BITS    = 1    ;
+    localparam  bit     ENDIAN       = 0    ;
 
     logic   cke = 1'b1;
 
@@ -51,7 +52,7 @@ module tb_main
                 .FILE_IMG_WIDTH     (640                ),
                 .FILE_IMG_HEIGHT    (480                ),
                 .SEQUENTIAL_FILE    (0                  ),
-                .ENDIAN             (0                  )
+                .ENDIAN             (ENDIAN             )
             )
         u_model_mat_m
             (
@@ -78,7 +79,7 @@ module tb_main
 //              .BORDER_MODE        ("REFLECT_101"      ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
 //              .BORDER_MODE        ("REFLECT"          ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
                 .BORDER_VALUE       (8'haa              ),   // BORDER_MODE == "CONSTANT"
-                .ENDIAN             (0                  )    // 0: little, 1:big
+                .ENDIAN             (ENDIAN             )    // 0: little, 1:big
             )
         u_mat_col_buffer
             (
