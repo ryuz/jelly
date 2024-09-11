@@ -53,7 +53,7 @@ module jelly3_mat_col_buffer
     
     localparam  bit     REFLECT     = string'(BORDER_MODE) == "REFLECT" || string'(BORDER_MODE) == "REFLECT_101";
     localparam  int     REF101      = string'(BORDER_MODE) == "REFLECT_101" ? 1 : 0;
-    localparam  int     A           = ENDIAN ? ANCHOR : COLS-1 - ANCHOR;
+    localparam  int     A           = ENDIAN ? COLS-1 - ANCHOR : ANCHOR;
     localparam  int     L_MARGIN0   = A;
     localparam  int     R_MARGIN0   = COLS-A;
     localparam  int     L_MARGIN1   = REFLECT ? R_MARGIN0 - TAPS - 1 + REF101 : 0;

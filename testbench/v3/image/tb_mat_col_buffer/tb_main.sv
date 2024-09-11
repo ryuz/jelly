@@ -12,7 +12,7 @@ module tb_main
     localparam  bit     USE_DE       = 1    ;
     localparam  bit     USE_USER     = 0    ;
     localparam  bit     USE_VALID    = 1    ;
-    localparam  int     TAPS         = 4    ;
+    localparam  int     TAPS         = 1    ;
     localparam  int     DE_BITS      = TAPS ;
     localparam  int     CH_DEPTH     = 1    ;
     localparam  int     CH_BITS      = 8    ;
@@ -69,14 +69,14 @@ module tb_main
             #(
                 .TAPS               (TAPS               ),
                 .DE_BITS            (DE_BITS            ),
-                .COLS               (7                  ),
+                .COLS               (3                  ),
                 .USER_BITS          (1                  ),
                 .DATA_WIDTH         (CH_DEPTH*CH_BITS   ),
-                .ANCHOR             (3                  ),
+                .ANCHOR             (0                  ),
 //              .BORDER_MODE        ("REPLICATE"        ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-//              .BORDER_MODE        ("CONSTANT"         ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+                .BORDER_MODE        ("CONSTANT"         ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
 //              .BORDER_MODE        ("REFLECT_101"      ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-                .BORDER_MODE        ("REFLECT"          ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+//              .BORDER_MODE        ("REFLECT"          ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
                 .BORDER_VALUE       (8'haa              ),   // BORDER_MODE == "CONSTANT"
                 .ENDIAN             (0                  )    // 0: little, 1:big
             )
