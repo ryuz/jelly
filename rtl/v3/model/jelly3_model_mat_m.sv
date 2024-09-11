@@ -153,7 +153,7 @@ module jelly3_model_mat_m
             end
             else begin
                 x <= x + MAT_TAPS;
-                if ( x >= (TOTAL_COLS-1) ) begin
+                if ( x >= (TOTAL_COLS-MAT_TAPS) ) begin
                     x <= 0;
                     y <= y + 1;
                     if ( y >= (TOTAL_ROWS-1) ) begin
@@ -183,7 +183,7 @@ module jelly3_model_mat_m
     assign m_mat.row_first = m_mat.valid ? (y == 0)                       : 'x;
     assign m_mat.row_last  = m_mat.valid ? (y == (IMG_ROWS-1))            : 'x;
     assign m_mat.col_first = m_mat.valid ? (x == 0)                       : 'x;
-    assign m_mat.col_last  = m_mat.valid ? (x == (IMG_COLS-1))            : 'x;
+    assign m_mat.col_last  = m_mat.valid ? (x >= (IMG_COLS-MAT_TAPS))     : 'x;
     assign m_mat.valid     = busy;
 
     assign out_x           = x_t'(x);

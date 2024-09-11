@@ -74,7 +74,9 @@ module tb_main
                 .DATA_WIDTH         (CH_DEPTH*CH_BITS   ),
                 .ANCHOR             (3                  ),
 //              .BORDER_MODE        ("REPLICATE"        ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-                .BORDER_MODE        ("CONSTANT"         ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+//              .BORDER_MODE        ("CONSTANT"         ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+//              .BORDER_MODE        ("REFLECT_101"      ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+                .BORDER_MODE        ("REFLECT"          ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
                 .BORDER_VALUE       (8'haa              ),   // BORDER_MODE == "CONSTANT"
                 .ENDIAN             (0                  )    // 0: little, 1:big
             )
