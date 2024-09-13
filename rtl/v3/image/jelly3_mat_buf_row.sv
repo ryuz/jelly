@@ -121,7 +121,7 @@ module jelly3_mat_buf_row
         logic                               st0_row_last    ;
         logic                               st0_col_first   ;
         logic                               st0_col_last    ;
-        logic                               st0_de          ;
+        de_t                                st0_de          ;
         user_t                              st0_user        ;
         data_t  [TAPS-1:0]                  st0_data        ;
         logic                               st0_valid       ;
@@ -130,7 +130,7 @@ module jelly3_mat_buf_row
         logic                               st1_row_last    ;
         logic                               st1_col_first   ;
         logic                               st1_col_last    ;
-        logic                               st1_de          ;
+        de_t                                st1_de          ;
         user_t                              st1_user        ;
         data_t  [TAPS-1:0]                  st1_data        ;
         logic                               st1_valid       ;
@@ -140,7 +140,7 @@ module jelly3_mat_buf_row
         logic                               st2_row_last    ;
         logic                               st2_col_first   ;
         logic                               st2_col_last    ;
-        logic                               st2_de          ;
+        de_t                                st2_de          ;
         user_t                              st2_user        ;
         data_t  [TAPS-1:0]                  st2_data        ;
         logic                               st2_valid       ;
@@ -149,7 +149,7 @@ module jelly3_mat_buf_row
         logic   [ROWS-1:0]                  st3_row_last    ;
         logic                               st3_col_first   ;
         logic                               st3_col_last    ;
-        logic   [ROWS-1:0]                  st3_de          ;
+        de_t    [ROWS-1:0]                  st3_de          ;
         user_t  [ROWS-1:0]                  st3_user        ;
         data_t  [ROWS-1:0][TAPS-1:0]        st3_data        ;
         logic                               st3_valid       ;
@@ -158,7 +158,7 @@ module jelly3_mat_buf_row
         logic                               st4_row_last    ;
         logic                               st4_col_first   ;
         logic                               st4_col_last    ;
-        logic                               st4_de          ;
+        de_t                                st4_de          ;
         user_t                              st4_user        ;
         data_t   [ROWS-1:0][TAPS-1:0]       st4_data        ;
         pos_t                               st4_pos_first   ;
@@ -169,7 +169,7 @@ module jelly3_mat_buf_row
         logic                               st5_row_last    ;
         logic                               st5_col_first   ;
         logic                               st5_col_last    ;
-        logic                               st5_de          ;
+        de_t                                st5_de          ;
         user_t                              st5_user        ;
         data_t  [ROWS-1:0][TAPS-1:0]        st5_data        ;
         pos_t   [ROWS-1:0]                  st5_pos_data    ;
@@ -179,7 +179,7 @@ module jelly3_mat_buf_row
         logic                               st6_row_last    ;
         logic                               st6_col_first   ;
         logic                               st6_col_last    ;
-        logic                               st6_de          ;
+        de_t                                st6_de          ;
         logic   [USER_BITS-1:0]             st6_user        ;
         data_t  [ROWS-1:0][TAPS-1:0]        st6_data        ;
         logic                               st6_valid       ;
@@ -193,7 +193,7 @@ module jelly3_mat_buf_row
                 st0_row_last      <= 1'b0   ;
                 st0_col_first     <= 1'b0   ;
                 st0_col_last      <= 1'b0   ;
-                st0_de            <= 1'b0   ;
+                st0_de            <= '0     ;
                 st0_user          <= 'x     ;
                 st0_data          <= 'x     ;
                 st0_valid         <= 1'b0   ;
@@ -202,7 +202,7 @@ module jelly3_mat_buf_row
                 st1_row_last      <= 1'b0   ;
                 st1_col_first     <= 1'b0   ;
                 st1_col_last      <= 1'b0   ;
-                st1_de            <= 1'b0   ;
+                st1_de            <= '0     ;
                 st1_user          <= 'x     ;
                 st1_data          <= 'x     ;
                 st1_valid         <= 1'b0   ;
@@ -212,7 +212,7 @@ module jelly3_mat_buf_row
                 st2_row_last      <= 1'b0   ;
                 st2_col_first     <= 1'b0   ;
                 st2_col_last      <= 1'b0   ;
-                st2_de            <= 1'b0   ;
+                st2_de            <= '0     ;
                 st2_user          <= 'x     ;
                 st2_data          <= 'x     ;
                 st2_valid         <= 1'b0   ;
@@ -230,7 +230,7 @@ module jelly3_mat_buf_row
                 st4_row_last      <= 1'b0   ;
                 st4_col_first     <= 1'b0   ;
                 st4_col_last      <= 1'b0   ;
-                st4_de            <= 1'b0   ;
+                st4_de            <= '0     ;
                 st4_user          <= 'x     ;
                 st4_data          <= 'x     ;
                 st4_pos_first     <= 'x     ;
@@ -241,7 +241,7 @@ module jelly3_mat_buf_row
                 st5_row_last      <= 1'b0   ;
                 st5_col_first     <= 1'b0   ;
                 st5_col_last      <= 1'b0   ;
-                st5_de            <= 1'b0   ;
+                st5_de            <= '0     ;
                 st5_user          <= 1'bx   ;
                 st5_data          <= 'x     ;
                 st5_pos_data      <= 'x     ;
@@ -251,7 +251,7 @@ module jelly3_mat_buf_row
                 st6_row_last      <= 1'b0   ;
                 st6_col_first     <= 1'b0   ;
                 st6_col_last      <= 1'b0   ;
-                st6_de            <= 1'b0   ;
+                st6_de            <= '0     ;
                 st6_user          <= 'x     ;
                 st6_data          <= 'x     ;
                 st6_valid         <= 1'b0   ;
@@ -266,11 +266,11 @@ module jelly3_mat_buf_row
                     st0_addr <= st0_addr + 1'b1;
                 end
                 
-                st0_row_first <= s_mat_row_first & s_mat_valid;
-                st0_row_last  <= s_mat_row_last  & s_mat_valid;
-                st0_col_first <= s_mat_col_first & s_mat_valid;
-                st0_col_last  <= s_mat_col_last  & s_mat_valid;
-                st0_de        <= s_mat_de        & s_mat_valid;
+                st0_row_first <= s_mat_valid ? s_mat_row_first : '0;
+                st0_row_last  <= s_mat_valid ? s_mat_row_last  : '0;
+                st0_col_first <= s_mat_valid ? s_mat_col_first : '0;
+                st0_col_last  <= s_mat_valid ? s_mat_col_last  : '0;
+                st0_de        <= s_mat_valid ? s_mat_de        : '0;
                 st0_user      <= s_mat_user     ;
                 st0_data      <= s_mat_data     ;
                 st0_valid     <= s_mat_valid    ;
@@ -413,7 +413,7 @@ module jelly3_mat_buf_row
         logic                           out_row_last    ;
         logic                           out_col_first   ;
         logic                           out_col_last    ;
-        logic                           out_de          ;
+        de_t                            out_de          ;
         user_t                          out_user        ;
         data_t  [ROWS-1:0][TAPS-1:0]    out_data        ;
         logic                           out_valid       ;
