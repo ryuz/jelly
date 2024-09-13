@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly3_mat_col_buffer
+module jelly3_mat_buf_col
         #(
             parameter   int     TAPS         = 1                            ,
             parameter   int     DE_BITS      = TAPS                         ,
@@ -20,11 +20,11 @@ module jelly3_mat_col_buffer
             parameter   int     COLS         = 3                            ,
             parameter   int     USER_BITS    = 1                            ,
             parameter   type    user_t       = logic [USER_BITS-1:0]        ,
-            parameter   int     DATA_WIDTH   = 3*8                          ,
-            parameter   type    data_t       = logic [DATA_WIDTH-1:0]       ,
+            parameter   int     DATA_BITS    = 3*8                          ,
+            parameter   type    data_t       = logic [DATA_BITS-1:0]        ,
             parameter   int     ANCHOR       = (COLS-1) / 2                 ,
             parameter           BORDER_MODE  = "REPLICATE"                  ,   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-            parameter   data_t  BORDER_VALUE = {DATA_WIDTH{1'b0}}           ,   // BORDER_MODE == "CONSTANT"
+            parameter   data_t  BORDER_VALUE = {DATA_BITS{1'b0}}            ,   // BORDER_MODE == "CONSTANT"
             parameter   bit     ENDIAN       = 0                                // 0: little, 1:big
         )
         (
@@ -32,23 +32,23 @@ module jelly3_mat_col_buffer
             input   var logic                           clk                 ,
             input   var logic                           cke                 ,
             
-            input   var logic                           s_img_row_first     ,
-            input   var logic                           s_img_row_last      ,
-            input   var logic                           s_img_col_first     ,
-            input   var logic                           s_img_col_last      ,
-            input   var de_t                            s_img_de            ,
-            input   var user_t                          s_img_user          ,
-            input   var data_t  [TAPS-1:0]              s_img_data          ,
-            input   var logic                           s_img_valid         ,
+            input   var logic                           s_mat_row_first     ,
+            input   var logic                           s_mat_row_last      ,
+            input   var logic                           s_mat_col_first     ,
+            input   var logic                           s_mat_col_last      ,
+            input   var de_t                            s_mat_de            ,
+            input   var user_t                          s_mat_user          ,
+            input   var data_t  [TAPS-1:0]              s_mat_data          ,
+            input   var logic                           s_mat_valid         ,
             
-            output  var logic                           m_img_row_first     ,
-            output  var logic                           m_img_row_last      ,
-            output  var logic                           m_img_col_first     ,
-            output  var logic                           m_img_col_last      ,
-            output  var de_t                            m_img_de            ,
-            output  var user_t                          m_img_user          ,
-            output  var data_t  [TAPS-1:0][COLS-1:0]    m_img_data          ,
-            output  var logic                           m_img_valid         
+            output  var logic                           m_mat_row_first     ,
+            output  var logic                           m_mat_row_last      ,
+            output  var logic                           m_mat_col_first     ,
+            output  var logic                           m_mat_col_last      ,
+            output  var de_t                            m_mat_de            ,
+            output  var user_t                          m_mat_user          ,
+            output  var data_t  [TAPS-1:0][COLS-1:0]    m_mat_data          ,
+            output  var logic                           m_mat_valid         
         );
     
     localparam  bit     REFLECT     = string'(BORDER_MODE) == "REFLECT" || string'(BORDER_MODE) == "REFLECT_101";
@@ -67,14 +67,14 @@ module jelly3_mat_col_buffer
     localparam  type    pos_t       = logic [POS_BITS-1:0];
 
     // endian swap
-    data_t  [TAPS-1:0]  s_img_data_endian  ;
+    data_t  [TAPS-1:0]  s_mat_data_endian  ;
     if ( ENDIAN ) begin : s_data_big
         for ( genvar i = 0; i < TAPS; i++ ) begin : s_data_loop
-            assign s_img_data_endian[i] = s_img_data[TAPS-1 - i];
+            assign s_mat_data_endian[i] = s_mat_data[TAPS-1 - i];
         end
     end
     else begin : s_data_little
-        assign s_img_data_endian = s_img_data;
+        assign s_mat_data_endian = s_mat_data;
     end
 
     if ( COLS > 1 ) begin : blk_border
@@ -95,16 +95,16 @@ module jelly3_mat_col_buffer
             automatic int pos = int'(st0_last_pos);
             next0_border    = st0_border;
             next0_last_pos  = st0_last_pos;
-            next0_row_first = $bits(next0_row_first)'({s_img_row_first  ,   st0_row_first} >> $bits(s_img_row_first));
-            next0_row_last  = $bits(next0_row_last )'({s_img_row_last   ,   st0_row_last } >> $bits(s_img_row_last ));
-            next0_col_first = $bits(next0_col_first)'({s_img_col_first  ,   st0_col_first} >> $bits(s_img_col_first));
-            next0_col_last  = $bits(next0_col_last )'({s_img_col_last   ,   st0_col_last } >> $bits(s_img_col_last ));
-            next0_de        = $bits(next0_de       )'({s_img_de         ,   st0_de       } >> $bits(s_img_de       ));
-            next0_user      = $bits(next0_user     )'({s_img_user       ,   st0_user     } >> $bits(s_img_user     ));
-            next0_data0     = $bits(next0_data0    )'({s_img_data_endian,   st0_data0    } >> $bits(s_img_data     ));
-            next0_data1     = $bits(next0_data1    )'({s_img_data_endian,   st0_data1    } >> $bits(s_img_data     ));
+            next0_row_first = $bits(next0_row_first)'({s_mat_row_first  ,   st0_row_first} >> $bits(s_mat_row_first));
+            next0_row_last  = $bits(next0_row_last )'({s_mat_row_last   ,   st0_row_last } >> $bits(s_mat_row_last ));
+            next0_col_first = $bits(next0_col_first)'({s_mat_col_first  ,   st0_col_first} >> $bits(s_mat_col_first));
+            next0_col_last  = $bits(next0_col_last )'({s_mat_col_last   ,   st0_col_last } >> $bits(s_mat_col_last ));
+            next0_de        = $bits(next0_de       )'({s_mat_de         ,   st0_de       } >> $bits(s_mat_de       ));
+            next0_user      = $bits(next0_user     )'({s_mat_user       ,   st0_user     } >> $bits(s_mat_user     ));
+            next0_data0     = $bits(next0_data0    )'({s_mat_data_endian,   st0_data0    } >> $bits(s_mat_data     ));
+            next0_data1     = $bits(next0_data1    )'({s_mat_data_endian,   st0_data1    } >> $bits(s_mat_data     ));
             next0_sel       = $bits(next0_sel      )'({next0_border     ,   st0_sel      } >> $bits(next0_border   ));
-            next0_valid     = $bits(next0_valid    )'({s_img_valid      ,   st0_valid    } >> $bits(s_img_valid    ));
+            next0_valid     = $bits(next0_valid    )'({s_mat_valid      ,   st0_valid    } >> $bits(s_mat_valid    ));
 
             if ( next0_valid[L] && next0_col_first[L] ) begin
                 next0_border = 1'b0;
@@ -144,7 +144,7 @@ module jelly3_mat_col_buffer
                 end
             end
 
-            if ( s_img_valid && s_img_col_last ) begin
+            if ( s_mat_valid && s_mat_col_last ) begin
                 next0_border   = 1'b1;
                 next0_last_pos = 0;
             end
@@ -219,35 +219,35 @@ module jelly3_mat_col_buffer
             end
         end
 
-        assign m_img_row_first = st1_row_first;
-        assign m_img_row_last  = st1_row_last ;
-        assign m_img_col_first = st1_col_first;
-        assign m_img_col_last  = st1_col_last ;
-        assign m_img_de        = st1_de       ;
-        assign m_img_user      = st1_user     ;
-        assign m_img_valid     = st1_valid    ;
+        assign m_mat_row_first = st1_row_first;
+        assign m_mat_row_last  = st1_row_last ;
+        assign m_mat_col_first = st1_col_first;
+        assign m_mat_col_last  = st1_col_last ;
+        assign m_mat_de        = st1_de       ;
+        assign m_mat_user      = st1_user     ;
+        assign m_mat_valid     = st1_valid    ;
 
         if ( ENDIAN ) begin : m_data_big
             for ( genvar i = 0; i < TAPS; i++ ) begin : m_data_loop1
                 for ( genvar j = 0; j < COLS; j++ ) begin : m_data_loop2
-                    assign m_img_data[i][j] = st1_data[TAPS-1 - i][COLS-1 - j];
+                    assign m_mat_data[i][j] = st1_data[TAPS-1 - i][COLS-1 - j];
                 end
             end
         end
         else begin : m_data_little
-            assign m_img_data = st1_data;
+            assign m_mat_data = st1_data;
         end
     end
     else begin : blk_bypass
         // COLS == 1 の時はバイパスする
-        assign m_img_row_first = s_img_row_first;
-        assign m_img_row_last  = s_img_row_last;
-        assign m_img_col_first = s_img_col_first;
-        assign m_img_col_last  = s_img_col_last;
-        assign m_img_de        = s_img_de;
-        assign m_img_user      = s_img_user;
-        assign m_img_data      = s_img_data;
-        assign m_img_valid     = s_img_valid;
+        assign m_mat_row_first = s_mat_row_first;
+        assign m_mat_row_last  = s_mat_row_last;
+        assign m_mat_col_first = s_mat_col_first;
+        assign m_mat_col_last  = s_mat_col_last;
+        assign m_mat_de        = s_mat_de;
+        assign m_mat_user      = s_mat_user;
+        assign m_mat_data      = s_mat_data;
+        assign m_mat_valid     = s_mat_valid;
     end
     
 endmodule

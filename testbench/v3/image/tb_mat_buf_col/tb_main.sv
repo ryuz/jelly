@@ -66,13 +66,13 @@ module tb_main
             );
 
 
-    jelly3_mat_col_buffer
+    jelly3_mat_buf_col
             #(
                 .TAPS               (TAPS               ),
                 .DE_BITS            (DE_BITS            ),
                 .COLS               (3                  ),
                 .USER_BITS          (1                  ),
-                .DATA_WIDTH         (CH_DEPTH*CH_BITS   ),
+                .DATA_BITS          (CH_DEPTH*CH_BITS   ),
                 .ANCHOR             (0                  ),
 //              .BORDER_MODE        ("REPLICATE"        ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
                 .BORDER_MODE        ("CONSTANT"         ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
@@ -87,23 +87,23 @@ module tb_main
                 .clk                 ,
                 .cke                 ,
 
-                .s_img_row_first     (mat_src.row_first ),
-                .s_img_row_last      (mat_src.row_last  ),
-                .s_img_col_first     (mat_src.col_first ),
-                .s_img_col_last      (mat_src.col_last  ),
-                .s_img_de            (mat_src.de        ),
-                .s_img_user          (mat_src.user      ),
-                .s_img_data          (mat_src.data      ),
-                .s_img_valid         (mat_src.valid     ),
+                .s_mat_row_first     (mat_src.row_first ),
+                .s_mat_row_last      (mat_src.row_last  ),
+                .s_mat_col_first     (mat_src.col_first ),
+                .s_mat_col_last      (mat_src.col_last  ),
+                .s_mat_de            (mat_src.de        ),
+                .s_mat_user          (mat_src.user      ),
+                .s_mat_data          (mat_src.data      ),
+                .s_mat_valid         (mat_src.valid     ),
 
-                .m_img_row_first     (),
-                .m_img_row_last      (),
-                .m_img_col_first     (),
-                .m_img_col_last      (),
-                .m_img_de            (),
-                .m_img_user          (),
-                .m_img_data          (),
-                .m_img_valid         ()
+                .m_mat_row_first     (),
+                .m_mat_row_last      (),
+                .m_mat_col_first     (),
+                .m_mat_col_last      (),
+                .m_mat_de            (),
+                .m_mat_user          (),
+                .m_mat_data          (),
+                .m_mat_valid         ()
             );
     
 
