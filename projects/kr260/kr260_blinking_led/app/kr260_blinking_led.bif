@@ -1,0 +1,5 @@
+all:
+{
+    kr260_blinking_led.bit
+}
+
