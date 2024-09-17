@@ -1,10 +1,9 @@
-# Kria KV260 で u-dma-buf を試すサンプル
+# Kria KV260 で 自作デバイスドライバを試すサンプル
 
 
 ## 概要
 
-iwkzm氏の[u-dma-buf](https://github.com/ikwzm/udmabuf)を試してみた際のプロジェクト一式です。
-Zynqを活用するうえで非常に有用なソフトウェアですので同じことを試そうという方のご参考になれば幸いです。
+RTL は [kv260_udmabuf_sample](../kv260_udmabuf_sample) とほぼ同じもので、u-dma-buf ではなく自分でデバイスドライバを書いてみる実験です。
 
 
 ## 事前準備
@@ -14,11 +13,9 @@ Zynqを活用するうえで非常に有用なソフトウェアですので同�
 環境は下記の通りです。
 
 ```
-Description:    Ubuntu 20.04.4 LTS
-kernel:         5.4.0-1017-xilinx-zynqmp
+Description:    Ubuntu 22.04.4 LTS
+kernel:         5.15.0-1031-xilinx-zynqmp
 ```
-
-KV260 にはインジゲーターとして使えるLEDが無いので、PMOD に LED等を別途準備している前提としています。
 
 
 ### KV260側の準備
@@ -43,7 +40,7 @@ git clone https://github.com/ryuz/jelly
 
 で取得できます。
 
-/projects/kv260/kv260_udmabuf_sample/
+/projects/kv260/kv260_devdrv_sample/
 
 以下が今回のプロジェクトです。
 
@@ -54,7 +51,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/kv260/kv260_udmabuf_sample/syn/vivado2021.2/kv260_udmabuf_sample.xpr
+/projects/kv260/kv260_devdrv_sample/syn/vivado2022.2/kv260_devdrv_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -65,7 +62,7 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 うまくいかない場合は、既に登録されている i_design_1 を手動で削除してから、design_1.tcl を実行しても同じことができるはずです。
 
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
-kv260_udmabuf_sample.bit が出来上がります。
+kv260_devdrv_sample.bit が出来上がります。
 
 このファイルを projects/kv260/kv260_udmabuf_sample/app にコピーしておいてください。
 
@@ -82,7 +79,7 @@ kv260_udmabuf_sample.bit が出来上がります。
 ## PSソフト側の作成と実行
 
   KV260側でのPSソフトのビルドです。
-  projects/kv260/kv260_udmabuf_sample/app を KV260 のどこか適当な箇所にコピーします。
+  projects/kv260/kv260_devdrv_sample/app を KV260 のどこか適当な箇所にコピーします。
   KV260側の作業は Linux起動したあと、常に起動したまま行うことが可能で、運用したままPLとソフトをアップデートすることも可能なのがこのブートイメージの素晴らしいところです。
 
   KV260 の Linux側で git clone する手もあります。

@@ -20,13 +20,14 @@
 #include <asm/uaccess.h>
 #include <asm/io.h>
 
-
+// PL に構成した DMAなど のベースアドレス
 #define PL_BASE         0xa0000000
 #define DMA0_BASE       (PL_BASE + 0x00000)
 #define DMA1_BASE       (PL_BASE + 0x00800)
 #define LED_BASE        (PL_BASE + 0x08000)
 #define TIM_BASE        (PL_BASE + 0x10000)
 
+// DMAの制御レジスタのオフセットアドレス
 #define REG_DMA_STATUS  0
 #define REG_DMA_WSTART  1
 #define REG_DMA_RSTART  2
@@ -37,11 +38,12 @@
 #define REG_DMA_RDATA1  7
 #define REG_DMA_CORE_ID 8
 
+// タイマ制御レジスタのオフセットアドレス
 #define REG_TIM_CONTROL 0
 #define REG_TIM_COMPARE 1
 #define REG_TIM_COUNTER 3
 
-
+// メモリマップドレジスタへのアクセス用ポインタ
 static volatile unsigned long *dma0;
 static volatile unsigned long *dma1;
 static volatile unsigned long *led;
@@ -76,7 +78,6 @@ static ssize_t devdrv_read(struct file *filp, char __user *buf, size_t count, lo
     return 0;
 }
 
-
 static ssize_t devdrv_write(struct file *filp, const char __user *buf, size_t count, loff_t *f_pos)
 {
     struct page *pages[1];
@@ -87,7 +88,7 @@ static ssize_t devdrv_write(struct file *filp, const char __user *buf, size_t co
     unsigned long user_base = user_addr & PAGE_MASK;
     unsigned long offset    = user_addr & ~PAGE_MASK;
 
-
+    // 情報表示
     printk("devdrv_write");
     printk("PAGE_MASK : %lx", (unsigned long)PAGE_MASK);
     printk("ul size : %ld", sizeof(unsigned long));
@@ -96,19 +97,10 @@ static ssize_t devdrv_write(struct file *filp, const char __user *buf, size_t co
     printk("user off   : %016lx", (unsigned long)offset);
     printk("user paddr : %016lx", (unsigned long)virt_to_phys(buf)); 
 
-    ///////////////////////
-
     // ユーザー空間アドレスからページ数を計算
     npages = (count + (user_addr & (PAGE_SIZE - 1)) + PAGE_SIZE - 1) / PAGE_SIZE;
 
-    // ページの配列を確保
-//    pages = kcalloc(npages, sizeof(*pages), GFP_KERNEL);
-//    if (!pages)
-//        return -ENOMEM;
-//    printk("npages : %p", npages);
-//  printk("pages  : %d", pages);
-
-//    ret = get_user_pages(current, current->mm, user_addr, npages, FOLL_WRITE, pages, NULL);
+    // ページテーブルを作り、物理アドレスを取得
     ret = get_user_pages(user_base, 1, FOLL_FORCE, pages, NULL);
     if (ret < 0) {
         printk(KERN_ERR "Failed to get_user_pages: %d\n", ret);
@@ -118,17 +110,20 @@ static ssize_t devdrv_write(struct file *filp, const char __user *buf, size_t co
     printk("pages[0] : %016lx\n", (unsigned long)pages[0]); 
     printk("dma_addr : %016lx\n", (unsigned long)dma_addr); 
 
-
+    // PLに構成した DMA を使ってユーザー空間のデータにアクセス
     printk("<DMA0 read test>\n");
     dma0[REG_DMA_ADDR]   = dma_addr + offset;
     dma0[REG_DMA_RSTART] = 1;
     printk("REG_DMA_STATUS  : %016lx\n", dma0[REG_DMA_STATUS]);
+
+    // DMAの完了を待って結果を出力
     while ( dma0[REG_DMA_STATUS] )
           ;
     printk("REG_DMA_STATUS  : %016lx\n", dma0[REG_DMA_STATUS]);
     printk("REG_DMA0_RDATA0 : %016lx\n", dma0[REG_DMA_RDATA0]);
     printk("REG_DMA0_RDATA1 : %016lx\n", dma0[REG_DMA_RDATA1]);
 
+    // ページテーブルを返却
     put_page(pages[0]);
 
     return count;
@@ -184,6 +179,7 @@ static int devdrv_init(void)
         device_create(devdrv_class, NULL, MKDEV(devdrv_major, minor), NULL, "jelly-devdrv%d", minor);
     }
 
+    // メモリマップドレジスタへのアクセス用ページを作りポインタを取得
     dma0 = (unsigned long *)ioremap(DMA0_BASE, 4096);
     dma1 = (unsigned long *)ioremap(DMA1_BASE, 4096);
     led  = (unsigned long *)ioremap(LED_BASE , 4096);
@@ -193,7 +189,7 @@ static int devdrv_init(void)
     printk("led  : %016lx\n", (unsigned long)led);
     printk("tim  : %016lx\n", (unsigned long)tim);
 
-    led[0] = 0;
+    led[0] = 1; // LED ON
 
     return 0;
 }
@@ -202,6 +198,9 @@ static void devdrv_exit(void)
 {
     printk("devdrv_exit\n");
 
+    led[0] = 0; // LED OFF
+
+    // メモリマップドレジスタへのアクセス用ページを解放
     iounmap(dma0);
     iounmap(dma1);
     iounmap(led);

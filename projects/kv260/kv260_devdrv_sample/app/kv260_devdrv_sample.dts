@@ -6,7 +6,7 @@
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "kv260_udmabuf_sample.bit.bin";
+            firmware-name = "kv260_devdrv_sample.bit.bin";
         };
     };
     
@@ -43,34 +43,4 @@
             };
         };
     };
-    
-/*
-    fragment@2 {
-        target = <&amba>;
-        overlay2: __overlay__ {
-            #address-cells = <0x2>;
-            #size-cells = <0x2>;
-            
-            uio_pl_peri {
-                compatible = "generic-uio";
-                reg = <0x0 0xa0000000 0x0 0x08000000>;
-                interrupt-parent = <&gic>;
-                interrupts = <0 89 4>;
-            };
-        };
-    };
-
-    fragment@3 {
-        target = <&amba>;
-        overlay3: __overlay__ {
-            #address-cells = <0x2>;
-            #size-cells = <0x2>;
-            udmabuf4 {
-                compatible = "ikwzm,u-dma-buf";
-                device-name = "udmabuf-jelly-sample";
-                size = <0x0 0x00400000>;
-            };
-        };
-    };
-    */
 };

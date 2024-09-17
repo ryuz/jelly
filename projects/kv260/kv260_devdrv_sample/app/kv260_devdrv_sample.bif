@@ -1,0 +1,5 @@
+all:
+{
+    kv260_devdrv_sample.bit
+}
+
