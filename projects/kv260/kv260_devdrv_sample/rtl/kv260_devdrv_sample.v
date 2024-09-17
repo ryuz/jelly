@@ -11,7 +11,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module kv260_udmabuf_sample
+module kv260_devdrv_sample
             (
                 output  wire            fan_en,
                 output  wire    [1:0]   led
