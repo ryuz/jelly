@@ -5,6 +5,9 @@
 
 RTL は [kv260_udmabuf_sample](../kv260_udmabuf_sample) とほぼ同じもので、u-dma-buf ではなく自分でデバイスドライバを書いてみる実験です。
 
+実験にあたり[こちらの記事](https://qiita.com/iwatake2222/items/1fdd2e0faaaa868a2db2)を大いに参考人させて頂きました。
+この場を借りて御礼申し上げます。
+
 
 ## 事前準備
 
@@ -64,7 +67,7 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 kv260_devdrv_sample.bit が出来上がります。
 
-このファイルを projects/kv260/kv260_udmabuf_sample/app にコピーしておいてください。
+このファイルを projects/kv260/kv260_devdrv_sample/app にコピーしておいてください。
 
 
 なお、本PLは用の bitstream は
@@ -98,6 +101,15 @@ make run
 途中、sudo コマンドを使っているのでパスワードを聞かれると思いますが入力ください。
 DeviceTree overlay や uio へのアクセスの為にルート権限が必要なためです。
 
+実行後に
+
+```
+sudo dmesg
+```
+
+とすると、デバイスドライバの中で printk とした動作内容が確認できます。
+
+
 
 # 詳細解説
 
@@ -108,12 +120,10 @@ DeviceTree overlay や uio へのアクセスの為にルート権限が必要�
 - PS部がPLに供給する fabric clock の設定
 - PS部とPL部を繋ぐAXIバスのバス幅などの設定
 - bitfile のダウンロード
-- レジスタアクセスの為の uio の割り当て
-- メモリ領域割り当ての為の udmabuf の割り当て
 
 のなどの機能を担っています。
 
-kv260_udmabuf_sample.dts が Device Tree overlay のソースファイルとなります。
+kv260_devdrv_sample.dts が Device Tree overlay のソースファイルとなります。
 
 順にみていきたいと思います。
 なお、dtsファイルのコンパイルは、実行環境で行うことが必要なようです(内部で既存のDevice Treeのシンボルを参照する為)。
@@ -126,26 +136,26 @@ kv260_udmabuf_sample.dts が Device Tree overlay のソースファイルとな�
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "kv260_udmabuf_sample.bit.bin";
+            firmware-name = "kv260_devdrv_sample.bit.bin";
         };
     };
 ```
 
-上のように指定します。この時、kv260_udmabuf_sample.bit.bin は bitstream から bootgen で生成されたファイルであり、/lib/firmware に置かれている必要があります。
+上のように指定します。この時、 kv260_devdrv_sample.bit.bin は bitstream から bootgen で生成されたファイルであり、/lib/firmware に置かれている必要があります。
 
-bootgen の使い方としては、下記のような kv260_udmabuf_sample.bif に対して
+bootgen の使い方としては、下記のような kv260_devdrv_sample.bif に対して
 
-```kv260_udmabuf_sample.bif
+```kv260_devdrv_sample.bif
 all:
 {
-    kv260_udmabuf_sample.bit
+    kv260_devdrv_sample.bit
 }
 ```
 
 bootgenを用いて
 
 ```
-bootgen -image kv260_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
+bootgen -image kv260_devdrv_sample.bif -arch zynqmp -process_bitstream bin
 ```
 
 と実行することによって得られます。
@@ -197,51 +207,13 @@ bootgen -image kv260_udmabuf_sample.bif -arch zynqmp -process_bitstream bin
 これは[こちらの記事]([https://qiita.com/ikwzm/items/74f7c5b8474198c8af3e)を参考にさせて頂きました。
 
 
-### uioとu-dma-buf
-
-続いて uio と u-dma-buf です。
-``` 
-    fragment@2 {
-        target = <&amba>;
-        overlay2: __overlay__ {
-            #address-cells = <0x2>;
-            #size-cells = <0x2>;
-            
-            uio_pl_peri {
-                compatible = "generic-uio";
-                reg = <0x0 0xa0000000 0x0 0x08000000>;
-                interrupt-parent = <&gic>;
-                interrupts = <0 89 4>;
-            };
-        };
-    };
-
-    fragment@3 {
-        target = <&amba>;
-        overlay3: __overlay__ {
-            #address-cells = <0x2>;
-            #size-cells = <0x2>;
-            udmabuf4 {
-                compatible = "ikwzm,u-dma-buf";
-                device-name = "udmabuf-jelly-sample";
-                size = <0x0 0x00400000>;
-            };
-        };
-    };
-``` 
-
-今回はペリフェラル領域をまとめて一個の uio に割り当てています。
-開始アドレス 0xa0000000番地から サイズ 0x08000000 バイトの領域が uio_pl_peri  という名前の uio として生成されます。
-
-また udmabuf-jelly-sample という名前で、0x00400000 バイトの CMA(Continuous Memory Allocator) を確保してもらうように指定しています。u-dma-buf を用いることで、連続した物理メモリアドレスを割り当ててもらうことが可能になります。
-
 ### dtcでのコンパイル
 
 ```
-dtc -I dts -O dtb -o kv260_udmabuf_sample.dtbo kv260_udmabuf_sample.dts
+dtc -I dts -O dtb -o kv260_devdrv_sample.dtbo kv260_devdrv_sample.dts
 ```
 
-とすることで kv260_udmabuf_sample.dtbo を得ることができます。
+とすることで kv260_devdrv_sample.dtbo を得ることができます。
 
 ## Overlay
 
@@ -265,8 +237,8 @@ sudo mount -t configfs configfs /configfs
 
 ```
 sudo mkdir -p /lib/firmware
-sudo cp kv260_udmabuf_sample.bit.bin /lib/firmware
-sudo cp kv260_udmabuf_sample.dtbo /lib/firmware
+sudo cp kv260_devdrv_sample.bit.bin /lib/firmware
+sudo cp kv260_devdrv_sample.dtbo /lib/firmware
 ```
 
 ### overlay 
@@ -276,10 +248,11 @@ sudo cp kv260_udmabuf_sample.dtbo /lib/firmware
 ```
 sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
 sudo mkdir /configfs/device-tree/overlays/full
-sudo sh -c "echo -n kv260_udmabuf_sample.dtbo > /configfs/device-tree/overlays/full/path"
+sudo sh -c "echo -n kv260_devdrv_sample.dtbo > /configfs/device-tree/overlays/full/path"
 ```
 
 この段階で bitstream は書き込まれ、動作を開始しています。
+
 
 ### 状態確認
 
@@ -294,21 +267,10 @@ cat /configfs/device-tree/overlays/full/status
 役目を終えたファイルは削除してよいようです。
 
 ```
-sudo rm /lib/firmware/kv260_udmabuf_sample.dtbo
-sudo rm /lib/firmware/kv260_udmabuf_sample.bit.bin
+sudo rm /lib/firmware/kv260_devdrv_sample.dtbo
+sudo rm /lib/firmware/kv260_devdrv_sample.bit.bin
 ```
 
-## アプリケーションの実行
-
-ここでアプロケーションを実行します。
-/dev 以下に uio や dmabuf に対応するデバイスがが追加されているはずなのでそれらを開いてアクセスすることができます。
-
-このやり方は[別の記事](https://qiita.com/Ryuz/items/db99d50c1c4ba3af67d9)で紹介しております。
-
-詳しくは[main.cpp](app/main.cpp)をお読みください。
-
-うまく動けば、udmabuf領域にPLのコアからと、Cortex-A53 の双方からアクセスして、データがやり取りできることが確認できます。
-また、uio にマップした RADIO_LED もソフトウェアから点滅させています。
 
 ## Device Tree Overlay の解除
 
@@ -319,33 +281,10 @@ sudo rmdir /configfs/device-tree/overlays/full
 と削除すると、解除できるようです。
 
 
-# その他
 
-## Rust 版デモ
+### デバイスドライバのロード
 
-Rust がインストールされた環境にて
+今回自作したデバイスドライバは app/devdrv の下にあります。
 
-```
-make run_rust
-```
-
-と実行すると Rust 版のデモが動きます。
-
-
-## Python版デモ (flask を使ったWebサーバー)
-
-python3 が動く環境にて
-
-```
-pip3 install flask
-```
-
-しておけば
-
-```
-make run_server
-```
-
-でサーバーが起動し、PCなどから Webブラウザで接続することで、LEDを ON/OFF できます。
-
+こちらは現時点では DeviceTree に加えておらず、個別に insmod や rmmod することで、実験しています。
 
