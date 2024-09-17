@@ -3,7 +3,7 @@
 
 ## 概要
 
-RTL は [kv260_udmabuf_sample](../kv260_udmabuf_sample) とほぼ同じもので、u-dma-buf ではなく自分でデバイスドライバを書いてみる実験です。
+RTL は [kv260_udmabuf_sample](../kv260_udmabuf_sample) とほぼ同じもので、DAMだけ流用して u-dma-buf ではなく自分でデバイスドライバを書いてみる実験です。
 
 実験にあたり[こちらの記事](https://qiita.com/iwatake2222/items/1fdd2e0faaaa868a2db2)を大いに参考人させて頂きました。
 この場を借りて御礼申し上げます。
