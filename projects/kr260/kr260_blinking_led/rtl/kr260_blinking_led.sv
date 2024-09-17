@@ -9,11 +9,11 @@ module kr260_blinking_led
             );
     
     
-    logic   [25:0]     counter = '0;
+    logic   [24:0]     counter = 0;
     always_ff @(posedge clk) begin
         // 25MHz で 1秒間隔でカウントアップ
         if ( counter >= 25000000 - 1 ) begin
-            counter <= '0;
+            counter <= 0;
             led     <= led + 1;
         end
         else begin
@@ -22,7 +22,6 @@ module kr260_blinking_led
     end
     
 endmodule
-
 
 `default_nettype wire
 
