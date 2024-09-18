@@ -48,7 +48,7 @@ IP_CORES  =
 export IP_CORES
 
 # block design
-BD_SCRIPTS =
+BD_SCRIPTS = ../vivado$(VIVADO_VERSION)/design_1.tcl
 export BD_SCRIPTS
 
 # constrains

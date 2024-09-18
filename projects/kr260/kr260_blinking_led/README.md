@@ -13,8 +13,8 @@
 
 ### 環境
 
-環境は Vivado 2022.2 と [公認Ubuntu](https://ubuntu.com/download/amd) を利用しています。
-バージョンは下記の通りでした。
+環境は Vivado 2022.2 or 2023.2 と [公認Ubuntu](https://ubuntu.com/download/amd) を利用しています。
+作者の環境ではバージョンは下記の通りでした。
 
 ```
 Description:    Ubuntu 22.04.4 LTS
@@ -49,7 +49,7 @@ git clone https://github.com/ryuz/jelly
 以下が今回のプロジェクトです。
 
 
-## PL用bitstreamの作成
+## PL用 bitstream の作成
 
 PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行います。
 
@@ -59,7 +59,15 @@ Vivado のプロジェクトは
 
 にありますので Vivado で開いてください。
 
-「Flow」→「Run Implementation」で合成を行います。正常に合成できれば kr260_blinking_led.bit が出来上がります。
+
+最初に BlockDesign を tcl から再構成する必要がります。
+
+Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクトと同じディレクトリにある update_design.tcl を実行すると再構築を行うようにしています。
+
+うまくいかない場合は、既に登録されている u_design_1 を手動で削除してから、design_1.tcl を実行しても同じことができるはずです。
+
+design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
+kr260_blinking_led.bit が出来上がります。
 
 このファイルを projects/kr260/kr260_blinking_led/app にコピーしておいてください。
 
