@@ -29,6 +29,7 @@ clean:
 .PHONY: run
 run: $(TARGET) load drv_load
 	sudo ./$(TARGET)
+	sudo dmesg | tail -20
 
 .PHONY: drv_build
 drv_build:
