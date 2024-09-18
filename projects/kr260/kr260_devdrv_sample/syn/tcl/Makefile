@@ -14,7 +14,12 @@ export TOP_MODULE   = $(PROJECT_NAME)
 export BOARD_PART   = xilinx.com:kr260_som*
 export DEVICE_PART  = 
 
-BOARD_ADDRESS  ?= kria
+ifdef KR260_BOARD_ADDRESS
+BOARD_ADDRESS ?= $(KR260_BOARD_ADDRESS)
+else
+BOARD_ADDRESS ?= kria
+endif
+
 BOARD_WORK_DIR ?= git-work/jelly
 
 BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
@@ -77,7 +82,7 @@ bit_scp: $(BIT_FILE)
 bit_cp: $(BIT_FILE)
 	cp $(BIT_FILE) ../../app
 
-$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS) Makefile
+$(PRJ_NAME).xpr: $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS)
 	rm -f $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 
