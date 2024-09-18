@@ -47,7 +47,7 @@ git clone https://github.com/ryuz/jelly
 以下が今回のプロジェクトです。
 
 
-## PL用bitstreamの作成
+## PL用 bitstream の作成
 
 PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行います。
 
