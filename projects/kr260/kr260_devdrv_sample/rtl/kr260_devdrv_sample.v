@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- the system on fpga system
 //
-//  KV260 my device driver sample
+//  KR260 my device driver sample
 //
 //                                 Copyright (C) 2008-2024 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
@@ -11,7 +11,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module kv260_devdrv_sample
+module kr260_devdrv_sample
             (
                 output  wire            fan_en,
                 output  wire    [1:0]   led
