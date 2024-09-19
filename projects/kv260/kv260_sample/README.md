@@ -109,7 +109,7 @@ projects/kv260/kv260_sample/sim 以下にシミュレーション環境を作っ
 
 
 
-# 詳細解説
+# 実行時の詳細解説
 
 make run などの実行時に Makefile の中で行っている処理を解説します。
 
