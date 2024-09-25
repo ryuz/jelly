@@ -59,6 +59,8 @@ Vivado のプロジェクトは
 
 にありますので Vivado で開いてください。
 
+この時 design_1.bd や kr260_blinking_led.dcp が無いなどのメッセージが出る事がありますが、
+これはこの後作成するファイルがリポジトリには含まれていない為ですので無視して先に進めてください。
 
 最初に BlockDesign を tcl から再構成する必要がります。
 これはLEDチカチカとは本質的には関係ないのですが、PS が PL を経由して、冷却ファンを制御しているため経路を設定しておく必要があるようです。
@@ -67,7 +69,10 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 
 うまくいかない場合は、既に登録されている u_design_1 を手動で削除してから、design_1.tcl を実行しても同じことができるはずです。
 
+また kr260_blinking_led.dcp についてもエラーが出るようであれば、Sources の Utility Sources の下にある該当ファイルを削除してください。これはビルドすると再度生成されますので削除しても大丈夫です。
+
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
+プロジェクトの下の kr260_blinking_led.runs/impl_1 ディレクトリの中に
 kr260_blinking_led.bit が出来上がります。
 
 このファイルを projects/kr260/kr260_blinking_led/app にコピーしておいてください。
