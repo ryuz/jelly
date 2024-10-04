@@ -263,6 +263,7 @@ interface jelly3_axi4_if
 
             input   aresetn     ,
             input   aclk        ,
+            input   aclken      ,
 
             output  awid        ,
             output  awaddr      ,
@@ -299,6 +300,7 @@ interface jelly3_axi4_if
 
             input   aresetn     ,
             input   aclk        ,
+            input   aclken      ,
 
             output  arid        ,
             output  araddr      ,
@@ -330,6 +332,7 @@ interface jelly3_axi4_if
 
             input   aresetn     ,
             input   aclk        ,
+            input   aclken      ,
 
             input   awid        ,
             input   awaddr      ,
@@ -366,6 +369,7 @@ interface jelly3_axi4_if
 
             input   aresetn     ,
             input   aclk        ,
+            input   aclken      ,
 
             input   arid        ,
             input   araddr      ,
