@@ -187,7 +187,7 @@ module jelly3_video_format_regularizer
             REGADR_PARAM_HEIGHT:       s_axi4l.rdata <= axi4l_data_t'(reg_param_height    );
             REGADR_PARAM_FILL:         s_axi4l.rdata <= axi4l_data_t'(reg_param_fill      );
             REGADR_PARAM_TIMEOUT:      s_axi4l.rdata <= axi4l_data_t'(reg_param_timeout   );
-            default: ;
+            default:                   s_axi4l.rdata <= '0;
             endcase
         end
     end

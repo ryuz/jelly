@@ -170,7 +170,7 @@ module jelly3_jfive_controller
                 REGADR_CORE_VERSION:       s_axi4l_ctl.rdata <= axi4l_data_t'(CORE_VERSION        );
                 REGADR_CTL_CONTROL:        s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
                 REGADR_CTL_STATUS:         s_axi4l_ctl.rdata <= axi4l_data_t'(reg_ctl_control     );
-                default: ;
+                default:                   s_axi4l_ctl.rdata <= '0;
                 endcase
             end
         end
