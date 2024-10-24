@@ -49,10 +49,10 @@ interface jelly3_axi4_if
 
         parameter   int     LIMIT_AW      = 255                             ,
         parameter   int     LIMIT_W       = 255                             ,
-        parameter   int     LIMIT_WC      = 1023                            ,
+        parameter   int     LIMIT_WC      = 65535                           ,
         parameter   int     LIMIT_AR      = 255                             ,
         parameter   int     LIMIT_R       = 255                             ,
-        parameter   int     LIMIT_RC      = 1023                            ,
+        parameter   int     LIMIT_RC      = 65535                           ,
 
         parameter           SIMULATION    = "false"                         ,
         parameter           DEBUG         = "false"                         
