@@ -117,6 +117,7 @@ foreach fname $sources {
 # IP cores
 foreach fname $ip_cores {
   add_files -norecurse $fname
+  export_simulation -of_objects [get_files $fname] -directory $project_name.ip_user_files/sim_scripts
 }
 
 # add constrain file
