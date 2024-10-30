@@ -203,7 +203,7 @@ module jelly2_img_demosaic_acpi
         if ( reset ) begin
             reg_update_req   <= 1'b0;
             
-            core_ctl_control <= 1'b0;
+            core_ctl_control <= INIT_CTL_CONTROL[0];
             core_param_phase <= INIT_PARAM_PHASE;
         end
         else begin
