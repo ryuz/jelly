@@ -2,7 +2,7 @@
 
 ## はじめに
 
-MicroBlazeが無償で利用でき、ZynqにARMコアが搭載され、今となっては過去の遺物となってしまっていますが、私が Jelly システムを作り始めたきっかけは「CPUを書いてみたい」が発端だったのと、今でも rtl/cpu フォルダの下に当時RTLを覚えたばかりの頃に書いたCPUのRTLコードが居座っていますので、当時 HTML で書いた説明文を今風に Markdown に書き直してみたいと思います。
+MicroBlazeが無償で利用でき、ZynqにARMコアが搭載され、今となっては過去の遺物となってしまっていますが、私が Jelly システムを作り始めたきっかけは「CPUを書いてみたい」が発端だったのと、今でも rtl/v1/mipsi フォルダの下に当時RTLを覚えたばかりの頃に書いたCPUのRTLコードが居座っていますので、当時 HTML で書いた説明文を今風に Markdown に書き直してみたいと思います。
 
 
 ![spartan3e_starter](images/spartan3e_starter.jpg)

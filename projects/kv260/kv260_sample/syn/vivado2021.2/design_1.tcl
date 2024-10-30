@@ -124,6 +124,7 @@ set bCheckIPsPassed 1
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
+xilinx.com:ip:xlslice:1.0\
 xilinx.com:ip:zynq_ultra_ps_e:3.3\
 "
 
@@ -190,10 +191,20 @@ proc create_root_design { parentCell } {
   # Create interface ports
 
   # Create ports
+  set fan_en [ create_bd_port -dir O -from 0 -to 0 fan_en ]
   set pl_clk [ create_bd_port -dir O -type clk pl_clk ]
   set_property -dict [ list \
    CONFIG.FREQ_HZ {99999001} \
  ] $pl_clk
+
+  # Create instance: xlslice_0, and set properties
+  set xlslice_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {2} \
+   CONFIG.DIN_TO {2} \
+   CONFIG.DIN_WIDTH {3} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_0
 
   # Create instance: zynq_ultra_ps_e_0, and set properties
   set zynq_ultra_ps_e_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.3 zynq_ultra_ps_e_0 ]
@@ -1564,6 +1575,12 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.PSU__SAXIGP6__DATA_WIDTH {128} \
    CONFIG.PSU__SD0_COHERENCY {0} \
    CONFIG.PSU__SD0_ROUTE_THROUGH_FPD {0} \
+   CONFIG.PSU__SD0__CLK_100_SDR_OTAP_DLY {0x3} \
+   CONFIG.PSU__SD0__CLK_200_SDR_OTAP_DLY {0x3} \
+   CONFIG.PSU__SD0__CLK_50_DDR_ITAP_DLY {0x3D} \
+   CONFIG.PSU__SD0__CLK_50_DDR_OTAP_DLY {0x4} \
+   CONFIG.PSU__SD0__CLK_50_SDR_ITAP_DLY {0x15} \
+   CONFIG.PSU__SD0__CLK_50_SDR_OTAP_DLY {0x5} \
    CONFIG.PSU__SD0__GRP_CD__ENABLE {0} \
    CONFIG.PSU__SD0__GRP_POW__ENABLE {0} \
    CONFIG.PSU__SD0__GRP_WP__ENABLE {0} \
@@ -1571,6 +1588,12 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.PSU__SD0__RESET__ENABLE {0} \
    CONFIG.PSU__SD1_COHERENCY {0} \
    CONFIG.PSU__SD1_ROUTE_THROUGH_FPD {0} \
+   CONFIG.PSU__SD1__CLK_100_SDR_OTAP_DLY {0x3} \
+   CONFIG.PSU__SD1__CLK_200_SDR_OTAP_DLY {0x3} \
+   CONFIG.PSU__SD1__CLK_50_DDR_ITAP_DLY {0x3D} \
+   CONFIG.PSU__SD1__CLK_50_DDR_OTAP_DLY {0x4} \
+   CONFIG.PSU__SD1__CLK_50_SDR_ITAP_DLY {0x15} \
+   CONFIG.PSU__SD1__CLK_50_SDR_OTAP_DLY {0x5} \
    CONFIG.PSU__SD1__GRP_CD__ENABLE {0} \
    CONFIG.PSU__SD1__GRP_POW__ENABLE {0} \
    CONFIG.PSU__SD1__GRP_WP__ENABLE {0} \
@@ -1608,7 +1631,8 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.PSU__TTC0__CLOCK__ENABLE {0} \
    CONFIG.PSU__TTC0__PERIPHERAL__ENABLE {1} \
    CONFIG.PSU__TTC0__PERIPHERAL__IO {NA} \
-   CONFIG.PSU__TTC0__WAVEOUT__ENABLE {0} \
+   CONFIG.PSU__TTC0__WAVEOUT__ENABLE {1} \
+   CONFIG.PSU__TTC0__WAVEOUT__IO {EMIO} \
    CONFIG.PSU__TTC1__CLOCK__ENABLE {0} \
    CONFIG.PSU__TTC1__PERIPHERAL__ENABLE {1} \
    CONFIG.PSU__TTC1__PERIPHERAL__IO {NA} \
@@ -1665,8 +1689,8 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
    CONFIG.PSU__USE__IRQ {0} \
    CONFIG.PSU__USE__IRQ0 {1} \
    CONFIG.PSU__USE__IRQ1 {0} \
-   CONFIG.PSU__USE__M_AXI_GP0 {1} \
-   CONFIG.PSU__USE__M_AXI_GP1 {1} \
+   CONFIG.PSU__USE__M_AXI_GP0 {0} \
+   CONFIG.PSU__USE__M_AXI_GP1 {0} \
    CONFIG.PSU__USE__M_AXI_GP2 {0} \
    CONFIG.PSU__USE__PROC_EVENT_BUS {0} \
    CONFIG.PSU__USE__RPU_LEGACY_INTERRUPT {0} \
@@ -1713,7 +1737,9 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
  ] $zynq_ultra_ps_e_0
 
   # Create port connections
-  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_ports pl_clk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm1_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]
+  connect_bd_net -net xlslice_0_Dout [get_bd_ports fan_en] [get_bd_pins xlslice_0/Dout]
+  connect_bd_net -net zynq_ultra_ps_e_0_emio_ttc0_wave_o [get_bd_pins xlslice_0/Din] [get_bd_pins zynq_ultra_ps_e_0/emio_ttc0_wave_o]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_ports pl_clk] [get_bd_pins zynq_ultra_ps_e_0/pl_clk0]
 
   # Create address segments
 

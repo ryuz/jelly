@@ -169,7 +169,7 @@ module jelly3_img_bayer_black_level
                 REGADR_PARAM_OFFSET1:  s_axi4l.rdata <= axi4l_data_t'(reg_param_offset[1]);
                 REGADR_PARAM_OFFSET2:  s_axi4l.rdata <= axi4l_data_t'(reg_param_offset[2]);
                 REGADR_PARAM_OFFSET3:  s_axi4l.rdata <= axi4l_data_t'(reg_param_offset[3]);
-                default: ;
+                default:               s_axi4l.rdata <= '0;
                 endcase
             end
         end

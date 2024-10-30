@@ -48,6 +48,10 @@ umount: unload
 
 .PHONY: load
 load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
+	-sudo xmutil unloadapp
+	@if [ -e /configfs/device-tree/overlays/k26-starter-kits_image_1 ] ; then \
+		sudo rmdir /configfs/device-tree/overlays/k26-starter-kits_image_1 ; \
+	fi
 	sudo mkdir -p $(FIRMWARE_PATH)
 	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
 	sudo cp $(DTBO_FILE) $(FIRMWARE_PATH)
@@ -58,8 +62,6 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	cat $(DEVTREE_PATH)/overlays/full/status
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
-#	sudo chmod 666 /dev/uio*
-#	sudo chmod 666 /dev/udmabuf*
 
 .PHONY: unload
 unload:
@@ -71,7 +73,7 @@ unload:
 .PHONY: load2
 load2: $(DTBO_FILE) $(BIN_FILE)
 	sudo fpgautil -R
-	sudo fpgautil -b $(BIT_FILE) -o udmabuf.dtbo
+	sudo fpgautil -b $(BIT_FILE) -o $(DTBO_FILE)
 #	sudo fpgautil -b $(BIT_FILE)
 
 .PHONY: unload2

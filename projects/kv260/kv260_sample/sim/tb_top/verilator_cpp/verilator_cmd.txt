@@ -1,0 +1,59 @@
+--trace-fst --trace-params --trace-structs --trace-underscore
+#--public
+#--threads 2
+
+-D__VERILATOR__
+
+#-Wno-WIDTH
+#-Wno-UNSIGNED
+#-Wno-PINMISSING
+#-Wno-UNOPTFLAT
+#-Wno-UNOPTTHREADS
+#-Wno-LITENDIAN
+#-Wno-STMTDLY
+#-Wno-CASEINCOMPLETE
+#-Wno-LATCH
+#-Wno-COMBDLY
+#-Wno-SELRANGE
+#-Wno-WIDTHCONCAT
+#-Wno-MULTITOP
+#-Wno-MULTIDRIVEN
+#-Wno-fatal
+
+-y ..
+-y ../../stub
+-y ../../../rtl
+
+-y ../../../../../../rtl/v1/library
+-y ../../../../../../rtl/v1/bus
+-y ../../../../../../rtl/v1/dma
+-y ../../../../../../rtl/v1/math
+-y ../../../../../../rtl/v1/primitive
+-y ../../../../../../rtl/v1/rtos
+-y ../../../../../../rtl/v1/image
+-y ../../../../../../rtl/v1/video
+-y ../../../../../../rtl/v1/peripheral
+-y ../../../../../../rtl/v1/misc
+-y ../../../../../../rtl/v1/model
+-y ../../../../../../rtl/v2/library
+-y ../../../../../../rtl/v2/bus
+-y ../../../../../../rtl/v2/dma
+-y ../../../../../../rtl/v2/math
+-y ../../../../../../rtl/v2/primitive
+-y ../../../../../../rtl/v2/rtos
+-y ../../../../../../rtl/v2/image
+-y ../../../../../../rtl/v2/video
+-y ../../../../../../rtl/v2/peripheral
+-y ../../../../../../rtl/v2/misc
+-y ../../../../../../rtl/v2/model
+-y ../../../../../../rtl/v3/library
+-y ../../../../../../rtl/v3/bus
+-y ../../../../../../rtl/v3/dma
+-y ../../../../../../rtl/v3/math
+-y ../../../../../../rtl/v3/primitive
+-y ../../../../../../rtl/v3/rtos
+-y ../../../../../../rtl/v3/image
+-y ../../../../../../rtl/v3/video
+-y ../../../../../../rtl/v3/peripheral
+-y ../../../../../../rtl/v3/misc
+-y ../../../../../../rtl/v3/model

@@ -46,6 +46,13 @@ Untitled.*
 *.ltx
 *.xsa
 
+# device driver
+*.ko
+*.mod
+*.mod.c
+*.order
+*.symvers
+
 # wave file
 *.wdb
 *.vcd

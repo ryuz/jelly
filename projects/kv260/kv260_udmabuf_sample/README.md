@@ -102,6 +102,19 @@ make run
 DeviceTree overlay や uio へのアクセスの為にルート権限が必要なためです。
 
 
+## シミュレーション
+
+projects/kv260/kv260_sample/sim 以下にシミュレーション環境を作っています。
+
+- projects/kv260/kv260_udmabuf_sample/sim/xsim          : xsim用
+- projects/kv260/kv260_udmabuf_sample/sim/verilator     : verilator用
+- projects/kv260/kv260_udmabuf_sample/sim/verilator_cpp : verilator でテストドライバをC++で書いたもの
+
+いずれもそれぞれのディレクトリで make と実行することで、シミュレーションが動きます。
+
+.vcd もしくは .fst ファイルとして波形が生成されるので、gtkwave などの波形ビューワーで確認ください。
+
+
 # 詳細解説
 
 ## Device Tree overlay

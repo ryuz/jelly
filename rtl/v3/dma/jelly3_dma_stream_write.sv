@@ -594,7 +594,7 @@ module jelly3_dma_stream_write
             REGADR_SHADOW_AWSTEP8:      s_axi4l.rdata <= axi4l_data_t'(reg_shadow_awstep8   );
             REGADR_SHADOW_AWLEN9:       s_axi4l.rdata <= axi4l_data_t'(reg_shadow_awlen9    );
             REGADR_SHADOW_AWSTEP9:      s_axi4l.rdata <= axi4l_data_t'(reg_shadow_awstep9   );
-            default: ;
+            default:                    s_axi4l.rdata <= '0;
             endcase
         end
     end

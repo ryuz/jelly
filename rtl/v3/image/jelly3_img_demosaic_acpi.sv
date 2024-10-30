@@ -147,7 +147,7 @@ module jelly3_img_demosaic_acpi
                 REGADR_CTL_INDEX:      s_axi4l.rdata <= axi4l_data_t'(ctl_index          );
                 REGADR_PARAM_PHASE:    s_axi4l.rdata <= axi4l_data_t'(reg_param_phase    );
                 REGADR_CURRENT_PHASE:  s_axi4l.rdata <= axi4l_data_t'(core_param_phase   );   // debug use only
-                default: ;
+                default:               s_axi4l.rdata <= '0;
                 endcase
             end
         end
