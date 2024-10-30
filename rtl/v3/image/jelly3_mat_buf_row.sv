@@ -2,7 +2,7 @@
 //  Jelly  -- The platform for real-time computing
 //   image processing
 //
-//                                 Copyright (A) 2008-2021 by Ryuji Fuchikami
+//                                 Copyright (A) 2008-2024 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -30,10 +30,9 @@ module jelly3_mat_buf_row
             parameter   int     ANCHOR       = (ROWS-1) / 2             ,
             parameter   int     MAX_COLS     = 1024                     ,
             parameter           BORDER_MODE  = "REPLICATE"              ,   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-            parameter   data_t  BORDER_VALUE = {DATA_BITS{1'b0}}        ,   // BORDER_MODE == "CONSTANT"
+            parameter   data_t  BORDER_VALUE = '0                       ,   // BORDER_MODE == "CONSTANT"
             parameter           RAM_TYPE     = "block"                  ,
             parameter   bit     ENDIAN       = 0                            // 0: little, 1:big
-            
         )
         (
             input   var logic                           reset               ,

@@ -17,14 +17,14 @@ module jelly3_mat_buf_col
             parameter   int     TAPS         = 1                            ,
             parameter   int     DE_BITS      = TAPS                         ,
             parameter   type    de_t         = logic [DE_BITS-1:0]          ,
-            parameter   int     COLS         = 3                            ,
             parameter   int     USER_BITS    = 1                            ,
             parameter   type    user_t       = logic [USER_BITS-1:0]        ,
             parameter   int     DATA_BITS    = 3*8                          ,
             parameter   type    data_t       = logic [DATA_BITS-1:0]        ,
+            parameter   int     COLS         = 3                            ,
             parameter   int     ANCHOR       = (COLS-1) / 2                 ,
             parameter           BORDER_MODE  = "REPLICATE"                  ,   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-            parameter   data_t  BORDER_VALUE = {DATA_BITS{1'b0}}            ,   // BORDER_MODE == "CONSTANT"
+            parameter   data_t  BORDER_VALUE = '0                           ,   // BORDER_MODE == "CONSTANT"
             parameter   bit     ENDIAN       = 0                                // 0: little, 1:big
         )
         (
