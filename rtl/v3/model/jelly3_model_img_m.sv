@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2021 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2024 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -12,12 +12,12 @@
 
 
 
-module jelly3_model_mat_m
+module jelly3_model_img_m
         #(
             parameter   int     IMG_CH_DEPTH     = 3                    ,
             parameter   int     IMG_CH_BITS      = 8                    ,
-            parameter   int     IMG_COLS         = 640                  ,
-            parameter   int     IMG_ROWS         = 480                  ,
+            parameter   int     IMG_WIDTH        = 640                  ,
+            parameter   int     IMG_HEIGHT       = 480                  ,
             parameter   int     COL_BLANK        = 0                    ,   // 基本ゼロ
             parameter   int     ROW_BLANK        = 0                    ,   // 末尾にde落ちラインを追加
             parameter   int     X_BITS           = 32                   ,
@@ -28,8 +28,8 @@ module jelly3_model_mat_m
             parameter   type    f_t              = logic [F_BITS-1:0]   ,
             parameter   string  FILE_NAME        = ""                   ,
             parameter   string  FILE_EXT         = ""                   ,
-            parameter   int     FILE_IMG_WIDTH   = IMG_COLS             ,
-            parameter   int     FILE_IMG_HEIGHT  = IMG_ROWS             ,
+            parameter   int     FILE_IMG_WIDTH   = IMG_WIDTH            ,
+            parameter   int     FILE_IMG_HEIGHT  = IMG_HEIGHT           ,
             parameter   bit     SEQUENTIAL_FILE  = 0                    ,
             parameter   bit     ENDIAN           = 0                    
         )
@@ -37,7 +37,7 @@ module jelly3_model_mat_m
             input   var logic   enable      ,
             output  var logic   busy        ,
             
-            jelly3_mat_if.m     m_mat       ,
+            jelly3_mat_if.m     m_img       ,
             output  var x_t     out_x       ,
             output  var y_t     out_y       ,
             output  var f_t     out_f       
@@ -47,18 +47,20 @@ module jelly3_model_mat_m
     //  parameters
     // -----------------------------
 
-    localparam  int     MAT_TAPS     = m_mat.TAPS       ;
-    localparam  int     MAT_DE_BITS  = m_mat.DE_BITS    ;
-    localparam  int     MAT_CH_DEPTH = m_mat.CH_DEPTH   ;
-    localparam  int     MAT_CH_BITS  = m_mat.CH_BITS    ;
+    localparam  int     MAT_TAPS      = m_img.TAPS      ;
+    localparam  int     MAT_DE_BITS   = m_img.DE_BITS   ;
+    localparam  int     MAT_CH_DEPTH  = m_img.CH_DEPTH  ;
+    localparam  int     MAT_CH_BITS   = m_img.CH_BITS   ;
+    localparam  int     MAT_ROWS_BITS = m_img.ROWS_BITS ;
+    localparam  int     MAT_COLS_BITS = m_img.COLS_BITS ;
 
 
     // -----------------------------
     //  read image file
     // -----------------------------
 
-    localparam  int     MEM_IMG_WIDTH  = IMG_COLS  > FILE_IMG_WIDTH  ? IMG_COLS  : FILE_IMG_WIDTH;
-    localparam  int     MEM_IMG_HEIGHT = IMG_ROWS > FILE_IMG_HEIGHT ? IMG_ROWS : FILE_IMG_HEIGHT;
+    localparam  int     MEM_IMG_WIDTH  = IMG_WIDTH  > FILE_IMG_WIDTH  ? IMG_WIDTH  : FILE_IMG_WIDTH;
+    localparam  int     MEM_IMG_HEIGHT = IMG_HEIGHT > FILE_IMG_HEIGHT ? IMG_HEIGHT : FILE_IMG_HEIGHT;
 
 
     logic   [IMG_CH_DEPTH-1:0][IMG_CH_BITS-1:0]    mem     [MEM_IMG_HEIGHT][MEM_IMG_WIDTH];
@@ -74,8 +76,8 @@ module jelly3_model_mat_m
 
     task    image_clear();
     begin
-        for ( int i = 0; i < IMG_ROWS; ++i ) begin
-            for ( int j = 0; j < IMG_COLS; ++j ) begin
+        for ( int i = 0; i < IMG_HEIGHT; ++i ) begin
+            for ( int j = 0; j < IMG_WIDTH; ++j ) begin
                 for ( int k = 0; k < IMG_CH_DEPTH; ++k ) begin
                     automatic int val;
                     val = 0;
@@ -102,8 +104,8 @@ module jelly3_model_mat_m
             int    width, height, maxval;
             $fscanf(fp, "%s %d %d %d", format, width, height, maxval);
             $display("[read] %s: format=%s width=%0d height=%0d maxval=%0d", filename, format, width, height, maxval);
-            for ( int i = 0; i < IMG_ROWS; ++i ) begin
-                for ( int j = 0; j < IMG_COLS; ++j ) begin
+            for ( int i = 0; i < IMG_HEIGHT; ++i ) begin
+                for ( int j = 0; j < IMG_WIDTH; ++j ) begin
                     for ( int k = 0; k < IMG_CH_DEPTH; ++k ) begin
                         int val;
                         $fscanf(fp, "%d", val);
@@ -130,17 +132,17 @@ module jelly3_model_mat_m
     //  main
     // -----------------------------
     
-    localparam TOTAL_COLS = IMG_COLS + COL_BLANK;
-    localparam TOTAL_ROWS = IMG_ROWS + ROW_BLANK;
+    localparam TOTAL_WIDTH  = IMG_WIDTH + COL_BLANK;
+    localparam TOTAL_HEIGHT = IMG_HEIGHT + ROW_BLANK;
     
-    always_ff @(posedge m_mat.clk) begin
-        if ( m_mat.reset ) begin
+    always_ff @(posedge m_img.clk) begin
+        if ( m_img.reset ) begin
             busy <= 1'b0;
             f    <= '0;
             x    <= '0;
             y    <= '0;
         end
-        else if ( m_mat.cke ) begin
+        else if ( m_img.cke ) begin
             if ( !busy ) begin
                 if ( enable ) begin
                     if ( FILE_NAME != "" ) begin
@@ -153,10 +155,10 @@ module jelly3_model_mat_m
             end
             else begin
                 x <= x + MAT_TAPS;
-                if ( x >= (TOTAL_COLS-MAT_TAPS) ) begin
+                if ( x >= (TOTAL_WIDTH-MAT_TAPS) ) begin
                     x <= 0;
                     y <= y + 1;
-                    if ( y >= (TOTAL_ROWS-1) ) begin
+                    if ( y >= (TOTAL_HEIGHT-1) ) begin
                         y <= 0;
                         f <= f + 1;
                         busy <= enable;
@@ -169,22 +171,24 @@ module jelly3_model_mat_m
     always_comb begin
         for ( int tap = 0; tap < MAT_TAPS; tap++ ) begin
             for ( int ch = 0; ch < MAT_CH_DEPTH; ch++ ) begin
-                m_mat.data[tap][ch] = m_mat.valid ? MAT_CH_BITS'(mem[y][x+tap][ch]) : 'x;
+                m_img.data[tap][ch] = m_img.valid ? MAT_CH_BITS'(mem[y][x+tap][ch]) : 'x;
             end
         end
     end
 
     always_comb begin
-        for ( int tap = 0; tap < $bits(m_mat.de); tap++ ) begin
-            m_mat.de[tap] = m_mat.valid ? (x+tap < IMG_COLS && y < IMG_ROWS) : 'x;
+        for ( int tap = 0; tap < $bits(m_img.de); tap++ ) begin
+            m_img.de[tap] = m_img.valid ? (x+tap < IMG_WIDTH && y < IMG_HEIGHT) : 'x;
         end
     end
 
-    assign m_mat.row_first = m_mat.valid ? (y == 0)                       : 'x;
-    assign m_mat.row_last  = m_mat.valid ? (y == (IMG_ROWS-1))            : 'x;
-    assign m_mat.col_first = m_mat.valid ? (x == 0)                       : 'x;
-    assign m_mat.col_last  = m_mat.valid ? (x >= (IMG_COLS-MAT_TAPS))     : 'x;
-    assign m_mat.valid     = busy;
+    assign m_img.rows      = MAT_ROWS_BITS'(IMG_HEIGHT  );
+    assign m_img.cols      = MAT_ROWS_BITS'(IMG_WIDTH   );
+    assign m_img.row_first = m_img.valid ? (y == 0)                       : 'x;
+    assign m_img.row_last  = m_img.valid ? (y == (IMG_HEIGHT-1))            : 'x;
+    assign m_img.col_first = m_img.valid ? (x == 0)                       : 'x;
+    assign m_img.col_last  = m_img.valid ? (x >= (IMG_WIDTH-MAT_TAPS))     : 'x;
+    assign m_img.valid     = busy;
 
     assign out_x           = x_t'(x);
     assign out_y           = y_t'(y);

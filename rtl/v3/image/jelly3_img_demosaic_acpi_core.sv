@@ -22,17 +22,18 @@ module jelly3_img_demosaic_acpi_core
         )
         (
             input   var phase_t     param_phase,
-            jelly3_img_if.s         s_img,
-            jelly3_img_if.m         m_img
+            jelly3_mat_if.s         s_img,
+            jelly3_mat_if.m         m_img
         );
     
     localparam  int     USER_BITS = s_img.USER_BITS;
     localparam  type    user_t    = logic   [USER_BITS-1:0];
     
     // G
-    jelly3_img_if
+    jelly3_mat_if
             #(
-                .DATA_BITS      ($bits(data_t)*2),
+                .CH_BITS        ($bits(data_t)  ),
+                .CH_DEPTH       (2              ),
                 .USER_BITS      ($bits(user_t)  )
             )
          img_g
@@ -44,16 +45,16 @@ module jelly3_img_demosaic_acpi_core
     
     jelly3_img_demosaic_acpi_g_core
             #(
-                .DATA_BITS      (DATA_BITS  ),
-                .data_t         (data_t     ),
-                .MAX_COLS       (MAX_COLS   ),
-                .RAM_TYPE       (RAM_TYPE   )
+                .DATA_BITS      (DATA_BITS      ),
+                .data_t         (data_t         ),
+                .MAX_COLS       (MAX_COLS       ),
+                .RAM_TYPE       (RAM_TYPE       )
             )
         u_img_demosaic_acpi_g_core
             (
-                .param_phase    (param_phase),
-                .s_img          (s_img),
-                .m_img          (img_g.m)
+                .param_phase    (param_phase    ),
+                .s_img          (s_img          ),
+                .m_img          (img_g.m        )
             );
     
     

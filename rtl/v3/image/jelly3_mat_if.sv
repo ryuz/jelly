@@ -19,6 +19,9 @@ interface jelly3_mat_if
             parameter   int     DE_BITS      = TAPS                     ,
             parameter   int     CH_DEPTH     = 1                        ,
             parameter   int     CH_BITS      = 8                        ,
+            parameter   int     ROWS_BITS    = 16                       ,
+            parameter   int     COLS_BITS    = 16                       ,
+            parameter   int     DATA_BITS    = CH_DEPTH * CH_BITS       ,
             parameter   int     USER_BITS    = 1                        
         )
         (
@@ -31,7 +34,11 @@ interface jelly3_mat_if
     localparam  type    data_t    = ch_t  [CH_DEPTH-1:0]    ;
     localparam  type    de_t      = logic [DE_BITS-1:0]     ;
     localparam  type    user_t    = logic [USER_BITS-1:0]   ;
+    localparam  type    rows_t    = logic [ROWS_BITS-1:0]   ;
+    localparam  type    cols_t    = logic [COLS_BITS-1:0]   ;
 
+    rows_t              rows        ;
+    cols_t              cols        ;
     logic               row_first   ;
     logic               row_last    ;
     logic               col_first   ;
@@ -46,7 +53,9 @@ interface jelly3_mat_if
             input   reset       ,
             input   clk         ,
             input   cke         ,
-    
+
+            output  rows        ,
+            output  cols        ,
             output  row_first   ,
             output  row_last    ,
             output  col_first   ,
@@ -62,7 +71,9 @@ interface jelly3_mat_if
             input   reset       ,
             input   clk         ,
             input   cke         ,
-    
+
+            input   rows        ,
+            input   cols        ,
             input   row_first   ,
             input   row_last    ,
             input   col_first   ,
@@ -73,6 +84,9 @@ interface jelly3_mat_if
             input   valid       
         );
 
+initial begin
+    assert (DATA_BITS == CH_DEPTH * CH_BITS) else $fatal("DATA_BITS != CH_DEPTH * CH_BITS");
+end
 
 // valid 時に信号が有効であること
 property prop_valid_row_first; @(posedge clk) disable iff ( reset || !cke ) valid |-> !$isunknown(row_first); endproperty

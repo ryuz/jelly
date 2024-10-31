@@ -22,8 +22,8 @@ module jelly3_img_demosaic_acpi_g_core
         )
         (
             input   var phase_t param_phase,
-            jelly3_img_if.s     s_img,
-            jelly3_img_if.m     m_img
+            jelly3_mat_if.s     s_img,
+            jelly3_mat_if.m     m_img
         );
     
     localparam  int     USER_BITS = s_img.USER_BITS;
@@ -127,7 +127,8 @@ module jelly3_img_demosaic_acpi_g_core
                 .m_img_user         (m_img.user         ),
                 .m_img_valid        (m_img.valid        )
             );
-    
+    assign m_img.rows = s_img.rows;
+    assign m_img.cols = s_img.cols;
 
     // assertion
     initial begin

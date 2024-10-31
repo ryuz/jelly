@@ -33,10 +33,9 @@ module jelly3_img_demosaic_acpi
             parameter   bit     [1:0]   INIT_PARAM_PHASE = 2'b00
         )
         (
-            
             input   wire        in_update_req,
-            jelly3_img_if.s     s_img,
-            jelly3_img_if.m     m_img,
+            jelly3_mat_if.s     s_img,
+            jelly3_mat_if.m     m_img,
             
             jelly3_axi4l_if.s   s_axi4l
         );
