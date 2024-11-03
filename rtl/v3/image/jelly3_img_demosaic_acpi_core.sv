@@ -14,11 +14,12 @@
 
 module jelly3_img_demosaic_acpi_core
         #(
-            parameter   int             DATA_BITS        = 10                       ,
-            parameter   type            data_t           = logic [DATA_BITS-1:0]    ,
-            parameter   int             MAX_COLS         = 4096                     ,
-            parameter                   RAM_TYPE         = "block"                  ,
-            localparam  type            phase_t          = logic [1:0]              
+            parameter   int     DATA_BITS        = 10                       ,
+            parameter   type    data_t           = logic [DATA_BITS-1:0]    ,
+            parameter   int     MAX_COLS         = 4096                     ,
+            parameter           RAM_TYPE         = "block"                  ,
+            parameter   bit     RGB_SWAP         = 0                        ,
+            localparam  type    phase_t          = logic [1:0]              
         )
         (
             input   var phase_t     param_phase,
@@ -64,7 +65,8 @@ module jelly3_img_demosaic_acpi_core
                 .DATA_BITS      (DATA_BITS      ),
                 .data_t         (data_t         ),
                 .MAX_COLS       (MAX_COLS       ),
-                .RAM_TYPE       (RAM_TYPE       )
+                .RAM_TYPE       (RAM_TYPE       ),
+                .RGB_SWAP       (RGB_SWAP       )
             )
         u_img_demosaic_acpi_rb_core
             (

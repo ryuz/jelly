@@ -52,7 +52,7 @@ module tb_main
     localparam  int     ROWS_BITS    = 16   ;
     localparam  int     COLS_BITS    = 16   ;
     localparam  int     USER_BITS    = 1    ;
-    localparam  bit     ENDIAN       = 1    ;
+    localparam  bit     ENDIAN       = 0    ;
 
     localparam  type    rows_t    = logic [ROWS_BITS-1:0]   ;
     localparam  type    cols_t    = logic [COLS_BITS-1:0]   ;
@@ -135,6 +135,7 @@ module tb_main
     parameter   int             DATA_BITS        = 10           ;
     parameter   int             MAX_COLS         = 4096         ;
     parameter                   RAM_TYPE         = "block"      ;
+    parameter   bit             RGB_SWAP         = 1            ;
     parameter   bit     [1:0]   INIT_CTL_CONTROL = 2'b01        ;
     parameter   bit     [1:0]   INIT_PARAM_PHASE = 2'b0         ;
 
@@ -143,6 +144,7 @@ module tb_main
                 .DATA_BITS          (DATA_BITS          ),
                 .MAX_COLS           (MAX_COLS           ),
                 .RAM_TYPE           (RAM_TYPE           ),
+                .RGB_SWAP           (RGB_SWAP           ),
                 .INIT_CTL_CONTROL   (INIT_CTL_CONTROL   ),
                 .INIT_PARAM_PHASE   (INIT_PARAM_PHASE   )
             )

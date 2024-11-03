@@ -14,11 +14,12 @@
 
 module jelly3_img_demosaic_acpi_rb_core
         #(
-            parameter   int     DATA_BITS = 10,
-            parameter   type    data_t    = logic [DATA_BITS-1:0],
-            parameter   int     MAX_COLS  = 4096,
-            parameter           RAM_TYPE  = "block",
-            localparam  type    phase_t   = logic [1:0]
+            parameter   int     DATA_BITS = 10                      ,
+            parameter   type    data_t    = logic [DATA_BITS-1:0]   ,
+            parameter   int     MAX_COLS  = 4096                    ,
+            parameter           RAM_TYPE  = "block"                 ,
+            parameter   bit     RGB_SWAP  = 0                       ,
+            localparam  type    phase_t   = logic [1:0]             
         )
         (
             input   var phase_t param_phase,
@@ -100,7 +101,12 @@ module jelly3_img_demosaic_acpi_rb_core
                 .out_g              (acpi_g     ),
                 .out_b              (acpi_b     )
             );
-    assign m_img.data = {acpi_raw, acpi_r, acpi_g, acpi_b};
+
+    localparam  int     DST_DATA_BITS = m_img.DATA_BITS;
+
+    // 4チャネル目があれば RAW を入れる
+    assign m_img.data = RGB_SWAP ? DST_DATA_BITS'({acpi_raw, acpi_b, acpi_g, acpi_r}) :
+                                   DST_DATA_BITS'({acpi_raw, acpi_r, acpi_g, acpi_b}) ;
     
     jelly2_img_delay
             #(
