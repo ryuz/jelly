@@ -50,6 +50,7 @@ distclean: clean
 
 .PHONY : run
 run:
+	mkdir -p output/
 	build/tb_verilator
 
 .PHONY : coverage
