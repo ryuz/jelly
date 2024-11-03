@@ -14,8 +14,8 @@
 
 module jelly3_img_demosaic_acpi_core
         #(
-            parameter   int     DATA_BITS        = 10                       ,
-            parameter   type    data_t           = logic [DATA_BITS-1:0]    ,
+            parameter   int     CH_BITS          = 10                       ,
+            parameter   type    ch_t             = logic [CH_BITS-1:0]      ,
             parameter   int     MAX_COLS         = 4096                     ,
             parameter           RAM_TYPE         = "block"                  ,
             parameter   bit     RGB_SWAP         = 0                        ,
@@ -33,7 +33,7 @@ module jelly3_img_demosaic_acpi_core
     // G
     jelly3_mat_if
             #(
-                .CH_BITS        ($bits(data_t)  ),
+                .CH_BITS        ($bits(ch_t)    ),
                 .CH_DEPTH       (2              ),
                 .USER_BITS      ($bits(user_t)  )
             )
@@ -46,8 +46,8 @@ module jelly3_img_demosaic_acpi_core
     
     jelly3_img_demosaic_acpi_g_core
             #(
-                .DATA_BITS      (DATA_BITS      ),
-                .data_t         (data_t         ),
+                .CH_BITS        ($bits(ch_t)    ),
+                .ch_t           (ch_t           ),
                 .MAX_COLS       (MAX_COLS       ),
                 .RAM_TYPE       (RAM_TYPE       )
             )
@@ -62,8 +62,8 @@ module jelly3_img_demosaic_acpi_core
     // R,B
     jelly3_img_demosaic_acpi_rb_core
             #(
-                .DATA_BITS      (DATA_BITS      ),
-                .data_t         (data_t         ),
+                .CH_BITS        ($bits(ch_t)    ),
+                .ch_t           (ch_t           ),
                 .MAX_COLS       (MAX_COLS       ),
                 .RAM_TYPE       (RAM_TYPE       ),
                 .RGB_SWAP       (RGB_SWAP       )
@@ -77,7 +77,7 @@ module jelly3_img_demosaic_acpi_core
     
     // assertion
     initial begin
-        sva_data_bits   : assert ( $bits(data_t) == s_img.DATA_BITS ) else $warning("$bits(data_t) != s_img.DATA_BITS");
+        sva_data_bits   : assert ( $bits(ch_t) == s_img.DATA_BITS ) else $warning("$bits(ch_t) != s_img.DATA_BITS");
         sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS * 4) else $warning("m_img.DATA_BITS != s_img.DATA_BITS * 4");
     end
     always_comb begin

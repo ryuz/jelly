@@ -14,8 +14,8 @@
 
 module jelly3_img_demosaic_acpi_rb_core
         #(
-            parameter   int     DATA_BITS = 10                      ,
-            parameter   type    data_t    = logic [DATA_BITS-1:0]   ,
+            parameter   int     CH_BITS   = 10                      ,
+            parameter   type    ch_t      = logic [CH_BITS-1:0]     ,
             parameter   int     MAX_COLS  = 4096                    ,
             parameter           RAM_TYPE  = "block"                 ,
             parameter   bit     RGB_SWAP  = 0                       ,
@@ -27,62 +27,64 @@ module jelly3_img_demosaic_acpi_rb_core
             jelly3_mat_if.m     m_img
         );
     
-    localparam  int     USER_BITS = s_img.USER_BITS;
-    localparam  type    user_t    = logic   [USER_BITS-1:0];
+    localparam  int     TAPS      = s_img.TAPS              ;
+    localparam  int     USER_BITS = s_img.USER_BITS         ;
+    localparam  type    user_t    = logic   [USER_BITS-1:0] ;
 
-    logic                           img_blk_row_first;
-    logic                           img_blk_row_last;
-    logic                           img_blk_col_first;
-    logic                           img_blk_col_last;
-    user_t                          img_blk_user;
-    logic                           img_blk_de;
-    data_t  [2:0][2:0][1:0]         img_blk_data;
-    logic                           img_blk_valid;
+    logic                               img_blk_row_first;
+    logic                               img_blk_row_last;
+    logic                               img_blk_col_first;
+    logic                               img_blk_col_last;
+    user_t                              img_blk_user;
+    logic                               img_blk_de;
+    ch_t    [TAPS-1:0][2:0][2:0][1:0]   img_blk_data;
+    logic                               img_blk_valid;
     
-    jelly2_img_blk_buffer
+    jelly3_mat_buf_blk
             #(
-                .M                  (3                  ),
-                .N                  (3                  ),
-                .USER_WIDTH         (USER_BITS          ),
-                .DATA_WIDTH         (2*DATA_BITS        ),
+                .ROWS               (3                  ),
+                .COLS               (3                  ),
+                .TAPS               (TAPS               ),
+                .USER_BITS          (USER_BITS          ),
+                .DATA_BITS          (2 * $bits(ch_t)    ),
                 .MAX_COLS           (MAX_COLS           ),
                 .RAM_TYPE           (RAM_TYPE           ),
                 .BORDER_MODE        ("REFLECT_101"      )
             )   
-        i_img_blk_buffer    
+        u_mat_buf_blk
             (   
                 .reset              (s_img.reset        ),
                 .clk                (s_img.clk          ),
                 .cke                (s_img.cke          ),
 
-                .s_img_row_first    (s_img.row_first    ),
-                .s_img_row_last     (s_img.row_last     ),
-                .s_img_col_first    (s_img.col_first    ),
-                .s_img_col_last     (s_img.col_last     ),
-                .s_img_de           (s_img.de           ),
-                .s_img_user         (s_img.user         ),
-                .s_img_data         (s_img.data         ),
-                .s_img_valid        (s_img.valid        ),
+                .s_mat_row_first    (s_img.row_first    ),
+                .s_mat_row_last     (s_img.row_last     ),
+                .s_mat_col_first    (s_img.col_first    ),
+                .s_mat_col_last     (s_img.col_last     ),
+                .s_mat_de           (s_img.de           ),
+                .s_mat_user         (s_img.user         ),
+                .s_mat_data         (s_img.data         ),
+                .s_mat_valid        (s_img.valid        ),
                 
-                .m_img_row_first    (img_blk_row_first  ),
-                .m_img_row_last     (img_blk_row_last   ),
-                .m_img_col_first    (img_blk_col_first  ),
-                .m_img_col_last     (img_blk_col_last   ),
-                .m_img_de           (img_blk_de         ),
-                .m_img_user         (img_blk_user       ),
-                .m_img_data         (img_blk_data       ),
-                .m_img_valid        (img_blk_valid      )
+                .m_mat_row_first    (img_blk_row_first  ),
+                .m_mat_row_last     (img_blk_row_last   ),
+                .m_mat_col_first    (img_blk_col_first  ),
+                .m_mat_col_last     (img_blk_col_last   ),
+                .m_mat_de           (img_blk_de         ),
+                .m_mat_user         (img_blk_user       ),
+                .m_mat_data         (img_blk_data       ),
+                .m_mat_valid        (img_blk_valid      )
             );
     
-    data_t          acpi_raw;
-    data_t          acpi_r;
-    data_t          acpi_g;
-    data_t          acpi_b;
+    ch_t        acpi_raw;
+    ch_t        acpi_r;
+    ch_t        acpi_g;
+    ch_t        acpi_b;
     
     jelly3_img_demosaic_acpi_rb_calc
             #(
-                .DATA_BITS          (DATA_BITS  ),
-                .data_t             (data_t     )
+                .CH_BITS            ($bits(ch_t)),
+                .ch_t               (ch_t       )
             )
         i_img_demosaic_acpi_rb_calc
             (

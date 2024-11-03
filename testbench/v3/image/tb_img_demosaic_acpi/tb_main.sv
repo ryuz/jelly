@@ -132,7 +132,6 @@ module tb_main
     assign s_axi4l_rvalid  = axi4l.rvalid   ;
 
 
-    parameter   int             DATA_BITS        = 10           ;
     parameter   int             MAX_COLS         = 4096         ;
     parameter                   RAM_TYPE         = "block"      ;
     parameter   bit             RGB_SWAP         = 1            ;
@@ -141,7 +140,7 @@ module tb_main
 
     jelly3_img_demosaic_acpi
             #(
-                .DATA_BITS          (DATA_BITS          ),
+                .CH_BITS            (CH_BITS            ),
                 .MAX_COLS           (MAX_COLS           ),
                 .RAM_TYPE           (RAM_TYPE           ),
                 .RGB_SWAP           (RGB_SWAP           ),

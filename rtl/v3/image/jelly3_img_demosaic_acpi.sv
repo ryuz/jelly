@@ -15,8 +15,8 @@
 // demosaic with ACPI
 module jelly3_img_demosaic_acpi
         #(
-            parameter   int             DATA_BITS        = 10                       ,
-            parameter   type            data_t           = logic [DATA_BITS-1:0]    ,
+            parameter   int             CH_BITS          = 10                       ,
+            parameter   type            ch_t             = logic [CH_BITS-1:0]      ,
 
             parameter   int             MAX_COLS         = 4096                     ,
             parameter                   RAM_TYPE         = "block"                  ,
@@ -215,8 +215,8 @@ module jelly3_img_demosaic_acpi
     // core
     jelly3_img_demosaic_acpi_core
             #(
-                .DATA_BITS      (DATA_BITS  ),
-                .data_t         (data_t     ),
+                .CH_BITS        (CH_BITS    ),
+                .ch_t           (ch_t       ),
                 .MAX_COLS       (MAX_COLS   ),
                 .RAM_TYPE       (RAM_TYPE   ),
                 .RGB_SWAP       (RGB_SWAP   )
@@ -230,7 +230,7 @@ module jelly3_img_demosaic_acpi
 
     // assertion
     initial begin
-        sva_data_bits   : assert ( DATA_BITS == s_img.DATA_BITS ) else $warning("DATA_BITS != s_img.DATA_BITS");
+        sva_data_bits   : assert ( $bits(ch_t) == s_img.DATA_BITS ) else $warning("$bits(ch_t) != s_img.DATA_BITS");
         sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS * 4) else $warning("m_img.DATA_BITS != s_img.DATA_BITS * 4");
     end
     always_comb begin
