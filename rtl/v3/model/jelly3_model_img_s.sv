@@ -80,7 +80,7 @@ module jelly3_model_img_s
                 if ( s_img.row_first && s_img.col_first ) begin
                     frame_start();
                 end
-                if ( s_img.de && fp != 0) begin
+                if ( s_img.de != 0 && fp != 0) begin
                     for ( int t = 0; t < MAT_TAPS; t++ ) begin
                         for ( int c = 0; c < MAT_CH_DEPTH; c++ ) begin
                             if ( ENDIAN ) begin

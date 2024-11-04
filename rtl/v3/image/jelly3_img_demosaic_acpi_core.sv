@@ -27,12 +27,14 @@ module jelly3_img_demosaic_acpi_core
             jelly3_mat_if.m         m_img
         );
     
-    localparam  int     USER_BITS = s_img.USER_BITS;
+    localparam  int     TAPS      = s_img.TAPS      ;
+    localparam  int     USER_BITS = s_img.USER_BITS ;
     localparam  type    user_t    = logic   [USER_BITS-1:0];
     
     // G
     jelly3_mat_if
             #(
+                .TAPS           (TAPS           ),
                 .CH_BITS        ($bits(ch_t)    ),
                 .CH_DEPTH       (2              ),
                 .USER_BITS      ($bits(user_t)  )

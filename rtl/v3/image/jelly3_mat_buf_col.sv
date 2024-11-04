@@ -143,6 +143,7 @@ module jelly3_mat_buf_col
                     end
                 end
             end
+            next0_last_pos = next0_last_pos + 1;
 
             if ( s_mat_valid && s_mat_col_last ) begin
                 next0_border   = 1'b1;
@@ -161,10 +162,12 @@ module jelly3_mat_buf_col
                 st0_col_last  <= 'x;
                 st0_de        <= 'x;
                 st0_user      <= 'x;
-                st0_data0     <= 'x;
-                st0_data1     <= 'x;
                 st0_sel       <= 'x;
                 st0_valid     <= '0;
+                for ( int i = 0; i < BUFS*TAPS; i++ ) begin
+                    st0_data0[i] <= 'x;
+                    st0_data1[i] <= 'x;
+                end
             end
             else if ( cke ) begin
                 st0_border    <= next0_border   ;
@@ -199,8 +202,12 @@ module jelly3_mat_buf_col
                 st1_col_last  <= 'x;
                 st1_de        <= 'x;
                 st1_user      <= 'x;
-                st1_data      <= 'x;
                 st1_valid     <= '0;
+                for ( int i = 0; i < TAPS; i++ ) begin
+                    for ( int j = 0; j < COLS; j++ ) begin
+                        st1_data[i][j] <= 'x;
+                    end
+                end
             end
             else if ( cke ) begin
                 st1_row_first <= st0_row_first[L];
@@ -228,14 +235,19 @@ module jelly3_mat_buf_col
         assign m_mat_valid     = st1_valid    ;
 
         if ( ENDIAN ) begin : m_data_big
-            for ( genvar i = 0; i < TAPS; i++ ) begin : m_data_loop1
-                for ( genvar j = 0; j < COLS; j++ ) begin : m_data_loop2
-                    assign m_mat_data[i][j] = st1_data[TAPS-1 - i][COLS-1 - j];
+            for ( genvar tap = 0; tap < TAPS; tap++ ) begin : m_data_loop1
+                for ( genvar i = 0; i < COLS; i++ ) begin : m_data_loop2
+                    assign m_mat_data[tap][i] = st1_data[TAPS-1 - tap][COLS-1 - i];
                 end
             end
         end
         else begin : m_data_little
-            assign m_mat_data = st1_data;
+//            for ( genvar tap = 0; tap < TAPS; tap++ ) begin : m_data_loop1
+//                for ( genvar i = 0; i < COLS; i++ ) begin : m_data_loop2
+//                    assign m_mat_data[tap][i] = st1_data[TAPS-1 - tap][i];
+//                end
+//            end
+             assign m_mat_data = st1_data;
         end
     end
     else begin : blk_bypass

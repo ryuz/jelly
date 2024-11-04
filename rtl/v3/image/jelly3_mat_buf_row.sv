@@ -447,10 +447,10 @@ module jelly3_mat_buf_row
         for ( genvar tap = 0; tap < TAPS; tap++ ) begin :loop_tap
             for ( genvar i = 0; i < ROWS; i++ ) begin :loop_endian
                 if ( ENDIAN ) begin
-                    assign m_mat_data[tap][i] = out_data[i][tap];
+                    assign m_mat_data[tap][i] = out_data[i][TAPS-1-tap];
                 end
                 else begin
-                    assign m_mat_data[tap][i] = out_data[ROWS-1-i][TAPS-1-tap];
+                    assign m_mat_data[tap][i] = out_data[ROWS-1-i][tap];
                 end
             end
         end

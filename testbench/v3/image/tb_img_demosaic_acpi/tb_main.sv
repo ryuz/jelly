@@ -45,7 +45,7 @@ module tb_main
     localparam  bit     USE_DE       = 1    ;
     localparam  bit     USE_USER     = 0    ;
     localparam  bit     USE_VALID    = 1    ;
-    localparam  int     TAPS         = 1    ;
+    localparam  int     TAPS         = 4    ;
     localparam  int     DE_BITS      = TAPS ;
     localparam  int     CH_DEPTH     = 1    ;
     localparam  int     CH_BITS      = 10   ;

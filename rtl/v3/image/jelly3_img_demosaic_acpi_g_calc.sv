@@ -14,6 +14,8 @@
 
 module jelly3_img_demosaic_acpi_g_calc
         #(
+            parameter   int   TAPS      = 1                             ,
+            parameter   int   TAP_POS   = 0                             ,
             parameter   int   CH_BITS   = 10                            ,
             parameter   type  ch_t      = logic [CH_BITS-1:0]           ,
             parameter   int   CALC_BITS = $bits(ch_t) + 6               ,
@@ -122,11 +124,13 @@ module jelly3_img_demosaic_acpi_g_calc
     always_ff @(posedge clk) begin
         if ( cke ) begin
             // stage 0
-            st0_phase[0] <= ~st0_phase[0];
+            st0_phase[0] <= st0_phase[0] + TAPS[0];
             if ( in_pixel_first ) begin
                 if ( in_line_first ) begin
-                    reg_param_phase <= param_phase;
-                    st0_phase       <= param_phase;
+                    reg_param_phase[0] <= param_phase[0] + TAP_POS[0];
+                    reg_param_phase[1] <= param_phase[1];
+                    st0_phase[0]       <= param_phase[0] + TAP_POS[0];
+                    st0_phase[1]       <= param_phase[1];
                 end
                 else begin
                     st0_phase[0] <= reg_param_phase[0];

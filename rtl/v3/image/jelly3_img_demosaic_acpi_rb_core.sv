@@ -28,7 +28,9 @@ module jelly3_img_demosaic_acpi_rb_core
         );
     
     localparam  int     TAPS      = s_img.TAPS              ;
+    localparam  int     DE_BITS   = s_img.DE_BITS           ;
     localparam  int     USER_BITS = s_img.USER_BITS         ;
+    localparam  type    de_t      = logic   [DE_BITS-1:0]   ;
     localparam  type    user_t    = logic   [USER_BITS-1:0] ;
 
     logic                               img_blk_row_first;
@@ -36,7 +38,7 @@ module jelly3_img_demosaic_acpi_rb_core
     logic                               img_blk_col_first;
     logic                               img_blk_col_last;
     user_t                              img_blk_user;
-    logic                               img_blk_de;
+    de_t                                img_blk_de;
     ch_t    [TAPS-1:0][2:0][2:0][1:0]   img_blk_data;
     logic                               img_blk_valid;
     
@@ -45,6 +47,7 @@ module jelly3_img_demosaic_acpi_rb_core
                 .ROWS               (3                  ),
                 .COLS               (3                  ),
                 .TAPS               (TAPS               ),
+                .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
                 .DATA_BITS          (2 * $bits(ch_t)    ),
                 .MAX_COLS           (MAX_COLS           ),
@@ -76,67 +79,75 @@ module jelly3_img_demosaic_acpi_rb_core
                 .m_mat_valid        (img_blk_valid      )
             );
     
-    ch_t        acpi_raw;
-    ch_t        acpi_r;
-    ch_t        acpi_g;
-    ch_t        acpi_b;
-    
-    jelly3_img_demosaic_acpi_rb_calc
-            #(
-                .CH_BITS            ($bits(ch_t)),
-                .ch_t               (ch_t       )
-            )
-        i_img_demosaic_acpi_rb_calc
-            (
-                .reset              (s_img.reset),
-                .clk                (s_img.clk  ),
-                .cke                (s_img.cke  ),
-                
-                .param_phase        (param_phase),
-                
-                .in_line_first      (img_blk_row_first & img_blk_valid  ),
-                .in_pixel_first     (img_blk_col_first & img_blk_valid  ),
-                .in_data            (img_blk_data                       ),
-                
-                .out_raw            (acpi_raw   ),
-                .out_r              (acpi_r     ),
-                .out_g              (acpi_g     ),
-                .out_b              (acpi_b     )
-            );
+    for ( genvar tap = 0; tap < TAPS; tap++ ) begin : loop_calc
+        ch_t        acpi_raw;
+        ch_t        acpi_r;
+        ch_t        acpi_g;
+        ch_t        acpi_b;
+        
+        jelly3_img_demosaic_acpi_rb_calc
+                #(
+                    .TAPS               (TAPS       ),
+                    .TAP_POS            (tap        ),
+                    .CH_BITS            ($bits(ch_t)),
+                    .ch_t               (ch_t       )
+                )
+            i_img_demosaic_acpi_rb_calc
+                (
+                    .reset              (s_img.reset),
+                    .clk                (s_img.clk  ),
+                    .cke                (s_img.cke  ),
+                    
+                    .param_phase        (param_phase),
+                    
+                    .in_line_first      (img_blk_row_first & img_blk_valid  ),
+                    .in_pixel_first     (img_blk_col_first & img_blk_valid  ),
+                    .in_data            (img_blk_data[tap]                  ),
+                    
+                    .out_raw            (acpi_raw   ),
+                    .out_r              (acpi_r     ),
+                    .out_g              (acpi_g     ),
+                    .out_b              (acpi_b     )
+                );
 
-    localparam  int     DST_DATA_BITS = m_img.DATA_BITS;
+        localparam  int     DST_DATA_BITS = m_img.DATA_BITS;
 
-    // 4チャネル目があれば RAW を入れる
-    assign m_img.data = RGB_SWAP ? DST_DATA_BITS'({acpi_raw, acpi_b, acpi_g, acpi_r}) :
-                                   DST_DATA_BITS'({acpi_raw, acpi_r, acpi_g, acpi_b}) ;
-    
-    jelly2_img_delay
+        // 4チャネル目があれば RAW を入れる
+        assign m_img.data[tap] = RGB_SWAP ? DST_DATA_BITS'({acpi_raw, acpi_b, acpi_g, acpi_r})  :
+                                            DST_DATA_BITS'({acpi_raw, acpi_r, acpi_g, acpi_b})  ;
+    end
+
+    jelly3_mat_delay
             #(
-                .USER_WIDTH         (USER_BITS          ),
-                .LATENCY            (7                  ),
-                .USE_VALID          (m_img.USE_VALID    )
+                .DE_BITS            (DE_BITS            ),
+                .USER_BITS          (USER_BITS          ),
+                .LATENCY            (7                  )
             )
-        i_img_delay
+        u_mat_delay
             (
                 .reset              (m_img.reset        ),
                 .clk                (m_img.clk          ),
                 .cke                (m_img.cke          ),
                 
-                .s_img_row_first    (img_blk_row_first  ),
-                .s_img_row_last     (img_blk_row_last   ),
-                .s_img_col_first    (img_blk_col_first  ),
-                .s_img_col_last     (img_blk_col_last   ),
-                .s_img_de           (img_blk_de         ),
-                .s_img_user         (img_blk_user       ),
-                .s_img_valid        (img_blk_valid      ),
+                .s_mat_rows         ('0                 ),
+                .s_mat_cols         ('0                 ),
+                .s_mat_row_first    (img_blk_row_first  ),
+                .s_mat_row_last     (img_blk_row_last   ),
+                .s_mat_col_first    (img_blk_col_first  ),
+                .s_mat_col_last     (img_blk_col_last   ),
+                .s_mat_de           (img_blk_de         ),
+                .s_mat_user         (img_blk_user       ),
+                .s_mat_valid        (img_blk_valid      ),
                 
-                .m_img_row_first    (m_img.row_first    ),
-                .m_img_row_last     (m_img.row_last     ),
-                .m_img_col_first    (m_img.col_first    ),
-                .m_img_col_last     (m_img.col_last     ),
-                .m_img_de           (m_img.de           ),
-                .m_img_user         (m_img.user         ),
-                .m_img_valid        (m_img.valid        )
+                .m_mat_rows         (                   ),
+                .m_mat_cols         (                   ),
+                .m_mat_row_first    (m_img.row_first    ),
+                .m_mat_row_last     (m_img.row_last     ),
+                .m_mat_col_first    (m_img.col_first    ),
+                .m_mat_col_last     (m_img.col_last     ),
+                .m_mat_de           (m_img.de           ),
+                .m_mat_user         (m_img.user         ),
+                .m_mat_valid        (m_img.valid        )
             );
     assign m_img.rows = s_img.rows;
     assign m_img.cols = s_img.cols;    

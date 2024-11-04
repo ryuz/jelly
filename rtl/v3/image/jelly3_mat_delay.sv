@@ -19,6 +19,8 @@ module jelly3_mat_delay
             parameter   type    rows_t     = logic [ROWS_BITS-1:0]  ,
             parameter   int     COLS_BITS  = 1                      ,
             parameter   type    cols_t     = logic [COLS_BITS-1:0]  ,
+            parameter   int     DE_BITS    = 1                      ,
+            parameter   type    de_t       = logic [DE_BITS-1:0]    ,
             parameter   int     USER_BITS  = 1                      ,
             parameter   type    user_t     = logic [USER_BITS-1:0]  ,
             parameter   user_t  INIT_USER  = 'x                     
@@ -34,7 +36,7 @@ module jelly3_mat_delay
             input   var logic   s_mat_col_last      ,
             input   var logic   s_mat_row_first     ,
             input   var logic   s_mat_row_last      ,
-            input   var logic   s_mat_de            ,
+            input   var de_t    s_mat_de            ,
             input   var user_t  s_mat_user          ,
             input   var logic   s_mat_valid         ,
             
@@ -44,7 +46,7 @@ module jelly3_mat_delay
             output  var logic   m_mat_col_last      ,
             output  var logic   m_mat_row_first     ,
             output  var logic   m_mat_row_last      ,
-            output  var logic   m_mat_de            ,
+            output  var de_t    m_mat_de            ,
             output  var user_t  m_mat_user          ,
             output  var logic   m_mat_valid         
         );
@@ -63,7 +65,8 @@ module jelly3_mat_delay
                 .LATENCY        (LATENCY                ),
                 .DATA_BITS      ($bits(s_mat_rows) +
                                  $bits(s_mat_cols) +
-                                 $bits(s_mat_user) + 5  )
+                                 $bits(s_mat_user) + 
+                                 $bits(s_mat_de  ) + 4  )
             )
         u_stream_delay
             (

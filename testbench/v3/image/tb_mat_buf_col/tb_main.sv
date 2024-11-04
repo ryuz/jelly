@@ -39,12 +39,12 @@ module tb_main
                 .cke
             );
 
-    jelly3_model_mat_m
+    jelly3_model_img_m
             #(
                 .IMG_CH_DEPTH       (CH_DEPTH           ),
                 .IMG_CH_BITS        (CH_BITS            ),
-                .IMG_COLS           (64                 ),
-                .IMG_ROWS           (48                 ),
+                .IMG_WIDTH          (64                 ),
+                .IMG_HEIGHT         (48                 ),
                 .COL_BLANK          (0                  ),   // 基本ゼロ
                 .ROW_BLANK          (0                  ),   // 末尾にde落ちラインを追加
                 .FILE_NAME          (""                 ),
@@ -54,12 +54,12 @@ module tb_main
                 .SEQUENTIAL_FILE    (0                  ),
                 .ENDIAN             (ENDIAN             )
             )
-        u_model_mat_m
+        u_model_img_m
             (
                 .enable             (1'b1       ),
                 .busy               (           ),
 
-                .m_mat              (mat_src.m  ),
+                .m_img              (mat_src.m  ),
                 .out_x              (           ),
                 .out_y              (           ),
                 .out_f              (           )
@@ -70,18 +70,18 @@ module tb_main
             #(
                 .TAPS               (TAPS               ),
                 .DE_BITS            (DE_BITS            ),
-                .COLS               (3                  ),
+                .COLS               (11                 ),
+//              .ANCHOR             (1                  ),
                 .USER_BITS          (1                  ),
                 .DATA_BITS          (CH_DEPTH*CH_BITS   ),
-                .ANCHOR             (0                  ),
 //              .BORDER_MODE        ("REPLICATE"        ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-                .BORDER_MODE        ("CONSTANT"         ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-//              .BORDER_MODE        ("REFLECT_101"      ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+//              .BORDER_MODE        ("CONSTANT"         ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+                .BORDER_MODE        ("REFLECT_101"      ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
 //              .BORDER_MODE        ("REFLECT"          ),   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
                 .BORDER_VALUE       (8'haa              ),   // BORDER_MODE == "CONSTANT"
                 .ENDIAN             (ENDIAN             )    // 0: little, 1:big
             )
-        u_mat_col_buffer
+        u_mat_buf_col
             (
                 .reset               ,
                 .clk                 ,

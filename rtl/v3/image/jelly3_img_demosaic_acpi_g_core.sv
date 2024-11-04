@@ -27,7 +27,9 @@ module jelly3_img_demosaic_acpi_g_core
         );
     
     localparam  int     TAPS      = s_img.TAPS              ;
+    localparam  int     DE_BITS   = s_img.DE_BITS           ;
     localparam  int     USER_BITS = s_img.USER_BITS         ;
+    localparam  type    de_t      = logic   [DE_BITS-1:0]   ;
     localparam  type    user_t    = logic   [USER_BITS-1:0] ;
     
     logic                           img_blk_row_first;
@@ -35,13 +37,14 @@ module jelly3_img_demosaic_acpi_g_core
     logic                           img_blk_col_first;
     logic                           img_blk_col_last;
     user_t                          img_blk_user;
-    logic                           img_blk_de;
+    de_t                            img_blk_de;
     ch_t    [TAPS-1:0][4:0][4:0]    img_blk_raw;
     logic                           img_blk_valid;
     
     jelly3_mat_buf_blk
             #(
                 .TAPS               (TAPS               ),
+                .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
                 .DATA_BITS          (CH_BITS            ),
                 .ROWS               (5                  ),
@@ -76,33 +79,39 @@ module jelly3_img_demosaic_acpi_g_core
             );
     
 
-    ch_t        acpi_raw;
-    ch_t        acpi_g;
 
-    jelly3_img_demosaic_acpi_g_calc
-            #(
-                .CH_BITS            ($bits(ch_t)    ),
-                .ch_t               (ch_t           )
-            )
-        u_img_demosaic_acpi_g_calc
-            (
-                .reset              (s_img.reset    ),
-                .clk                (s_img.clk      ),
-                .cke                (s_img.cke      ),
+    for ( genvar tap = 0; tap < TAPS; tap++ ) begin : loop_calc
+        ch_t        acpi_raw;
+        ch_t        acpi_g;
 
-                .param_phase        (param_phase    ),
-                
-                .in_line_first      (img_blk_row_first & img_blk_valid  ),
-                .in_pixel_first     (img_blk_col_first & img_blk_valid  ),
-                .in_raw             (img_blk_raw                        ),
-                
-                .out_raw            (acpi_raw       ),
-                .out_g              (acpi_g         )
-            );
-    assign m_img.data = {acpi_g, acpi_raw};
+        jelly3_img_demosaic_acpi_g_calc
+                #(
+                    .TAPS               (TAPS           ),
+                    .TAP_POS            (tap            ),
+                    .CH_BITS            ($bits(ch_t)    ),
+                    .ch_t               (ch_t           )
+                )
+            u_img_demosaic_acpi_g_calc
+                (
+                    .reset              (s_img.reset    ),
+                    .clk                (s_img.clk      ),
+                    .cke                (s_img.cke      ),
+
+                    .param_phase        (param_phase    ),
+                    
+                    .in_line_first      (img_blk_row_first & img_blk_valid  ),
+                    .in_pixel_first     (img_blk_col_first & img_blk_valid  ),
+                    .in_raw             (img_blk_raw[tap]                   ),
+                    
+                    .out_raw            (acpi_raw       ),
+                    .out_g              (acpi_g         )
+                );
+        assign m_img.data[tap] = {acpi_g, acpi_raw};
+    end
     
     jelly3_mat_delay
             #(
+                .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
                 .LATENCY            (7                  )
             )
