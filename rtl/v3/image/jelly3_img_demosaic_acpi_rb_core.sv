@@ -135,7 +135,8 @@ module jelly3_img_demosaic_acpi_rb_core
                 .COLS_BITS          (COLS_BITS          ),
                 .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
-                .LATENCY            (7                  )
+                .LATENCY            (7                  ),
+                .BYPASS_SIZE        (BYPASS_SIZE        )
             )
         u_mat_delay
             (
@@ -153,8 +154,8 @@ module jelly3_img_demosaic_acpi_rb_core
                 .s_mat_user         (img_blk_user       ),
                 .s_mat_valid        (img_blk_valid      ),
                 
-                .m_mat_rows         (                   ),
-                .m_mat_cols         (                   ),
+                .m_mat_rows         (m_img.rows         ),
+                .m_mat_cols         (m_img.cols         ),
                 .m_mat_row_first    (m_img.row_first    ),
                 .m_mat_row_last     (m_img.row_last     ),
                 .m_mat_col_first    (m_img.col_first    ),
@@ -163,8 +164,6 @@ module jelly3_img_demosaic_acpi_rb_core
                 .m_mat_user         (m_img.user         ),
                 .m_mat_valid        (m_img.valid        )
             );
-    assign m_img.rows = s_img.rows;
-    assign m_img.cols = s_img.cols;    
     
 endmodule
 
