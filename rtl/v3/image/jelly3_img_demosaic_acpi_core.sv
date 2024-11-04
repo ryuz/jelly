@@ -19,6 +19,7 @@ module jelly3_img_demosaic_acpi_core
             parameter   int     MAX_COLS         = 4096                     ,
             parameter           RAM_TYPE         = "block"                  ,
             parameter   bit     RGB_SWAP         = 0                        ,
+            parameter   bit     BYPASS_SIZE      = 1'b1                     ,
             localparam  type    phase_t          = logic [1:0]              
         )
         (
@@ -51,7 +52,8 @@ module jelly3_img_demosaic_acpi_core
                 .CH_BITS        ($bits(ch_t)    ),
                 .ch_t           (ch_t           ),
                 .MAX_COLS       (MAX_COLS       ),
-                .RAM_TYPE       (RAM_TYPE       )
+                .RAM_TYPE       (RAM_TYPE       ),
+                .BYPASS_SIZE    (BYPASS_SIZE    )
             )
         u_img_demosaic_acpi_g_core
             (
@@ -68,6 +70,7 @@ module jelly3_img_demosaic_acpi_core
                 .ch_t           (ch_t           ),
                 .MAX_COLS       (MAX_COLS       ),
                 .RAM_TYPE       (RAM_TYPE       ),
+                .BYPASS_SIZE    (BYPASS_SIZE    ),
                 .RGB_SWAP       (RGB_SWAP       )
             )
         u_img_demosaic_acpi_rb_core

@@ -13,6 +13,10 @@
 module jelly3_mat_buf_blk
         #(
             parameter   int     TAPS         = 1                        ,
+            parameter   int     ROWS_BITS    = 16                       ,
+            parameter   type    rows_t       = logic [ROWS_BITS-1:0]    ,
+            parameter   int     COLS_BITS    = 16                       ,
+            parameter   type    cols_t       = logic [COLS_BITS-1:0]    ,
             parameter   int     DE_BITS      = TAPS                     ,
             parameter   type    de_t         = logic [DE_BITS-1:0]      ,
             parameter   int     USER_BITS    = 1                        ,
@@ -27,6 +31,7 @@ module jelly3_mat_buf_blk
             parameter           BORDER_MODE  = "REPLICATE"              ,   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
             parameter   data_t  BORDER_VALUE = '0                       ,   // BORDER_MODE == "CONSTANT"
             parameter           RAM_TYPE     = "block"                  ,
+            parameter   bit     BYPASS_SIZE  = 1'b1                     ,
             parameter   bit     ENDIAN       = 0                            // 0: little, 1:big
         )
         (
@@ -34,6 +39,8 @@ module jelly3_mat_buf_blk
             input   var logic                                   clk                 ,
             input   var logic                                   cke                 ,
             
+            input   var rows_t                                  s_mat_rows          ,
+            input   var cols_t                                  s_mat_cols          ,
             input   var logic                                   s_mat_row_first     ,
             input   var logic                                   s_mat_row_last      ,
             input   var logic                                   s_mat_col_first     ,
@@ -43,6 +50,8 @@ module jelly3_mat_buf_blk
             input   var data_t  [TAPS-1:0]                      s_mat_data          ,
             input   var logic                                   s_mat_valid         ,
             
+            output  var rows_t                                  m_mat_rows          ,
+            output  var cols_t                                  m_mat_cols          ,
             output  var logic                                   m_mat_row_first     ,
             output  var logic                                   m_mat_row_last      ,
             output  var logic                                   m_mat_col_first     ,
@@ -54,6 +63,8 @@ module jelly3_mat_buf_blk
         );
 
 
+    rows_t                          mat_rbuf_rows       ;
+    cols_t                          mat_rbuf_cols       ;
     logic                           mat_rbuf_row_first  ;
     logic                           mat_rbuf_row_last   ;
     logic                           mat_rbuf_col_first  ;
@@ -75,6 +86,7 @@ module jelly3_mat_buf_blk
                 .BORDER_MODE        (BORDER_MODE        ),
                 .BORDER_VALUE       (BORDER_VALUE       ),
                 .RAM_TYPE           (RAM_TYPE           ),
+                .BYPASS_SIZE        (BYPASS_SIZE        ),
                 .ENDIAN             (ENDIAN             )
             )
         u_mat_buf_row
@@ -83,6 +95,8 @@ module jelly3_mat_buf_blk
                 .clk                (clk                ),
                 .cke                (cke                ),
 
+                .s_mat_rows         (s_mat_rows         ),
+                .s_mat_cols         (s_mat_cols         ),
                 .s_mat_row_first    (s_mat_row_first    ),
                 .s_mat_row_last     (s_mat_row_last     ),
                 .s_mat_col_first    (s_mat_col_first    ),
@@ -92,6 +106,8 @@ module jelly3_mat_buf_blk
                 .s_mat_data         (s_mat_data         ),
                 .s_mat_valid        (s_mat_valid        ),
                 
+                .m_mat_rows         (mat_rbuf_rows      ),
+                .m_mat_cols         (mat_rbuf_cols      ),
                 .m_mat_row_first    (mat_rbuf_row_first ),
                 .m_mat_row_last     (mat_rbuf_row_last  ),
                 .m_mat_col_first    (mat_rbuf_col_first ),
@@ -103,7 +119,8 @@ module jelly3_mat_buf_blk
             );
     
 
-
+    rows_t                                  mat_cbuf_rows       ;
+    cols_t                                  mat_cbuf_cols       ;
     logic                                   mat_cbuf_row_first  ;
     logic                                   mat_cbuf_row_last   ;
     logic                                   mat_cbuf_col_first  ;
@@ -123,6 +140,7 @@ module jelly3_mat_buf_blk
                 .ANCHOR             (COL_ANCHOR             ),
                 .BORDER_MODE        (BORDER_MODE            ),
                 .BORDER_VALUE       ({ROWS{BORDER_VALUE}}   ),
+                .BYPASS_SIZE        (BYPASS_SIZE            ),
                 .ENDIAN             (ENDIAN                 )
             )
         u_mat_buf_col
@@ -131,6 +149,8 @@ module jelly3_mat_buf_blk
                 .clk                (clk                    ),
                 .cke                (cke                    ),
                 
+                .s_mat_rows         (mat_rbuf_rows          ),
+                .s_mat_cols         (mat_rbuf_cols          ),
                 .s_mat_row_first    (mat_rbuf_row_first     ),
                 .s_mat_row_last     (mat_rbuf_row_last      ),
                 .s_mat_col_first    (mat_rbuf_col_first     ),
@@ -140,6 +160,8 @@ module jelly3_mat_buf_blk
                 .s_mat_data         (mat_rbuf_data          ),
                 .s_mat_valid        (mat_rbuf_valid         ),
 
+                .m_mat_rows         (mat_cbuf_rows          ),
+                .m_mat_cols         (mat_cbuf_cols          ),
                 .m_mat_row_first    (mat_cbuf_row_first     ),
                 .m_mat_row_last     (mat_cbuf_row_last      ),
                 .m_mat_col_first    (mat_cbuf_col_first     ),
@@ -158,14 +180,15 @@ module jelly3_mat_buf_blk
         end
     end
 
-    assign m_mat_row_first = mat_cbuf_row_first;
-    assign m_mat_row_last  = mat_cbuf_row_last ;
-    assign m_mat_col_first = mat_cbuf_col_first;
-    assign m_mat_col_last  = mat_cbuf_col_last ;
-    assign m_mat_de        = mat_cbuf_de       ;
-    assign m_mat_user      = mat_cbuf_user     ;
-    assign m_mat_valid     = mat_cbuf_valid    ;    
-
+    assign m_mat_rows      = mat_cbuf_rows      ;
+    assign m_mat_cols      = mat_cbuf_cols      ;
+    assign m_mat_row_first = mat_cbuf_row_first ;
+    assign m_mat_row_last  = mat_cbuf_row_last  ;
+    assign m_mat_col_first = mat_cbuf_col_first ;
+    assign m_mat_col_last  = mat_cbuf_col_last  ;
+    assign m_mat_de        = mat_cbuf_de        ;
+    assign m_mat_user      = mat_cbuf_user      ;
+    assign m_mat_valid     = mat_cbuf_valid     ;
 
 endmodule
 

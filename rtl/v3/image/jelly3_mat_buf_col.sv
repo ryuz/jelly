@@ -15,6 +15,10 @@
 module jelly3_mat_buf_col
         #(
             parameter   int     TAPS         = 1                            ,
+            parameter   int     ROWS_BITS    = 16                           ,
+            parameter   type    rows_t       = logic [ROWS_BITS-1:0]        ,
+            parameter   int     COLS_BITS    = 16                           ,
+            parameter   type    cols_t       = logic [COLS_BITS-1:0]        ,
             parameter   int     DE_BITS      = TAPS                         ,
             parameter   type    de_t         = logic [DE_BITS-1:0]          ,
             parameter   int     USER_BITS    = 1                            ,
@@ -25,6 +29,7 @@ module jelly3_mat_buf_col
             parameter   int     ANCHOR       = (COLS-1) / 2                 ,
             parameter           BORDER_MODE  = "REPLICATE"                  ,   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
             parameter   data_t  BORDER_VALUE = '0                           ,   // BORDER_MODE == "CONSTANT"
+            parameter   bit     BYPASS_SIZE  = 1'b1                         ,
             parameter   bit     ENDIAN       = 0                                // 0: little, 1:big
         )
         (
@@ -32,6 +37,8 @@ module jelly3_mat_buf_col
             input   var logic                           clk                 ,
             input   var logic                           cke                 ,
             
+            input   var rows_t                          s_mat_rows          ,
+            input   var cols_t                          s_mat_cols          ,
             input   var logic                           s_mat_row_first     ,
             input   var logic                           s_mat_row_last      ,
             input   var logic                           s_mat_col_first     ,
@@ -41,6 +48,8 @@ module jelly3_mat_buf_col
             input   var data_t  [TAPS-1:0]              s_mat_data          ,
             input   var logic                           s_mat_valid         ,
             
+            output  var rows_t                          m_mat_rows          ,
+            output  var cols_t                          m_mat_cols          ,
             output  var logic                           m_mat_row_first     ,
             output  var logic                           m_mat_row_last      ,
             output  var logic                           m_mat_col_first     ,
@@ -81,6 +90,8 @@ module jelly3_mat_buf_col
         // stage 0
         logic                       st0_border      , next0_border   ;
         pos_t                       st0_last_pos    , next0_last_pos ;
+        rows_t  [BUFS-1:0]          st0_rows        , next0_rows     ;
+        cols_t  [BUFS-1:0]          st0_cols        , next0_cols     ;
         logic   [BUFS-1:0]          st0_row_first   , next0_row_first;
         logic   [BUFS-1:0]          st0_row_last    , next0_row_last ;
         logic   [BUFS-1:0]          st0_col_first   , next0_col_first;
@@ -95,6 +106,8 @@ module jelly3_mat_buf_col
             automatic int pos = int'(st0_last_pos);
             next0_border    = st0_border;
             next0_last_pos  = st0_last_pos;
+            next0_rows      = $bits(next0_rows     )'({s_mat_rows       ,   st0_rows     } >> $bits(s_mat_rows     ));
+            next0_cols      = $bits(next0_cols     )'({s_mat_cols       ,   st0_cols     } >> $bits(s_mat_cols     ));
             next0_row_first = $bits(next0_row_first)'({s_mat_row_first  ,   st0_row_first} >> $bits(s_mat_row_first));
             next0_row_last  = $bits(next0_row_last )'({s_mat_row_last   ,   st0_row_last } >> $bits(s_mat_row_last ));
             next0_col_first = $bits(next0_col_first)'({s_mat_col_first  ,   st0_col_first} >> $bits(s_mat_col_first));
@@ -156,6 +169,8 @@ module jelly3_mat_buf_col
             if ( reset ) begin
                 st0_border    <= 'x;
                 st0_last_pos  <= 'x;
+                st0_rows      <= 'x;
+                st0_cols      <= 'x;
                 st0_row_first <= 'x;
                 st0_row_last  <= 'x;
                 st0_col_first <= 'x;
@@ -172,6 +187,8 @@ module jelly3_mat_buf_col
             else if ( cke ) begin
                 st0_border    <= next0_border   ;
                 st0_last_pos  <= next0_last_pos ;
+                st0_rows      <= next0_rows     ;
+                st0_cols      <= next0_cols     ;
                 st0_row_first <= next0_row_first;
                 st0_row_last  <= next0_row_last ;
                 st0_col_first <= next0_col_first;
@@ -186,6 +203,8 @@ module jelly3_mat_buf_col
         end
 
         // stage1
+        rows_t                          st1_rows        ;
+        cols_t                          st1_cols        ;
         logic                           st1_row_first   ;
         logic                           st1_row_last    ;
         logic                           st1_col_first   ;
@@ -196,6 +215,8 @@ module jelly3_mat_buf_col
         logic                           st1_valid       ;
         always_ff @(posedge clk) begin
             if ( reset ) begin
+                st1_rows      <= 'x;
+                st1_cols      <= 'x;
                 st1_row_first <= 'x;
                 st1_row_last  <= 'x;
                 st1_col_first <= 'x;
@@ -210,6 +231,13 @@ module jelly3_mat_buf_col
                 end
             end
             else if ( cke ) begin
+                st1_rows      <= st0_rows     [L];
+                st1_cols      <= st0_cols     [L];
+                if ( BYPASS_SIZE && st0_row_first[L] && st0_col_first[L] && st0_valid[L] ) begin
+                    st1_rows      <= s_mat_rows;
+                    st1_cols      <= s_mat_cols;
+                end
+
                 st1_row_first <= st0_row_first[L];
                 st1_row_last  <= st0_row_last [L];
                 st1_col_first <= st0_col_first[L];
@@ -226,13 +254,15 @@ module jelly3_mat_buf_col
             end
         end
 
-        assign m_mat_row_first = st1_row_first;
-        assign m_mat_row_last  = st1_row_last ;
-        assign m_mat_col_first = st1_col_first;
-        assign m_mat_col_last  = st1_col_last ;
-        assign m_mat_de        = st1_de       ;
-        assign m_mat_user      = st1_user     ;
-        assign m_mat_valid     = st1_valid    ;
+        assign m_mat_rows      = st1_rows       ;
+        assign m_mat_cols      = st1_cols       ;
+        assign m_mat_row_first = st1_row_first  ;
+        assign m_mat_row_last  = st1_row_last   ;
+        assign m_mat_col_first = st1_col_first  ;
+        assign m_mat_col_last  = st1_col_last   ;
+        assign m_mat_de        = st1_de         ;
+        assign m_mat_user      = st1_user       ;
+        assign m_mat_valid     = st1_valid      ;
 
         if ( ENDIAN ) begin : m_data_big
             for ( genvar tap = 0; tap < TAPS; tap++ ) begin : m_data_loop1
@@ -242,24 +272,21 @@ module jelly3_mat_buf_col
             end
         end
         else begin : m_data_little
-//            for ( genvar tap = 0; tap < TAPS; tap++ ) begin : m_data_loop1
-//                for ( genvar i = 0; i < COLS; i++ ) begin : m_data_loop2
-//                    assign m_mat_data[tap][i] = st1_data[TAPS-1 - tap][i];
-//                end
-//            end
              assign m_mat_data = st1_data;
         end
     end
     else begin : blk_bypass
         // COLS == 1 の時はバイパスする
+        assign m_mat_rows      = s_mat_rows     ;
+        assign m_mat_cols      = s_mat_cols     ;
         assign m_mat_row_first = s_mat_row_first;
-        assign m_mat_row_last  = s_mat_row_last;
+        assign m_mat_row_last  = s_mat_row_last ;
         assign m_mat_col_first = s_mat_col_first;
-        assign m_mat_col_last  = s_mat_col_last;
-        assign m_mat_de        = s_mat_de;
-        assign m_mat_user      = s_mat_user;
-        assign m_mat_data      = s_mat_data;
-        assign m_mat_valid     = s_mat_valid;
+        assign m_mat_col_last  = s_mat_col_last ;
+        assign m_mat_de        = s_mat_de       ;
+        assign m_mat_user      = s_mat_user     ;
+        assign m_mat_data      = s_mat_data     ;
+        assign m_mat_valid     = s_mat_valid    ;
     end
     
 endmodule

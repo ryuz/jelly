@@ -14,12 +14,13 @@
 
 module jelly3_img_demosaic_acpi_rb_core
         #(
-            parameter   int     CH_BITS   = 10                      ,
-            parameter   type    ch_t      = logic [CH_BITS-1:0]     ,
-            parameter   int     MAX_COLS  = 4096                    ,
-            parameter           RAM_TYPE  = "block"                 ,
-            parameter   bit     RGB_SWAP  = 0                       ,
-            localparam  type    phase_t   = logic [1:0]             
+            parameter   int     CH_BITS     = 10                    ,
+            parameter   type    ch_t        = logic [CH_BITS-1:0]   ,
+            parameter   int     MAX_COLS    = 4096                  ,
+            parameter           RAM_TYPE    = "block"               ,
+            parameter   bit     RGB_SWAP    = 0                     ,
+            parameter   bit     BYPASS_SIZE = 1'b1                  ,
+            localparam  type    phase_t     = logic [1:0]           
         )
         (
             input   var phase_t param_phase,
@@ -28,19 +29,25 @@ module jelly3_img_demosaic_acpi_rb_core
         );
     
     localparam  int     TAPS      = s_img.TAPS              ;
+    localparam  int     ROWS_BITS = s_img.ROWS_BITS         ;
+    localparam  int     COLS_BITS = s_img.COLS_BITS         ;
     localparam  int     DE_BITS   = s_img.DE_BITS           ;
     localparam  int     USER_BITS = s_img.USER_BITS         ;
+    localparam  type    rows_t    = logic   [ROWS_BITS-1:0] ;
+    localparam  type    cols_t    = logic   [COLS_BITS-1:0] ;
     localparam  type    de_t      = logic   [DE_BITS-1:0]   ;
     localparam  type    user_t    = logic   [USER_BITS-1:0] ;
 
-    logic                               img_blk_row_first;
-    logic                               img_blk_row_last;
-    logic                               img_blk_col_first;
-    logic                               img_blk_col_last;
-    user_t                              img_blk_user;
-    de_t                                img_blk_de;
-    ch_t    [TAPS-1:0][2:0][2:0][1:0]   img_blk_data;
-    logic                               img_blk_valid;
+    rows_t                              img_blk_rows        ;
+    cols_t                              img_blk_cols        ;
+    logic                               img_blk_row_first   ;
+    logic                               img_blk_row_last    ;
+    logic                               img_blk_col_first   ;
+    logic                               img_blk_col_last    ;
+    user_t                              img_blk_user        ;
+    de_t                                img_blk_de          ;
+    ch_t    [TAPS-1:0][2:0][2:0][1:0]   img_blk_data        ;
+    logic                               img_blk_valid       ;
     
     jelly3_mat_buf_blk
             #(
@@ -52,6 +59,7 @@ module jelly3_img_demosaic_acpi_rb_core
                 .DATA_BITS          (2 * $bits(ch_t)    ),
                 .MAX_COLS           (MAX_COLS           ),
                 .RAM_TYPE           (RAM_TYPE           ),
+                .BYPASS_SIZE        (BYPASS_SIZE        ),
                 .BORDER_MODE        ("REFLECT_101"      )
             )   
         u_mat_buf_blk
@@ -60,6 +68,8 @@ module jelly3_img_demosaic_acpi_rb_core
                 .clk                (s_img.clk          ),
                 .cke                (s_img.cke          ),
 
+                .s_mat_rows         (s_img.rows         ),
+                .s_mat_cols         (s_img.cols         ),
                 .s_mat_row_first    (s_img.row_first    ),
                 .s_mat_row_last     (s_img.row_last     ),
                 .s_mat_col_first    (s_img.col_first    ),
@@ -69,6 +79,8 @@ module jelly3_img_demosaic_acpi_rb_core
                 .s_mat_data         (s_img.data         ),
                 .s_mat_valid        (s_img.valid        ),
                 
+                .m_mat_rows         (img_blk_rows       ),
+                .m_mat_cols         (img_blk_cols       ),
                 .m_mat_row_first    (img_blk_row_first  ),
                 .m_mat_row_last     (img_blk_row_last   ),
                 .m_mat_col_first    (img_blk_col_first  ),
@@ -119,6 +131,8 @@ module jelly3_img_demosaic_acpi_rb_core
 
     jelly3_mat_delay
             #(
+                .ROWS_BITS          (ROWS_BITS          ),
+                .COLS_BITS          (COLS_BITS          ),
                 .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
                 .LATENCY            (7                  )
@@ -129,8 +143,8 @@ module jelly3_img_demosaic_acpi_rb_core
                 .clk                (m_img.clk          ),
                 .cke                (m_img.cke          ),
                 
-                .s_mat_rows         ('0                 ),
-                .s_mat_cols         ('0                 ),
+                .s_mat_rows         (img_blk_rows       ),
+                .s_mat_cols         (img_blk_cols       ),
                 .s_mat_row_first    (img_blk_row_first  ),
                 .s_mat_row_last     (img_blk_row_last   ),
                 .s_mat_col_first    (img_blk_col_first  ),
