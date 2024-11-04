@@ -41,8 +41,8 @@ module jelly3_img_bayer_black_level
         (
             
             input   wire        in_update_req,
-            jelly3_img_if.s     s_img,
-            jelly3_img_if.m     m_img,
+            jelly3_mat_if.s     s_img,
+            jelly3_mat_if.m     m_img,
             
             jelly3_axi4l_if.s   s_axi4l
         );
