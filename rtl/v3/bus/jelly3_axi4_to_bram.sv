@@ -119,9 +119,12 @@ module jelly3_axi4_to_bram
                 len  <= len - 1;
                 last <= len == 1;
                 if ( last ) begin
-                    busy  <= 1'b0;
-                    busyw <= 1'b0;
-                    busyr <= 1'b0;
+                    addr  <= 'x     ;
+                    len   <= 'x     ;
+                    last  <= 'x     ;
+                    busy  <= 1'b0   ;
+                    busyw <= 1'b0   ;
+                    busyr <= 1'b0   ;
                 end
             end
         end
