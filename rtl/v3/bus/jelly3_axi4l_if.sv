@@ -137,6 +137,94 @@ interface jelly3_axi4l_if
         );
 
 
+    modport mw
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+        
+            input   aresetn     ,
+            input   aclk        ,
+            input   aclken      ,
+    
+            output  awaddr      ,
+            output  awprot      ,
+            output  awvalid     ,
+            input   awready     ,
+        
+            output  wstrb       ,
+            output  wdata       ,
+            output  wvalid      ,
+            input   wready      ,
+        
+            input   bresp       ,
+            input   bvalid      ,
+            output  bready      
+        );
+
+    modport mr
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+        
+            input   aresetn     ,
+            input   aclk        ,
+            input   aclken      ,
+    
+            output  araddr      ,
+            output  arprot      ,
+            output  arvalid     ,
+            input   arready     ,
+        
+            input   rdata       ,
+            input   rresp       ,
+            input   rvalid      ,
+            output  rready      
+        );
+
+    modport sw
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+
+            input   aresetn     ,
+            input   aclk        ,
+            input   aclken      ,
+    
+            input   awaddr      ,
+            input   awprot      ,
+            input   awvalid     ,
+            output  awready     ,
+        
+            input   wstrb       ,
+            input   wdata       ,
+            input   wvalid      ,
+            output  wready      ,
+        
+            output  bresp       ,
+            output  bvalid      ,
+            input   bready      
+        );
+
+    modport sr
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+
+            input   aresetn     ,
+            input   aclk        ,
+            input   aclken      ,
+            
+            input   araddr      ,
+            input   arprot      ,
+            input   arvalid     ,
+            output  arready     ,
+        
+            output  rdata       ,
+            output  rresp       ,
+            output  rvalid      ,
+            input   rready      
+        );
+
 
 // awaddr
 property prop_awaddr_valid  ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awaddr); endproperty
