@@ -135,8 +135,8 @@ module jelly3_axi4_to_bram
     assign m_bram.cwrite = (busyw && s_axi4.wvalid);
     assign m_bram.caddr  = bram_addr_t'(addr / ADDR_UNIT);
     assign m_bram.clast  = last;
-    assign m_bram.cstrb  = busyw ? s_axi4.wstrb : '0;
-    assign m_bram.cdata  = s_axi4.wdata;
+    assign m_bram.cstrb  = busyw ? bram_strb_t'(s_axi4.wstrb) : '0;
+    assign m_bram.cdata  = bram_data_t'(s_axi4.wdata);
     assign m_bram.cvalid = cvalid;
 
     assign s_axi4.awready = (!busy || (cready && last)) && !(s_axi4.bvalid && !s_axi4.bready);
@@ -167,15 +167,15 @@ module jelly3_axi4_to_bram
     assign s_axi4.rid    = m_bram.rid   ;
     assign s_axi4.rresp  = 2'b00        ;
     assign s_axi4.rlast  = m_bram.rlast ;
-    assign s_axi4.rdata  = m_bram.rdata ;
+    assign s_axi4.rdata  = axi4_data_t'(m_bram.rdata);
     assign s_axi4.rvalid = m_bram.rvalid;
     assign m_bram.rready = s_axi4.rready;
 
 
     initial begin
-        if ( $bits(bram_data_t) != $bits(axi4_data_t) ) begin
-            $error("ERROR: DATA_BITS of bram and axi4 must be same");
-        end
+//      if ( $bits(bram_data_t) != $bits(axi4_data_t) ) begin
+//          $error("ERROR: DATA_BITS of bram and axi4 must be same");
+//      end
         if ( $bits(bram_id_t) != $bits(axi4_id_t) ) begin
             $error("ERROR: ID_BITS of bram and axi4 must be same");
         end

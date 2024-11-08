@@ -14,7 +14,7 @@ module jelly3_axi4l_bram_accessor
         #(
             parameter   int     WLATENCY    = 1                         ,
             parameter   int     RLATENCY    = 2                         ,
-            parameter   type    en_t        = logic [LATENCY-1:0]       ,
+            parameter   type    en_t        = logic [RLATENCY-1:0]      ,
             parameter   int     ADDR_BITS   = 10                        ,
             parameter   type    addr_t      = logic [ADDR_BITS-1:0]     ,
             parameter   int     DATA_BITS   = 32                        ,
@@ -24,7 +24,7 @@ module jelly3_axi4l_bram_accessor
             parameter   type    we_t        = logic [WE_BITS-1:0]       
         )
         (
-            jelly3_axi4l_if.s   axi4l   ,
+            jelly3_axi4l_if.s   s_axi4l ,
 
             output  var en_t    en      ,
             output  var we_t    we      ,
@@ -40,21 +40,33 @@ module jelly3_axi4l_bram_accessor
                 .USE_LAST       (0                  ),
 
                 .ID_BITS        (1                  ),
-                .ADDR_BITS      (axi4l.ADDR_BITS    ),
-                .DATA_BITS      (axi4l.DATA_BITS    ),
-                .DEVICE         (axi4l.DEVICE       ),
-                .SIMULATION     (axi4l.SIMULATION   ),
-                .DEBUG          (axi4l.DEBUG        ) 
+                .ADDR_BITS      (ADDR_BITS          ),
+                .DATA_BITS      (DATA_BITS          ),
+                .DEVICE         (s_axi4l.DEVICE     ),
+                .SIMULATION     (s_axi4l.SIMULATION ),
+                .DEBUG          (s_axi4l.DEBUG      ) 
             )
         bram
             (
-                .reset          (~axi4l.aresetn     ),
-                .clk            (axi4l.aclk         ),
-                .cke            (axi4l.aclken       ) 
+                .reset          (~s_axi4l.aresetn   ),
+                .clk            (s_axi4l.aclk       ),
+                .cke            (s_axi4l.aclken     ) 
+            );
+
+    jelly3_axi4l_to_bram
+            #(
+                .DEVICE         (s_axi4l.DEVICE     ),
+                .SIMULATION     (s_axi4l.SIMULATION ),
+                .DEBUG          (s_axi4l.DEBUG      ) 
+            )
+        u_axi4l_to_bram
+            (
+                .s_axi4l        (s_axi4l            ),
+                .m_bram         (bram               )
             );
 
 
-    jelly3_axi4l_bram_accessor
+    jelly3_bram_accessor
             #(
                 .WLATENCY       (WLATENCY           ),
                 .RLATENCY       (RLATENCY           ),
@@ -67,9 +79,9 @@ module jelly3_axi4l_bram_accessor
                 .WE_BITS        (WE_BITS            ),
                 .we_t           (we_t               )
             )
-        u_axi4l_bram_accessor
+        u_bram_accessor
             (
-                .bram           (bram               ),
+                .s_bram         (bram               ),
 
                 .en             ,
                 .we             ,

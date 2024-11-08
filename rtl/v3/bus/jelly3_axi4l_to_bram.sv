@@ -10,7 +10,7 @@
 `default_nettype none
 
 
-module jelly3_axi4_to_bram
+module jelly3_axi4l_to_bram
         #(
             parameter           DEVICE     = "RTL"      ,
             parameter           SIMULATION = "false"    ,
@@ -28,7 +28,7 @@ module jelly3_axi4_to_bram
                 .DATA_BITS      (s_axi4l.DATA_BITS  ),
                 .DEVICE         (DEVICE             ),
                 .SIMULATION     (SIMULATION         ),
-                .DEBUG          (DEBUG              ), 
+                .DEBUG          (DEBUG              )
             )
         axi4
             (
