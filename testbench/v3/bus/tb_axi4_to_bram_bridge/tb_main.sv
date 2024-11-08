@@ -121,7 +121,7 @@ module tb_main
             )
         u_bram_accessor
             (
-                .bram           (bram           ),
+                .s_bram         (bram           ),
 
                 .en             (               ),
                 .we             (mem_we         ),
@@ -212,6 +212,39 @@ module tb_main
     initial begin
         automatic logic [axi4.DATA_BITS-1:0] rdatas [];
         automatic logic [axi4.DATA_BITS-1:0] data;
+
+        #1000;
+        u_axi4_accessor.write(
+                '0,     // id     
+                'h20,   // addr   
+                3'h2,   // size   
+                2'b01,  // burst  
+                '0,     // lock   
+                '0,     // cache  
+                '0,     // prot   
+                '0,     // qos    
+                '0,     // region 
+                '0,     // user   
+                '{
+                    32'h12345678
+                },  // data []
+                '{4'hf, 4'hf, 4'hf, 4'hf}  // strb []
+            );
+
+        u_axi4_accessor.read(
+                '0,     // id     
+                'h20,   // addr   
+                8'd0,   // len    
+                3'h2,   // size   
+                2'b01,  // burst  
+                '0,     // lock   
+                '0,     // cache  
+                '0,     // prot   
+                '0,     // qos    
+                '0,     // region 
+                '0,     // user   
+                rdatas  // data []
+            );
 
         #1000;
         u_axi4_accessor.write(
