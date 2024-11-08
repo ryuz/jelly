@@ -54,6 +54,7 @@ interface jelly3_axi4_if
         parameter   int     LIMIT_R       = 255                             ,
         parameter   int     LIMIT_RC      = 65535                           ,
 
+        parameter           DEVICE        = "RTL"                           ,
         parameter           SIMULATION    = "false"                         ,
         parameter           DEBUG         = "false"                         
     )

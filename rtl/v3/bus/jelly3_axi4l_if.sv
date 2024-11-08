@@ -23,6 +23,7 @@ interface jelly3_axi4l_if
         parameter   int     LIMIT_W    = 1                      ,
         parameter   int     LIMIT_AR   = 1                      ,
 
+        parameter           DEVICE     = "RTL"                  ,
         parameter           SIMULATION = "false"                ,
         parameter           DEBUG      = "false"                
     )
