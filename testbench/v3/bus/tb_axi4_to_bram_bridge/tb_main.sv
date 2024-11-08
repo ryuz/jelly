@@ -115,7 +115,7 @@ module tb_main
     jelly3_bram_accessor
             #(
                 .WLATENCY       (1              ),
-                .RLATENCY       (3              ),
+                .RLATENCY       (2              ),
                 .ADDR_BITS      (10             ),
                 .DATA_BITS      (32             )
             )

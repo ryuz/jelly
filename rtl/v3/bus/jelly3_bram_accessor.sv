@@ -13,8 +13,8 @@
 module jelly3_bram_accessor
         #(
             parameter   int     WLATENCY    = 1                         ,
-            parameter   int     RLATENCY    = 1                         ,
-            localparam  int     LATENCY     = WLATENCY + RLATENCY - 1   ,
+            parameter   int     RLATENCY    = 2                         ,
+            localparam  int     LATENCY     = RLATENCY                  ,
             parameter   type    en_t        = logic [LATENCY-1:0]       ,
             parameter   int     ADDR_BITS   = 10                        ,
             parameter   type    addr_t      = logic [ADDR_BITS-1:0]     ,
