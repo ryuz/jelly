@@ -27,6 +27,7 @@ interface jelly3_axi4s_if
         parameter   int     DEST_BITS  = 4                      ,
         parameter   int     USER_BITS  = 1                      ,
 
+        parameter           DEVICE     = "RTL"                  ,
         parameter           SIMULATION = "false"                ,
         parameter           DEBUG      = "false"                
     )
@@ -40,7 +41,7 @@ interface jelly3_axi4s_if
     (* MARK_DEBUG=DEBUG *)  logic   [DATA_BITS-1:0]     tdata   ;
                             logic   [STRB_BITS-1:0]     tstrb   ;
                             logic   [STRB_BITS-1:0]     tkeep   ;
-                            logic                       tlast   ;
+    (* MARK_DEBUG=DEBUG *)  logic                       tlast   ;
                             logic   [ID_BITS-1:0]       tid     ;
                             logic   [DEST_BITS-1:0]     tdest   ;
     (* MARK_DEBUG=DEBUG *)  logic   [USER_BITS-1:0]     tuser   ;

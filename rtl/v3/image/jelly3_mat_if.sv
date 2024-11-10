@@ -22,11 +22,16 @@ interface jelly3_mat_if
             parameter   int     ROWS_BITS    = 16                       ,
             parameter   int     COLS_BITS    = 16                       ,
             parameter   int     DATA_BITS    = CH_DEPTH * CH_BITS       ,
-            parameter   int     USER_BITS    = 1                        
+            parameter   int     USER_BITS    = 1                        ,
+
+            parameter           DEVICE       = "RTL"                    ,
+            parameter           SIMULATION   = "false"                  ,
+            parameter           DEBUG        = "false"                  
         )
         (
             input   var logic   reset   ,
             input   var logic   clk     ,
+            (* MARK_DEBUG=DEBUG *)
             input   var logic   cke
         );
 
@@ -37,16 +42,16 @@ interface jelly3_mat_if
     localparam  type    rows_t    = logic [ROWS_BITS-1:0]   ;
     localparam  type    cols_t    = logic [COLS_BITS-1:0]   ;
 
-    rows_t              rows        ;
-    cols_t              cols        ;
-    logic               row_first   ;
-    logic               row_last    ;
-    logic               col_first   ;
-    logic               col_last    ;
-    de_t                de          ;
-    data_t  [TAPS-1:0]  data        ;
-    user_t              user        ;
-    logic               valid       ;
+                            rows_t              rows        ;
+                            cols_t              cols        ;
+    (* MARK_DEBUG=DEBUG *)  logic               row_first   ;
+    (* MARK_DEBUG=DEBUG *)  logic               row_last    ;
+    (* MARK_DEBUG=DEBUG *)  logic               col_first   ;
+    (* MARK_DEBUG=DEBUG *)  logic               col_last    ;
+    (* MARK_DEBUG=DEBUG *)  de_t                de          ;
+    (* MARK_DEBUG=DEBUG *)  data_t  [TAPS-1:0]  data        ;
+    (* MARK_DEBUG=DEBUG *)  user_t              user        ;
+    (* MARK_DEBUG=DEBUG *)  logic               valid       ;
     
     modport m
         (
