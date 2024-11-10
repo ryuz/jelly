@@ -101,13 +101,13 @@ module jelly3_bram_async
             m_bram.cvalid <= 1'b0   ;
         end
         else if ( m_bram.cke && cready ) begin
-            m_bram.cid    <= cid    ;
+            m_bram.cid    <= cvalid ? cid    : 'x   ; 
             m_bram.cwrite <= cvalid ? cwrite : 1'b0 ;
             m_bram.cread  <= cvalid ? cread  : 1'b0 ;
-            m_bram.caddr  <= caddr  ;
-            m_bram.clast  <= clast  ;
+            m_bram.caddr  <= cvalid ? caddr  : 'x   ; 
+            m_bram.clast  <= cvalid ? clast  : 'x   ; 
             m_bram.cstrb  <= cvalid ? cstrb  : '0   ;
-            m_bram.cdata  <= cdata  ;
+            m_bram.cdata  <= cvalid ? cdata  : 'x   ; 
             m_bram.cvalid <= cvalid ;
         end
     end
