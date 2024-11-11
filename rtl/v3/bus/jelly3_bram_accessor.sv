@@ -39,14 +39,14 @@ module jelly3_bram_accessor
     id_t    mem_id      [0:LATENCY-1];
     logic   mem_last    [0:LATENCY-1];
     logic   mem_valid   [0:LATENCY-1];
-    always_ff @ ( posedge bram.clk ) begin
+    always_ff @ ( posedge s_bram.clk ) begin
         for (int i = 0; i < LATENCY; i++ ) begin
             if ( s_bram.reset ) begin
                 mem_id   [i] <= 'x;
                 mem_last [i] <= 'x;
                 mem_valid[i] <= '0;
             end
-            else if ( bram.cready ) begin
+            else if ( s_bram.cready ) begin
                 if ( i == 0 ) begin
                     mem_id   [i] <= s_bram.cid   ;
                     mem_last [i] <= s_bram.clast ;
