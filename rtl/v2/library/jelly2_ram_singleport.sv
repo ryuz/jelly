@@ -31,13 +31,13 @@ module jelly2_ram_singleport
             parameter                                       READMEM_FILE = ""
         )
         (
-            input   wire                                clk,
-            input   wire                                en,
-            input   wire                                regcke,
-            input   wire    [WE_WIDTH-1:0]              we,
-            input   wire    [ADDR_WIDTH-1:0]            addr,
-            input   wire    [WE_WIDTH*WORD_WIDTH-1:0]   din,
-            output  wire    [WE_WIDTH*WORD_WIDTH-1:0]   dout
+            input   var logic                               clk,
+            input   var logic                               en,
+            input   var logic                               regcke,
+            input   var logic   [WE_WIDTH-1:0]              we,
+            input   var logic   [ADDR_WIDTH-1:0]            addr,
+            input   var logic   [WE_WIDTH*WORD_WIDTH-1:0]   din,
+            output  var logic   [WE_WIDTH*WORD_WIDTH-1:0]   dout
         );
     
     // memory

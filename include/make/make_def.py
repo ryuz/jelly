@@ -27,8 +27,8 @@ def get_module_name(file_name):
     """モジュール名の取得"""
     with open(file_name, "r") as f:
         contents = f.read()
-    pattern = r"\n(module|interface|package)\s+(\w+)\s*"
-    match = re.search(pattern, contents)
+    pattern = r"^(module|interface|package)\s+(\w+)\s*"
+    match = re.search(pattern, contents, re.MULTILINE)
     if match:
         return match.group(2)
     else:
