@@ -268,22 +268,29 @@ int main(int argc, char *argv[])
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,      height);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x100);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
 
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
-    cv::createTrackbar("scale",    "img", &view_scale, 4);
+    cv::createTrackbar("scale",    "img", nullptr, 4);
     cv::setTrackbarMin("scale",    "img", 1);
-    cv::createTrackbar("fps",      "img", &frame_rate, 1000);
+    cv::setTrackbarPos("scale",    "img", view_scale);
+    cv::createTrackbar("fps",      "img", nullptr, 1000);
     cv::setTrackbarMin("fps",      "img", 5);
-    cv::createTrackbar("exposure", "img", &exposure, 1000);
+    cv::setTrackbarPos("fps",      "img", frame_rate);
+    cv::createTrackbar("exposure", "img", nullptr, 1000);
     cv::setTrackbarMin("exposure", "img", 1);
-    cv::createTrackbar("a_gain",   "img", &a_gain, 20);
-    cv::createTrackbar("d_gain",   "img", &d_gain, 24);
-    cv::createTrackbar("bayer" ,   "img", &bayer_phase, 3);
-    cv::createTrackbar("fmtsel",   "img", &fmtsel, 5);
+    cv::setTrackbarPos("exposure", "img", exposure);
+    cv::createTrackbar("a_gain",   "img", nullptr, 20);
+    cv::setTrackbarPos("a_gain",   "img", a_gain);
+    cv::createTrackbar("d_gain",   "img", nullptr, 24);
+    cv::setTrackbarPos("d_gain",   "img", d_gain);
+    cv::createTrackbar("bayer" ,   "img", nullptr, 3);
+    cv::setTrackbarPos("bayer",    "img", bayer_phase);
+    cv::createTrackbar("fmtsel",   "img", nullptr, 3);
+    cv::setTrackbarPos("fmtsel",   "img", fmtsel);
 
     vdmaw.SetBufferAddr(dmabuf_phys_adr);
     vdmaw.SetImageSize(width, height);
@@ -302,6 +309,15 @@ int main(int argc, char *argv[])
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
+        
+        // トラックバー値取得
+        view_scale  = cv::getTrackbarPos("scale",    "img");
+        frame_rate  = cv::getTrackbarPos("fps",      "img");
+        exposure    = cv::getTrackbarPos("exposure", "img");
+        a_gain      = cv::getTrackbarPos("a_gain",   "img");
+        d_gain      = cv::getTrackbarPos("d_gain",   "img");
+        bayer_phase = cv::getTrackbarPos("bayer" ,   "img");
+        fmtsel      = cv::getTrackbarPos("fmtsel",   "img");
 
         // 設定
         imx219.SetFrameRate(frame_rate);
@@ -311,10 +327,23 @@ int main(int argc, char *argv[])
         imx219.SetFlip(flip_h, flip_v);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
         reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
-        reg_gpio.WriteReg(3, fmtsel);
+        reg_gpio.WriteReg(4, fmtsel);
 
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
+
+        if (0) {
+            cv::Mat img_raw = cv::Mat(height, width, CV_8UC4);
+            udmabuf_acc.MemCopyTo(img_raw.data, 0, width * height * 4);
+            std::vector<cv::Mat> planes;
+            cv::split(img_raw, planes);
+            cv::imshow("plane0", planes[0]);
+            cv::imshow("plane1", planes[1]);
+            cv::imshow("plane2", planes[2]);
+            cv::imshow("plane3", planes[3]);
+        }
+
+
         cv::Mat img;
         switch ( fmtsel ) {
         case 0: // BGRx
