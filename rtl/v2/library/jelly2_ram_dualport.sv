@@ -33,22 +33,22 @@ module jelly2_ram_dualport
         )
         (
             // port0
-            input   wire                                port0_clk,
-            input   wire                                port0_en,
-            input   wire                                port0_regcke,
-            input   wire    [WE_WIDTH-1:0]              port0_we,
-            input   wire    [ADDR_WIDTH-1:0]            port0_addr,
-            input   wire    [WE_WIDTH*WORD_WIDTH-1:0]   port0_din,
-            output  wire    [WE_WIDTH*WORD_WIDTH-1:0]   port0_dout,
+            input   var logic                               port0_clk,
+            input   var logic                               port0_en,
+            input   var logic                               port0_regcke,
+            input   var logic   [WE_WIDTH-1:0]              port0_we,
+            input   var logic   [ADDR_WIDTH-1:0]            port0_addr,
+            input   var logic   [WE_WIDTH*WORD_WIDTH-1:0]   port0_din,
+            output  var logic   [WE_WIDTH*WORD_WIDTH-1:0]   port0_dout,
             
             // port1
-            input   wire                                port1_clk,
-            input   wire                                port1_en,
-            input   wire                                port1_regcke,
-            input   wire    [WE_WIDTH-1:0]              port1_we,
-            input   wire    [ADDR_WIDTH-1:0]            port1_addr,
-            input   wire    [WE_WIDTH*WORD_WIDTH-1:0]   port1_din,
-            output  wire    [WE_WIDTH*WORD_WIDTH-1:0]   port1_dout
+            input   var logic                               port1_clk,
+            input   var logic                               port1_en,
+            input   var logic                               port1_regcke,
+            input   var logic   [WE_WIDTH-1:0]              port1_we,
+            input   var logic   [ADDR_WIDTH-1:0]            port1_addr,
+            input   var logic   [WE_WIDTH*WORD_WIDTH-1:0]   port1_din,
+            output  var logic   [WE_WIDTH*WORD_WIDTH-1:0]   port1_dout
         );
     
     // verilator lint_off MULTIDRIVEN

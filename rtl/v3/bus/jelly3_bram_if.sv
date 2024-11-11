@@ -12,15 +12,19 @@
 
 interface jelly3_bram_if
     #(
-        parameter   bit     USE_ID    = 1                       ,
-        parameter   bit     USE_STRB  = 1                       ,
-        parameter   bit     USE_LAST  = 1                       ,
+        parameter   bit     USE_ID     = 1                      ,
+        parameter   bit     USE_STRB   = 1                      ,
+        parameter   bit     USE_LAST   = 1                      ,
 
-        parameter   int     ID_BITS   = 8                       ,
-        parameter   int     ADDR_BITS = 10                      ,
-        parameter   int     DATA_BITS = 32                      ,
-        parameter   int     BYTE_BITS = 8                       ,
-        parameter   int     STRB_BITS = DATA_BITS / BYTE_BITS   
+        parameter   int     ID_BITS    = 8                      ,
+        parameter   int     ADDR_BITS  = 10                     ,
+        parameter   int     DATA_BITS  = 32                     ,
+        parameter   int     BYTE_BITS  = 8                      ,
+        parameter   int     STRB_BITS  = DATA_BITS / BYTE_BITS  ,
+
+        parameter           DEVICE     = "RTL"                  ,
+        parameter           SIMULATION = "false"                ,
+        parameter           DEBUG      = "false"                
     )
     (
         input   var logic   reset   ,

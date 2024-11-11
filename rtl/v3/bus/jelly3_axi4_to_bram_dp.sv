@@ -108,7 +108,9 @@ module jelly3_axi4_to_bram_dp
                 w_len  <= w_len - 1;
                 w_last <= w_len == 1;
                 if ( w_last ) begin
-                    w_busy  <= 1'b0;
+                    w_addr <= 'x    ;
+                    w_len  <= 'x    ;
+                    w_busy <= 1'b0  ;
                 end
             end
         end
@@ -189,7 +191,10 @@ module jelly3_axi4_to_bram_dp
                 r_len  <= r_len - 1;
                 r_last <= r_len == 1;
                 if ( r_last ) begin
-                    r_busy  <= 1'b0;
+                    r_addr <= 'x;
+                    r_len  <= 'x;
+                    r_last <= 'x;
+                    r_busy <= 1'b0;
                 end
             end
         end

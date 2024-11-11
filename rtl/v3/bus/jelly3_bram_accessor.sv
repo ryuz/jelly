@@ -13,8 +13,8 @@
 module jelly3_bram_accessor
         #(
             parameter   int     WLATENCY    = 1                         ,
-            parameter   int     RLATENCY    = 1                         ,
-            localparam  int     LATENCY     = WLATENCY + RLATENCY - 1   ,
+            parameter   int     RLATENCY    = 2                         ,
+            localparam  int     LATENCY     = RLATENCY                  ,
             parameter   type    en_t        = logic [LATENCY-1:0]       ,
             parameter   int     ADDR_BITS   = 10                        ,
             parameter   type    addr_t      = logic [ADDR_BITS-1:0]     ,
@@ -25,7 +25,7 @@ module jelly3_bram_accessor
             parameter   type    we_t        = logic [WE_BITS-1:0]       
         )
         (
-            jelly3_bram_if.s    bram    ,
+            jelly3_bram_if.s    s_bram  ,
 
             output  var en_t    en      ,
             output  var we_t    we      ,
@@ -34,23 +34,23 @@ module jelly3_bram_accessor
             input   var data_t  rdata   
         );
 
-    localparam  type    id_t = logic [bram.ID_BITS-1:0];
+    localparam  type    id_t = logic [s_bram.ID_BITS-1:0];
 
     id_t    mem_id      [0:LATENCY-1];
     logic   mem_last    [0:LATENCY-1];
     logic   mem_valid   [0:LATENCY-1];
-    always_ff @ ( posedge bram.clk ) begin
+    always_ff @ ( posedge s_bram.clk ) begin
         for (int i = 0; i < LATENCY; i++ ) begin
-            if ( bram.reset ) begin
+            if ( s_bram.reset ) begin
                 mem_id   [i] <= 'x;
                 mem_last [i] <= 'x;
                 mem_valid[i] <= '0;
             end
-            else if ( bram.cready ) begin
+            else if ( s_bram.cready ) begin
                 if ( i == 0 ) begin
-                    mem_id   [i] <= bram.cid   ;
-                    mem_last [i] <= bram.clast ;
-                    mem_valid[i] <= bram.cread ;
+                    mem_id   [i] <= s_bram.cid   ;
+                    mem_last [i] <= s_bram.clast ;
+                    mem_valid[i] <= s_bram.cread ;
                 end
                 else begin
                     mem_id   [i] <= mem_id   [i-1];
@@ -61,17 +61,17 @@ module jelly3_bram_accessor
         end
     end
 
-    assign en    = {LATENCY{bram.cke}}  ;
-    assign we    = bram.cstrb           ;
-    assign addr  = addr_t'(bram.caddr)  ;
-    assign wdata = bram.cdata           ;
+    assign en    = {LATENCY{s_bram.cke}}  ;
+    assign we    = we_t'(s_bram.cstrb)    ;
+    assign addr  = addr_t'(s_bram.caddr)  ;
+    assign wdata = s_bram.cdata           ;
 
-    assign bram.cready = !bram.rvalid || bram.rready;
+    assign s_bram.cready = !s_bram.rvalid || s_bram.rready;
 
-    assign bram.rid    = mem_id   [LATENCY-1]   ;
-    assign bram.rlast  = mem_last [LATENCY-1]   ;
-    assign bram.rdata  = rdata                  ;
-    assign bram.rvalid = mem_valid[LATENCY-1]   ;
+    assign s_bram.rid    = mem_id   [LATENCY-1]   ;
+    assign s_bram.rlast  = mem_last [LATENCY-1]   ;
+    assign s_bram.rdata  = rdata                  ;
+    assign s_bram.rvalid = mem_valid[LATENCY-1]   ;
 
 endmodule
 
