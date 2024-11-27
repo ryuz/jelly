@@ -53,7 +53,7 @@ export BD_SCRIPTS
 
 # constrains
 CONSTRAINS  = ../../constrain/top.xdc
-#CONSTRAINS += ../../constrain/debug.xdc
+CONSTRAINS += ../../constrain/debug.xdc
 export CONSTRAINS
 
 
