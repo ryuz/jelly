@@ -113,6 +113,16 @@ projects/kv260/kv260_sample/sim 以下にシミュレーション環境を作っ
 
 make run などの実行時に Makefile の中で行っている処理を解説します。
 
+## 元からある回路の解除
+
+Ubuntu 起動時に dfx-mgr で管理されている初期回路がある場合は
+
+```bash
+sudo xmutil unloadapp
+```
+
+としてアンロードしておきます。
+
 ## Device Tree overlay
 
   今回は Device Tree overlay によって
