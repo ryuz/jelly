@@ -76,11 +76,13 @@ FPGAで作成したRealTime-OSアクセラレータです。
 
 以下、Jelly 内のサンプルプログラムの紹介です。
 
+### ZynqMP 共通
+
 - projects/zynqmp/zynqmp_rpu/zynqmp_rpu_rust
     - [ZynqMP の rpu を C++ と Rust で試すサンプル](projects/zynqmp/zynqmp_rpu/README.md)
 
-- projects/kv260/kv260_udmabuf_sample
-    - [Kria KV260 でudmabufを試すサンプル](projects/kv260/kv260_udmabuf_sample/README.md)
+### Kria KV260
+
 - projects/kv260/kv260_imx219
     - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260/kv260_imx219/README.md)
 - projects/kv260/kv260_rtos_sample  
@@ -94,6 +96,27 @@ FPGAで作成したRealTime-OSアクセラレータです。
     - [Kria KV260 で Raspberry V2 カメラ の 1000fps で MNIST のセメンティックセグメンテーションを行う](projects/kv260/kv260_imx219_mnist_seg/README.md)
     - Interface 2024年10月号付録 [FPGAマガジン No.3](https://fpga.tokyo/no3-2/)で記事にしております
 
+- projects/kv260/kv260_sample
+    - [Kria KV260 で PL単独で LED チカチカ を試すサンプル](projects/kv260/kv260_sample/README.md)
+- projects/kv260/kv260_blinking_led_ps
+    - [Kria KV260 で PSから PL経由で LED チカチカ を試すサンプル](projects/kv260/kv260_sample/README.md)
+- projects/kv260/kv260_udmabuf_sample
+    - [Kria KV260 でudmabufを試すサンプル](projects/kv260/kv260_udmabuf_sample/README.md)
+- projects/kv260/kv260_devdrv_sample
+    - [Kria KV260 で 自作デバイスドライバを試すサンプル](projects/kv260/kv260_devdrv_sample/README.md)
+
+
+### Kria KR260
+
+- projects/kr260/kr260_blinking_led
+    - [Kria KR260 で LED チカチカ を試すサンプル](projects/kr260/kr260_blinking_led/README.md)
+- projects/kr260/kr260_udmabuf_sample
+    - [Kria KR260 でudmabufを試すサンプル](projects/kr260/kr260_udmabuf_sample/README.md)
+- projects/kr260/kr260_devdrv_sample
+    - [Kria KR260 で 自作デバイスドライバを試すサンプル](projects/kr260/kr260_devdrv_sample/README.md)
+
+
+### Ultra96 V2
 
 - projects/ultra96v2/ultra96v2_udmabuf_sample
     - [Ultra96V2 でudmabufを試すサンプル](projects/ultra96v2/ultra96v2_udmabuf_sample/README.md)
@@ -110,6 +133,7 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/ultra96v2/ultra96v2_imx219_hls_sample
     - [Ultra96V2 で HLSでカメラ画像を処理してみるサンプル](projects/ultra96v2/ultra96v2_imx219_hls_sample/README.md)
 
+### Zybo Z7
 
 - projects/zybo_z7/zybo_z7_udmabuf_sample
     - [Zybo Z7 でudmabufを試すサンプル](projects/zybo_z7/zybo_z7_udmabuf_sample/README.md)
@@ -118,10 +142,23 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/zybo_z7/zybo_z7_imx219_hdmi
     - [Zybo Z7 で カメラ画像(IMX219) をHDMIコネクタから表示](projects/zybo_z7/zybo_z7_imx219_hdmi/README.md)
 
+### Tang Nano 4k
+
+- projects/tang_nano_4k/tang_nano_4k_blinking_led
+    - [Tang Nano 4k の LEDチカチカ](projects/tang_nano_4k/tang_nano_4k_blinking_led/README.md)
 
 - projects/tang_nano_4k/tang_nano_4k_mnist
     - [Tang Nano 4k の MNIST 認識 (LUT-Network)](projects/tang_nano_4k/tang_nano_4k_mnist/README.md)
     - Interface 2024年12月号付録 [GOWING Vol.4](https://fpga.tokyo/gowin_vol4_news/)で記事にしております
+
+### Tang Nano 9k
+
+- projects/tang_nano_9k/tang_nano_9k_blinking_led
+    - [Tang Nano 9k の LEDチカチカ](projects/tang_nano_9k/tang_nano_9k_blinking_led/README.md)
+
+- projects/tang_nano_9k/tang_nano_9k_blinking_led
+    - [Tang Nano 9k の HDMI(DVI)出力確認](projects/tang_nano_9k/tang_nano_9k_hdmi_sample/README.md)
+
 
 
 あまりに ZynqMP ネタが増えてきたので[ZynqMPを理解しよう](https://zenn.dev/ryuz88/books/zynqmp_study)という記事を書いてみました。
