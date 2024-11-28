@@ -94,7 +94,7 @@ FPGAで作成したRealTime-OSアクセラレータです。
 
 - projects/kv260/kv260_rtos
     - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260/kv260_rtos/README.md)
-    - - Interface 2023年10月号付録 [FPGAマガジン No.1](https://fpga.tokyo/real-time-os-on-fpga/)で記事にしております
+    - Interface 2023年10月号付録 [FPGAマガジン No.1](https://fpga.tokyo/real-time-os-on-fpga/)で記事にしております
 
 - projects/kv260/kv260_imx219_mnist_seg
     - [Kria KV260 で Raspberry V2 カメラ の 1000fps で MNIST のセメンティックセグメンテーションを行う](projects/kv260/kv260_imx219_mnist_seg/README.md)
