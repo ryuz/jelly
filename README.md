@@ -72,7 +72,7 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - rtl/v2/model        シミュレーション用の便利モデルいろいろ
 
 
-## Zynqベースのシステム
+## いろいろなサンプルプロジェクト
 
 以下、Jelly 内のサンプルプログラムの紹介です。
 
@@ -89,6 +89,10 @@ FPGAで作成したRealTime-OSアクセラレータです。
     - [Kria KV260 で 自作RISC-V(4段パイプライン)を200MHzで試すサンプル](projects/kv260/kv260_jfive_simple_controller/README.md)
 - projects/kv260/kv260_jfive_micro_controller
     - [Kria KV260 で 自作RISC-V(6段パイプライン)を250MHzで試すサンプル](projects/kv260/kv260_jfive_micro_controller/README.md)
+
+- projects/kv260/kv260_imx219_mnist_seg
+    - [Kria KV260 で Raspberry V2 カメラ の 1000fps で MNIST のセメンティックセグメンテーションを行う](projects/kv260/kv260_imx219_mnist_seg/README.md)
+    - Interface 2024年10月号付録 [FPGAマガジン No.3](https://fpga.tokyo/no3-2/)で記事にしております
 
 
 - projects/ultra96v2/ultra96v2_udmabuf_sample
@@ -114,6 +118,10 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/zybo_z7/zybo_z7_imx219_hdmi
     - [Zybo Z7 で カメラ画像(IMX219) をHDMIコネクタから表示](projects/zybo_z7/zybo_z7_imx219_hdmi/README.md)
 
+
+- projects/tang_nano_4k/tang_nano_4k_mnist
+    - [Tang Nano 4k の MNIST 認識 (LUT-Network)](projects/tang_nano_4k/tang_nano_4k_mnist/README.md)
+    - Interface 2024年12月号付録 [GOWING Vol.4](https://fpga.tokyo/gowin_vol4_news/)で記事にしております
 
 
 あまりに ZynqMP ネタが増えてきたので[ZynqMPを理解しよう](https://zenn.dev/ryuz88/books/zynqmp_study)という記事を書いてみました。
