@@ -45,29 +45,29 @@ interface jelly3_axi4l_if
     addr_t      addr_high   ;
 
     // signals
-    addr_t      awaddr      ;
-    prot_t      awprot      ;
-    logic       awvalid     ;
-    logic       awready     ;
+    (* MARK_DEBUG=DEBUG *)  addr_t      awaddr      ;
+    (* MARK_DEBUG=DEBUG *)  prot_t      awprot      ;
+    (* MARK_DEBUG=DEBUG *)  logic       awvalid     ;
+    (* MARK_DEBUG=DEBUG *)  logic       awready     ;
 
-    data_t      wdata       ;
-    strb_t      wstrb       ;
-    logic       wvalid      ;
-    logic       wready      ;
+    (* MARK_DEBUG=DEBUG *)  data_t      wdata       ;
+    (* MARK_DEBUG=DEBUG *)  strb_t      wstrb       ;
+    (* MARK_DEBUG=DEBUG *)  logic       wvalid      ;
+    (* MARK_DEBUG=DEBUG *)  logic       wready      ;
 
-    resp_t      bresp       ;
-    logic       bvalid      ;
-    logic       bready      ;
+    (* MARK_DEBUG=DEBUG *)  resp_t      bresp       ;
+    (* MARK_DEBUG=DEBUG *)  logic       bvalid      ;
+    (* MARK_DEBUG=DEBUG *)  logic       bready      ;
    
-    addr_t      araddr      ;
-    prot_t      arprot      ;
-    logic       arvalid     ;
-    logic       arready     ;
+    (* MARK_DEBUG=DEBUG *)  addr_t      araddr      ;
+    (* MARK_DEBUG=DEBUG *)  prot_t      arprot      ;
+    (* MARK_DEBUG=DEBUG *)  logic       arvalid     ;
+    (* MARK_DEBUG=DEBUG *)  logic       arready     ;
 
-    data_t      rdata       ;
-    resp_t      rresp       ;
-    logic       rvalid      ;
-    logic       rready      ;
+    (* MARK_DEBUG=DEBUG *)  data_t      rdata       ;
+    (* MARK_DEBUG=DEBUG *)  resp_t      rresp       ;
+    (* MARK_DEBUG=DEBUG *)  logic       rvalid      ;
+    (* MARK_DEBUG=DEBUG *)  logic       rready      ;
     
     modport m
         (

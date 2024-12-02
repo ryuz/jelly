@@ -21,7 +21,10 @@ module jelly3_axi4l_bram_accessor
             parameter   type    data_t      = logic [DATA_BITS-1:0]     ,
             parameter   int     BYTE_BITS   = 8                         ,
             parameter   int     WE_BITS     = DATA_BITS / BYTE_BITS     ,
-            parameter   type    we_t        = logic [WE_BITS-1:0]       
+            parameter   type    we_t        = logic [WE_BITS-1:0]       ,
+            parameter           DEVICE      = "RTL"                     ,
+            parameter           SIMULATION  = "false"                   ,
+            parameter           DEBUG       = "false"                   
         )
         (
             jelly3_axi4l_if.s   s_axi4l ,
@@ -42,9 +45,9 @@ module jelly3_axi4l_bram_accessor
                 .ID_BITS        (1                  ),
                 .ADDR_BITS      (ADDR_BITS          ),
                 .DATA_BITS      (DATA_BITS          ),
-                .DEVICE         (s_axi4l.DEVICE     ),
-                .SIMULATION     (s_axi4l.SIMULATION ),
-                .DEBUG          (s_axi4l.DEBUG      ) 
+                .DEVICE         (DEVICE             ),
+                .SIMULATION     (SIMULATION         ),
+                .DEBUG          (DEBUG              ) 
             )
         bram
             (
@@ -55,9 +58,9 @@ module jelly3_axi4l_bram_accessor
 
     jelly3_axi4l_to_bram
             #(
-                .DEVICE         (s_axi4l.DEVICE     ),
-                .SIMULATION     (s_axi4l.SIMULATION ),
-                .DEBUG          (s_axi4l.DEBUG      ) 
+                .DEVICE         (DEVICE             ),
+                .SIMULATION     (SIMULATION         ),
+                .DEBUG          (DEBUG              ) 
             )
         u_axi4l_to_bram
             (
