@@ -1,19 +1,17 @@
-# Kria KR260 で LED チカチカ を試すサンプル
+# Kria KV260 で PS から LED チカチカ を試すサンプル
 
 
 ## 概要
 
-[KR260](https://www.amd.com/ja/products/system-on-modules/kria/k26/kr260-robotics-starter-kit.html)で LED チカチカを試すサンプルです。
+[KV260](https://www.amd.com/ja/products/system-on-modules/kria/k26/kv260-vision-starter-kit.html)で LED チカチカを試すサンプルです。
 
-幸い KR260 は PL(Programmable Logic)部に直接つながるクロックも LED もボード上に実装されているため、
-[KV260のLチカ](https://zenn.dev/ryuz88/articles/kv260_led_blinking) に比べてだいぶ簡素に試すことが出来ます。
-
+[KV260のPSからのLチカ](https://zenn.dev/ryuz88/articles/kv260_led_blinking_ps) 記事も合わせてご参照ください。
 
 ## 事前準備
 
 ### 環境
 
-環境は Vivado 2022.2 or 2023.2 と [公認Ubuntu](https://ubuntu.com/download/amd) を利用しています。
+環境は Vivado 2023.2 と [公認Ubuntu](https://ubuntu.com/download/amd) を利用しています。
 作者の環境ではバージョンは下記の通りでした。
 
 ```
@@ -44,7 +42,7 @@ git clone https://github.com/ryuz/jelly
 
 で取得できます。
 
-/projects/kr260/kr260_blinking_led/
+/projects/kv260/kv260_blinking_led_ps
 
 以下が今回のプロジェクトです。
 
@@ -55,11 +53,11 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/kr260/kr260_blinking_led/syn/vivado2022.2/kr260_blinking_led.xpr
+/projects/kv260/kv260_blinking_led_ps/syn/vivado2023.2/kv260_blinking_led_ps.xpr
 
 にありますので Vivado で開いてください。
 
-この時 design_1.bd や kr260_blinking_led.dcp が無いなどのメッセージが出る事がありますが、
+この時 design_1.bd や kv260_blinking_led_ps.dcp が無いなどのメッセージが出る事がありますが、
 これはこの後作成するファイルがリポジトリには含まれていない為ですので無視して先に進めてください。
 
 最初に BlockDesign を tcl から再構成する必要がります。
@@ -69,22 +67,22 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 
 うまくいかない場合は、既に登録されている u_design_1 を手動で削除してから、design_1.tcl を実行しても同じことができるはずです。
 
-また kr260_blinking_led.dcp についてもエラーが出るようであれば、Sources の Utility Sources の下にある該当ファイルを削除してください。これはビルドすると再度生成されますので削除しても大丈夫です。
+また kv260_blinking_led_ps.dcp についてもエラーが出るようであれば、Sources の Utility Sources の下にある該当ファイルを削除してください。これはビルドすると再度生成されますので削除しても大丈夫です。
 
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 プロジェクトの下の kr260_blinking_led.runs/impl_1 ディレクトリの中に
 kr260_blinking_led.bit が出来上がります。
 
-このファイルを projects/kr260/kr260_blinking_led/app にコピーしておいてください。
+このファイルを projects/kv260/kv260_blinking_led_ps/app にコピーしておいてください。
 
 
 
 ## PS からの実行
 
-  KR260側での PS から PL に回路をダウンロードします。
-  projects/kr260/kr260_blinking_led/app を KR260 のどこか適当な箇所にコピーします。
+  KV260側での PS から PL に回路をダウンロードします。
+  projects/kv260/kv260_blinking_led_ps/app を KV260 のどこか適当な箇所にコピーします。
 
-  KR260 の Linux側で git clone する手もあります。
+  KV260 の Linux側で git clone する手もあります。
 
   （余談ですが、作者はVS code Remote Development を使ってセルフコンパイル開発してそのままpushしています。）
 
@@ -101,23 +99,20 @@ make run
 DeviceTree overlay の為にルート権限が必要なためです。
 
 
-## シミュレーション
-
-projects/kr260/kr260_blinking_led/sim 以下にシミュレーション環境を作っています。
-
-- projects/kr260/kr260_blinking_led/sim/xsim          : xsim用
-- projects/kr260/kr260_blinking_led/sim/verilator     : verilator用
-- projects/kr260/kr260_blinking_led/sim/verilator_cpp : verilator でテストドライバをC++で書いたもの
-
-いずれもそれぞれのディレクトリで make と実行することで、シミュレーションが動きます。
-
-.vcd もしくは .fst ファイルとして波形が生成されるので、gtkwave などの波形ビューワーで確認ください。
-
-
-
 # 実行時の詳細解説
 
 make run などの実行時に Makefile の中で行っている処理を解説します。
+
+## 元からある回路の解除
+
+Ubuntu 起動時に dfx-mgr で管理されている初期回路がある場合は
+
+```bash
+sudo xmutil unloadapp
+```
+
+としてアンロードしておきます。
+
 
 ## Device Tree overlay
 
@@ -140,26 +135,26 @@ kr260_blinking_led.dts が Device Tree overlay のソースファイルとなり
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "kr260_blinking_led.bit.bin";
+            firmware-name = "kv260_blinking_led_ps.bit.bin";
         };
     };
 ```
 
 上のように指定します。この時、 kr260_blinking_led.bit.bin は bitstream から bootgen で生成されたファイルであり、/lib/firmware に置かれている必要があります。
 
-bootgen の使い方としては、下記のような kr260_blinking_led.bif に対して
+bootgen の使い方としては、下記のような kv260_blinking_led_ps.bif に対して
 
-```kr260_blinking_led.bif
+```kv260_blinking_led_ps.bif
 all:
 {
-    kr260_blinking_led.bit
+    kv260_blinking_led_ps.bit
 }
 ```
 
 bootgenを用いて
 
 ```
-bootgen -image kr260_blinking_led.bif -arch zynqmp -process_bitstream bin
+bootgen -image kv260_blinking_led_ps.bif -arch zynqmp -process_bitstream bin
 ```
 
 と実行することによって得られます。
@@ -169,10 +164,10 @@ bootgen -image kr260_blinking_led.bif -arch zynqmp -process_bitstream bin
 ### dtcでのコンパイル
 
 ```
-dtc -I dts -O dtb -o kr260_blinking_led.dtbo kr260_blinking_led.dts
+dtc -I dts -O dtb -o kv260_blinking_led_ps.dtbo kv260_blinking_led_ps.dts
 ```
 
-とすることで kr260_blinking_led.dtbo を得ることができます。
+とすることで kv260_blinking_led_ps.dtbo を得ることができます。
 
 ## Overlay
 
@@ -196,8 +191,8 @@ sudo mount -t configfs configfs /configfs
 
 ```
 sudo mkdir -p /lib/firmware
-sudo cp kr260_blinking_led.bit.bin /lib/firmware
-sudo cp kr260_blinking_led.dtbo /lib/firmware
+sudo cp kv260_blinking_led_ps.bit.bin /lib/firmware
+sudo cp kv260_blinking_led_ps.dtbo /lib/firmware
 ```
 
 ### overlay 
@@ -225,8 +220,8 @@ cat /configfs/device-tree/overlays/full/status
 役目を終えたファイルは削除してよいようです。
 
 ```
-sudo rm /lib/firmware/kr260_blinking_led.dtbo
-sudo rm /lib/firmware/kr260_blinking_led.bit.bin
+sudo rm /lib/firmware/kv260_blinking_led_ps.dtbo
+sudo rm /lib/firmware/kv260_blinking_led_ps.bit.bin
 ```
 
 
