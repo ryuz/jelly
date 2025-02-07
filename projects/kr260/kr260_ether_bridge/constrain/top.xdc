@@ -5,18 +5,17 @@ create_clock -period 40.000 -name in_clk25b -waveform {0.000 20.000} [get_ports 
 
 # 125MHz
 create_clock -period 8.000 -name rgmii0_rx_clk -waveform {0.000 4.000} [get_ports rgmii0_rx_clk]
-create_clock -name vclk0 -period 8.000 -waveform {0.000 4.000}
-set_input_delay -clock vclk0 -max 3.500 [get_ports {rgmii0_rx_ctrl {rgmii0_rx_d[*]}}]
-set_input_delay -clock vclk0 -max 3.500 [get_ports {rgmii0_rx_ctrl {rgmii0_rx_d[*]}}] -clock_fall -add_delay
-set_input_delay -clock vclk0 -min 2.500 [get_ports {rgmii0_rx_ctrl {rgmii0_rx_d[*]}}]
-set_input_delay -clock vclk0 -min 2.500 [get_ports {rgmii0_rx_ctrl {rgmii0_rx_d[*]}}] -clock_fall -add_delay
-
 create_clock -period 8.000 -name rgmii1_rx_clk -waveform {0.000 4.000} [get_ports rgmii1_rx_clk]
-create_clock -name vclk1 -period 8.000 -waveform {0.000 4.000}
-set_input_delay -clock vclk1 -max 3.500 [get_ports {rgmii1_rx_ctrl {rgmii1_rx_d[*]}}]
-set_input_delay -clock vclk1 -max 3.500 [get_ports {rgmii1_rx_ctrl {rgmii1_rx_d[*]}}] -clock_fall -add_delay
-set_input_delay -clock vclk1 -min 2.500 [get_ports {rgmii1_rx_ctrl {rgmii1_rx_d[*]}}]
-set_input_delay -clock vclk1 -min 2.500 [get_ports {rgmii1_rx_ctrl {rgmii1_rx_d[*]}}] -clock_fall -add_delay
+
+set_input_delay -clock rgmii0_rx_clk -max 3.500 [get_ports {rgmii0_rx_ctrl {rgmii0_rx_d[*]}}]
+set_input_delay -clock rgmii0_rx_clk -max 3.500 [get_ports {rgmii0_rx_ctrl {rgmii0_rx_d[*]}}] -clock_fall -add_delay
+set_input_delay -clock rgmii0_rx_clk -min 2.500 [get_ports {rgmii0_rx_ctrl {rgmii0_rx_d[*]}}]
+set_input_delay -clock rgmii0_rx_clk -min 2.500 [get_ports {rgmii0_rx_ctrl {rgmii0_rx_d[*]}}] -clock_fall -add_delay
+
+set_input_delay -clock rgmii1_rx_clk -max 3.500 [get_ports {rgmii1_rx_ctrl {rgmii1_rx_d[*]}}]
+set_input_delay -clock rgmii1_rx_clk -max 3.500 [get_ports {rgmii1_rx_ctrl {rgmii1_rx_d[*]}}] -clock_fall -add_delay
+set_input_delay -clock rgmii1_rx_clk -min 2.500 [get_ports {rgmii1_rx_ctrl {rgmii1_rx_d[*]}}]
+set_input_delay -clock rgmii1_rx_clk -min 2.500 [get_ports {rgmii1_rx_ctrl {rgmii1_rx_d[*]}}] -clock_fall -add_delay
 
 
 # fan

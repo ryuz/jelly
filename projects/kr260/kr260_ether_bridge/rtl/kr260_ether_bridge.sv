@@ -49,18 +49,28 @@ module kr260_ether_bridge
     //  ZynqMP
     // ------------------------------
 
-    logic           ether_reset     ;
-    logic           ether_clk       ;
-    
+    logic           reset           ;
+    logic           clk             ;
+    logic           ether0_rx_reset ;
+    logic           ether0_rx_clk   ;
+    logic           ether1_rx_reset ;
+    logic           ether1_rx_clk   ;
+
     design_1
         u_design_1
             (
                 .fan_en                 (fan_en         ),
 
-                .in_clk25               (in_clk25a      ),
+                .out_reset              (reset          ),
+                .out_clk                (clk            ),
 
-                .ether_reset            (ether_reset    ),
-                .ether_clk              (ether_clk      )
+                .rgmii0_rx_clk          (rgmii0_rx_clk  ),
+                .ether0_rx_reset        (ether0_rx_reset),
+                .ether0_rx_clk          (ether0_rx_clk  ),
+
+                .rgmii1_rx_clk          (rgmii1_rx_clk  ),
+                .ether1_rx_reset        (ether1_rx_reset),
+                .ether1_rx_clk          (ether1_rx_clk  )
             );
 
 
@@ -84,25 +94,16 @@ module kr260_ether_bridge
     logic   [7:0]   ether1_rx_d         ;
 
 
-
-
     // ------------------------------
-    //  RGMII0
+    //  Ether0(RGMII0)
     // ------------------------------
 
     // RGMII0
-    assign rgmii0_reset_n = ~ether_reset;
+    assign rgmii0_reset_n = ~reset;
     assign rgmii0_mdc     = 1'b0;
     assign rgmii0_mdio    = 1'bz;
 
     // RGMII0 rx
-    BUFG
-        u_bufg_rgmii0_rx_clk
-            (
-                .I      (rgmii0_rx_clk      ),
-                .O      (rgmii0_rx_clk_buf  )
-            );
-    
     IDDRE1
             #(
                 .DDR_CLK_EDGE   (RX_DDR_CLK_EDGE    ),
@@ -113,9 +114,9 @@ module kr260_ether_bridge
             (
                 .Q1             (ether0_rx_ctl[0]   ),
                 .Q2             (ether0_rx_ctl[1]   ),
-                .C              (rgmii0_rx_clk_buf  ),  
-                .CB             (rgmii0_rx_clk_buf  ),
-                .D              (rgmii0_rx_ctrl     ),  
+                .C              (ether0_rx_clk      ),
+                .CB             (ether0_rx_clk      ),
+                .D              (rgmii0_rx_ctrl     ),
                 .R              (1'b0               )   
             );
     
@@ -130,16 +131,18 @@ module kr260_ether_bridge
                 (
                     .Q1             (ether0_rx_d[i+0]   ),
                     .Q2             (ether0_rx_d[i+4]   ),
-                    .C              (rgmii0_rx_clk_buf  ),  
-                    .CB             (rgmii0_rx_clk_buf  ),
+                    .C              (ether0_rx_clk      ),  
+                    .CB             (ether0_rx_clk      ),
                     .D              (rgmii0_rx_d[i]     ),  
                     .R              (1'b0               )   
                 );
     end
 
     // RGMII0 tx
-    logic   rgmii0_tx_clk;
-    assign rgmii0_tx_clk = rgmii1_rx_clk_buf;
+    logic   ether0_tx_reset ;
+    logic   ether0_tx_clk   ;
+    assign ether0_tx_reset = ether1_rx_reset;
+    assign ether0_tx_clk   = ether1_rx_clk  ;
 
     ODDRE1
             #(
@@ -152,7 +155,7 @@ module kr260_ether_bridge
         u_oddre1_tx_rgmii0_tx_clk
             (
                 .Q              (rgmii0_gtx_clk     ),
-                .C              (rgmii0_tx_clk      ),
+                .C              (ether0_tx_clk      ),
                 .D1             (1'b1               ),
                 .D2             (1'b0               ),
                 .SR             (1'b0               )
@@ -169,10 +172,10 @@ module kr260_ether_bridge
         u_oddre0_tx_d 
             (
                 .Q              (rgmii0_tx_ctrl     ),
-                .C              (rgmii0_tx_clk      ),
+                .C              (ether0_tx_clk      ),
                 .D1             (ether1_rx_ctl[0]   ),
                 .D2             (ether1_rx_ctl[1]   ),
-                .SR             (ether_reset        )
+                .SR             (ether0_tx_reset    )
             );    
     
     for ( genvar i = 0; i < 4; i++ ) begin : tx_oddre1_rgmii0
@@ -187,20 +190,20 @@ module kr260_ether_bridge
             u_oddre0_tx_d 
                 (
                     .Q              (rgmii0_tx_d[i]     ),
-                    .C              (rgmii0_tx_clk      ),
+                    .C              (ether0_tx_clk      ),
                     .D1             (ether1_rx_d[i+0]   ),
                     .D2             (ether1_rx_d[i+4]   ),
-                    .SR             (ether_reset        )
+                    .SR             (ether0_tx_reset    )
                 );
     end
 
 
 
     // ------------------------------
-    //  RGMII1
+    //  Ether1(RGMII1)
     // ------------------------------
 
-    assign rgmii1_reset_n = ~ether_reset;
+    assign rgmii1_reset_n = ~reset;
     assign rgmii1_mdc     = 1'b0;
     assign rgmii1_mdio    = 1'bz;
 
@@ -222,8 +225,8 @@ module kr260_ether_bridge
             (
                 .Q1             (ether1_rx_ctl[0]   ),
                 .Q2             (ether1_rx_ctl[1]   ),
-                .C              (rgmii1_rx_clk_buf  ),  
-                .CB             (rgmii1_rx_clk_buf  ),
+                .C              (ether1_rx_clk      ),  
+                .CB             (ether1_rx_clk      ),
                 .D              (rgmii1_rx_ctrl     ),  
                 .R              (1'b0               )   
             );
@@ -239,8 +242,8 @@ module kr260_ether_bridge
                 (
                     .Q1             (ether1_rx_d[i+0]   ),
                     .Q2             (ether1_rx_d[i+4]   ),
-                    .C              (rgmii1_rx_clk_buf  ),  
-                    .CB             (rgmii1_rx_clk_buf  ),
+                    .C              (ether1_rx_clk      ),  
+                    .CB             (ether1_rx_clk      ),
                     .D              (rgmii1_rx_d[i]     ),  
                     .R              (1'b0               )   
                 );
@@ -248,8 +251,10 @@ module kr260_ether_bridge
 
 
     // RGMII1 tx
-    logic   rgmii1_tx_clk;
-    assign rgmii1_tx_clk = rgmii0_rx_clk_buf;
+    logic   ether1_tx_reset ;
+    logic   ether1_tx_clk   ;
+    assign ether1_tx_reset = ether0_rx_reset;
+    assign ether1_tx_clk   = ether0_rx_clk  ;
 
     ODDRE1
             #(
@@ -262,7 +267,7 @@ module kr260_ether_bridge
         u_oddre1_tx_rgmii1_tx_clk
             (
                 .Q              (rgmii1_gtx_clk     ),
-                .C              (rgmii1_tx_clk      ),
+                .C              (ether1_tx_clk      ),
                 .D1             (1'b1               ),
                 .D2             (1'b0               ),
                 .SR             (1'b0               )
@@ -279,10 +284,10 @@ module kr260_ether_bridge
         u_oddre1_tx_d 
             (
                 .Q              (rgmii1_tx_ctrl     ),
-                .C              (rgmii1_tx_clk      ),
+                .C              (ether1_tx_clk      ),
                 .D1             (ether0_rx_ctl[0]   ),
                 .D2             (ether0_rx_ctl[1]   ),
-                .SR             (ether_reset        )
+                .SR             (ether1_tx_reset    )
             );    
     
     for ( genvar i = 0; i < 4; i++ ) begin : tx_oddre1_rgmii1
@@ -297,10 +302,10 @@ module kr260_ether_bridge
             u_oddre1_tx_d 
                 (
                     .Q              (rgmii1_tx_d[i]     ),
-                    .C              (rgmii1_tx_clk      ),
+                    .C              (ether1_tx_clk      ),
                     .D1             (ether0_rx_d[i+0]   ),
                     .D2             (ether0_rx_d[i+4]   ),
-                    .SR             (ether_reset        )
+                    .SR             (ether1_tx_reset    )
                 );
     end
 
@@ -310,19 +315,14 @@ module kr260_ether_bridge
     // ------------------------------
 
     logic  [23:0]   counter0 = 0;
-    always @(posedge rgmii0_rx_clk_buf) begin
+    always @(posedge ether0_rx_clk) begin
         counter0 <= counter0 + 1;
     end
 
     logic  [23:0]   counter1 = 0;
-    always @(posedge rgmii1_rx_clk_buf) begin
+    always @(posedge ether1_rx_clk) begin
         counter1 <= counter1 + 1;
     end
-
-//    logic  [23:0]   counter2 = 0;
-//    always @(posedge ether_clk) begin
-//        counter2 <= counter2 + 1;
-//    end
     
     assign led[0] = counter0[23];
     assign led[1] = counter1[23];
@@ -335,7 +335,7 @@ module kr260_ether_bridge
 
     (* mark_debug = "true" *) logic   [1:0]     dbg_ether0_rx_ctl;
     (* mark_debug = "true" *) logic   [7:0]     dbg_ether0_rx_d  ;
-    always @(posedge rgmii0_rx_clk_buf) begin
+    always @(posedge ether0_rx_clk) begin
         dbg_ether0_rx_ctl <= ether0_rx_ctl;
         dbg_ether0_rx_d   <= ether0_rx_d  ;
     end
@@ -343,7 +343,7 @@ module kr260_ether_bridge
     
     (* mark_debug = "true" *) logic   [1:0]     dbg_ether1_rx_ctl;
     (* mark_debug = "true" *) logic   [7:0]     dbg_ether1_rx_d  ;
-    always @(posedge rgmii1_rx_clk) begin
+    always @(posedge ether1_rx_clk) begin
         dbg_ether1_rx_ctl <= ether1_rx_ctl;
         dbg_ether1_rx_d   <= ether1_rx_d  ;
     end
