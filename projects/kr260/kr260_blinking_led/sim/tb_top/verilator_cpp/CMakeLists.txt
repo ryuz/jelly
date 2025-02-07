@@ -27,7 +27,7 @@ set(CMAKE_CXX_FLAGS "-O3 -std=c++17")
 target_link_libraries(tb_verilator PUBLIC "-pthread") 
 
 set(RTL_SRCS
-    ../tb_main.sv
+    tb_top.sv
 )
 
 verilate(tb_verilator
