@@ -130,8 +130,8 @@ set bCheckIPsPassed 1
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
-xilinx.com:ip:zynq_ultra_ps_e:3.5\
 xilinx.com:ip:xlslice:1.0\
+xilinx.com:ip:zynq_ultra_ps_e:3.5\
 "
 
    set list_ips_missing ""
@@ -199,6 +199,15 @@ proc create_root_design { parentCell } {
   # Create ports
   set fan_en [ create_bd_port -dir O -from 0 -to 0 fan_en ]
   set reset_n [ create_bd_port -dir O -type rst reset_n ]
+
+  # Create instance: xlslice_0, and set properties
+  set xlslice_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0 ]
+  set_property -dict [list \
+    CONFIG.DIN_FROM {2} \
+    CONFIG.DIN_TO {2} \
+    CONFIG.DIN_WIDTH {3} \
+  ] $xlslice_0
+
 
   # Create instance: zynq_ultra_ps_e_0, and set properties
   set zynq_ultra_ps_e_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.5 zynq_ultra_ps_e_0 ]
@@ -463,6 +472,8 @@ MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 
     CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {100} \
     CONFIG.PSU__CRL_APB__PL0_REF_CTRL__SRCSEL {IOPLL} \
     CONFIG.PSU__CRL_APB__PL1_REF_CTRL__ACT_FREQMHZ {99.999001} \
+    CONFIG.PSU__CRL_APB__PL1_REF_CTRL__FREQMHZ {100} \
+    CONFIG.PSU__CRL_APB__PL1_REF_CTRL__SRCSEL {IOPLL} \
     CONFIG.PSU__CRL_APB__QSPI_REF_CTRL__ACT_FREQMHZ {124.998749} \
     CONFIG.PSU__CRL_APB__QSPI_REF_CTRL__FREQMHZ {125} \
     CONFIG.PSU__CRL_APB__QSPI_REF_CTRL__SRCSEL {IOPLL} \
@@ -520,7 +531,7 @@ MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 
     CONFIG.PSU__DP__LANE_SEL {None} \
     CONFIG.PSU__FPD_SLCR__WDT1__ACT_FREQMHZ {99.999001} \
     CONFIG.PSU__FPGA_PL0_ENABLE {1} \
-    CONFIG.PSU__FPGA_PL1_ENABLE {0} \
+    CONFIG.PSU__FPGA_PL1_ENABLE {1} \
     CONFIG.PSU__GPIO0_MIO__IO {MIO 0 .. 25} \
     CONFIG.PSU__GPIO0_MIO__PERIPHERAL__ENABLE {1} \
     CONFIG.PSU__GPIO1_MIO__IO {MIO 26 .. 51} \
@@ -538,8 +549,11 @@ MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 MIO#GPIO1 
     CONFIG.PSU__IOU_SLCR__TTC3__ACT_FREQMHZ {100.000000} \
     CONFIG.PSU__IOU_SLCR__WDT0__ACT_FREQMHZ {99.999001} \
     CONFIG.PSU__LPD_SLCR__CSUPMU__ACT_FREQMHZ {100.000000} \
+    CONFIG.PSU__MAXIGP0__DATA_WIDTH {128} \
+    CONFIG.PSU__MAXIGP1__DATA_WIDTH {128} \
     CONFIG.PSU__OVERRIDE__BASIC_CLOCK {0} \
     CONFIG.PSU__PL_CLK0_BUF {TRUE} \
+    CONFIG.PSU__PL_CLK1_BUF {TRUE} \
     CONFIG.PSU__PMU_COHERENCY {0} \
     CONFIG.PSU__PMU__AIBACK__ENABLE {0} \
     CONFIG.PSU__PMU__EMIO_GPI__ENABLE {0} \
@@ -601,24 +615,16 @@ Port;FD4A0000;FD4AFFFF;1|FPD;DPDMA;FD4C0000;FD4CFFFF;1|FPD;DDR_XMPU5_CFG;FD05000
     CONFIG.PSU__TTC3__PERIPHERAL__ENABLE {1} \
     CONFIG.PSU__TTC3__WAVEOUT__ENABLE {0} \
     CONFIG.PSU__USE__IRQ0 {1} \
-    CONFIG.PSU__USE__M_AXI_GP0 {0} \
-    CONFIG.PSU__USE__M_AXI_GP1 {0} \
+    CONFIG.PSU__USE__M_AXI_GP0 {1} \
+    CONFIG.PSU__USE__M_AXI_GP1 {1} \
     CONFIG.PSU__USE__M_AXI_GP2 {0} \
   ] $zynq_ultra_ps_e_0
-
-
-  # Create instance: xlslice_0, and set properties
-  set xlslice_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0 ]
-  set_property -dict [list \
-    CONFIG.DIN_FROM {2} \
-    CONFIG.DIN_TO {2} \
-    CONFIG.DIN_WIDTH {3} \
-  ] $xlslice_0
 
 
   # Create port connections
   connect_bd_net -net xlslice_0_Dout [get_bd_pins xlslice_0/Dout] [get_bd_ports fan_en]
   connect_bd_net -net zynq_ultra_ps_e_0_emio_ttc0_wave_o [get_bd_pins zynq_ultra_ps_e_0/emio_ttc0_wave_o] [get_bd_pins xlslice_0/Din]
+  connect_bd_net -net zynq_ultra_ps_e_0_pl_clk0 [get_bd_pins zynq_ultra_ps_e_0/pl_clk0] [get_bd_pins zynq_ultra_ps_e_0/maxihpm0_fpd_aclk] [get_bd_pins zynq_ultra_ps_e_0/maxihpm1_fpd_aclk]
   connect_bd_net -net zynq_ultra_ps_e_0_pl_resetn0 [get_bd_pins zynq_ultra_ps_e_0/pl_resetn0] [get_bd_ports reset_n]
 
   # Create address segments
