@@ -6,38 +6,44 @@
 
 module mipi_spartan7
         (
-            input   var logic           in_clk72        ,
-            input   var logic           in_clk50        ,
+            input   var logic           in_clk72            ,
+            input   var logic           in_clk50            ,
+            
+            inout   tri logic   [7:0]   pmod                ,
 
-            inout   tri logic   [7:0]   pmod            ,
+            input   var logic           python_clk_p        ,
+            input   var logic           python_clk_n        ,
+            input   var logic   [3:0]   python_data_p       ,
+            input   var logic   [3:0]   python_data_n       ,
+            input   var logic           python_sync_p       ,
+            input   var logic           python_sync_n       ,
+            output  var logic           python_reset_n      ,
+            output  var logic           python_clk_pll      ,
+            output  var logic           python_ss_n         ,
+            output  var logic           python_mosi         ,
+            input   var logic           python_miso         ,
+            output  var logic           python_sck          ,
+            output  var logic   [2:0]   python_trigger      ,
+            input   var logic   [1:0]   python_monitor      ,
 
-            input   var logic           python_clk_p    ,
-            input   var logic           python_clk_n    ,
-            input   var logic   [3:0]   python_data_p   ,
-            input   var logic   [3:0]   python_data_n   ,
-            input   var logic           python_sync_p   ,
-            input   var logic           python_sync_n   ,
-            output  var logic           python_reset_n  ,
-            output  var logic           python_clk_pll  ,
-            output  var logic           python_ss_n     ,
-            output  var logic           python_mosi     ,
-            input   var logic           python_miso     ,
-            output  var logic           python_sck      ,
-            output  var logic   [2:0]   python_trigger  ,
-            input   var logic   [1:0]   python_monitor  ,
+            output  var logic           python_pwr_en_vdd18 ,
+            output  var logic           python_pwr_en_vdd33 ,
+            output  var logic           python_pwr_en_pix   ,
+            output  var logic           python_pgood        ,
+            output  var logic           python_osc_en       ,
 
-            input   var logic           mipi_reset_n    ,
-            input   var logic           mipi_gpio       ,
-            input   var logic           mipi_sck        ,
-            inout   tri logic           mipi_sda        ,
-            output  var logic           mipi_clk_hs_p   ,
-            output  var logic           mipi_clk_hs_n   ,
-            output  var logic           mipi_clk_lp_p   ,
-            output  var logic           mipi_clk_lp_n   ,
-            output  var logic   [1:0]   mipi_data_hs_p  ,
-            output  var logic   [1:0]   mipi_data_hs_n  ,
-            output  var logic   [1:0]   mipi_data_lp_p  ,
-            output  var logic   [1:0]   mipi_data_lp_n  
+            input   var logic           mipi_reset_n        ,
+            input   var logic           mipi_gpio           ,
+            input   var logic           mipi_sck            ,
+            inout   tri logic           mipi_sda            ,
+            output  var logic           mipi_clk_hs_p       ,
+            output  var logic           mipi_clk_hs_n       ,
+            output  var logic           mipi_clk_lp_p       ,
+            output  var logic           mipi_clk_lp_n       ,
+            output  var logic   [1:0]   mipi_data_hs_p      ,
+            output  var logic   [1:0]   mipi_data_hs_n      ,
+            output  var logic   [1:0]   mipi_data_lp_p      ,
+            output  var logic   [1:0]   mipi_data_lp_n      
         );
 
     logic      in_reset_n      ;
@@ -75,6 +81,12 @@ module mipi_spartan7
 
     // PYTHON300
     assign python_clk_pll = in_clk72;
+
+    assign python_pwr_en_vdd18 = 1'bz;
+    assign python_pwr_en_vdd33 = 1'bz;
+    assign python_pwr_en_pix   = 1'bz;
+    assign python_pgood        = 1'bz;
+    assign python_osc_en       = 1'bz;
 
     logic           python_rx_clk       ;
     logic [39:0]    python_rx_data      ;
