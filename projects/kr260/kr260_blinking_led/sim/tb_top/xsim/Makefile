@@ -2,10 +2,6 @@
 # setting
 TOP_MODULE = tb_top
 
-SIM_LIB_DIRS += ..
-SIM_LIB_DIRS += ../../stub
-SIM_LIB_DIRS += ../../../rtl
-
 VLOGFLAGS  = -sv
 
 SRCS  = ../tb_top.sv
