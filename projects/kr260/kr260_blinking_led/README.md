@@ -200,7 +200,7 @@ sudo cp kr260_blinking_led.bit.bin /lib/firmware
 sudo cp kr260_blinking_led.dtbo /lib/firmware
 ```
 
-### overlay 
+### overlay
 
 次に overlay を行います。
 
