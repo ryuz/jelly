@@ -8,6 +8,12 @@
 幸い KR260 は PL(Programmable Logic)部に直接つながるクロックも LED もボード上に実装されているため、
 [KV260のLチカ](https://zenn.dev/ryuz88/articles/kv260_led_blinking) に比べてだいぶ簡素に試すことが出来ます。
 
+KV260用の記事も参考になると思いますので、下記の記事なども合わせてご参照ください。
+
+- [KR260でSystemVerilogでLEDチカしてみる](https://zenn.dev/ryuz88/articles/kr260_led_blinking)
+- [KV260でのILAの使い方](https://zenn.dev/ryuz88/articles/kv260_ila_tutorial)
+- [KV260/KR260のLEDチカで学ぶシミュレーションのやり方入門](https://zenn.dev/ryuz88/articles/kr260_led_blinking_sim)
+
 
 ## 事前準備
 
@@ -26,10 +32,10 @@ kernel:         5.15.0-1027-xilinx-zynqmp
 
 bootgen を使うのでインストールしておきます。
 
-```
-git clone https://github.com/Xilinx/bootgen  
-cd bootgen/  
-make  
+```bash
+git clone https://github.com/Xilinx/bootgen
+cd bootgen/
+make
 sudo cp bootgen /usr/local/bin/
 ```
 
@@ -38,7 +44,7 @@ sudo cp bootgen /usr/local/bin/
 
 ### ソースコードの取得
 
-```
+```bash
 git clone https://github.com/ryuz/jelly
 ```
 
@@ -92,7 +98,7 @@ kr260_blinking_led.bit が出来上がります。
 
 sudoできるユーザーで app ディレクトリに移動してください。
 
-```
+```bash
 make run
 ```
 
@@ -134,7 +140,7 @@ kr260_blinking_led.dts が Device Tree overlay のソースファイルとなり
 
 ### bitstream 指定
 
-``` 
+```
     fragment@0 {
         target = <&fpga_full>;
         overlay0: __overlay__ {
@@ -158,7 +164,7 @@ all:
 
 bootgenを用いて
 
-```
+```bash
 bootgen -image kr260_blinking_led.bif -arch zynqmp -process_bitstream bin
 ```
 
@@ -168,7 +174,7 @@ bootgen -image kr260_blinking_led.bif -arch zynqmp -process_bitstream bin
 
 ### dtcでのコンパイル
 
-```
+```bash
 dtc -I dts -O dtb -o kr260_blinking_led.dtbo kr260_blinking_led.dts
 ```
 
@@ -182,7 +188,7 @@ dtc -I dts -O dtb -o kr260_blinking_led.dtbo kr260_blinking_led.dts
 
 初めに configfs をマウントします。
 
-```
+```bash
 sudo mkdir -p /configfs
 sudo mount -t configfs configfs /configfs
 ```
@@ -194,7 +200,7 @@ sudo mount -t configfs configfs /configfs
 
 必要なものを  /lib/firmware にコピーします。
 
-```
+```bash
 sudo mkdir -p /lib/firmware
 sudo cp kr260_blinking_led.bit.bin /lib/firmware
 sudo cp kr260_blinking_led.dtbo /lib/firmware
@@ -204,7 +210,7 @@ sudo cp kr260_blinking_led.dtbo /lib/firmware
 
 次に overlay を行います。
 
-```
+```bash
 sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
 sudo mkdir /configfs/device-tree/overlays/full
 sudo sh -c "echo -n kr260_blinking_led.dtbo > /configfs/device-tree/overlays/full/path"
@@ -216,7 +222,7 @@ sudo sh -c "echo -n kr260_blinking_led.dtbo > /configfs/device-tree/overlays/ful
 
 状態を確認するには
 
-```
+```bash
 cat /configfs/device-tree/overlays/full/status
 ```
 
@@ -224,7 +230,7 @@ cat /configfs/device-tree/overlays/full/status
 
 役目を終えたファイルは削除してよいようです。
 
-```
+```bash
 sudo rm /lib/firmware/kr260_blinking_led.dtbo
 sudo rm /lib/firmware/kr260_blinking_led.bit.bin
 ```
@@ -233,7 +239,7 @@ sudo rm /lib/firmware/kr260_blinking_led.bit.bin
 
 ## Device Tree Overlay の解除
 
-```
+```bash
 sudo rmdir /configfs/device-tree/overlays/full
 ```
 

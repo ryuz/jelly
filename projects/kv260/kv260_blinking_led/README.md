@@ -5,7 +5,11 @@
 
 [KV260](https://www.amd.com/ja/products/system-on-modules/kria/k26/kv260-vision-starter-kit.html)で LED チカチカを試すサンプルです。
 
-[KV260のLチカ](https://zenn.dev/ryuz88/articles/kv260_led_blinking) 記事も合わせてご参照ください。
+下記の記事なども合わせてご参照ください。
+
+- [KV260でSystemVerilogでLEDチカしてみる](https://zenn.dev/ryuz88/articles/kv260_led_blinking)
+- [KV260でのILAの使い方](https://zenn.dev/ryuz88/articles/kv260_ila_tutorial)
+- [KV260/KR260のLEDチカで学ぶシミュレーションのやり方入門](https://zenn.dev/ryuz88/articles/kr260_led_blinking_sim)
 
 
 ## 事前準備
@@ -25,7 +29,7 @@ kernel:         5.15.0-1031-xilinx-zynqmp
 
 bootgen を使うのでインストールしておきます。
 
-```
+```bash
 git clone https://github.com/Xilinx/bootgen
 cd bootgen/
 make
@@ -37,7 +41,7 @@ sudo cp bootgen /usr/local/bin/
 
 ### ソースコードの取得
 
-```
+```bash
 git clone https://github.com/ryuz/jelly
 ```
 
@@ -86,7 +90,7 @@ kv260_blinking_led.bit が出来上がります。
 
 sudoできるユーザーで app ディレクトリに移動してください。
 
-```
+```bash
 make run
 ```
 
@@ -162,7 +166,7 @@ all:
 
 bootgenを用いて
 
-```
+```bash
 bootgen -image kv260_blinking_led.bif -arch zynqmp -process_bitstream bin
 ```
 
@@ -198,7 +202,7 @@ sudo mount -t configfs configfs /configfs
 
 必要なものを  /lib/firmware にコピーします。
 
-```
+```bash
 sudo mkdir -p /lib/firmware
 sudo cp kv260_blinking_led.bit.bin /lib/firmware
 sudo cp kv260_blinking_led.dtbo /lib/firmware
@@ -208,7 +212,7 @@ sudo cp kv260_blinking_led.dtbo /lib/firmware
 
 次に overlay を行います。
 
-```
+```bash
 sudo sh -c "echo 0 > /sys/class/fpga_manager/fpga0/flags"
 sudo mkdir /configfs/device-tree/overlays/full
 sudo sh -c "echo -n kv260_blinking_led.dtbo > /configfs/device-tree/overlays/full/path"
