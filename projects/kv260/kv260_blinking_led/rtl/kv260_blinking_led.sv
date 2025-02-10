@@ -24,8 +24,8 @@ module kv260_blinking_led
             );
     
     // counter
-    (* MARK_DEBUG = "true" *)   logic   [26:0]     counter = '0;
-    (* MARK_DEBUG = "true" *)   logic   [7:0]      led     = '0;
+    (* MARK_DEBUG = "true" *)   logic   [26:0]     counter;
+    (* MARK_DEBUG = "true" *)   logic   [7:0]      led    ;
     always_ff @(posedge clk) begin
         if ( reset ) begin
             counter <= '0;

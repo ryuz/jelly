@@ -1,14 +1,14 @@
 
 # get vivado version
-empty:=
-space:= $(empty) $(empty)
-VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -version))))
-VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
-XILINX_VIVADO ?= /tools/Xilinx/Vivado/$(VIVADO_VERSION)
+#empty:=
+#space:= $(empty) $(empty)
+#VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -version))))
+#VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
+#XILINX_VIVADO ?= /tools/Xilinx/Vivado/$(VIVADO_VERSION)
 
 # jelly
-JELLY_TOP_DIR = ../../../../../..
--include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
+#JELLY_TOP_DIR = ../../../../../..
+#-include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
 
 # setting
 TOP_MODULE = tb_top
@@ -18,14 +18,14 @@ SIM_LIB_DIRS += ../../stub
 SIM_LIB_DIRS += ../../../rtl
 
 VLOGFLAGS  = -sv
-VLOGFLAGS += --sourcelibext .v
-VLOGFLAGS += --sourcelibext .sv
-VLOGFLAGS += $(addprefix --sourcelibdir ,$(SIM_LIB_DIRS))
+#VLOGFLAGS += --sourcelibext .v
+#VLOGFLAGS += --sourcelibext .sv
+#VLOGFLAGS += $(addprefix --sourcelibdir ,$(SIM_LIB_DIRS))
 
-ELABFLAGS  = -debug wave
- 
+#ELABFLAGS  = -debug wave
+
 SRCS  = ../$(TOP_MODULE).sv
-SRCS += $(XILINX_VIVADO)/data/verilog/src/glbl.v
+#SRCS += $(XILINX_VIVADO)/data/verilog/src/glbl.v
 
 
 # rules
@@ -35,7 +35,7 @@ all: clean build run
 .PHONY: build
 build:
 	xvlog $(VLOGFLAGS) $(SRCS)
-	xelab $(ELABFLAGS) $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
+	xelab $(ELABFLAGS) $(TOP_MODULE)
 
 .PHONY: run
 run:
@@ -63,6 +63,3 @@ clean:
 distclean: clean
 	-rm -f *.vcd
 	-rm -f *.wdb
-	-rm -f *.pgm
-	-rm -f *.ppm
-	-rm -f axi4_*.txt
