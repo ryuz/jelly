@@ -106,10 +106,12 @@ Jelly 内のサンプルプログラムの紹介です。
 
 各プロジェクトで利用している Jelly の共有ライブラリ群が rtl の下にあります。いくつかのバージョンで整理を始めており
 
-- v1  Verilog-2001 で記述した昔のコード
-- v2  一部 SystemVerilog の機能を限定的に利用し始めたコード
-- v3  SystemVerilog の Interface や type などの機能をフルに使い始めたもの
-- jellyvl  実験的に [Veryl](https://github.com/veryl-lang/veryl) を試したもの(submodule)
+| Directory | 説明 |
+|:----------|:-----|
+| rtl/v1      | Verilog-2001 で記述した昔のコード |
+| rtl/v2      | 一部 SystemVerilog の機能を限定的に利用し始めたコード |
+| rtl/v3      | SystemVerilog の Interface や type などの機能をフルに使い始めたもの |
+| rtl/jellyvl | 実験的に [Veryl](https://github.com/veryl-lang/veryl) を試したもの(submodule) |
 
 となっています。 v2 までは logic や always_ff を使い始めた程度なので SystemVerilog 対応を謡っているものなら概ね対応可能と思われます。
 
@@ -117,13 +119,15 @@ v3 は処理系を選ぶ可能性があります。
 
 rtl の下にある分類を v2 を例に説明すると
 
-- rtl/v2/library      FIFOとかRAMとか様々なRTLのパーツ
-- rtl/v2/bus          AXIとかWISHBONEとかのバスブリッジ等のパーツ
-- rtl/v2/math         GPUとかで使うような算術パーツ
-- rtl/v2/peripheral   UARTとかI2CとかTIMERとかののパーツ
-- rtl/v2/video        DVIとかHDMIとかのビデオ処理
-- rtl/v2/image        画像処理用パーツ(ニューラルネットの畳み込みでも利用)
-- rtl/v2/model        シミュレーション用の便利モデルいろいろ
+| Directory | 説明 |
+|:----------|:-----|
+| rtl/v2/library    | FIFOとかRAMとか様々なRTLのパーツ |
+| rtl/v2/bus        | AXIとかWISHBONEとかのバスブリッジ等のパーツ |
+| rtl/v2/math       | GPUとかで使うような算術パーツ |
+| rtl/v2/peripheral | UARTとかI2CとかTIMERとかののパーツ |
+| rtl/v2/video      | DVIとかHDMIとかのビデオ処理 |
+| rtl/v2/image      | 画像処理用パーツ(ニューラルネットの畳み込みでも利用) |
+| rtl/v2/model      | シミュレーション用の便利モデルいろいろ |
 
 のような感じになっています。
 
