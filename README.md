@@ -11,70 +11,13 @@
 
 なお、現在少し詳細なドキュメントを[こちら](https://jelly-fpga.readthedocs.io/jv/master/)に準備中です。
 
-
-## MIPS-I 互換プロセッサ
-
-/rtl/v1/mipsi/
-
-以下にあります。
-
-Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみたプロセッサです。
-
-ブロック図などは[Webサイト](http://ryuz.my.coocan.jp/legacy/jelly/index.html)の方にあります。
-
-
-## RISV-V 互換プロセッサ
-
-/rtl/jfive
-
-以下にあります。
-
-サンプルは
-
-- [Ultra96V2 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/ultra96v2/ultra96v2_jfive_sample/README.md)
-- [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260/kv260_jfive_simple_controller/README.md)
-- [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260/kv260_jfive_micro_controller/README.md)
-
-などになります。
-
-## FPGA化リアルタイムOS
-
-/rtl/rtos
-以下にあります。
-
-FPGAで作成したRealTime-OSアクセラレータです。
-
-今のところ ZynqMP の RPU(Cortex-R5) のアクセラレートのみですが、ITRON風味のRTOSスケジューリング補助回路となっています。
-
-現状 Rust での開発を想定して[サンプル](projects/ultra96v2/ultra96v2_rtos/README.md)を準備しております。
-
-
-## リアルタイムGPU
-
-/rtl/v1/gpu
-以下にあります。
-
-フレームメモリを使わないフィルタ型の低遅延なリアルタイム描画を目指したものです。
-
-[動画](https://www.youtube.com/watch?v=vl-lhSOOlSk)はこちらです。
-
-
-## ライブラリ群
-
-もはやこれが Jelly のメインかもです
-
-- rtl/v2/library      FIFOとかRAMとか様々なRTLのパーツ
-- rtl/v2/bus          AXIとかWISHBONEとかのバスブリッジ等のパーツ
-- rtl/v2/math         GPUとかで使うような算術パーツ
-- rtl/v2/peripheral   UARTとかI2CとかTIMERとかののパーツ
-- rtl/v2/video        DVIとかHDMIとかのビデオ処理
-- rtl/v2/image        画像処理用パーツ(ニューラルネットの畳み込みでも利用)
-- rtl/v2/model        シミュレーション用の便利モデルいろいろ
+作者が書き溜めたソースの集合体で、多数のプロジェクトを内包したモノリポとなっております。
 
 
 ## いろいろなサンプルプロジェクト
 
-以下、Jelly 内のサンプルプログラムの紹介です。
+Jelly 内のサンプルプログラムの紹介です。
+
 
 ### ZynqMP 共通
 
@@ -165,8 +108,111 @@ FPGAで作成したRealTime-OSアクセラレータです。
 
 
 
-あまりに ZynqMP ネタが増えてきたので[ZynqMPを理解しよう](https://zenn.dev/ryuz88/books/zynqmp_study)という記事を書いてみました。
+## ライブラリ群
+
+各プロジェクトで利用している Jelly の共有ライブラリ群が rtl の下にあります。いくつかのバージョンで整理を始めており
+
+- v1  Verilog-2001 で記述した昔のコード
+- v2  一部 SystemVerilog の機能を限定的に利用し始めたコード
+- v3  SystemVerilog の Interface や type などの機能をフルに使い始めたもの
+- jellyvl  実験的に [Veryl](https://github.com/veryl-lang/veryl) を試したもの(submodule)
+
+となっています。 v2 までは logic や always_ff を使い始めた程度なので SystemVerilog 対応を謡っているものなら概ね対応可能と思われます。
+
+v3 は処理系を選ぶ可能性があります。
+
+rtl の下にある分類を v2 を例に説明すると
+
+- rtl/v2/library      FIFOとかRAMとか様々なRTLのパーツ
+- rtl/v2/bus          AXIとかWISHBONEとかのバスブリッジ等のパーツ
+- rtl/v2/math         GPUとかで使うような算術パーツ
+- rtl/v2/peripheral   UARTとかI2CとかTIMERとかののパーツ
+- rtl/v2/video        DVIとかHDMIとかのビデオ処理
+- rtl/v2/image        画像処理用パーツ(ニューラルネットの畳み込みでも利用)
+- rtl/v2/model        シミュレーション用の便利モデルいろいろ
+
+のような感じになっています。
+
+
+## 各種機能開発
+
+### MIPS-I 互換プロセッサ
+
+作者が一番最初に Verilog の勉強を始めるきっかけとして 自作CPU に挑戦したものです。
+
+/rtl/v1/mipsi/
+
+以下にあります。
+
+Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみたプロセッサです。
+
+ブロック図などは[Webサイト](http://ryuz.my.coocan.jp/legacy/jelly/index.html)の方にあります。
+
+
+### RISV-V 互換プロセッサ
+
+/rtl/jfive
+
+以下にあります。
+
+サンプルは
+
+- [Ultra96V2 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/ultra96v2/ultra96v2_jfive_sample/README.md)
+- [Kria KV260 で 自作RISC-V(4段パイプライン)を試すサンプル](projects/kv260/kv260_jfive_simple_controller/README.md)
+- [Kria KV260 で 自作RISC-V(6段パイプライン)を試すサンプル](projects/kv260/kv260_jfive_micro_controller/README.md)
+- [Kria KV260 で RISC-V 風のバレルプロセッサ](https://github.com/ryuz/jelly/tree/master/projects/kv260/kv260_jfive_v3_sample)
+
+などになります。
+
+### FPGA化リアルタイムOS
+
+/rtl/rtos
+
+以下にあります。
+
+FPGAで作成したRealTime-OSアクセラレータです。
+
+今のところ ZynqMP の RPU(Cortex-R5) のアクセラレートのみですが、ITRON風味のRTOSスケジューリング補助回路となっています。
+
+現状 Rust での開発を想定して[サンプル](projects/ultra96v2/ultra96v2_rtos/README.md)を準備しております。
+
+
+### リアルタイムGPU
+
+/rtl/v1/gpu
+
+以下にあります。
+
+フレームメモリを使わないフィルタ型の低遅延なリアルタイム描画を目指したものです。
+
+[動画](https://www.youtube.com/watch?v=vl-lhSOOlSk)はこちらです。
+
+
+
+## その他
+
+ZynqMP ネタが増えてきたので[ZynqMPを理解しよう](https://zenn.dev/ryuz88/books/zynqmp_study)という記事を書いてみました。
+
+
+## 作者情報
+
+渕上 竜司(Ryuji Fuchikami)
+
+- e-mail : ryuji.fuchikami@nifty.com
+- github : https://github.com/ryuz
+- web-site : https://ryuz88.sakura.ne.jp
+- zenn : https://zenn.dev/ryuz88
+- tech-blog : https://ryuz.hatenablog.com/
+- blog : http://ryuz.txt-nifty.com
+- X(twitter) : https://x.com/ryuz88
+- facebook : https://www.facebook.com/ryuji.fuchikami
+- SpeakerDeck : https://speakerdeck.com/ryuz88
+- YouTube : https://www.youtube.com/user/nekoneko1024
+
 
 ## ライセンス
 
   license.txt にある通り、MIT ライセンスとして置いておきます。
+
+  ただし submodule など、他から引用しているものについてはその限りではありませんので、個別ライセンス記述がある場合はそちらに従ってください。
+
