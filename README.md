@@ -100,12 +100,12 @@ FPGAで作成したRealTime-OSアクセラレータです。
     - [Kria KV260 で Raspberry V2 カメラ の 1000fps で MNIST のセメンティックセグメンテーションを行う](projects/kv260/kv260_imx219_mnist_seg/README.md)
     - Interface 2024年10月号付録 [FPGAマガジン No.3](https://fpga.tokyo/no3-2/)で記事にしております
 
-- projects/kv260/kv260_sample
-    - [Kria KV260 で PL単独で LED チカチカ を試すサンプル](projects/kv260/kv260_sample/README.md)
+- projects/kv260/kv260_blinking_led
+    - [Kria KV260 で PL単独で LED チカチカ を試すサンプル](projects/kv260/kv260_blinking_led/README.md)
 - projects/kv260/kv260_blinking_led_ps
     - [Kria KV260 で PSから PL経由で LED チカチカ を試すサンプル](projects/kv260/kv260_sample/README.md)
 - projects/kv260/kv260_udmabuf_sample
-    - [Kria KV260 でudmabufを試すサンプル](projects/kv260/kv260_udmabuf_sample/README.md)
+    - [Kria KV260 で udmabuf を試すサンプル](projects/kv260/kv260_udmabuf_sample/README.md)
 - projects/kv260/kv260_devdrv_sample
     - [Kria KV260 で 自作デバイスドライバを試すサンプル](projects/kv260/kv260_devdrv_sample/README.md)
 
@@ -115,7 +115,7 @@ FPGAで作成したRealTime-OSアクセラレータです。
 - projects/kr260/kr260_blinking_led
     - [Kria KR260 で LED チカチカ を試すサンプル](projects/kr260/kr260_blinking_led/README.md)
 - projects/kr260/kr260_udmabuf_sample
-    - [Kria KR260 でudmabufを試すサンプル](projects/kr260/kr260_udmabuf_sample/README.md)
+    - [Kria KR260 で udmabuf を試すサンプル](projects/kr260/kr260_udmabuf_sample/README.md)
 - projects/kr260/kr260_devdrv_sample
     - [Kria KR260 で 自作デバイスドライバを試すサンプル](projects/kr260/kr260_devdrv_sample/README.md)
 
