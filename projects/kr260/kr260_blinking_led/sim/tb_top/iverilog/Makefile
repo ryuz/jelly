@@ -13,12 +13,14 @@ SRCS += ../../../rtl/kr260_blinking_led.sv
 all: clean build run
 
 .PHONY: build
-build:
-	iverilog -g2012 -o $(TOP_MODULE).vvp -s $(TOP_MODULE) $(SRCS)
+build: $(TOP_MODULE).vvp
 
 .PHONY: run
-run:
+run: $(TOP_MODULE).vvp
 	vvp $(TOP_MODULE).vvp
+
+$(TOP_MODULE).vvp:
+	iverilog -g2012 -o $(TOP_MODULE).vvp -s $(TOP_MODULE) $(SRCS)
 
 
 .PHONY: vcd2fst
