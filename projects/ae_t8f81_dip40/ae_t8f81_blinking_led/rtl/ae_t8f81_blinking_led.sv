@@ -4,7 +4,7 @@
 
 module ae_t8f81_blinking_led
         #(
-            parameter   int COUNT_LIMIT = 10000000
+            parameter   int COUNT_LIMIT = 20000000
         )
         (
             input   var logic           clk     ,
@@ -14,7 +14,7 @@ module ae_t8f81_blinking_led
     // Blinking LED
     logic   [24:0]     counter;
     always_ff @(posedge clk) begin
-        // 25MHz で 1秒間隔でカウントアップ
+        // 20MHz で 1秒間隔でカウントアップ
         if ( counter >= 25'(COUNT_LIMIT - 1) ) begin
             counter <= 0;
             led     <= led + 1;

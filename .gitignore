@@ -97,6 +97,7 @@ bd/
 outflow/
 work_pnr/
 work_syn/
+work_pt/
 
 # Gowin
 impl/
