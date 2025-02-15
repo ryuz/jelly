@@ -1,3 +1,3 @@
 
-# 20MHz
-create_clock -period 50.000 -name clk [get_ports clk]
+# 25MHz
+create_clock -period 40.000 -name clk [get_ports clk]
