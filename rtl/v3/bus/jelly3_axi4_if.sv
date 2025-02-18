@@ -90,54 +90,54 @@ interface jelly3_axi4_if
     bit     [ADDR_BITS-1:0]         addr_high   ;
 
     // signals  
-    id_t        awid        ;
-    addr_t      awaddr      ;
-    len_t       awlen       ;
-    size_t      awsize      ;
-    burst_t     awburst     ;
-    lock_t      awlock      ;
-    cache_t     awcache     ;
-    prot_t      awprot      ;
-    qos_t       awqos       ;
-    region_t    awregion    ;
-    awuser_t    awuser      ;
-    logic       awvalid     ;
-    logic       awready     ;
+    (* MARK_DEBUG=DEBUG *)  id_t        awid        ;
+    (* MARK_DEBUG=DEBUG *)  addr_t      awaddr      ;
+    (* MARK_DEBUG=DEBUG *)  len_t       awlen       ;
+    (* MARK_DEBUG=DEBUG *)  size_t      awsize      ;
+    (* MARK_DEBUG=DEBUG *)  burst_t     awburst     ;
+    (* MARK_DEBUG=DEBUG *)  lock_t      awlock      ;
+    (* MARK_DEBUG=DEBUG *)  cache_t     awcache     ;
+    (* MARK_DEBUG=DEBUG *)  prot_t      awprot      ;
+    (* MARK_DEBUG=DEBUG *)  qos_t       awqos       ;
+    (* MARK_DEBUG=DEBUG *)  region_t    awregion    ;
+    (* MARK_DEBUG=DEBUG *)  awuser_t    awuser      ;
+    (* MARK_DEBUG=DEBUG *)  logic       awvalid     ;
+    (* MARK_DEBUG=DEBUG *)  logic       awready     ;
 
-    data_t      wdata       ;
-    strb_t      wstrb       ;
-    logic       wlast       ;
-    wuser_t     wuser       ;
-    logic       wvalid      ;
-    logic       wready      ;
+    (* MARK_DEBUG=DEBUG *)  data_t      wdata       ;
+    (* MARK_DEBUG=DEBUG *)  strb_t      wstrb       ;
+    (* MARK_DEBUG=DEBUG *)  logic       wlast       ;
+    (* MARK_DEBUG=DEBUG *)  wuser_t     wuser       ;
+    (* MARK_DEBUG=DEBUG *)  logic       wvalid      ;
+    (* MARK_DEBUG=DEBUG *)  logic       wready      ;
 
-    id_t        bid         ;
-    resp_t      bresp       ;
-    buser_t     buser       ;
-    logic       bvalid      ;
-    logic       bready      ;
+    (* MARK_DEBUG=DEBUG *)  id_t        bid         ;
+    (* MARK_DEBUG=DEBUG *)  resp_t      bresp       ;
+    (* MARK_DEBUG=DEBUG *)  buser_t     buser       ;
+    (* MARK_DEBUG=DEBUG *)  logic       bvalid      ;
+    (* MARK_DEBUG=DEBUG *)  logic       bready      ;
 
-    id_t        arid        ;
-    addr_t      araddr      ;
-    len_t       arlen       ;
-    size_t      arsize      ;
-    burst_t     arburst     ;
-    lock_t      arlock      ;
-    cache_t     arcache     ;
-    prot_t      arprot      ;
-    qos_t       arqos       ;
-    region_t    arregion    ;
-    aruser_t    aruser      ;
-    logic       arvalid     ;
-    logic       arready     ;
+    (* MARK_DEBUG=DEBUG *)  id_t        arid        ;
+    (* MARK_DEBUG=DEBUG *)  addr_t      araddr      ;
+    (* MARK_DEBUG=DEBUG *)  len_t       arlen       ;
+    (* MARK_DEBUG=DEBUG *)  size_t      arsize      ;
+    (* MARK_DEBUG=DEBUG *)  burst_t     arburst     ;
+    (* MARK_DEBUG=DEBUG *)  lock_t      arlock      ;
+    (* MARK_DEBUG=DEBUG *)  cache_t     arcache     ;
+    (* MARK_DEBUG=DEBUG *)  prot_t      arprot      ;
+    (* MARK_DEBUG=DEBUG *)  qos_t       arqos       ;
+    (* MARK_DEBUG=DEBUG *)  region_t    arregion    ;
+    (* MARK_DEBUG=DEBUG *)  aruser_t    aruser      ;
+    (* MARK_DEBUG=DEBUG *)  logic       arvalid     ;
+    (* MARK_DEBUG=DEBUG *)  logic       arready     ;
 
-    id_t        rid         ;
-    data_t      rdata       ;
-    resp_t      rresp       ;
-    logic       rlast       ;
-    ruser_t     ruser       ;
-    logic       rvalid      ;
-    logic       rready      ;
+    (* MARK_DEBUG=DEBUG *)  id_t        rid         ;
+    (* MARK_DEBUG=DEBUG *)  data_t      rdata       ;
+    (* MARK_DEBUG=DEBUG *)  resp_t      rresp       ;
+    (* MARK_DEBUG=DEBUG *)  logic       rlast       ;
+    (* MARK_DEBUG=DEBUG *)  ruser_t     ruser       ;
+    (* MARK_DEBUG=DEBUG *)  logic       rvalid      ;
+    (* MARK_DEBUG=DEBUG *)  logic       rready      ;
 
     modport m
         (

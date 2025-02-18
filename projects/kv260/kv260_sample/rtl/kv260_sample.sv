@@ -19,15 +19,19 @@ module kv260_sample
             );
     
     // counter
-    (* MARK_DEBUG = "true" *)   logic   [27:0]     counter = '0;
+    (* MARK_DEBUG = "true" *)   logic   [26:0]     counter = '0;
+    (* MARK_DEBUG = "true" *)   logic   [7:0]      led     = '0;
     always_ff @(posedge clk) begin
         counter <= counter + 1'b1;
+        if ( counter >= 27'(100_000_000 - 1) ) begin // 1秒をカウントする
+            counter <= '0;
+            led     <= led + 1'b1;
+        end
     end
 
     // PMOD output
-    assign pmod[3:0] = counter[27:24];
-    assign pmod[7:4] = counter[11:8];
-    
+    assign pmod = led;
+   
 endmodule
 
 

@@ -30,11 +30,16 @@ set current_vivado_version_major [string range $current_vivado_version 0 5]
 set current_vivado_version_year [string range $current_vivado_version 0 3]
 
 # set synth setting
-append vivado_version   "vivado" $current_vivado_version_major
-append synth_1_flow     "Vivado Synthesis " $current_vivado_version_year
-append synth_1_strategy "Vivado Synthesis Defaults"
-append impl_1_flow      "Vivado Implementation " $current_vivado_version_year
-append impl_1_strategy  "Vivado Implementation Defaults"
+append def_vivado_version   "vivado" $current_vivado_version_major
+append def_synth_1_flow     "Vivado Synthesis " $current_vivado_version_year
+append def_synth_1_strategy "Vivado Synthesis Defaults"
+append def_impl_1_flow      "Vivado Implementation " $current_vivado_version_year
+append def_impl_1_strategy  "Vivado Implementation Defaults"
+
+set synth_1_flow     [expr {[info exists env(SYNTH_FLOW)     ] ? $env(SYNTH_FLOW)     : $def_synth_1_flow    }]
+set synth_1_strategy [expr {[info exists env(SYNTH_STRATEGY) ] ? $env(SYNTH_STRATEGY) : $def_synth_1_strategy}]
+set impl_1_flow      [expr {[info exists env(IMPL_FLOW)      ] ? $env(IMPL_FLOW)      : $def_impl_1_flow     }]
+set impl_1_strategy  [expr {[info exists env(IMPL_STRATEGY)  ] ? $env(IMPL_STRATEGY)  : $def_impl_1_strategy }]
 
 
 # create project

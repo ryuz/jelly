@@ -302,10 +302,10 @@ private:
     {
         char path[256];
         snprintf(path, sizeof(path), "/sys/class/%s/%s/%s", module_name, device_name, name);
-        int  fd  = open(path, O_RDONLY);
+        int  fd  = open(path, O_WRONLY);
         if ( fd == -1) { return 0; }
         char buf[64];
-        int  len = snprintf(buf, sizeof(buf), "0x%08X%08X", (sync_offset & 0xFFFFFFFF), (sync_size & 0xFFFFFFF0) | (sync_direction << 2) | sync_for_x);
+        int  len = snprintf(buf, sizeof(buf), "0x%08X%08X", (unsigned int)(sync_offset & 0xFFFFFFFF), (unsigned int)(sync_size & 0xFFFFFFF0) | (sync_direction << 2) | sync_for_x);
         if ( write(fd, buf, len) != len ) { close(fd); return 0; }
         close(fd);
         return 1;
