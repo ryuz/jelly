@@ -51,7 +51,7 @@ module jelly3_ram_simple_dualport
     
     
     // write port
-    for ( genvar i = 0; i < WE_BITS; ++i ) begin : loop_we0
+    for ( genvar i = 0; i < $bits(we_t); i++ ) begin : loop_we0
         always_ff @ ( posedge wr_clk ) begin
             if ( wr_en[i] ) begin
                 mem[wr_addr][i*$bits(word_t) +: $bits(word_t)] <= wr_din[i*$bits(word_t) +: $bits(word_t)];
@@ -86,7 +86,7 @@ module jelly3_ram_simple_dualport
     // initialize
     initial begin
         if ( FILLMEM ) begin
-            for ( int i = 0; i < MEM_DEPTH; i = i + 1 ) begin
+            for ( int i = 0; i < MEM_DEPTH; i++ ) begin
                 mem[i] = FILLMEM_DATA;
             end
         end
