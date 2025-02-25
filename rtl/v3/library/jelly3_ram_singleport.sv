@@ -76,7 +76,7 @@ module jelly3_ram_singleport
             end
         end
     end
-    else if ( 256'(MODE) == 256'("NO_CHANGE") ) begin : blk_nc1
+    else if ( string'(MODE) == "NO_CHANGE" ) begin : blk_nc1
         // no change
         for ( genvar i = 0; i < $bits(we_t); i++ ) begin : loop_we1
             always_ff @ ( posedge clk ) begin

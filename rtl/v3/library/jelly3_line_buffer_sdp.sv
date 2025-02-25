@@ -10,7 +10,7 @@
 `default_nettype none
 
 
-// Simple Dualport-RAM
+// Line buffer with Simple Dualport-RAM
 module jelly3_line_buffer_sdp
         #(
             parameter   int     N            = 3                            ,

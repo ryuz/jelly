@@ -19,8 +19,9 @@ module tb_main
     localparam  int     DATA_BITS    = 16                           ;
     localparam  type    data_t       = logic    [DATA_BITS-1:0]     ;
     localparam  int     BUF_SIZE     = 1024                         ;
+    localparam  bit     SDP          = 1'b0                         ;
     localparam          RAM_TYPE     = "block"                      ;
-    localparam  bit     DOUT_REG     = 1'b1                         ;
+    localparam  bit     DOUT_REG     = 1'b0                         ;
 
     logic           cke     ;
     user_t          s_user  ;
@@ -29,10 +30,11 @@ module tb_main
     logic           s_valid ;
     user_t  [N-1:0] m_user  ;
     data_t  [N-1:0] m_data  ;
+    logic           m_first ;
     logic           m_last  ;
     logic   [N-1:0] m_valid ;
 
-    jelly3_line_buffer_sdp
+    jelly3_line_buffer
         #(
                 .N              (N          ),
                 .USER_BITS      (USER_BITS  ),
@@ -40,10 +42,11 @@ module tb_main
                 .DATA_BITS      (DATA_BITS  ),
                 .data_t         (data_t     ),
                 .BUF_SIZE       (BUF_SIZE   ),
+                .SDP            (SDP        ),
                 .RAM_TYPE       (RAM_TYPE   ),
                 .DOUT_REG       (DOUT_REG   )
             )
-        u_line_buffer_sdp
+        u_line_buffer
             (
                 .reset   ,
                 .clk     ,
@@ -56,6 +59,7 @@ module tb_main
                 
                 .m_user  ,
                 .m_data  ,
+                .m_first ,
                 .m_last  ,
                 .m_valid 
             );
@@ -102,7 +106,7 @@ module tb_main
             );
 
     always_ff @(posedge clk) begin
-        cke <= $random;
+        cke <= 1'($random);
     end
 
     assign s_user  = {axi4s_src.tuser, out_y[6:0]};
@@ -119,7 +123,7 @@ module tb_main
     end
     int count = 0;
     always_ff @(posedge clk) begin
-        if ( !reset && cke && m_valid ) begin
+        if ( !reset && cke && |m_valid ) begin
             $fwrite(fp, "%b_%3b_%02h_%02h_%02h__%04h_%04h_%04h\n", m_last, m_valid, m_user[2], m_user[1], m_user[0], m_data[2], m_data[1], m_data[0]);
             count++;
             if ( count >= 64*64*2 ) begin

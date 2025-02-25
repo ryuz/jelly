@@ -1,0 +1,107 @@
+// ---------------------------------------------------------------------------
+//  Jelly  -- The platform for real-time computing
+//
+//                                 Copyright (C) 2008-2025 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/jelly.git
+// ---------------------------------------------------------------------------
+
+
+`timescale 1ns / 1ps
+`default_nettype none
+
+
+// Line buffer
+module jelly3_line_buffer
+        #(
+            parameter   int     N            = 3                                ,
+            parameter   int     USER_BITS    = 8                                ,
+            parameter   type    user_t       = logic    [USER_BITS-1:0]         ,
+            parameter   int     DATA_BITS    = 8                                ,
+            parameter   type    data_t       = logic    [DATA_BITS-1:0]         ,
+            parameter   int     BUF_SIZE     = 1024                             ,
+            parameter   bit     SDP          = BUF_SIZE > 64                    ,
+            parameter           RAM_TYPE     = SDP ? "block" : "distributed"    ,
+            parameter   bit     DOUT_REG     = SDP                              
+        )
+        (
+            input   var logic           reset   ,
+            input   var logic           clk     ,
+            input   var logic           cke     ,
+
+            input   var user_t          s_user  ,
+            input   var data_t          s_data  ,
+            input   var logic           s_last  ,
+            input   var logic           s_valid ,
+
+            output  var user_t  [N-1:0] m_user  ,
+            output  var data_t  [N-1:0] m_data  ,
+            output  var logic           m_first ,
+            output  var logic           m_last  ,
+            output  var logic   [N-1:0] m_valid 
+        );
+
+    if ( SDP ) begin : sdp
+        jelly3_line_buffer_sdp
+                #(
+                    .N          (N          ),
+                    .USER_BITS  (USER_BITS  ),
+                    .user_t     (user_t     ),
+                    .DATA_BITS  (DATA_BITS  ),
+                    .data_t     (data_t     ),
+                    .BUF_SIZE   (BUF_SIZE   ),
+                    .RAM_TYPE   (RAM_TYPE   ),
+                    .DOUT_REG   (DOUT_REG   )
+                )
+            u_line_buffer_sdp
+                (
+                    .reset      ,
+                    .clk        ,
+                    .cke        ,
+
+                    .s_user     ,
+                    .s_data     ,
+                    .s_last     ,
+                    .s_valid    ,
+                    
+                    .m_user     ,
+                    .m_data     ,
+                    .m_first    ,
+                    .m_last     ,
+                    .m_valid    
+                );
+    end
+    else begin : rf
+        jelly3_line_buffer_rf
+                #(
+                    .N          (N          ),
+                    .USER_BITS  (USER_BITS  ),
+                    .user_t     (user_t     ),
+                    .DATA_BITS  (DATA_BITS  ),
+                    .data_t     (data_t     ),
+                    .BUF_SIZE   (BUF_SIZE   ),
+                    .RAM_TYPE   (RAM_TYPE   ),
+                    .DOUT_REG   (DOUT_REG   )
+                )
+            u_line_buffer_rf
+                (
+                    .reset      ,
+                    .clk        ,
+                    .cke        ,
+
+                    .s_user     ,
+                    .s_data     ,
+                    .s_last     ,
+                    .s_valid    ,
+                    
+                    .m_user     ,
+                    .m_data     ,
+                    .m_first    ,
+                    .m_last     ,
+                    .m_valid    
+                );
+    end
+    
+endmodule
+
+
+// End of file
