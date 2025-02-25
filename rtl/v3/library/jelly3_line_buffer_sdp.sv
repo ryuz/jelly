@@ -31,13 +31,12 @@ module jelly3_line_buffer_sdp
             input   var data_t          s_data  ,
             input   var logic           s_last  ,
             input   var logic           s_valid ,
-            output  var logic           s_ready ,
 
             output  var user_t  [N-1:0] m_user  ,
             output  var data_t  [N-1:0] m_data  ,
+            output  var logic           m_first ,
             output  var logic           m_last  ,
-            output  var logic           m_valid ,
-            input   var logic           m_ready  
+            output  var logic   [N-1:0] m_valid 
         );
 
     if ( N == 1 ) begin : blk_bypass
@@ -45,14 +44,10 @@ module jelly3_line_buffer_sdp
         assign m_data[0] = s_data;
         assign m_last    = s_last;
         assign m_valid   = s_valid;
-        assign s_ready   = m_ready;
     end
     else begin : blk_line_buffer
 
         localparam  type    addr_t  = logic [$clog2(BUF_SIZE)-1:0];
-
-        logic   clken;
-        assign clken = cke && (!m_valid || m_ready);
 
         addr_t          wr_addr;
         data_t  [N-2:0] wr_data;
@@ -71,13 +66,13 @@ module jelly3_line_buffer_sdp
                 u_ram_simple_dualport
                     (
                         .wr_clk     (clk        ),
-                        .wr_en      (clken      ),
+                        .wr_en      (cke        ),
                         .wr_addr    (wr_addr    ),
                         .wr_din     (wr_data[i] ),
                 
                         .rd_clk     (clk        ),
-                        .rd_en      (clken      ),
-                        .rd_regcke  (clken      ),
+                        .rd_en      (cke        ),
+                        .rd_regcke  (cke        ),
                         .rd_addr    (rd_addr    ),
                         .rd_dout    (rd_data[i] )
                     );
@@ -111,7 +106,7 @@ module jelly3_line_buffer_sdp
             if ( reset ) begin
                 s_first   <= 1'b1;
             end
-            else if ( clken ) begin
+            else if ( cke ) begin
                 if ( s_valid ) begin
                     s_first <= s_last;
                 end
@@ -128,7 +123,7 @@ module jelly3_line_buffer_sdp
                 st0_last  <= 'x;
                 st0_valid <= 1'b0;
             end
-            else if ( clken ) begin
+            else if ( cke ) begin
                 // stage 0
                 st0_addr  <= st0_addr + st0_valid;
                 if ( s_valid && s_first ) begin
@@ -156,7 +151,7 @@ module jelly3_line_buffer_sdp
                     st1_last  <= 'x;
                     st1_valid <= 1'b0;
                 end
-                else if ( clken ) begin
+                else if ( cke ) begin
                     st1_addr  <= st0_addr   ;
                     st1_user  <= st0_user   ;
                     st1_data  <= st0_data   ;
@@ -185,7 +180,7 @@ module jelly3_line_buffer_sdp
                 st2_last  <= 'x;
                 st2_valid <= 1'b0;
             end
-            else if ( clken ) begin
+            else if ( cke ) begin
                 // stage 0
                 st2_addr  <= st1_addr ;
                 st2_user  <= st1_user ;
@@ -197,8 +192,8 @@ module jelly3_line_buffer_sdp
         end
 
         // user memory
-        user_t  mem_user    [0:N-1];
-        logic   mem_valid   [0:N-1];
+        user_t  [N-1:0]     mem_user    ;
+        logic   [N-1:0]     mem_valid   ;
         always_ff @(posedge clk) begin
             if ( reset ) begin
                 for ( int i = 0; i < N; i++ ) begin
@@ -206,7 +201,7 @@ module jelly3_line_buffer_sdp
                     mem_valid[i] <= '0;
                 end
             end
-            else if ( clken ) begin
+            else if ( cke ) begin
                 if ( st1_valid && st1_first ) begin
                     for ( int i = 0; i < N-1; i++ ) begin
                         mem_user [i] <= mem_user [i+1];
@@ -224,17 +219,16 @@ module jelly3_line_buffer_sdp
             assign wr_data[i] = m_data[i+1];
         end
 
-
         // output
         for ( genvar i = 0; i < N-1; i++ ) begin
             assign m_data[i] = rd_data[i];
         end
-        assign m_user[N-1] = st2_user       ;
         assign m_data[N-1] = st2_data       ;
+        assign m_user      = mem_user       ;
         assign m_last      = st2_last       ;
-        assign m_valid     = mem_valid[0]   ;
+        assign m_valid     = mem_valid      ;
     end
-    
+
     
 endmodule
 
