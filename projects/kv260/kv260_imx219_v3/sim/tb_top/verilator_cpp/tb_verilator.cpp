@@ -1,7 +1,7 @@
 #include <memory>
 #include <verilated.h>
 //#include <opencv2/opencv.hpp>
-#include "Vtb_verilator.h"
+#include "Vtb_main.h"
 #include "jelly/simulator/Manager.h"
 #include "jelly/simulator/ResetNode.h"
 #include "jelly/simulator/ClockNode.h"
@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     contextp->randReset(2);
     contextp->commandArgs(argc, argv);
     
-    const auto top = std::make_shared<Vtb_verilator>(contextp.get(), "top");
+    const auto top = std::make_shared<Vtb_main>(contextp.get(), "top");
 
 
     jsim::trace_ptr_t tfp = nullptr;

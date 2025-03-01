@@ -13,6 +13,7 @@ FLAGS += --assert
 FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
 FLAGS += -D__VERILATOR__ -D__SIMULATION__
 FLAGS += -I$(JELLY_TOP_DIR)/include
+FLAGS += -y ..
 FLAGS += -y ../../stub
 FLAGS += -y ../../../rtl
 FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
@@ -42,6 +43,7 @@ build:
 
 .PHONY : run
 run:
+	mkdir -p output
 	./obj_dir/V$(TOP_MODULE)
 
 .PHONY : coverage

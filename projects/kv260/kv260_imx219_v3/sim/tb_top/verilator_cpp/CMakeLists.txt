@@ -45,7 +45,7 @@ endif()
 
 
 set(RTL_SRCS
-    ./tb_verilator.sv
+    ../tb_main.sv
     ../../stub/design_1.v
     ../../stub/mipi_dphy_cam.v
     ../../stub/jelly2_mipi_csi2_rx.sv
