@@ -35,7 +35,7 @@ module tb_top();
     logic       clk250 = 1'b1;
     always #(RATE250/2.0) clk250 <= ~clk250;
 
-
+    /*
     // -----------------------------
     //  target
     // -----------------------------
@@ -95,8 +95,8 @@ module tb_top();
     localparam FILE_IMG_WIDTH  = 820;
     localparam FILE_IMG_HEIGHT = 616;
 
-    localparam SIM_IMG_WIDTH  = 640/2;//128;//256;
-    localparam SIM_IMG_HEIGHT = 480/2;//64; //256;
+    localparam sim_img_width  = 640/2;//128;//256;
+    localparam sim_img_height = 480/2;//64; //256;
 
 
     logic   axi4s_src_aresetn;
@@ -128,8 +128,8 @@ module tb_top();
             #(
                 .COMPONENTS         (1              ),
                 .DATA_BITS          (DATA_WIDTH     ),
-                .IMG_WIDTH          (SIM_IMG_WIDTH  ),
-                .IMG_HEIGHT         (SIM_IMG_HEIGHT ),
+                .IMG_WIDTH          (sim_img_width  ),
+                .IMG_HEIGHT         (sim_img_height ),
                 .H_BLANK            (64             ),
                 .V_BLANK            (32             ),
                 .FILE_NAME          (FILE_NAME      ),
@@ -173,8 +173,8 @@ module tb_top();
                 .aclk               (u_top.axi4s_csi2.aclk       ),
                 .aclken             (1'b1                        ), 
 
-                .param_width        (SIM_IMG_WIDTH  ),
-                .param_height       (SIM_IMG_HEIGHT ),
+                .param_width        (sim_img_width  ),
+                .param_height       (sim_img_height ),
                 .frame_num          (),
 
                 .s_axi4s_tuser      (u_top.axi4s_csi2.tuser         ),
@@ -206,8 +206,8 @@ module tb_top();
                 .aclk               (u_top.axi4s_wdma.aclk       ),
                 .aclken             (1'b1                       ), 
 
-                .param_width        (SIM_IMG_WIDTH  ),
-                .param_height       (SIM_IMG_HEIGHT ),
+                .param_width        (sim_img_width  ),
+                .param_height       (sim_img_height ),
                 .frame_num          (),
 
                 .s_axi4s_tuser      (u_top.axi4s_wdma.tuser         ),
@@ -216,10 +216,8 @@ module tb_top();
                 .s_axi4s_tvalid     (u_top.axi4s_wdma.tvalid & u_top.axi4s_wdma.tready),
                 .s_axi4s_tready     ()
             );
-    
-    // -----------------------------
-    //  Peripheral Bus
-    // -----------------------------
+    */
+
 
     logic   [0:0]   axi4l_peri_aresetn  ;
     logic           axi4l_peri_aclk     ;
@@ -235,6 +233,48 @@ module tb_top();
                 .aclk       (axi4l_peri_aclk        ),
                 .aclken     (1'b1                   )
             );
+
+    logic   [31:0]  sim_img_width   ;
+    logic   [31:0]  sim_img_height  ;
+
+    tb_main
+        u_tb_main
+            (
+                .reset                  (reset              ),
+                .clk100                 (clk100             ),
+                .clk200                 (clk200             ),
+                .clk250                 (clk250             ),
+                
+                .s_axi4l_peri_aresetn   (axi4l_peri.aresetn ),
+                .s_axi4l_peri_aclk      (axi4l_peri.aclk    ),
+                .s_axi4l_peri_awaddr    (axi4l_peri.awaddr  ),
+                .s_axi4l_peri_awprot    (axi4l_peri.awprot  ),
+                .s_axi4l_peri_awvalid   (axi4l_peri.awvalid ),
+                .s_axi4l_peri_awready   (axi4l_peri.awready ),
+                .s_axi4l_peri_wdata     (axi4l_peri.wdata   ),
+                .s_axi4l_peri_wstrb     (axi4l_peri.wstrb   ),
+                .s_axi4l_peri_wvalid    (axi4l_peri.wvalid  ),
+                .s_axi4l_peri_wready    (axi4l_peri.wready  ),
+                .s_axi4l_peri_bresp     (axi4l_peri.bresp   ),
+                .s_axi4l_peri_bvalid    (axi4l_peri.bvalid  ),
+                .s_axi4l_peri_bready    (axi4l_peri.bready  ),
+                .s_axi4l_peri_araddr    (axi4l_peri.araddr  ),
+                .s_axi4l_peri_arprot    (axi4l_peri.arprot  ),
+                .s_axi4l_peri_arvalid   (axi4l_peri.arvalid ),
+                .s_axi4l_peri_arready   (axi4l_peri.arready ),
+                .s_axi4l_peri_rdata     (axi4l_peri.rdata   ),
+                .s_axi4l_peri_rresp     (axi4l_peri.rresp   ),
+                .s_axi4l_peri_rvalid    (axi4l_peri.rvalid  ),
+                .s_axi4l_peri_rready    (axi4l_peri.rready  ),
+                .img_width              (sim_img_width      ),
+                .img_height             (sim_img_height     )
+            );
+
+
+    // -----------------------------
+    //  Peripheral Bus
+    // -----------------------------
+
 
     /*
     logic   [39:0]  axi4l_peri_araddr   ;
@@ -258,6 +298,7 @@ module tb_top();
     logic           axi4l_peri_wvalid   ;
     */
 
+    /*
     assign axi4l_peri_aresetn = u_top.u_design_1.axi4l_peri_aresetn ;
     assign axi4l_peri_aclk    = u_top.u_design_1.axi4l_peri_aclk    ;
 
@@ -281,7 +322,7 @@ module tb_top();
     always_comb force u_top.u_design_1.axi4l_peri_arprot  = axi4l_peri.arprot ;
     always_comb force u_top.u_design_1.axi4l_peri_arvalid = axi4l_peri.arvalid;
     always_comb force u_top.u_design_1.axi4l_peri_rready  = axi4l_peri.rready ;
-
+    */
 
 
     // -----------------------------
@@ -372,8 +413,8 @@ module tb_top();
 
         #(RATE100*100);
         $display("enable");
-        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_WIDTH     , SIM_IMG_WIDTH , 8'hff);
-        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_HEIGHT    , SIM_IMG_HEIGHT, 8'hff);
+        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_WIDTH     , sim_img_width , 8'hff);
+        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_HEIGHT    , sim_img_height, 8'hff);
 //      u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_TIMEOUT   , 1000          , 8'hff);
 //      u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT , 100000        , 8'hff);
         u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1             , 8'hff);
@@ -383,10 +424,10 @@ module tb_top();
         $display("set write DMA");
         u_axi4l.read_reg (ADR_WDMA, `REG_VDMA_WRITE_CORE_ID         , rdata);
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_ADDR      , 64'h0000a00                   , 8'hff);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_LINE_STEP , SIM_IMG_WIDTH*4               , 8'hff);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_H_SIZE    , SIM_IMG_WIDTH-1               , 8'hff);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_V_SIZE    , SIM_IMG_HEIGHT-1              , 8'hff);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_FRAME_STEP, SIM_IMG_HEIGHT*SIM_IMG_WIDTH*4, 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_LINE_STEP , sim_img_width*4               , 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_H_SIZE    , sim_img_width-1               , 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_V_SIZE    , sim_img_height-1              , 8'hff);
+        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_FRAME_STEP, sim_img_height*sim_img_width*4, 8'hff);
         u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_F_SIZE    , 1-1                           , 8'hff);
 
         /*
@@ -452,8 +493,8 @@ module tb_top();
                 
         #(RATE100*100);
         $display("enable");
-        u_axi4l.write(ADR_FMTR + ADR_PARAM_WIDTH       , SIM_IMG_WIDTH , 4'b1111);
-        u_axi4l.write(ADR_FMTR + ADR_PARAM_HEIGHT      , SIM_IMG_HEIGHT, 4'b1111);
+        u_axi4l.write(ADR_FMTR + ADR_PARAM_WIDTH       , sim_img_width , 4'b1111);
+        u_axi4l.write(ADR_FMTR + ADR_PARAM_HEIGHT      , sim_img_height, 4'b1111);
 //      u_axi4l.write(ADR_FMTR + ADR_PARAM_TIMEOUT     , 1000          , 4'b1111);
 //      u_axi4l.write(ADR_FMTR + ADR_CTL_FRM_TIMEOUT   , 100000        , 4'b1111);
         u_axi4l.write(ADR_FMTR + ADR_CTL_FRM_TIMER_EN  , 1             , 4'b1111);

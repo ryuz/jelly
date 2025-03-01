@@ -10,6 +10,7 @@ JELLY_TOP_DIR = ../../../../../..
 VLOGFLAGS  = -sv
 VLOGFLAGS += --sourcelibext .v
 VLOGFLAGS += --sourcelibext .sv
+VLOGFLAGS += --sourcelibdir ..
 VLOGFLAGS += --sourcelibdir ../../stub
 VLOGFLAGS += --sourcelibdir ../../../rtl
 VLOGFLAGS += $(addprefix --sourcelibdir ,$(SIM_LIB_DIRS))
