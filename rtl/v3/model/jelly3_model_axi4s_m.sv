@@ -13,33 +13,35 @@
 
 module jelly3_model_axi4s_m
         #(
-            parameter   int     COMPONENTS       = 3,
-            parameter   int     DATA_BITS        = 8,
-            parameter   int     IMG_WIDTH        = 640,
-            parameter   int     IMG_HEIGHT       = 480,
-            parameter   int     H_BLANK          = 0,
-            parameter   int     V_BLANK          = 0,
-            parameter   type    x_t              = logic [31:0],
-            parameter   type    y_t              = logic [31:0],
-            parameter   type    f_t              = logic [31:0],
-            parameter   string  FILE_NAME        = "",
-            parameter   string  FILE_EXT         = "",
-            parameter   int     FILE_IMG_WIDTH   = IMG_WIDTH,
-            parameter   int     FILE_IMG_HEIGHT  = IMG_HEIGHT,
-            parameter   bit     SEQUENTIAL_FILE  = 0,
-            parameter   int     BUSY_RATE        = 0,
-            parameter   int     RANDOM_SEED      = 0,
-            parameter   bit     ENDIAN           = 0
+            parameter   int     COMPONENTS       = 3                    ,
+            parameter   int     DATA_BITS        = 8                    ,
+            parameter   int     IMG_WIDTH        = 640                  ,
+            parameter   int     IMG_HEIGHT       = 480                  ,
+            parameter   int     H_BLANK          = 0                    ,
+            parameter   int     V_BLANK          = 0                    ,
+            parameter   int     X_BITS           = 32                   ,
+            parameter   type    x_t              = logic [X_BITS-1:0]   ,
+            parameter   int     Y_BITS           = 32                   ,
+            parameter   type    y_t              = logic [Y_BITS-1:0]   ,
+            parameter   int     F_BITS           = 32                   ,
+            parameter   type    f_t              = logic [F_BITS-1:0]   ,
+            parameter   string  FILE_NAME        = ""                   ,
+            parameter   string  FILE_EXT         = ""                   ,
+            parameter   int     FILE_IMG_WIDTH   = IMG_WIDTH            ,
+            parameter   int     FILE_IMG_HEIGHT  = IMG_HEIGHT           ,
+            parameter   bit     SEQUENTIAL_FILE  = 0                    ,
+            parameter   int     BUSY_RATE        = 0                    ,
+            parameter   int     RANDOM_SEED      = 0                    ,
+            parameter   bit     ENDIAN           = 0                    
         )
         (
-            input   var logic   aclken,
-            input   var logic   enable,
-            output  var logic   busy,
+            input   var logic   enable  ,
+            output  var logic   busy    ,
 
-            jelly3_axi4s_if.m   m_axi4s,
-            output  var x_t     out_x,
-            output  var y_t     out_y,
-            output  var f_t     out_f
+            jelly3_axi4s_if.m   m_axi4s ,
+            output  var x_t     out_x   ,
+            output  var y_t     out_y   ,
+            output  var f_t     out_f   
         );
     
 
@@ -137,7 +139,7 @@ module jelly3_model_axi4s_m
             y     <= 0;
             valid <= 1'b0;
         end
-        else if ( aclken ) begin
+        else if ( m_axi4s.aclken ) begin
             if ( !busy ) begin
                 if ( enable ) begin
                     if ( FILE_NAME != "" ) begin

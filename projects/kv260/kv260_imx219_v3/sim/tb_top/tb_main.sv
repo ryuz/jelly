@@ -144,7 +144,6 @@ module tb_main
             )
         u_model_axi4s_m
             (
-                .aclken             (1'b1           ),
                 .enable             (1'b1           ),
                 .busy               (               ),
 
@@ -220,8 +219,32 @@ module tb_main
                 .s_axi4s_tready     ()
             );
     
+    /*
+    jelly3_model_axi4s_s
+            #(
+                .COMPONENTS         (3                  ),
+                .DATA_BITS          (8                  ),
+                .INIT_FRAME_NUM     (0                  ),
+                .X_BITS             (32                 ),
+                .Y_BITS             (32                 ),
+                .F_BITS             (32                 ),
+                .FORMAT             ("P3"               ),
+                .FILE_NAME          ("output/wdma2_"    ),
+                .FILE_EXT           (".ppm"             ),
+                .SEQUENTIAL_FILE    (1                  ),
+                .ENDIAN             (1                  ), // BGR -> RGB
+                .BUSY_RATE          (0                  ),
+                .RANDOM_SEED        (0                  )
+            )
+        u_model_axi4s_s_wdma
+            (
+                .param_width        (SIM_IMG_WIDTH      ),
+                .param_height       (SIM_IMG_HEIGHT     ),
+                .frame_num          (),
 
-
+                .s_axi4s            (u_top.axi4s_wdma   )
+            );
+    */
 
     jelly2_img_slave_model
             #(
