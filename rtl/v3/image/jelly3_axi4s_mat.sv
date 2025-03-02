@@ -17,14 +17,12 @@ module jelly3_axi4s_mat
             parameter   int     ROWS_BITS   = 9                         ,
             parameter   int     COLS_BITS   = 10                        ,
             parameter   int     BLANK_BITS  = ROWS_BITS                 ,
-            parameter   type    rows_t      = logic [ROWS_BITS-1:0]    ,
-            parameter   type    cols_t      = logic [COLS_BITS-1:0]   ,
+            parameter   type    rows_t      = logic [ROWS_BITS-1:0]     ,
+            parameter   type    cols_t      = logic [COLS_BITS-1:0]     ,
             parameter   type    blank_t     = logic [BLANK_BITS-1:0]    ,
-            parameter   bit     CKE_BUFG    = 0            
+            parameter   bit     CKE_BUFG    = 0                         
         )
         (
-            input   var logic       cke             ,
-
             input   var rows_t      param_rows      ,
             input   var cols_t      param_cols      ,
             input   var blank_t     param_blank     ,
@@ -50,11 +48,11 @@ module jelly3_axi4s_mat
                 .WITH_VALID             (m_mat.USE_VALID    ),
                 .IMG_CKE_BUFG           (CKE_BUFG           )
             )
-        u_axi4s_img_simple  
+        u_axi4s_img_simple
             (
                 .aresetn                (s_axi4s.aresetn    ),
                 .aclk                   (s_axi4s.aclk       ),
-                .aclken                 (cke                ),
+                .aclken                 (s_axi4s.aclken     ),
 
                 .param_img_width        (param_cols         ),
                 .param_img_height       (param_rows         ),

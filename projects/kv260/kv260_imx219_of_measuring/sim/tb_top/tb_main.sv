@@ -90,7 +90,7 @@ module tb_main
                 .USER_BITS      (1),
                 .DATA_BITS      (10)
             )
-        i_axi4s_src
+        axi4s_src
             (
                 .aresetn        (axi4s_src_aresetn  ),
                 .aclk           (axi4s_src_aclk     ),
@@ -100,15 +100,15 @@ module tb_main
     assign axi4s_src_aresetn = u_top.u_mipi_csi2_rx.m_axi4s_aresetn;
     assign axi4s_src_aclk    = u_top.u_mipi_csi2_rx.m_axi4s_aclk;
     
-    always_comb force u_top.u_mipi_csi2_rx.axi4s_tuser  = i_axi4s_src.tuser ;
-    always_comb force u_top.u_mipi_csi2_rx.axi4s_tlast  = i_axi4s_src.tlast ;
-    always_comb force u_top.u_mipi_csi2_rx.axi4s_tdata  = i_axi4s_src.tdata ;
-    always_comb force u_top.u_mipi_csi2_rx.axi4s_tvalid = i_axi4s_src.tvalid;
-    assign i_axi4s_src.tready = u_top.u_mipi_csi2_rx.axi4s_tready;
+    always_comb force u_top.u_mipi_csi2_rx.axi4s_tuser  = axi4s_src.tuser ;
+    always_comb force u_top.u_mipi_csi2_rx.axi4s_tlast  = axi4s_src.tlast ;
+    always_comb force u_top.u_mipi_csi2_rx.axi4s_tdata  = axi4s_src.tdata ;
+    always_comb force u_top.u_mipi_csi2_rx.axi4s_tvalid = axi4s_src.tvalid;
+    assign axi4s_src.tready = u_top.u_mipi_csi2_rx.axi4s_tready;
 
 
     localparam DATA_WIDTH      = 10;
-    localparam FILE_NAME       = "../../data/20250215-180912/rec_";
+    localparam FILE_NAME       = "";//"../../data/20250215-180912/rec_";
     localparam FILE_EXT        = ".pgm";
     localparam SEQUENTIAL_FILE = 1;
     localparam FILE_IMG_WIDTH  = 640;
@@ -140,7 +140,7 @@ module tb_main
                 .enable             (1'b1           ),
                 .busy               (               ),
 
-                .m_axi4s            (i_axi4s_src.m  ),
+                .m_axi4s            (axi4s_src.m    ),
                 .out_x              (               ),
                 .out_y              (               ),
                 .out_f              (               )
@@ -267,7 +267,6 @@ module tb_main
     always_comb force u_top.u_design_1.axi4l_peri_arprot  = s_axi4l_peri_arprot ;
     always_comb force u_top.u_design_1.axi4l_peri_arvalid = s_axi4l_peri_arvalid;
     always_comb force u_top.u_design_1.axi4l_peri_rready  = s_axi4l_peri_rready ;
-
 
 endmodule
 

@@ -192,7 +192,7 @@ module kv260_imx219_of_measuring
 
     localparam DEC_GPIO  = 0;
     localparam DEC_FMTR  = 1;
-//  localparam DEC_RGB   = 2;
+//  localparam DEC_IMPRC = 2;
     localparam DEC_WDMA  = 2;
 
     localparam DEC_NUM   = 3;
@@ -210,10 +210,10 @@ module kv260_imx219_of_measuring
             );
     
     // address map
-    assign {axi4l_dec[DEC_GPIO].addr_base, axi4l_dec[DEC_GPIO].addr_high} = {40'ha000_0000, 40'ha000_ffff};
-    assign {axi4l_dec[DEC_FMTR].addr_base, axi4l_dec[DEC_FMTR].addr_high} = {40'ha010_0000, 40'ha010_ffff};
-//  assign {axi4l_dec[DEC_RGB ].addr_base, axi4l_dec[DEC_RGB ].addr_high} = {40'ha012_0000, 40'ha012_ffff};
-    assign {axi4l_dec[DEC_WDMA].addr_base, axi4l_dec[DEC_WDMA].addr_high} = {40'ha021_0000, 40'ha021_ffff};
+    assign {axi4l_dec[DEC_GPIO ].addr_base, axi4l_dec[DEC_GPIO ].addr_high} = {40'ha000_0000, 40'ha000_ffff};
+    assign {axi4l_dec[DEC_FMTR ].addr_base, axi4l_dec[DEC_FMTR ].addr_high} = {40'ha010_0000, 40'ha010_ffff};
+//  assign {axi4l_dec[DEC_IMPRC].addr_base, axi4l_dec[DEC_IMPRC].addr_high} = {40'ha012_0000, 40'ha012_ffff};
+    assign {axi4l_dec[DEC_WDMA ].addr_base, axi4l_dec[DEC_WDMA ].addr_high} = {40'ha021_0000, 40'ha021_ffff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -536,6 +536,42 @@ module kv260_imx219_of_measuring
             );
     
 
+    // image processing
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS  (16                     ),
+                .DEBUG      (DEBUG                  )
+            )
+        axi4s_proc
+            (
+                .aresetn    (axi4s_cam_aresetn      ),
+                .aclk       (axi4s_cam_aclk         ),
+                .aclken     (1'b1                   )
+            );
+
+    image_processing
+            #(
+                .TAPS           (1                  ),
+                .DATA_BITS      (10                 ),
+                .WIDTH_BITS     (WIDTH_BITS         ),
+                .HEIGHT_BITS    (HEIGHT_BITS        ),
+                .DEVICE         ("RTL"              )
+            )
+        u_image_processing
+            (
+                .in_update_req  (1'b1               ),
+                .param_width    (fmtr_param_width   ),
+                .param_height   (fmtr_param_height  ),
+                
+                .s_axi4s        (axi4s_fmtr.s       ),
+                .m_axi4s        (axi4s_proc.m       )
+
+//              .s_axi4l        (axi4l_dec[DEC_IMPRC])
+            );
+    
+    assign axi4s_proc.tready = 1'b1;
+
+    /*
     jelly3_axi4s_if
             #(
                 .DATA_BITS  (10*2                   ),
@@ -562,7 +598,28 @@ module kv260_imx219_of_measuring
                 .s_axi4s    (axi4s_fmtr             ),
                 .m_axi4s    (axi4s_buf              )
             );
+    */
 
+    /*
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS  (16                     ),
+                .DEBUG      (DEBUG                  )
+            )
+        axi4s_dmaw
+            (
+                .aresetn    (axi4s_cam_aresetn      ),
+                .aclk       (axi4s_cam_aclk         ),
+                .aclken     (1'b1                   )
+            );
+    
+    assign axi4s_dmaw.tuser  = axi4s_fmtr.tuser;
+    assign axi4s_dmaw.tlast  = axi4s_fmtr.tlast;
+    assign axi4s_dmaw.tdata  = 16'(axi4s_fmtr.tdata);
+    assign axi4s_dmaw.tvalid = axi4s_fmtr.tvalid;
+    assign axi4s_fmtr.tready = axi4s_dmaw.tready;
+    */
+    
     // DMA write
     jelly3_dma_video_write
             #(
@@ -605,7 +662,7 @@ module kv260_imx219_of_measuring
             (
                 .endian                 (1'b0                   ),
 
-                .s_axi4s                (axi4s_buf.s            ),
+                .s_axi4s                (axi4s_proc),//axi4s_dmaw.s           ),
                 .m_axi4                 (axi4_mem0.mw           ),
 
                 .s_axi4l                (axi4l_dec[DEC_WDMA].s  ),
