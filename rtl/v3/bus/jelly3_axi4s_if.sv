@@ -150,6 +150,7 @@ if ( USE_USER ) begin : blk_user
     ASSERT_TUSER_STABLE : assert property(prop_tuser_stable );
 end
 
+
 endinterface
 
 

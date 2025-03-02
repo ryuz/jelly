@@ -19,9 +19,9 @@ module tb_main
     localparam  int     DATA_BITS    = 16                           ;
     localparam  type    data_t       = logic    [DATA_BITS-1:0]     ;
     localparam  int     BUF_SIZE     = 1024                         ;
-    localparam  bit     SDP          = 1'b0                         ;
+    localparam  bit     SDP          = 1'b1                         ;
     localparam          RAM_TYPE     = "block"                      ;
-    localparam  bit     DOUT_REG     = 1'b0                         ;
+    localparam  bit     DOUT_REG     = 1'b1                         ;
 
     logic           cke     ;
     
@@ -94,7 +94,7 @@ module tb_main
             #(
                 .IMG_WIDTH      (64             ),
                 .IMG_HEIGHT     (64             ),
-                .BUSY_RATE      (0              ),
+                .BUSY_RATE      (10             ),
                 .RANDOM_SEED    (123            )
             )
         u_model_axi4s_m
@@ -109,7 +109,7 @@ module tb_main
             );
 
     always_ff @(posedge clk) begin
-        cke <= 1'b1;//1'($random);
+        cke <= 1'($random);
     end
 
     always_ff @(posedge clk) begin
@@ -147,6 +147,7 @@ module tb_main
         end
     end
 
+    
 
 endmodule
 

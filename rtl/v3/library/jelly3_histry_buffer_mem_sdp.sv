@@ -48,9 +48,10 @@ module jelly3_histry_buffer_mem_sdp
         assign m_valid = s_valid;
     end
     else begin : blk_line_buffer
+        localparam  int     ADDR_BITS = $clog2(BUF_SIZE)        ;
+        localparam  type    addr_t    = logic [ADDR_BITS-1:0]   ;
 
-        localparam  type    addr_t  = logic [$clog2(BUF_SIZE)-1:0];
-
+        logic           wr_en  ;
         addr_t          wr_addr;
         data_t  [N-2:0] wr_data;
         addr_t          rd_addr;
@@ -68,7 +69,7 @@ module jelly3_histry_buffer_mem_sdp
                 u_ram_simple_dualport
                     (
                         .wr_clk     (clk        ),
-                        .wr_en      (cke        ),
+                        .wr_en      (wr_en      ),
                         .wr_addr    (wr_addr    ),
                         .wr_din     (wr_data[i] ),
                 
@@ -113,7 +114,7 @@ module jelly3_histry_buffer_mem_sdp
             end
             else if ( cke ) begin
                 // stage 0
-                st0_addr  <= st0_addr + st0_valid;
+                st0_addr  <= st0_addr + addr_t'(st0_valid);
                 if ( s_valid && s_first ) begin
                     st0_addr <= '0  ;
                 end
@@ -202,6 +203,7 @@ module jelly3_histry_buffer_mem_sdp
         end
 
         // write memory
+        assign wr_en   = st2_valid;
         assign wr_addr = st2_addr;
         for ( genvar i = 0; i < N-1; i++ ) begin
             assign wr_data[i] = m_data[i+1];
@@ -211,10 +213,11 @@ module jelly3_histry_buffer_mem_sdp
         for ( genvar i = 0; i < N-1; i++ ) begin
             assign m_data[i] = rd_data[i];
         end
-        assign m_data[N-1] = st2_data       ;
-        assign m_user      = mem_user       ;
-        assign m_last      = st2_last       ;
-        assign m_valid     = mem_valid      ;
+        assign m_first     = st2_first                  ;
+        assign m_last      = st2_last                   ;
+        assign m_data[N-1] = st2_data                   ;
+        assign m_user      = mem_user                   ;
+        assign m_valid     = st2_valid ? mem_valid : '0 ;
     end
 
     
