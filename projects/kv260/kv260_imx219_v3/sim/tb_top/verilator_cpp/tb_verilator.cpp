@@ -120,6 +120,8 @@ int main(int argc, char** argv)
     axi4l->Wait(1000);
     
     axi4l->Display("White Balance");
+    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_PHASE  , bayer_phase, 0xff);
+
     // Black Level Correction
     axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET0,    66, 0xff); // R 
     axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET1,    66, 0xff); // G
@@ -131,9 +133,6 @@ int main(int argc, char** argv)
     axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096, 0xff); // G
     axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096, 0xff); // G
     axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428, 0xff); // B
-
-    // enable
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_PHASE  , bayer_phase, 0xff);
     axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_CTL_CONTROL  ,     3, 0xff);
 
 

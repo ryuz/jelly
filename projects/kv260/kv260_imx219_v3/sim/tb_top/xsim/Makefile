@@ -36,6 +36,7 @@ build:
 
 .PHONY: run
 run:
+	mkdir -p output
 	xsim $(TOP_MODULE) --R
 
 .PHONY: clean
@@ -53,6 +54,7 @@ clean:
 
 .PHONY: distclean
 distclean: clean
+	-rm -fr output
 	-rm -f *.pgm
 	-rm -f *.ppm
 	-rm -f $(TOP_MODULE).vcd

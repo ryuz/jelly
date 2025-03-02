@@ -12,7 +12,7 @@
 
 
 
-module jelly3_model_img_s
+module jelly3_model_img_dump
         #(
             parameter   int     INIT_FRAME_NUM  = 0                     ,
 //            parameter   int     X_BITS          = 32                    ,

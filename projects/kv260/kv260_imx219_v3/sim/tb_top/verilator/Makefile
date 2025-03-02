@@ -57,6 +57,7 @@ clean:
 
 .PHONY : distclean
 distclean: clean
+	rm -fr output
 	rm -f *.fst *.vcd
 	rm -f *.ppm *.pgm
 	rm -f axi*.txt

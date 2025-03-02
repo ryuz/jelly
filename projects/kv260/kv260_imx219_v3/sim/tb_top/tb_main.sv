@@ -220,7 +220,7 @@ module tb_main
             );
     
     /*
-    jelly3_model_axi4s_s
+    jelly3_model_axi4s_dump
             #(
                 .COMPONENTS         (3                  ),
                 .DATA_BITS          (8                  ),
@@ -232,20 +232,18 @@ module tb_main
                 .FILE_NAME          ("output/wdma2_"    ),
                 .FILE_EXT           (".ppm"             ),
                 .SEQUENTIAL_FILE    (1                  ),
-                .ENDIAN             (1                  ), // BGR -> RGB
-                .BUSY_RATE          (0                  ),
-                .RANDOM_SEED        (0                  )
+                .ENDIAN             (1                  )  // BGR -> RGB
             )
-        u_model_axi4s_s_wdma
+        u_model_axi4s_dump_wdma
             (
                 .param_width        (SIM_IMG_WIDTH      ),
                 .param_height       (SIM_IMG_HEIGHT     ),
                 .frame_num          (),
 
-                .s_axi4s            (u_top.axi4s_wdma   )
+                .mon_axi4s          (u_top.axi4s_wdma.mon)
             );
     */
-
+    
     jelly2_img_slave_model
             #(
                 .COMPONENTS         (1              ),

@@ -82,6 +82,23 @@ interface jelly3_axi4s_if
             output  tready  
         );
 
+    modport mon
+        (
+            input   aresetn ,
+            input   aclk    ,
+            input   aclken  ,
+    
+            input   tdata   ,
+            input   tstrb   ,
+            input   tkeep   ,
+            input   tlast   ,
+            input   tid     ,
+            input   tdest   ,
+            input   tuser   ,
+            input   tvalid  ,
+            input   tready  
+        );
+
 
 property prop_tvalid_stable; @(posedge aclk) disable iff ( ~aresetn ) (tvalid && !tready) |=> $stable(tvalid); endproperty
 ASSERT_TVALID_STABLE : assert property(prop_tvalid_stable );

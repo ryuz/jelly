@@ -149,10 +149,15 @@ module tb_top();
         u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_OFFSET1, axi4l_data_t'(         66), 8'hff);
         u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_OFFSET2, axi4l_data_t'(         66), 8'hff);
         u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_OFFSET3, axi4l_data_t'(         66), 8'hff);
-        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF3 , axi4l_data_t'(       4620), 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF0 , axi4l_data_t'(       4620), 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF1 , axi4l_data_t'(       4096), 8'hff);
         u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF2 , axi4l_data_t'(       4096), 8'hff);
-        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF1 , axi4l_data_t'(      10428), 8'hff);
-        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF0 , axi4l_data_t'(       4096), 8'hff);
+        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF3 , axi4l_data_t'(      10428), 8'hff);
+
+//        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF3 , axi4l_data_t'(       4620), 8'hff);
+//        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF2 , axi4l_data_t'(       4096), 8'hff);
+//        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF1 , axi4l_data_t'(      10428), 8'hff);
+//        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF0 , axi4l_data_t'(       4096), 8'hff);
     //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF0 , axi4l_data_t'(       4096), 8'hff);
     //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF1 , axi4l_data_t'(       4096), 8'hff);
     //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF2 , axi4l_data_t'(       4096), 8'hff);
