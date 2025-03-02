@@ -34,7 +34,7 @@ module tb_main
     logic           m_last  ;
     logic   [N-1:0] m_valid ;
 
-    jelly3_line_buffer
+    jelly3_histry_buffer_mem
         #(
                 .N              (N          ),
                 .USER_BITS      (USER_BITS  ),
@@ -46,7 +46,7 @@ module tb_main
                 .RAM_TYPE       (RAM_TYPE   ),
                 .DOUT_REG       (DOUT_REG   )
             )
-        u_line_buffer
+        u_histry_buffer_mem
             (
                 .reset   ,
                 .clk     ,
@@ -95,7 +95,6 @@ module tb_main
             )
         u_model_axi4s_m
             (
-                .aclken         (cke            ),
                 .enable         (1'b1           ),
                 .busy           (               ),
 

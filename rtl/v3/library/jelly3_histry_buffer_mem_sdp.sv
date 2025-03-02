@@ -10,8 +10,8 @@
 `default_nettype none
 
 
-// Line buffer with Simple Dualport-RAM
-module jelly3_line_buffer_sdp
+// Histry buffer with Simple Dualport-RAM
+module jelly3_histrjelly3_histry_buffer_mem_sdpy_buffer_mem_sdp
         #(
             parameter   int     N            = 3                            ,
             parameter   int     USER_BITS    = 8                            ,

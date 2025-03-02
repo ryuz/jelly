@@ -10,8 +10,8 @@
 `default_nettype none
 
 
-// Line buffer with Read-First RAM
-module jelly3_line_buffer_rf
+// Histry buffer with Read-First RAM
+module jelly3_histry_buffer_mem_rf
         #(
             parameter   int     N            = 3                            ,
             parameter   int     USER_BITS    = 8                            ,

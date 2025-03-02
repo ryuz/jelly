@@ -10,8 +10,8 @@
 `default_nettype none
 
 
-// Line buffer
-module jelly3_line_buffer
+// Histry buffer
+module jelly3_histry_buffer_mem
         #(
             parameter   int     N            = 3                                ,
             parameter   int     USER_BITS    = 8                                ,
@@ -41,7 +41,7 @@ module jelly3_line_buffer
         );
 
     if ( SDP ) begin : sdp
-        jelly3_line_buffer_sdp
+        jelly3_histry_buffer_mem_sdp
                 #(
                     .N          (N          ),
                     .USER_BITS  (USER_BITS  ),
@@ -52,7 +52,7 @@ module jelly3_line_buffer
                     .RAM_TYPE   (RAM_TYPE   ),
                     .DOUT_REG   (DOUT_REG   )
                 )
-            u_line_buffer_sdp
+            u_histry_buffer_mem_sdp
                 (
                     .reset      ,
                     .clk        ,
@@ -71,7 +71,7 @@ module jelly3_line_buffer
                 );
     end
     else begin : rf
-        jelly3_line_buffer_rf
+        jelly3_histry_buffer_mem_rf
                 #(
                     .N          (N          ),
                     .USER_BITS  (USER_BITS  ),
@@ -82,7 +82,7 @@ module jelly3_line_buffer
                     .RAM_TYPE   (RAM_TYPE   ),
                     .DOUT_REG   (DOUT_REG   )
                 )
-            u_line_buffer_rf
+            u_histry_buffer_mem_rf
                 (
                     .reset      ,
                     .clk        ,
