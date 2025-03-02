@@ -27,23 +27,25 @@ module jelly3_histrjelly3_histry_buffer_mem_sdpy_buffer_mem_sdp
             input   var logic           clk     ,
             input   var logic           cke     ,
 
+            input   var logic           s_first ,
+            input   var logic           s_last  ,
             input   var user_t          s_user  ,
             input   var data_t          s_data  ,
-            input   var logic           s_last  ,
             input   var logic           s_valid ,
 
-            output  var user_t  [N-1:0] m_user  ,
-            output  var data_t  [N-1:0] m_data  ,
             output  var logic           m_first ,
             output  var logic           m_last  ,
+            output  var user_t  [N-1:0] m_user  ,
+            output  var data_t  [N-1:0] m_data  ,
             output  var logic   [N-1:0] m_valid 
         );
 
     if ( N == 1 ) begin : blk_bypass
-        assign m_user[0] = s_user;
-        assign m_data[0] = s_data;
-        assign m_last    = s_last;
-        assign m_valid   = s_valid;
+        assign m_first = s_first;
+        assign m_last  = s_last ;
+        assign m_user  = s_user ;
+        assign m_data  = s_data ;
+        assign m_valid = s_valid;
     end
     else begin : blk_line_buffer
 
@@ -78,8 +80,6 @@ module jelly3_histrjelly3_histry_buffer_mem_sdpy_buffer_mem_sdp
                     );
         end
 
-        logic   s_first     ;
-
         addr_t  st0_addr    ;
         user_t  st0_user    ;
         data_t  st0_data    ;
@@ -100,18 +100,6 @@ module jelly3_histrjelly3_histry_buffer_mem_sdpy_buffer_mem_sdp
         logic   st2_first   ;
         logic   st2_last    ;
         logic   st2_valid   ;
-
-        // generate first flag
-        always_ff @(posedge clk) begin
-            if ( reset ) begin
-                s_first   <= 1'b1;
-            end
-            else if ( cke ) begin
-                if ( s_valid ) begin
-                    s_first <= s_last;
-                end
-            end
-        end
 
         // stage 0
         always_ff @(posedge clk) begin

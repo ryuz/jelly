@@ -24,14 +24,17 @@ module tb_main
     localparam  bit     DOUT_REG     = 1'b0                         ;
 
     logic           cke     ;
+    
+    logic           s_first ;
+    logic           s_last  ;
     user_t          s_user  ;
     data_t          s_data  ;
-    logic           s_last  ;
     logic           s_valid ;
-    user_t  [N-1:0] m_user  ;
-    data_t  [N-1:0] m_data  ;
+
     logic           m_first ;
     logic           m_last  ;
+    user_t  [N-1:0] m_user  ;
+    data_t  [N-1:0] m_data  ;
     logic   [N-1:0] m_valid ;
 
     jelly3_histry_buffer_mem
@@ -52,15 +55,16 @@ module tb_main
                 .clk     ,
                 .cke     ,
 
+                .s_first ,
+                .s_last  ,
                 .s_user  ,
                 .s_data  ,
-                .s_last  ,
                 .s_valid ,
                 
-                .m_user  ,
-                .m_data  ,
                 .m_first ,
                 .m_last  ,
+                .m_user  ,
+                .m_data  ,
                 .m_valid 
             );
     
@@ -105,7 +109,18 @@ module tb_main
             );
 
     always_ff @(posedge clk) begin
-        cke <= 1'($random);
+        cke <= 1'b1;//1'($random);
+    end
+
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            s_first <= 1'b1;
+        end
+        else if ( cke ) begin
+            if ( s_valid ) begin
+                s_first <= s_last;
+            end
+        end
     end
 
     assign s_user  = {axi4s_src.tuser, out_y[6:0]};

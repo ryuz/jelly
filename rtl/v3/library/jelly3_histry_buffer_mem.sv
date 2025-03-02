@@ -28,15 +28,16 @@ module jelly3_histry_buffer_mem
             input   var logic           clk     ,
             input   var logic           cke     ,
 
+            input   var logic           s_first ,
+            input   var logic           s_last  ,
             input   var user_t          s_user  ,
             input   var data_t          s_data  ,
-            input   var logic           s_last  ,
             input   var logic           s_valid ,
 
-            output  var user_t  [N-1:0] m_user  ,
-            output  var data_t  [N-1:0] m_data  ,
             output  var logic           m_first ,
             output  var logic           m_last  ,
+            output  var user_t  [N-1:0] m_user  ,
+            output  var data_t  [N-1:0] m_data  ,
             output  var logic   [N-1:0] m_valid 
         );
 
@@ -57,16 +58,17 @@ module jelly3_histry_buffer_mem
                     .reset      ,
                     .clk        ,
                     .cke        ,
-
+                    
+                    .s_first    ,
+                    .s_last     ,
                     .s_user     ,
                     .s_data     ,
-                    .s_last     ,
                     .s_valid    ,
                     
-                    .m_user     ,
-                    .m_data     ,
                     .m_first    ,
                     .m_last     ,
+                    .m_user     ,
+                    .m_data     ,
                     .m_valid    
                 );
     end
@@ -88,15 +90,16 @@ module jelly3_histry_buffer_mem
                     .clk        ,
                     .cke        ,
 
+                    .s_first    ,
+                    .s_last     ,
                     .s_user     ,
                     .s_data     ,
-                    .s_last     ,
                     .s_valid    ,
                     
-                    .m_user     ,
-                    .m_data     ,
                     .m_first    ,
                     .m_last     ,
+                    .m_user     ,
+                    .m_data     ,
                     .m_valid    
                 );
     end
