@@ -11,7 +11,7 @@
 
 
 // Histry buffer with Simple Dualport-RAM
-module jelly3_histrjelly3_histry_buffer_mem_sdpy_buffer_mem_sdp
+module jelly3_histry_buffer_mem_sdp
         #(
             parameter   int     N            = 3                            ,
             parameter   int     USER_BITS    = 8                            ,
