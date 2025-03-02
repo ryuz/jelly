@@ -14,26 +14,28 @@ module tb_main
     // -----------------------------
 
     localparam  int     N            = 3                            ;
-    localparam  int     USER_BITS    = 8                            ;
+    localparam  int     USER_BITS    = 1                            ;
     localparam  type    user_t       = logic    [USER_BITS-1:0]     ;
+    localparam  int     FLAG_BITS    = 8                            ;
+    localparam  type    flag_t       = logic    [FLAG_BITS-1:0]     ;
     localparam  int     DATA_BITS    = 16                           ;
     localparam  type    data_t       = logic    [DATA_BITS-1:0]     ;
     localparam  int     BUF_SIZE     = 1024                         ;
-    localparam  bit     SDP          = 1'b1                         ;
+    localparam  bit     SDP          = 1'b0                         ;
     localparam          RAM_TYPE     = "block"                      ;
     localparam  bit     DOUT_REG     = 1'b1                         ;
 
     logic           cke     ;
     
     logic           s_first ;
-    logic           s_last  ;
     user_t          s_user  ;
+    flag_t          s_flag  ;
     data_t          s_data  ;
     logic           s_valid ;
 
     logic           m_first ;
-    logic           m_last  ;
-    user_t  [N-1:0] m_user  ;
+    user_t          m_user  ;
+    flag_t  [N-1:0] m_flag  ;
     data_t  [N-1:0] m_data  ;
     logic   [N-1:0] m_valid ;
 
@@ -42,6 +44,8 @@ module tb_main
                 .N              (N          ),
                 .USER_BITS      (USER_BITS  ),
                 .user_t         (user_t     ),
+                .FLAG_BITS      (FLAG_BITS  ),
+                .flag_t         (flag_t     ),
                 .DATA_BITS      (DATA_BITS  ),
                 .data_t         (data_t     ),
                 .BUF_SIZE       (BUF_SIZE   ),
@@ -56,14 +60,14 @@ module tb_main
                 .cke     ,
 
                 .s_first ,
-                .s_last  ,
                 .s_user  ,
+                .s_flag  ,
                 .s_data  ,
                 .s_valid ,
                 
                 .m_first ,
-                .m_last  ,
                 .m_user  ,
+                .m_flag  ,
                 .m_data  ,
                 .m_valid 
             );
@@ -118,14 +122,14 @@ module tb_main
         end
         else if ( cke ) begin
             if ( s_valid ) begin
-                s_first <= s_last;
+                s_first <= axi4s_src.tlast;
             end
         end
     end
 
-    assign s_user  = {axi4s_src.tuser, out_y[6:0]};
+    assign s_user  = axi4s_src.tlast    ;
+    assign s_flag  = {axi4s_src.tuser, out_y[6:0]};
     assign s_data  = axi4s_src.tdata    ;
-    assign s_last  = axi4s_src.tlast    ;
     assign s_valid = axi4s_src.tvalid   ;
     
     assign axi4s_src.tready = 1'b1;
@@ -138,7 +142,7 @@ module tb_main
     int count = 0;
     always_ff @(posedge clk) begin
         if ( !reset && cke && |m_valid ) begin
-            $fwrite(fp, "%b_%3b_%02h_%02h_%02h__%04h_%04h_%04h\n", m_last, m_valid, m_user[2], m_user[1], m_user[0], m_data[2], m_data[1], m_data[0]);
+            $fwrite(fp, "%b_%3b_%02h_%02h_%02h__%04h_%04h_%04h\n", m_user, m_valid, m_flag[2], m_flag[1], m_flag[0], m_data[2], m_data[1], m_data[0]);
             count++;
             if ( count >= 64*64*2 ) begin
                 $fclose(fp);
@@ -147,7 +151,7 @@ module tb_main
         end
     end
 
-    
+
 
 endmodule
 

@@ -16,6 +16,8 @@ module jelly3_histry_buffer_mem_sdp
             parameter   int     N            = 3                            ,
             parameter   int     USER_BITS    = 8                            ,
             parameter   type    user_t       = logic    [USER_BITS-1:0]     ,
+            parameter   int     FLAG_BITS    = 1                            ,
+            parameter   type    flag_t       = logic    [FLAG_BITS-1:0]     ,
             parameter   int     DATA_BITS    = 8                            ,
             parameter   type    data_t       = logic    [DATA_BITS-1:0]     ,
             parameter   int     BUF_SIZE     = 1024                         ,
@@ -28,22 +30,22 @@ module jelly3_histry_buffer_mem_sdp
             input   var logic           cke     ,
 
             input   var logic           s_first ,
-            input   var logic           s_last  ,
             input   var user_t          s_user  ,
+            input   var flag_t          s_flag  ,
             input   var data_t          s_data  ,
             input   var logic           s_valid ,
 
             output  var logic           m_first ,
-            output  var logic           m_last  ,
-            output  var user_t  [N-1:0] m_user  ,
+            output  var user_t          m_user  ,
+            output  var flag_t  [N-1:0] m_flag  ,
             output  var data_t  [N-1:0] m_data  ,
             output  var logic   [N-1:0] m_valid 
         );
 
     if ( N == 1 ) begin : blk_bypass
         assign m_first = s_first;
-        assign m_last  = s_last ;
         assign m_user  = s_user ;
+        assign m_flag  = s_flag ;
         assign m_data  = s_data ;
         assign m_valid = s_valid;
     end
@@ -82,34 +84,34 @@ module jelly3_histry_buffer_mem_sdp
         end
 
         addr_t  st0_addr    ;
-        user_t  st0_user    ;
-        data_t  st0_data    ;
         logic   st0_first   ;
-        logic   st0_last    ;
+        user_t  st0_user    ;
+        flag_t  st0_flag    ;
+        data_t  st0_data    ;
         logic   st0_valid   ;
 
         addr_t  st1_addr    ;
-        user_t  st1_user    ;
-        data_t  st1_data    ;
         logic   st1_first   ;
-        logic   st1_last    ;
+        user_t  st1_user    ;
+        flag_t  st1_flag    ;
+        data_t  st1_data    ;
         logic   st1_valid   ;
 
         addr_t  st2_addr    ;
-        user_t  st2_user    ;
-        data_t  st2_data    ;
         logic   st2_first   ;
-        logic   st2_last    ;
+        user_t  st2_user    ;
+        flag_t  st2_flag    ;
+        data_t  st2_data    ;
         logic   st2_valid   ;
 
         // stage 0
         always_ff @(posedge clk) begin
             if ( reset ) begin
                 st0_addr  <= 'x;
-                st0_user  <= 'x;
-                st0_data  <= 'x;
                 st0_first <= 'x;
-                st0_last  <= 'x;
+                st0_user  <= 'x;
+                st0_flag  <= 'x;
+                st0_data  <= 'x;
                 st0_valid <= 1'b0;
             end
             else if ( cke ) begin
@@ -118,10 +120,10 @@ module jelly3_histry_buffer_mem_sdp
                 if ( s_valid && s_first ) begin
                     st0_addr <= '0  ;
                 end
-                st0_user  <= s_user ;
-                st0_data  <= s_data ;
                 st0_first <= s_first;
-                st0_last  <= s_last ;
+                st0_user  <= s_user ;
+                st0_flag  <= s_flag ;
+                st0_data  <= s_data ;
                 st0_valid <= s_valid;
             end
         end
@@ -134,28 +136,28 @@ module jelly3_histry_buffer_mem_sdp
             always_ff @(posedge clk) begin
                 if ( reset ) begin
                     st1_addr  <= 'x;
-                    st1_user  <= 'x;
-                    st1_data  <= 'x;
                     st1_first <= 'x;
-                    st1_last  <= 'x;
+                    st1_user  <= 'x;
+                    st1_flag  <= 'x;
+                    st1_data  <= 'x;
                     st1_valid <= 1'b0;
                 end
                 else if ( cke ) begin
                     st1_addr  <= st0_addr   ;
-                    st1_user  <= st0_user   ;
-                    st1_data  <= st0_data   ;
                     st1_first <= st0_first  ;
-                    st1_last  <= st0_last   ;
+                    st1_user  <= st0_user   ;
+                    st1_flag  <= st0_flag   ;
+                    st1_data  <= st0_data   ;
                     st1_valid <= st0_valid  ;
                 end
             end
         end
         else begin : blk_stage1
             assign st1_addr  = st0_addr   ;
-            assign st1_user  = st0_user   ;
-            assign st1_data  = st0_data   ;
             assign st1_first = st0_first  ;
-            assign st1_last  = st0_last   ;
+            assign st1_user  = st0_user   ;
+            assign st1_flag  = st0_flag   ;
+            assign st1_data  = st0_data   ;
             assign st1_valid = st0_valid  ;
         end
 
@@ -163,41 +165,41 @@ module jelly3_histry_buffer_mem_sdp
         always_ff @(posedge clk) begin
             if ( reset ) begin
                 st2_addr  <= 'x;
-                st2_user  <= 'x;
-                st2_data  <= 'x;
                 st2_first <= 'x;
-                st2_last  <= 'x;
+                st2_user  <= 'x;
+                st2_flag  <= 'x;
+                st2_data  <= 'x;
                 st2_valid <= 1'b0;
             end
             else if ( cke ) begin
                 // stage 0
                 st2_addr  <= st1_addr ;
-                st2_user  <= st1_user ;
-                st2_data  <= st1_data ;
                 st2_first <= st1_first;
-                st2_last  <= st1_last ;
+                st2_user  <= st1_user ;
+                st2_flag  <= st1_flag ;
+                st2_data  <= st1_data ;
                 st2_valid <= st1_valid;
             end
         end
 
-        // user memory
-        user_t  [N-1:0]     mem_user    ;
-        logic   [N-1:0]     mem_valid   ;
+        // flag & valid history
+        flag_t  [N-1:0]     hist_flag    ;
+        logic   [N-1:0]     hist_valid   ;
         always_ff @(posedge clk) begin
             if ( reset ) begin
                 for ( int i = 0; i < N; i++ ) begin
-                    mem_user [i] <= 'x;
-                    mem_valid[i] <= '0;
+                    hist_flag [i] <= 'x;
+                    hist_valid[i] <= '0;
                 end
             end
             else if ( cke ) begin
                 if ( st1_valid && st1_first ) begin
                     for ( int i = 0; i < N-1; i++ ) begin
-                        mem_user [i] <= mem_user [i+1];
-                        mem_valid[i] <= mem_valid[i+1];
+                        hist_flag [i] <= hist_flag [i+1];
+                        hist_valid[i] <= hist_valid[i+1];
                     end
-                    mem_user [N-1] <= st1_user  ;
-                    mem_valid[N-1] <= st1_valid ;
+                    hist_flag [N-1] <= st1_flag  ;
+                    hist_valid[N-1] <= st1_valid ;
                 end
             end
         end
@@ -210,14 +212,14 @@ module jelly3_histry_buffer_mem_sdp
         end
 
         // output
+        assign m_first     = st2_first                  ;
+        assign m_user      = st2_user                   ;
+        assign m_flag      = hist_flag                  ;
         for ( genvar i = 0; i < N-1; i++ ) begin
             assign m_data[i] = rd_data[i];
         end
-        assign m_first     = st2_first                  ;
-        assign m_last      = st2_last                   ;
         assign m_data[N-1] = st2_data                   ;
-        assign m_user      = mem_user                   ;
-        assign m_valid     = st2_valid ? mem_valid : '0 ;
+        assign m_valid     = st2_valid ? hist_valid : '0;
     end
 
     
