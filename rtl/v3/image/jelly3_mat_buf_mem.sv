@@ -58,14 +58,16 @@ module jelly3_mat_buf_mem
         rows_t  cols        ;
         cols_t  rows        ;
         de_t    de          ;
+        logic   row_first   ;
+        logic   row_last    ;
         logic   col_first   ;
         logic   col_last    ;
     } hist_user_t;
 
-    typedef struct packed {
-        logic   row_first   ;
-        logic   row_last    ;
-    } hist_flag_t;
+//    typedef struct packed {
+//        logic   row_first   ;
+//        logic   row_last    ;
+//    } hist_flag_t;
 
     typedef struct packed {
         user_t              user        ;
@@ -74,13 +76,13 @@ module jelly3_mat_buf_mem
 
     logic                   hist_s_first ;
     hist_user_t             hist_s_user  ;
-    hist_flag_t             hist_s_flag  ;
+//  hist_flag_t             hist_s_flag  ;
     hist_data_t             hist_s_data  ;
     logic                   hist_s_valid ;
 
     logic                   hist_m_first ;
     hist_user_t             hist_m_user  ;
-    hist_flag_t [N-1:0]     hist_m_flag  ;
+//  hist_flag_t [N-1:0]     hist_m_flag  ;
     hist_data_t [N-1:0]     hist_m_data  ;
     logic       [N-1:0]     hist_m_valid ;
 
@@ -88,7 +90,7 @@ module jelly3_mat_buf_mem
             #(
                 .N              (N                  ),
                 .user_t         (hist_user_t        ),
-                .flag_t         (hist_flag_t        ),
+//              .flag_t         (1                  ),
                 .data_t         (hist_data_t        ),
                 .BUF_SIZE       (BUF_SIZE           ),
                 .SDP            (SDP                ),
@@ -103,13 +105,13 @@ module jelly3_mat_buf_mem
 
                 .s_first        (hist_s_first       ),
                 .s_user         (hist_s_user        ),
-                .s_flag         (hist_s_flag        ),
+                .s_flag         ('x                 ),
                 .s_data         (hist_s_data        ),
                 .s_valid        (hist_s_valid       ),
 
                 .m_first        (hist_m_first       ),
                 .m_user         (hist_m_user        ),
-                .m_flag         (hist_m_flag        ),
+                .m_flag         (                   ),
                 .m_data         (hist_m_data        ),
                 .m_valid        (hist_m_valid       )
             );
@@ -120,8 +122,8 @@ module jelly3_mat_buf_mem
     assign hist_s_user.de        = s_mat.de         ;
     assign hist_s_user.col_first = s_mat.col_first  ;
     assign hist_s_user.col_last  = s_mat.col_last   ;
-    assign hist_s_flag.row_first = s_mat.row_first  ;
-    assign hist_s_flag.row_last  = s_mat.row_last   ;
+    assign hist_s_user.row_first = s_mat.row_first  ;
+    assign hist_s_user.row_last  = s_mat.row_last   ;
     assign hist_s_data.user      = s_mat.user;
     assign hist_s_data.data      = s_mat.data;
     assign hist_s_valid          = s_mat.valid && |s_mat.de;
@@ -135,8 +137,8 @@ module jelly3_mat_buf_mem
 
     assign m_mat.rows      = hist_m_user.rows           ;
     assign m_mat.cols      = hist_m_user.cols           ;
-    assign m_mat.row_first = hist_m_flag[C].row_first   ;
-    assign m_mat.row_last  = hist_m_flag[C].row_last    ;
+    assign m_mat.row_first = hist_m_user.row_first      ;
+    assign m_mat.row_last  = hist_m_user.row_last       ;
     assign m_mat.col_first = hist_m_user.col_first      ;
     assign m_mat.col_last  = hist_m_user.col_last       ;
     assign m_mat.de        = m_de_t'(hist_m_user.de)    ;
