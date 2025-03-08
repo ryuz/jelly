@@ -55,19 +55,14 @@ module jelly3_mat_buf_mem
 
 
     typedef struct packed {
-        rows_t  cols        ;
-        cols_t  rows        ;
+        rows_t  rows        ;
+        cols_t  cols        ;
         de_t    de          ;
         logic   row_first   ;
         logic   row_last    ;
         logic   col_first   ;
         logic   col_last    ;
     } hist_user_t;
-
-//    typedef struct packed {
-//        logic   row_first   ;
-//        logic   row_last    ;
-//    } hist_flag_t;
 
     typedef struct packed {
         user_t              user        ;
@@ -76,13 +71,11 @@ module jelly3_mat_buf_mem
 
     logic                   hist_s_first ;
     hist_user_t             hist_s_user  ;
-//  hist_flag_t             hist_s_flag  ;
     hist_data_t             hist_s_data  ;
     logic                   hist_s_valid ;
 
     logic                   hist_m_first ;
     hist_user_t             hist_m_user  ;
-//  hist_flag_t [N-1:0]     hist_m_flag  ;
     hist_data_t [N-1:0]     hist_m_data  ;
     logic       [N-1:0]     hist_m_valid ;
 
@@ -90,7 +83,6 @@ module jelly3_mat_buf_mem
             #(
                 .N              (N                  ),
                 .user_t         (hist_user_t        ),
-//              .flag_t         (1                  ),
                 .data_t         (hist_data_t        ),
                 .BUF_SIZE       (BUF_SIZE           ),
                 .SDP            (SDP                ),

@@ -119,6 +119,9 @@ module tb_main
     assign img_height = SIM_IMG_HEIGHT;
 
     // master
+    logic  [31:0]  out_x;
+    logic  [31:0]  out_y;
+    logic  [31:0]  out_f;
     jelly3_model_axi4s_m
             #(
                 .COMPONENTS         (1              ),
@@ -141,10 +144,12 @@ module tb_main
                 .busy               (               ),
 
                 .m_axi4s            (axi4s_src.m    ),
-                .out_x              (               ),
-                .out_y              (               ),
-                .out_f              (               )
+                .out_x              (out_x          ),
+                .out_y              (out_y          ),
+                .out_f              (out_f          )
             );
+    
+    always_comb force axi4s_src.tdata = out_f;
 
     jelly2_axi4s_slave_model
             #(

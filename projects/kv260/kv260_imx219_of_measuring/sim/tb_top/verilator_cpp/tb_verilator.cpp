@@ -84,9 +84,10 @@ int main(int argc, char** argv)
 
     const std::uint64_t reg_gpio   = 0xa0000000;
     const std::uint64_t reg_fmtr   = 0xa0100000;
-    const std::uint64_t reg_wb     = 0xa0121000;
-    const std::uint64_t reg_demos  = 0xa0122000;
-    const std::uint64_t reg_colmat = 0xa0124000;
+//    const std::uint64_t reg_wb     = 0xa0121000;
+//    const std::uint64_t reg_demos  = 0xa0122000;
+//    const std::uint64_t reg_colmat = 0xa0124000;
+    const std::uint64_t reg_imgsel = 0xa012f000;
     const std::uint64_t reg_wdma   = 0xa0210000;
         
     axi4l->Wait(1000);
@@ -119,6 +120,7 @@ int main(int argc, char** argv)
 
     axi4l->Wait(1000);
     
+    /*
     axi4l->Display("White Balance");
     axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_PHASE  , bayer_phase, 0xff);
 
@@ -139,7 +141,10 @@ int main(int argc, char** argv)
     axi4l->Display("demos");
     axi4l->ExecWrite(reg_demos + bw * REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase, 0xff);
     axi4l->ExecWrite(reg_demos + bw * REG_IMG_DEMOSAIC_CTL_CONTROL, 3, 0xff);
-    
+    */
+
+    axi4l->Display("imgsel");
+    axi4l->ExecWrite(reg_imgsel + bw * REG_IMG_SELECTOR_CTL_SELECT, 1, 0xff);
 
     axi4l->Wait(1000);
     axi4l->Display("enable");

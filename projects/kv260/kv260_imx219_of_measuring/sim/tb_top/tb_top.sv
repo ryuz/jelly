@@ -105,9 +105,10 @@ module tb_top();
     localparam  axi4l_addr_t    ADR_GPIO   = axi4l_addr_t'(40'ha000_0000);
     localparam  axi4l_addr_t    ADR_FMTR   = axi4l_addr_t'(40'ha010_0000);
     localparam  axi4l_addr_t    ADR_WDMA   = axi4l_addr_t'(40'ha021_0000);
-    localparam  axi4l_addr_t    ADR_WB     = axi4l_addr_t'(40'ha012_1000);
-    localparam  axi4l_addr_t    ADR_DEMOS  = axi4l_addr_t'(40'ha012_2000);
-    localparam  axi4l_addr_t    ADR_COLMAT = axi4l_addr_t'(40'ha012_4000);
+//    localparam  axi4l_addr_t    ADR_WB     = axi4l_addr_t'(40'ha012_1000);
+//    localparam  axi4l_addr_t    ADR_DEMOS  = axi4l_addr_t'(40'ha012_2000);
+//    localparam  axi4l_addr_t    ADR_COLMAT = axi4l_addr_t'(40'ha012_4000);
+    localparam  axi4l_addr_t    ADR_IMGSEL = axi4l_addr_t'(40'ha012_f000);
 
     jelly3_axi4l_accessor
             #(
@@ -143,6 +144,7 @@ module tb_top();
         u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_FILL,       rdata);
         u_axi4l.read_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_TIMEOUT,    rdata);
 
+        /*
         $display("BlackLevel");
         u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_PHASE  , axi4l_data_t'(bayer_phase), 8'hff);
         u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_OFFSET0, axi4l_data_t'(         66), 8'hff);
@@ -153,6 +155,7 @@ module tb_top();
         u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF1 , axi4l_data_t'(       4096), 8'hff);
         u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF2 , axi4l_data_t'(       4096), 8'hff);
         u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF3 , axi4l_data_t'(      10428), 8'hff);
+        */
 
 //        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF3 , axi4l_data_t'(       4620), 8'hff);
 //        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF2 , axi4l_data_t'(       4096), 8'hff);
@@ -162,11 +165,14 @@ module tb_top();
     //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF1 , axi4l_data_t'(       4096), 8'hff);
     //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF2 , axi4l_data_t'(       4096), 8'hff);
     //  u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_PARAM_COEFF3 , axi4l_data_t'(       4096), 8'hff);
-        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_CTL_CONTROL  , axi4l_data_t'(          3), 8'hff);
+//        u_axi4l.write_reg(ADR_WB, `REG_IMG_BAYER_WB_CTL_CONTROL  , axi4l_data_t'(          3), 8'hff);
 
-        $display("demos");
-        u_axi4l.write_reg(ADR_DEMOS, `REG_IMG_DEMOSAIC_PARAM_PHASE, axi4l_data_t'(bayer_phase), 8'hff);
-        u_axi4l.write_reg(ADR_DEMOS, `REG_IMG_DEMOSAIC_CTL_CONTROL, axi4l_data_t'(          3), 8'hff);
+//        $display("demos");
+//        u_axi4l.write_reg(ADR_DEMOS, `REG_IMG_DEMOSAIC_PARAM_PHASE, axi4l_data_t'(bayer_phase), 8'hff);
+//        u_axi4l.write_reg(ADR_DEMOS, `REG_IMG_DEMOSAIC_CTL_CONTROL, axi4l_data_t'(          3), 8'hff);
+
+        $display("imgsel");
+        u_axi4l.write_reg(ADR_IMGSEL, `REG_IMG_SELECTOR_CTL_SELECT, axi4l_data_t'(1), 8'hff);
 
 
         #(RATE100*100);
