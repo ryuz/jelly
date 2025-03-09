@@ -69,7 +69,7 @@ module jelly3_img_bayer_lk
 
 
     // ------------------------------------------------
-    //  Sobel Filter
+    //  Sobel Filter and LK-Calculation
     // ------------------------------------------------
 
     rows_t                          img_blk_rows        ;
@@ -126,18 +126,10 @@ module jelly3_img_bayer_lk
             );
     
 
-    rows_t                  img_sobel_rows      ;
-    cols_t                  img_sobel_cols      ;
-    logic                   img_sobel_row_first ;
-    logic                   img_sobel_row_last  ;
-    logic                   img_sobel_col_first ;
-    logic                   img_sobel_col_last  ;
-    user_t                  img_sobel_user      ;
-    de_t                    img_sobel_de        ;
     raw_t   [TAPS-1:0][1:0] img_sobel_raw       ;
-    calc_t  [TAPS-1:0]      img_sobel_diff      ;
-    calc_t  [TAPS-1:0]      img_sobel_gradx     ;
-    calc_t  [TAPS-1:0]      img_sobel_grady     ;
+    sobel_t [TAPS-1:0]      img_sobel_diff      ;
+    sobel_t [TAPS-1:0]      img_sobel_gradx     ;
+    sobel_t [TAPS-1:0]      img_sobel_grady     ;
     logic                   img_sobel_valid     ;
 
     for ( genvar i = 0; i < TAPS; i++ ) begin : loop_sobel
@@ -145,8 +137,8 @@ module jelly3_img_bayer_lk
                 #(
                     .RAW_BITS           (RAW_BITS           ),
                     .raw_t              (raw_t              ),
-                    .CALC_BITS          ($bits(sobel_t)     ),
-                    .calc_t             (calc_t             )
+                    .SOBEL_BITS         ($bits(sobel_t)     ),
+                    .sobel_t            (sobel_t            )
                 )
             u_img_bayer_lk_sobel
                 (
@@ -162,14 +154,59 @@ module jelly3_img_bayer_lk
                     .out_grady          (img_sobel_grady[i] )
                 );
     end
-    
+
+    raw_t   [TAPS-1:0][1:0] img_calc_raw        ;
+    calc_t  [TAPS-1:0]      img_calc_gx2        ;
+    calc_t  [TAPS-1:0]      img_calc_gy2        ;
+    calc_t  [TAPS-1:0]      img_calc_gxy        ;
+    calc_t  [TAPS-1:0]      img_calc_ex         ;
+    calc_t  [TAPS-1:0]      img_calc_ey         ;
+
+    for ( genvar i = 0; i < TAPS; i++ ) begin : loop_calc
+        jelly3_img_bayer_lk_calc
+                #(
+                    .RAW_BITS   (RAW_BITS           ),
+                    .raw_t      (raw_t              ),
+                    .SOBEL_BITS (SOBEL_BITS         ),
+                    .sobel_t    (sobel_t            ),
+                    .CALC_BITS  (CALC_BITS          ),
+                    .calc_t     (calc_t             )
+                )
+            u_img_bayer_lk_calc
+                (
+                    .reset      (reset              ),
+                    .clk        (clk                ),
+                    .cke        (cke                ),
+
+                    .in_raw     (img_sobel_raw  [i] ),
+                    .in_diff    (img_sobel_diff [i] ),
+                    .in_gradx   (img_sobel_gradx[i] ),
+                    .in_grady   (img_sobel_grady[i] ),
+
+                    .out_raw    (img_calc_raw   [i] ),
+                    .out_gx2    (img_calc_gx2   [i] ),
+                    .out_gy2    (img_calc_gy2   [i] ),
+                    .out_gxy    (img_calc_gxy   [i] ),
+                    .out_ex     (img_calc_ex    [i] ),
+                    .out_ey     (img_calc_ey    [i] ),
+                );
+
+    rows_t                  img_calc_rows       ;
+    cols_t                  img_calc_cols       ;
+    logic                   img_calc_row_first  ;
+    logic                   img_calc_row_last   ;
+    logic                   img_calc_col_first  ;
+    logic                   img_calc_col_last   ;
+    user_t                  img_calc_user       ;
+    de_t                    img_calc_de         ;
+
     jelly3_mat_delay
             #(
                 .ROWS_BITS          (ROWS_BITS          ),
                 .COLS_BITS          (COLS_BITS          ),
                 .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
-                .LATENCY            (7                  ),
+                .LATENCY            (4 + 2              ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
             )
         u_img_delay
@@ -188,23 +225,22 @@ module jelly3_img_bayer_lk
                 .s_mat_user         (img_blk_user       ),
                 .s_mat_valid        (img_blk_valid      ),
                 
-                .m_mat_rows         (img_sobel_rows     ),
-                .m_mat_cols         (img_sobel_cols     ),
-                .m_mat_row_first    (img_sobel_row_first),
-                .m_mat_row_last     (img_sobel_row_last ),
-                .m_mat_col_first    (img_sobel_col_first),
-                .m_mat_col_last     (img_sobel_col_last ),
-                .m_mat_de           (img_sobel_de       ),
-                .m_mat_user         (img_sobel_user     ),
-                .m_mat_valid        (img_sobel_valid    )
+                .m_mat_rows         (img_calc_rows      ),
+                .m_mat_cols         (img_calc_cols      ),
+                .m_mat_row_first    (img_calc_row_first ),
+                .m_mat_row_last     (img_calc_row_last  ),
+                .m_mat_col_first    (img_calc_col_first ),
+                .m_mat_col_last     (img_calc_col_last  ),
+                .m_mat_de           (img_calc_de        ),
+                .m_mat_user         (img_calc_user      ),
+                .m_mat_valid        (img_calc_valid     )
             );
     
-    // ------------------------------------------------
-    //  Lucas Kanade 
-    // ------------------------------------------------
+    
 
-    for ( genvar i = 0; i < TAPS; i++ ) begin : loop_translation
-        jelly3_img_bayer_lk_translation
+    // ------------------------------------------------
+    //  Lucas Kanade  Accumulation
+    // ------------------------------------------------
 
 
 
