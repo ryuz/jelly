@@ -292,7 +292,7 @@ module image_processing
     assign img_sel_s[2].col_first   = img_buf.col_first             ;
     assign img_sel_s[2].col_last    = img_buf.col_last              ;
     assign img_sel_s[2].de          = img_buf.de                    ;
-    assign img_sel_s[2].data        = M_CH_BITS'(img_buf.data[0][1]) - M_CH_BITS'(img_buf.data[0][0]);
+    assign img_sel_s[2].data        = 512 + M_CH_BITS'(img_buf.data[0][1]) - M_CH_BITS'(img_buf.data[0][0]);
     assign img_sel_s[2].user        = img_buf.user                  ;
     assign img_sel_s[2].valid       = img_buf.valid                 ;
 
