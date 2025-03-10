@@ -30,6 +30,7 @@ module tb_main
 
     logic               cke     = 1'b1;
 
+     logic      [N-1:0] s_en    ;
     s_data_t    [N-1:0] s_data  ;
     user_t              s_user  ;
     logic               s_valid ;
@@ -53,16 +54,17 @@ module tb_main
             )
         u_sum_tree
             (
-                .reset,
-                .clk,
-                .cke,
+                .reset  ,
+                .clk    ,
+                .cke    ,
 
-                .s_user,
-                .s_data,
+                .s_en   ,
+                .s_data ,
+                .s_user ,
                 .s_valid,
 
-                .m_user,
-                .m_data,
+                .m_data ,
+                .m_user ,
                 .m_valid
             );
         
@@ -70,12 +72,14 @@ module tb_main
     always_ff @( posedge clk ) begin
         if ( reset ) begin
             for ( int i = 0; i < N; i++ ) begin
-                s_data[i]  <= s_data_t'(-i);
+                s_en[i]   <= 1'b0;
+                s_data[i] <= s_data_t'(-i);
             end
             s_valid <= '0;
         end
         else if ( cke ) begin
             for ( int i = 0; i < N; i++ ) begin
+                s_en[i]   <= 1'($urandom_range(2));
                 s_data[i] <= s_data[i] + 1;
             end
             s_valid <= 1'b1;
@@ -85,7 +89,7 @@ module tb_main
     always_comb begin
         s_user = '0;
         for ( int i = 0; i < N; ++i ) begin
-            s_user += user_t'($signed(s_data[i]));
+            s_user += s_en[i] ? user_t'($signed(s_data[i])) : '0;
         end
     end
 

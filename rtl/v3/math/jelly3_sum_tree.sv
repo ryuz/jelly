@@ -29,6 +29,7 @@ module jelly3_sum_tree
             input   var logic               clk     ,
             input   var logic               cke     ,
 
+            input   var logic       [N-1:0] s_en    ,
             input   var s_data_t    [N-1:0] s_data  ,
             input   var user_t              s_user  ,
             input   var logic               s_valid ,
@@ -45,7 +46,7 @@ module jelly3_sum_tree
     always_comb begin
         in_data = '0;
         for ( int i = 0; i < N; i++ ) begin
-            in_data[i] = m_data_t'(s_data[i]);
+            in_data[i] = s_en[i] ? m_data_t'(s_data[i]) : '0;
         end
     end
 
