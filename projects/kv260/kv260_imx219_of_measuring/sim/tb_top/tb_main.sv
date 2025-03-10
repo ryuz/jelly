@@ -108,7 +108,7 @@ module tb_main
 
 
     localparam DATA_WIDTH      = 10;
-    localparam FILE_NAME       = "";//"../../data/20250215-180912/rec_";
+    localparam FILE_NAME       = "../../data/20250215-180912/rec_";
     localparam FILE_EXT        = ".pgm";
     localparam SEQUENTIAL_FILE = 1;
     localparam FILE_IMG_WIDTH  = 640;
@@ -149,7 +149,7 @@ module tb_main
                 .out_f              (out_f          )
             );
     
-    always_comb force axi4s_src.tdata = out_f;
+//  always_comb force axi4s_src.tdata = out_f;
 
     jelly2_axi4s_slave_model
             #(

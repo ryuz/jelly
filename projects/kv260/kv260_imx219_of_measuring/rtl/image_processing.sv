@@ -20,6 +20,17 @@ module image_processing
             parameter   int     HEIGHT_BITS = 9                         ,
             parameter   type    width_t     = logic [WIDTH_BITS-1:0]    ,
             parameter   type    height_t    = logic [HEIGHT_BITS-1:0]   ,
+
+            parameter   int     SOBEL_BITS  = 10 + 8                        ,
+            parameter   type    sobel_t     = logic signed  [SOBEL_BITS-1:0],
+            parameter   int     CALC_BITS   = $bits(sobel_t) * 2            ,
+            parameter   type    calc_t      = logic signed  [CALC_BITS-1:0] ,
+            parameter   int     ACC_BITS    = $bits(calc_t) + 20            ,
+            parameter   type    acc_t       = logic signed  [ACC_BITS-1:0]  ,
+            parameter   int     MAX_COLS    = 4096                          ,
+            parameter           RAM_TYPE    = "block"                       ,
+            parameter   bit     BYPASS_SIZE = 1'b1                          ,
+
             parameter           DEVICE      = "RTL"                     
         )
         (
@@ -205,6 +216,56 @@ module image_processing
     */
 
 
+    jelly3_img_bayer_lk
+            #(
+                .TAPS               (TAPS               ),
+//                .DE_BITS            (DE_BITS            ),
+//                .de_t               (de_t               ),
+//                .CH_DEPTH           (CH_DEPTH           ),
+                .CH_BITS            (S_CH_BITS          ),
+//                .ch_t               (ch_t               ),
+//              .data_t             (data_t             ),
+//                .USER_BITS          (USER_BITS          ),
+//                .user_t             (user_t             ),
+                .ROWS_BITS          (ROWS_BITS          ),
+                .rows_t             (rows_t             ),
+                .COLS_BITS          (COLS_BITS          ),
+                .cols_t             (cols_t             ),
+                .SOBEL_BITS         (SOBEL_BITS         ),
+                .sobel_t            (sobel_t            ),
+                .CALC_BITS          (CALC_BITS          ),
+                .calc_t             (calc_t             ),
+                .ACC_BITS           (ACC_BITS           ),
+                .acc_t              (acc_t              ),
+                .MAX_COLS           (MAX_COLS           ),
+                .RAM_TYPE           (RAM_TYPE           ),
+                .BYPASS_SIZE        (BYPASS_SIZE        )
+            )
+        u_img_bayer_lk
+            (
+                .reset              (img_buf.reset      ),
+                .clk                (img_buf.clk        ),
+                .cke                (img_buf.cke        ),
+
+                .s_img_rows         (img_buf.rows       ),
+                .s_img_cols         (img_buf.cols       ),
+                .s_img_row_first    (img_buf.row_first  ),
+                .s_img_row_last     (img_buf.row_last   ),
+                .s_img_col_first    (img_buf.col_first  ),
+                .s_img_col_last     (img_buf.col_last   ),
+                .s_img_de           (img_buf.de         ),
+                .s_img_data         (img_buf.data       ),
+                .s_img_user         (img_buf.user       ),
+                .s_img_valid        (img_buf.valid      ),
+                
+                .out_gx2            (),
+                .out_gy2            (),
+                .out_gxy            (),
+                .out_ex             (),
+                .out_ey             (),
+                .out_valid          ()
+            );
+        
 
     // -------------------------------------
     //  output selector

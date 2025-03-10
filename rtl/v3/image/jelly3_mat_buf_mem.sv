@@ -118,7 +118,7 @@ module jelly3_mat_buf_mem
     assign hist_s_user.row_last  = s_mat.row_last   ;
     assign hist_s_data.user      = s_mat.user;
     assign hist_s_data.data      = s_mat.data;
-    assign hist_s_valid          = s_mat.valid && |s_mat.de;
+    assign hist_s_valid          = s_mat.valid; //  && |s_mat.de;
 
     user_t  [N-1:0]             m_user  ;
     data_t  [N-1:0][TAPS-1:0]   m_data  ;

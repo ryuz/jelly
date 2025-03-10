@@ -346,11 +346,13 @@ module jelly3_mat_buf_row
                 
 
                 // stage3
-                st3_rows     [0] <= st2_rows        ;
-                st3_cols     [0] <= st2_cols        ;
-                st3_row_first[0] <= st2_row_first   ;
-                st3_row_last [0] <= st2_row_last    ;
-                st3_de       [0] <= st2_de          ;
+                if ( st2_valid && st2_col_first ) begin
+                    st3_rows     [0] <= st2_rows        ;
+                    st3_cols     [0] <= st2_cols        ;
+                    st3_row_first[0] <= st2_row_first   ;
+                    st3_row_last [0] <= st2_row_last    ;
+                    st3_de       [0] <= st2_de          ;
+                end
                 st3_user     [0] <= st2_user        ;
                 st3_data     [0] <= st2_data        ;
                 for ( int i = 1; i < ROWS; ++i ) begin

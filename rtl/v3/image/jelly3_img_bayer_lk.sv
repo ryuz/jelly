@@ -53,15 +53,21 @@ module jelly3_img_bayer_lk
             input   var user_t              s_img_user      ,
             input   var logic               s_img_valid     ,
 
-            output  var rows_t              m_img_rows      ,
-            output  var cols_t              m_img_cols      ,
-            output  var logic               m_img_row_first ,
-            output  var logic               m_img_row_last  ,
-            output  var logic               m_img_col_first ,
-            output  var logic               m_img_col_last  ,
-            output  var de_t                m_img_de        ,
-            output  var data_t  [TAPS-1:0]  m_img_data      ,
-            output  var logic               m_img_valid     
+//          output  var rows_t              m_img_rows      ,
+//          output  var cols_t              m_img_cols      ,
+//          output  var logic               m_img_row_first ,
+//          output  var logic               m_img_row_last  ,
+//          output  var logic               m_img_col_first ,
+//          output  var logic               m_img_col_last  ,
+//          output  var de_t                m_img_de        ,
+//          output  var data_t  [TAPS-1:0]  m_img_data      ,
+//          output  var logic               m_img_valid     
+            output  var acc_t       out_gx2         ,
+            output  var acc_t       out_gy2         ,
+            output  var acc_t       out_gxy         ,
+            output  var acc_t       out_ex          ,
+            output  var acc_t       out_ey          ,
+            output  var logic       out_valid       
         );
     
     localparam  int     RAW_BITS  = $bits(ch_t)                     ;
@@ -188,8 +194,9 @@ module jelly3_img_bayer_lk
                     .out_gy2    (img_calc_gy2   [i] ),
                     .out_gxy    (img_calc_gxy   [i] ),
                     .out_ex     (img_calc_ex    [i] ),
-                    .out_ey     (img_calc_ey    [i] ),
+                    .out_ey     (img_calc_ey    [i] )
                 );
+    end
 
     rows_t                  img_calc_rows       ;
     cols_t                  img_calc_cols       ;
@@ -199,6 +206,7 @@ module jelly3_img_bayer_lk
     logic                   img_calc_col_last   ;
     user_t                  img_calc_user       ;
     de_t                    img_calc_de         ;
+    logic                   img_calc_valid      ;
 
     jelly3_mat_delay
             #(
@@ -242,12 +250,43 @@ module jelly3_img_bayer_lk
     //  Lucas Kanade  Accumulation
     // ------------------------------------------------
 
+    acc_t       acc_gx2         ;
+    acc_t       acc_gy2         ;
+    acc_t       acc_gxy         ;
+    acc_t       acc_ex          ;
+    acc_t       acc_ey          ;
+    logic       acc_valid       ;
 
+    jelly3_img_bayer_lk_acc
+            #(
+                .CALC_BITS      (CALC_BITS      ),
+                .calc_t         (calc_t         ),
+                .ACC_BITS       (ACC_BITS       ),
+                .acc_t          (acc_t          )
+            )
+        u_img_bayer_lk_acc
+            (
+                .reset          (reset          ),
+                .clk            (clk            ),
+                .cke            (cke            ),
 
+                .in_first       (img_calc_row_first & img_calc_col_first),
+                .in_last        (img_calc_row_last  & img_calc_col_last ),
+                .in_de          (img_calc_de    ),
+                .in_gx2         (img_calc_gx2   ),
+                .in_gy2         (img_calc_gy2   ),
+                .in_gxy         (img_calc_gxy   ),
+                .in_ex          (img_calc_ex    ),
+                .in_ey          (img_calc_ey    ),
+                .in_valid       (img_calc_valid ),
 
-
-
-
+                .out_gx2        (acc_gx2        ),
+                .out_gy2        (acc_gy2        ),
+                .out_gxy        (acc_gxy        ),
+                .out_ex         (acc_ex         ),
+                .out_ey         (acc_ey         ),
+                .out_valid      (acc_valid      )
+            );
 
 endmodule
 
