@@ -184,7 +184,7 @@ module tb_main
                 .s_axi4s_tready     ()
             );
     
-    /*
+    
     jelly2_axi4s_slave_model
             #(
                 .COMPONENTS         (1  ),
@@ -203,21 +203,21 @@ module tb_main
             )
         u_axi4s_slave_model_wdma
             (
-                .aresetn            (u_top.axi4s_wdma.aresetn    ),
-                .aclk               (u_top.axi4s_wdma.aclk       ),
-                .aclken             (1'b1                       ), 
+                .aresetn            (u_top.axi4s_proc.aresetn    ),
+                .aclk               (u_top.axi4s_proc.aclk       ),
+                .aclken             (u_top.axi4s_proc.aclken     ), 
 
                 .param_width        (SIM_IMG_WIDTH  ),
                 .param_height       (SIM_IMG_HEIGHT ),
                 .frame_num          (),
 
-                .s_axi4s_tuser      (u_top.axi4s_wdma.tuser         ),
-                .s_axi4s_tlast      (u_top.axi4s_wdma.tlast         ),
-                .s_axi4s_tdata      (24'(u_top.axi4s_wdma.tdata)         ),
-                .s_axi4s_tvalid     (u_top.axi4s_wdma.tvalid & u_top.axi4s_wdma.tready),
+                .s_axi4s_tuser      (u_top.axi4s_proc.tuser         ),
+                .s_axi4s_tlast      (u_top.axi4s_proc.tlast         ),
+                .s_axi4s_tdata      (24'(u_top.axi4s_proc.tdata)         ),
+                .s_axi4s_tvalid     (u_top.axi4s_proc.tvalid & u_top.axi4s_proc.tready),
                 .s_axi4s_tready     ()
             );
-    */
+    
 
     /*
     jelly3_model_axi4s_dump

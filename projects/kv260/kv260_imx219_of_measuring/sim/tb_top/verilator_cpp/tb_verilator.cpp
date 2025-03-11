@@ -120,31 +120,10 @@ int main(int argc, char** argv)
 
     axi4l->Wait(1000);
     
-    /*
-    axi4l->Display("White Balance");
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_PHASE  , bayer_phase, 0xff);
 
-    // Black Level Correction
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET0,    66, 0xff); // R 
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET1,    66, 0xff); // G
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET2,    66, 0xff); // G
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_OFFSET3,    66, 0xff); // B
-
-    // White Balance
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4620, 0xff); // R
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096, 0xff); // G
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096, 0xff); // G
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428, 0xff); // B
-    axi4l->ExecWrite(reg_wb + bw * REG_IMG_BAYER_WB_CTL_CONTROL  ,     3, 0xff);
-
-
-    axi4l->Display("demos");
-    axi4l->ExecWrite(reg_demos + bw * REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase, 0xff);
-    axi4l->ExecWrite(reg_demos + bw * REG_IMG_DEMOSAIC_CTL_CONTROL, 3, 0xff);
-    */
 
     axi4l->Display("imgsel");
-    axi4l->ExecWrite(reg_imgsel + bw * REG_IMG_SELECTOR_CTL_SELECT, 1, 0xff);
+    axi4l->ExecWrite(reg_imgsel + bw * REG_IMG_SELECTOR_CTL_SELECT, 0, 0xff);
 
     axi4l->Wait(1000);
     axi4l->Display("enable");
@@ -166,23 +145,6 @@ int main(int argc, char** argv)
     axi4l->ExecWrite(reg_wdma + bw * REG_VDMA_WRITE_PARAM_FRAME_STEP, SIM_IMG_HEIGHT*SIM_IMG_WIDTH*4, 0xff);
     axi4l->ExecWrite(reg_wdma + bw * REG_VDMA_WRITE_PARAM_F_SIZE    , 1-1                           , 0xff);
 
-    /*
-    axi4l->Display("oneshot");
-    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 7                             , 0xff);  // update & enable
-    while (axi4l->ExecRead(reg_wdma + 8 * REG_VDMA_WRITE_CTL_STATUS) != 0x00000000) {
-        axi4l->Wait(1000);
-        mng->Run(1000);
-    }
-    axi4l->Wait(10000);
-    
-    axi4l->Display("oneshot");
-    axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 7                             , 0xff);  // update & enable
-    while (axi4l->ExecRead(reg_wdma + 8 * REG_VDMA_WRITE_CTL_STATUS) != 0x00000000) {
-        axi4l->Wait(1000);
-        mng->Run(1000);
-    }
-    axi4l->Wait(10000);
-    */
 
     axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 3                             , 0xff);  // update & enable
     axi4l->Wait(100000);

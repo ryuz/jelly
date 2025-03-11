@@ -633,6 +633,7 @@ module kv260_imx219_of_measuring
                 .aclken     (1'b1             )
             );
     
+    /*
     jelly3_axi4s_fifo
             #(
                 .ASYNC          (0          ),
@@ -650,6 +651,7 @@ module kv260_imx219_of_measuring
                 .s_free_count   (),
                 .m_data_count   ()
             );
+    */
 
     // DMA write
     jelly3_dma_video_write
@@ -694,7 +696,7 @@ module kv260_imx219_of_measuring
                 .endian                 (1'b0                   ),
 
 //              .s_axi4s                (axi4s_fmtr.s           ),
-                .s_axi4s                (axi4s_fifo.s           ),
+                .s_axi4s                (axi4s_proc.s           ),
                 .m_axi4                 (axi4_mem0.mw           ),
 
                 .s_axi4l                (axi4l_dec[DEC_WDMA].s  ),
