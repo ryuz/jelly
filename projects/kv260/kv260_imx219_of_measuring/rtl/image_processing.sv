@@ -14,14 +14,14 @@
 
 module image_processing
         #(
-            parameter   int     TAPS        = 1                         ,
-            parameter   int     DATA_BITS   = 10                        ,
-            parameter   int     WIDTH_BITS  = 10                        ,
-            parameter   int     HEIGHT_BITS = 9                         ,
-            parameter   type    width_t     = logic [WIDTH_BITS-1:0]    ,
-            parameter   type    height_t    = logic [HEIGHT_BITS-1:0]   ,
-
-            parameter   int     SOBEL_BITS  = 10 + 8                        ,
+            parameter   int     WIDTH_BITS  = 10                            ,
+            parameter   int     HEIGHT_BITS = 9                             ,
+            parameter   type    width_t     = logic [WIDTH_BITS-1:0]        ,
+            parameter   type    height_t    = logic [HEIGHT_BITS-1:0]       ,
+            parameter   int     TAPS        = 1                             ,
+            parameter   int     RAW_BITS    = 10                            ,
+            parameter   type    raw_t       = logic signed  [RAW_BITS-1:0]  ,
+            parameter   int     SOBEL_BITS  = RAW_BITS + 8                  ,
             parameter   type    sobel_t     = logic signed  [SOBEL_BITS-1:0],
             parameter   int     CALC_BITS   = $bits(sobel_t) * 2            ,
             parameter   type    calc_t      = logic signed  [CALC_BITS-1:0] ,
@@ -41,7 +41,14 @@ module image_processing
             jelly3_axi4s_if.s           s_axi4s         ,
             jelly3_axi4s_if.m           m_axi4s         ,
 
-            jelly3_axi4l_if.s           s_axi4l         
+            jelly3_axi4l_if.s           s_axi4l         ,
+
+            output  var acc_t           m_lk_gx2        ,
+            output  var acc_t           m_lk_gy2        ,
+            output  var acc_t           m_lk_gxy        ,
+            output  var acc_t           m_lk_ex         ,
+            output  var acc_t           m_lk_ey         ,
+            output  var logic           m_lk_valid      
         );
 
 
@@ -258,14 +265,14 @@ module image_processing
                 .s_img_user         (img_buf.user       ),
                 .s_img_valid        (img_buf.valid      ),
                 
-                .out_gx2            (),
-                .out_gy2            (),
-                .out_gxy            (),
-                .out_ex             (),
-                .out_ey             (),
-                .out_valid          ()
+                .m_lk_gx2           (m_lk_gx2           ),
+                .m_lk_gy2           (m_lk_gy2           ),
+                .m_lk_gxy           (m_lk_gxy           ),
+                .m_lk_ex            (m_lk_ex            ),
+                .m_lk_ey            (m_lk_ey            ),
+                .m_lk_valid         (m_lk_valid         )
             );
-        
+    
 
     // -------------------------------------
     //  output selector

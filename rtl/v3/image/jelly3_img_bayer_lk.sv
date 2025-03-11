@@ -53,21 +53,12 @@ module jelly3_img_bayer_lk
             input   var user_t              s_img_user      ,
             input   var logic               s_img_valid     ,
 
-//          output  var rows_t              m_img_rows      ,
-//          output  var cols_t              m_img_cols      ,
-//          output  var logic               m_img_row_first ,
-//          output  var logic               m_img_row_last  ,
-//          output  var logic               m_img_col_first ,
-//          output  var logic               m_img_col_last  ,
-//          output  var de_t                m_img_de        ,
-//          output  var data_t  [TAPS-1:0]  m_img_data      ,
-//          output  var logic               m_img_valid     
-            output  var acc_t       out_gx2         ,
-            output  var acc_t       out_gy2         ,
-            output  var acc_t       out_gxy         ,
-            output  var acc_t       out_ex          ,
-            output  var acc_t       out_ey          ,
-            output  var logic       out_valid       
+            output  var acc_t               m_lk_gx2        ,
+            output  var acc_t               m_lk_gy2        ,
+            output  var acc_t               m_lk_gxy        ,
+            output  var acc_t               m_lk_ex         ,
+            output  var acc_t               m_lk_ey         ,
+            output  var logic               m_lk_valid      
         );
     
     localparam  int     RAW_BITS  = $bits(ch_t)                     ;
@@ -75,7 +66,7 @@ module jelly3_img_bayer_lk
 
 
     // ------------------------------------------------
-    //  Sobel Filter and LK-Calculation
+    //  Sobel Filter
     // ------------------------------------------------
 
     rows_t                          img_blk_rows        ;
@@ -136,7 +127,6 @@ module jelly3_img_bayer_lk
     sobel_t [TAPS-1:0]      img_sobel_diff      ;
     sobel_t [TAPS-1:0]      img_sobel_gradx     ;
     sobel_t [TAPS-1:0]      img_sobel_grady     ;
-    logic                   img_sobel_valid     ;
 
     for ( genvar i = 0; i < TAPS; i++ ) begin : loop_sobel
         jelly3_img_bayer_lk_sobel
@@ -160,6 +150,57 @@ module jelly3_img_bayer_lk
                     .out_grady          (img_sobel_grady[i] )
                 );
     end
+
+    rows_t                  img_sobel_rows       ;
+    cols_t                  img_sobel_cols       ;
+    logic                   img_sobel_row_first  ;
+    logic                   img_sobel_row_last   ;
+    logic                   img_sobel_col_first  ;
+    logic                   img_sobel_col_last   ;
+    user_t                  img_sobel_user       ;
+    de_t                    img_sobel_de         ;
+    logic                   img_sobel_valid      ;
+
+    jelly3_mat_delay
+            #(
+                .ROWS_BITS          (ROWS_BITS          ),
+                .COLS_BITS          (COLS_BITS          ),
+                .DE_BITS            (DE_BITS            ),
+                .USER_BITS          (USER_BITS          ),
+                .LATENCY            (4                  ),
+                .BYPASS_SIZE        (BYPASS_SIZE        )
+            )
+        u_img_delay_sobel
+            (
+                .reset              (reset              ),
+                .clk                (clk                ),
+                .cke                (cke                ),
+                
+                .s_mat_rows         (img_blk_rows       ),
+                .s_mat_cols         (img_blk_cols       ),
+                .s_mat_row_first    (img_blk_row_first  ),
+                .s_mat_row_last     (img_blk_row_last   ),
+                .s_mat_col_first    (img_blk_col_first  ),
+                .s_mat_col_last     (img_blk_col_last   ),
+                .s_mat_de           (img_blk_de         ),
+                .s_mat_user         (img_blk_user       ),
+                .s_mat_valid        (img_blk_valid      ),
+                
+                .m_mat_rows         (img_sobel_rows      ),
+                .m_mat_cols         (img_sobel_cols      ),
+                .m_mat_row_first    (img_sobel_row_first ),
+                .m_mat_row_last     (img_sobel_row_last  ),
+                .m_mat_col_first    (img_sobel_col_first ),
+                .m_mat_col_last     (img_sobel_col_last  ),
+                .m_mat_de           (img_sobel_de        ),
+                .m_mat_user         (img_sobel_user      ),
+                .m_mat_valid        (img_sobel_valid     )
+            );
+
+
+    // ------------------------------------------------
+    //  LK-Calculation
+    // ------------------------------------------------
 
     raw_t   [TAPS-1:0][1:0] img_calc_raw        ;
     calc_t  [TAPS-1:0]      img_calc_gx2        ;
@@ -214,24 +255,24 @@ module jelly3_img_bayer_lk
                 .COLS_BITS          (COLS_BITS          ),
                 .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
-                .LATENCY            (4 + 2              ),
+                .LATENCY            (2                  ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
             )
-        u_img_delay
+        u_img_delay_calc
             (
                 .reset              (reset              ),
                 .clk                (clk                ),
                 .cke                (cke                ),
                 
-                .s_mat_rows         (img_blk_rows       ),
-                .s_mat_cols         (img_blk_cols       ),
-                .s_mat_row_first    (img_blk_row_first  ),
-                .s_mat_row_last     (img_blk_row_last   ),
-                .s_mat_col_first    (img_blk_col_first  ),
-                .s_mat_col_last     (img_blk_col_last   ),
-                .s_mat_de           (img_blk_de         ),
-                .s_mat_user         (img_blk_user       ),
-                .s_mat_valid        (img_blk_valid      ),
+                .s_mat_rows         (img_sobel_rows     ),
+                .s_mat_cols         (img_sobel_cols     ),
+                .s_mat_row_first    (img_sobel_row_first),
+                .s_mat_row_last     (img_sobel_row_last ),
+                .s_mat_col_first    (img_sobel_col_first),
+                .s_mat_col_last     (img_sobel_col_last ),
+                .s_mat_de           (img_sobel_de       ),
+                .s_mat_user         (img_sobel_user     ),
+                .s_mat_valid        (img_sobel_valid    ),
                 
                 .m_mat_rows         (img_calc_rows      ),
                 .m_mat_cols         (img_calc_cols      ),
@@ -287,6 +328,13 @@ module jelly3_img_bayer_lk
                 .out_ey         (acc_ey         ),
                 .out_valid      (acc_valid      )
             );
+
+    assign m_lk_gx2    = acc_gx2    ;
+    assign m_lk_gy2    = acc_gy2    ;
+    assign m_lk_gxy    = acc_gxy    ;
+    assign m_lk_ex     = acc_ex     ;
+    assign m_lk_ey     = acc_ey     ;
+    assign m_lk_valid  = acc_valid  ;
 
 endmodule
 

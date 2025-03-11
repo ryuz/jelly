@@ -194,8 +194,9 @@ module kv260_imx219_of_measuring
     localparam DEC_FMTR  = 1;
     localparam DEC_IMPRC = 2;
     localparam DEC_WDMA  = 3;
+    localparam DEC_LOG   = 4;
 
-    localparam DEC_NUM   = 4;
+    localparam DEC_NUM   = 5;
 
     jelly3_axi4l_if
             #(
@@ -214,6 +215,7 @@ module kv260_imx219_of_measuring
     assign {axi4l_dec[DEC_FMTR ].addr_base, axi4l_dec[DEC_FMTR ].addr_high} = {40'ha010_0000, 40'ha010_ffff};
     assign {axi4l_dec[DEC_IMPRC].addr_base, axi4l_dec[DEC_IMPRC].addr_high} = {40'ha012_0000, 40'ha012_ffff};
     assign {axi4l_dec[DEC_WDMA ].addr_base, axi4l_dec[DEC_WDMA ].addr_high} = {40'ha021_0000, 40'ha021_ffff};
+    assign {axi4l_dec[DEC_LOG  ].addr_base, axi4l_dec[DEC_LOG  ].addr_high} = {40'ha030_0000, 40'ha030_ffff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -434,6 +436,9 @@ module kv260_imx219_of_measuring
     //  CSI-2
     // ----------------------------------------
 
+    localparam   int     TAPS     = 1   ;
+    localparam   int     RAW_BITS = 10  ;
+
     logic axi4s_cam_aresetn;
     logic axi4s_cam_aclk   ;
     assign axi4s_cam_aresetn = ~sys_reset;
@@ -441,7 +446,7 @@ module kv260_imx219_of_measuring
 
     jelly3_axi4s_if
             #(
-                .DATA_BITS  (10                 ),
+                .DATA_BITS  (TAPS * RAW_BITS    ),
                 .DEBUG      (DEBUG              )
             )
         axi4s_csi2
@@ -462,7 +467,7 @@ module kv260_imx219_of_measuring
     jelly2_mipi_csi2_rx
             #(
                 .LANES              (2                                  ),
-                .DATA_WIDTH         (10                                 ),
+                .DATA_WIDTH         (TAPS * RAW_BITS                    ),
                 .M_FIFO_ASYNC       (1                                  ),
                 .M_FIFO_PTR_WIDTH   (10                                 )
             )
@@ -504,7 +509,7 @@ module kv260_imx219_of_measuring
 
     jelly3_axi4s_if
             #(
-                .DATA_BITS  (10                     ),
+                .DATA_BITS  (TAPS * RAW_BITS        ),
                 .DEBUG      (DEBUG                  )
             )
         axi4s_fmtr
@@ -537,6 +542,13 @@ module kv260_imx219_of_measuring
     
 
     // image processing
+    localparam  int     SOBEL_BITS  = RAW_BITS + 8                  ;
+    localparam  type    sobel_t     = logic signed  [SOBEL_BITS-1:0];
+    localparam  int     CALC_BITS   = $bits(sobel_t) * 2            ;
+    localparam  type    calc_t      = logic signed  [CALC_BITS-1:0] ;
+    localparam  int     ACC_BITS    = $bits(calc_t) + 20            ;
+    localparam  type    acc_t       = logic signed  [ACC_BITS-1:0]  ;
+
     jelly3_axi4s_if
             #(
                 .DATA_BITS  (16                     ),
@@ -549,12 +561,28 @@ module kv260_imx219_of_measuring
                 .aclken     (1'b1                   )
             );
 
+    acc_t           lk_gx2    ;
+    acc_t           lk_gy2    ;
+    acc_t           lk_gxy    ;
+    acc_t           lk_ex     ;
+    acc_t           lk_ey     ;
+    logic           lk_valid  ;
+
     image_processing
             #(
-                .TAPS           (1                      ),
-                .DATA_BITS      (10                     ),
                 .WIDTH_BITS     (WIDTH_BITS             ),
                 .HEIGHT_BITS    (HEIGHT_BITS            ),
+                .TAPS           (TAPS                   ),
+                .RAW_BITS       (RAW_BITS               ),
+                .SOBEL_BITS     (SOBEL_BITS             ),
+                .sobel_t        (sobel_t                ),
+                .CALC_BITS      (CALC_BITS              ),
+                .calc_t         (calc_t                 ),
+                .ACC_BITS       (ACC_BITS               ),
+                .acc_t          (acc_t                  ),
+                .MAX_COLS       (1024                   ),
+                .RAM_TYPE       ("block"                ),
+                .BYPASS_SIZE    (1'b1                   ),
                 .DEVICE         ("RTL"                  )
             )
         u_image_processing
@@ -566,9 +594,50 @@ module kv260_imx219_of_measuring
                 .s_axi4s        (axi4s_fmtr.s           ),
                 .m_axi4s        (axi4s_proc.m           ),
 
-                .s_axi4l        (axi4l_dec[DEC_IMPRC]   )
+                .s_axi4l        (axi4l_dec[DEC_IMPRC]   ),
+
+                .m_lk_gx2       (lk_gx2                 ),
+                .m_lk_gy2       (lk_gy2                 ),
+                .m_lk_gxy       (lk_gxy                 ),
+                .m_lk_ex        (lk_ex                  ),
+                .m_lk_ey        (lk_ey                  ),
+                .m_lk_valid     (lk_valid               )
             );
     
+
+
+    // logger
+    logic  [4:0][63:0]  logger_data;
+    assign logger_data[0] = 64'(lk_gx2  );
+    assign logger_data[1] = 64'(lk_gy2  );
+    assign logger_data[2] = 64'(lk_gxy  );
+    assign logger_data[3] = 64'(lk_ex   );
+    assign logger_data[4] = 64'(lk_ey   );
+
+    jelly3_data_logger_fifo
+            #(
+                .NUM            (4                  ),
+                .DATA_BITS      (64                 ),
+                .TIMER_BITS     (64                 ),
+                .FIFO_ASYNC     (1                  ),
+                .FIFO_PTR_BITS  (10                 )
+            )
+        u_data_logger_fifo
+            (
+                .reset          (~axi4s_proc.aresetn),
+                .clk            (axi4s_proc.aclk    ),
+                .cke            (axi4s_proc.aclken  ),
+
+                .s_data         (logger_data        ),
+                .s_valid        (lk_valid           ),
+                .s_ready        (                   ),
+
+                .s_axi4l        (axi4l_dec[DEC_LOG] )
+            );
+
+
+
+
 //  assign axi4s_proc.tready = 1'b1;
 
     /*

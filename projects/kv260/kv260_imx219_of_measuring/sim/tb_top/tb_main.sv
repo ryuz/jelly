@@ -184,6 +184,40 @@ module tb_main
                 .s_axi4s_tready     ()
             );
     
+
+    /*
+    jelly3_mat_if   s_img       ,
+
+    jelly3_model_img_dump
+            #(
+                .INIT_FRAME_NUM  = 0                     ,
+                .F_BITS          = 32                    ,
+                .f_t             = logic [F_BITS-1:0]    ,
+                .FORMAT          = "P3"                  ,
+                .FILE_NAME       = "img_"                ,
+                .FILE_EXT        = ".ppm"                ,
+                .SEQUENTIAL_FILE = 1                     ,
+                .ENDIAN          = 0                     
+            )
+        (
+            jelly3_mat_if.s     s_img       ,
+
+            output  var f_t     frame_num   
+        );
+
+    u_top.u_image_processing.u_img_bayer_lk.img_sobel_de;
+
+                .s_mat_rows         (img_sobel_rows     ),
+                .s_mat_cols         (img_sobel_cols     ),
+                .s_mat_row_first    (img_sobel_row_first),
+                .s_mat_row_last     (img_sobel_row_last ),
+                .s_mat_col_first    (img_sobel_col_first),
+                .s_mat_col_last     (img_sobel_col_last ),
+                .s_mat_de           (img_sobel_de       ),
+                .s_mat_user         (img_sobel_user     ),
+                .s_mat_valid        (img_sobel_valid    ),
+    */
+
     
     jelly2_axi4s_slave_model
             #(
@@ -213,7 +247,7 @@ module tb_main
 
                 .s_axi4s_tuser      (u_top.axi4s_proc.tuser         ),
                 .s_axi4s_tlast      (u_top.axi4s_proc.tlast         ),
-                .s_axi4s_tdata      (24'(u_top.axi4s_proc.tdata)         ),
+                .s_axi4s_tdata      (10'(u_top.axi4s_proc.tdata)         ),
                 .s_axi4s_tvalid     (u_top.axi4s_proc.tvalid & u_top.axi4s_proc.tready),
                 .s_axi4s_tready     ()
             );

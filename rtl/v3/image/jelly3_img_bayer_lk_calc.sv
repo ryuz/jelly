@@ -64,8 +64,8 @@ module jelly3_img_bayer_lk_calc
             st1_gx2   <= calc_t'(st0_gradx) * calc_t'(st0_gradx);
             st1_gy2   <= calc_t'(st0_grady) * calc_t'(st0_grady);
             st1_gxy   <= calc_t'(st0_gradx) * calc_t'(st0_grady);
-            st1_ex    <= calc_t'(st0_gradx) * calc_t'(in_diff  );
-            st1_ey    <= calc_t'(st0_grady) * calc_t'(in_diff  );
+            st1_ex    <= calc_t'(st0_gradx) * calc_t'(st0_diff );
+            st1_ey    <= calc_t'(st0_grady) * calc_t'(st0_diff );
         end
     end
 
