@@ -26,6 +26,8 @@ module kv260_imx219_of_measuring
             output  var logic   [7:0]   pmod
         );
     
+    reg aaa;
+    assign aaa = 1;
 
     // ----------------------------------------
     //  Zynq UltraScale+ MPSoC block

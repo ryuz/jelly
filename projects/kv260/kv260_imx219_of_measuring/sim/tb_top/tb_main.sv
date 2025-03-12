@@ -218,7 +218,7 @@ module tb_main
                 .s_mat_valid        (img_sobel_valid    ),
     */
 
-    
+
     jelly2_axi4s_slave_model
             #(
                 .COMPONENTS         (1  ),

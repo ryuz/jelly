@@ -89,6 +89,7 @@ int main(int argc, char** argv)
 //    const std::uint64_t reg_colmat = 0xa0124000;
     const std::uint64_t reg_imgsel = 0xa012f000;
     const std::uint64_t reg_wdma   = 0xa0210000;
+    const std::uint64_t reg_log    = 0xa0300000;
         
     axi4l->Wait(1000);
     axi4l->Display("start");
@@ -150,9 +151,21 @@ int main(int argc, char** argv)
     axi4l->Wait(100000);
 //  axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 0                             , 0xff);  // update & enable
 
-
     mng->Run(10000000);
-    
+
+    axi4l->Display("read log");
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(0));
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(1));
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(2));
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(3));
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(4));
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_READ_DATA);
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(0));
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(1));
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(2));
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(3));
+    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(4));
+
 //    mng->Run(1000000);
 //    mng->Run();
 

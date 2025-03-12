@@ -207,12 +207,12 @@ module jelly3_data_logger_fifo
                 REGADR_POL_TIMER1   :   s_axi4l.rdata <= axi4l_data_t'(fifo_m_timer >> AXI4L_DATA_BITS  );
                 default             :   s_axi4l.rdata <= '0;
                 endcase
-
                 for ( int i = 0; i < NUM; i++ ) begin
                     if ( regadr_read == REGADR_POL_DATA_BASE + regadr_t'(i) ) begin
                         s_axi4l.rdata <= axi4l_data_t'(fifo_m_data[i]);
                     end
                 end
+                s_axi4l.rvalid <= 1'b1  ;
             end
         end
     end
@@ -225,9 +225,9 @@ module jelly3_data_logger_fifo
     
     // CTL_CONTROL[0] への 1 書き込み or READ_DATA で読み進む
     assign fifo_m_ready = reg_ctl_control[0]
-                        | (s_axi4l.arvalid && s_axi4l.arready && (regadr_read == REGADR_READ_DATA))
-                        | (reg_limit_size != 0 && fifo_m_data_count > reg_limit_size)
-                        | reg_ctl_control[1];
+                        || (s_axi4l.arvalid && s_axi4l.arready && (regadr_read == REGADR_READ_DATA))
+                        || (reg_limit_size != 0 && fifo_m_data_count > reg_limit_size)
+                        || reg_ctl_control[1];
     
 endmodule
 
