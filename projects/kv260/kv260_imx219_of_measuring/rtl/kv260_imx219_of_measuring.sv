@@ -458,13 +458,13 @@ module kv260_imx219_of_measuring
                 .aclken     (1'b1               )
             );
     
-    logic           mipi_ecc_corrected;
-    logic           mipi_ecc_error;
-    logic           mipi_ecc_valid;
-    logic           mipi_crc_error;
-    logic           mipi_crc_valid;
-    logic           mipi_packet_lost;
-    logic           mipi_fifo_overflow;
+    logic           mipi_ecc_corrected  ;
+    logic           mipi_ecc_error      ;
+    logic           mipi_ecc_valid      ;
+    logic           mipi_crc_error      ;
+    logic           mipi_crc_valid      ;
+    logic           mipi_packet_lost    ;
+    logic           mipi_fifo_overflow  ;
     
     jelly2_mipi_csi2_rx
             #(
@@ -618,7 +618,7 @@ module kv260_imx219_of_measuring
 
     jelly3_data_logger_fifo
             #(
-                .NUM            (4                  ),
+                .NUM            (5                  ),
                 .DATA_BITS      (64                 ),
                 .TIMER_BITS     (64                 ),
                 .FIFO_ASYNC     (1                  ),
@@ -858,14 +858,15 @@ module kv260_imx219_of_measuring
     end
     
     // pmod
- //   assign pmod[0] = reg_counter_rxbyteclkhs[25];
-//    assign pmod[1] = reg_counter_clk100     [25];
-//    assign pmod[2] = reg_counter_clk200     [25];
-//    assign pmod[3] = reg_counter_clk250     [25];
-    assign pmod[0] = i2c0_scl_o;
-    assign pmod[1] = i2c0_scl_t;
-    assign pmod[2] = i2c0_sda_o;
-    assign pmod[3] = i2c0_sda_t;
+    assign pmod[0] = reg_counter_rxbyteclkhs[25];
+    assign pmod[1] = reg_counter_clk100     [25];
+    assign pmod[2] = reg_counter_clk200     [25];
+    assign pmod[3] = reg_counter_clk250     [25];
+
+//  assign pmod[0] = i2c0_scl_o;
+//  assign pmod[1] = i2c0_scl_t;
+//  assign pmod[2] = i2c0_sda_o;
+//  assign pmod[3] = i2c0_sda_t;
     assign pmod[4] = cam_enable;
     assign pmod[5] = reg_frame_count[7];
     assign pmod[7:6] = reg_counter_clk100[9:8];

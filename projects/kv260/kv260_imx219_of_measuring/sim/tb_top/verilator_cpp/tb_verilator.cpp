@@ -153,18 +153,14 @@ int main(int argc, char** argv)
 
     mng->Run(10000000);
 
-    axi4l->Display("read log");
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(0));
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(1));
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(2));
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(3));
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(4));
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_READ_DATA);
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(0));
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(1));
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(2));
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(3));
-    axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(4));
+    for ( int i = 0; i < 3; i++ ) {
+        axi4l->Display("read log");
+        axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(4));
+        axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(3));
+        axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(0));
+        axi4l->ExecRead(reg_log + bw * REG_LOGGER_POL_DATA(2));
+        axi4l->ExecRead(reg_log + bw * REG_LOGGER_READ_DATA);
+    }
 
 //    mng->Run(1000000);
 //    mng->Run();
