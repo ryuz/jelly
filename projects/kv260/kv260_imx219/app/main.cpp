@@ -6,6 +6,10 @@
 #include <unistd.h>
 #include <signal.h>
 #include <iostream>
+#include <filesystem>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 #include <opencv2/opencv.hpp>
 
@@ -39,6 +43,7 @@ int main(int argc, char *argv[])
     int     d_gain      = 0;
     int     bayer_phase = 0;
     int     fmtsel      = 0;
+    int     rec_frames  = 100;
     int     view_scale  = 4;
     
     for ( int i = 1; i < argc; ++i ) {
@@ -167,6 +172,10 @@ int main(int argc, char *argv[])
             ++i;
             bayer_phase = strtol(argv[i], nullptr, 0);
         }
+        else if ( strcmp(argv[i], "-rec_frames") == 0 && i+1 < argc) {
+            ++i;
+            rec_frames = strtol(argv[i], nullptr, 0);
+        }
         else if ( strcmp(argv[i], "-view_scale") == 0 && i+1 < argc) {
             ++i;
             view_scale = strtol(argv[i], nullptr, 0);
@@ -251,7 +260,7 @@ int main(int argc, char *argv[])
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
 
-    int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
+    int     rec_frame_num = std::min(rec_frames, (int)(dmabuf_mem_size / (width * height * 4)));
     int     frame_num     = 1;
 
     if ( rec_frame_num <= 0 ) {
@@ -375,16 +384,38 @@ int main(int argc, char *argv[])
             std::cout << "record" << std::endl;
             vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
             {
-                int offset = 0;
-                for ( int i = 0; i < rec_frame_num; i++ ) {
-                    char fname[64];
-                    sprintf(fname, "rec_%04d.png", i);
-                    cv::Mat imgRec(height, width, CV_8UC4);
-                    udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
-                    offset += width * height * 4;
-                    cv::Mat imgRgb;
-                    cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
-                    cv::imwrite(fname, imgRgb);
+                auto now = std::chrono::system_clock::now();
+                auto in_time_t = std::chrono::system_clock::to_time_t(now);
+                std::stringstream ss;
+                ss << std::put_time(std::localtime(&in_time_t), "record/%Y%m%d-%H%M%S");
+                auto rec_dir = ss.str();
+                std::filesystem::path dir(rec_dir);
+                std::filesystem::create_directory(dir);
+                if ( fmtsel == 3 ) {
+                    int offset = 0;
+                    for ( int i = 0; i < rec_frame_num; i++ ) {
+                        char fname[64];
+                        sprintf(fname, "%s/rec_%04d.png", rec_dir.c_str(), i);
+                        cv::Mat imgRec(height, width, CV_32S);
+                        udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
+                        offset += width * height * 4;
+                        cv::Mat img_u16;
+                        imgRec.convertTo(img_u16, CV_16U, 65535.0/2147483647.0);
+                        cv::imwrite(fname, img_u16);
+                    }
+                }
+                else {
+                    int offset = 0;
+                    for ( int i = 0; i < rec_frame_num; i++ ) {
+                        char fname[64];
+                        sprintf(fname, "%s/rec_%04d.png", rec_dir.c_str(), i);
+                        cv::Mat imgRec(height, width, CV_8UC4);
+                        udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
+                        offset += width * height * 4;
+                        cv::Mat imgRgb;
+                        cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
+                        cv::imwrite(fname, imgRgb);
+                    }
                 }
             }
             break;

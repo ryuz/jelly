@@ -6,6 +6,10 @@
 #include <unistd.h>
 #include <signal.h>
 #include <iostream>
+#include <filesystem>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 #include <opencv2/opencv.hpp>
 
@@ -38,24 +42,24 @@ int main(int argc, char *argv[])
     int     a_gain      = 20;
     int     d_gain      = 0;
     int     bayer_phase = 0;
-    int     fmtsel      = 0;
+    int     imgsel      = 0;
     int     view_scale  = 4;
 
-    // 720p
-    pixel_clock = 91000000.0;
+    // 1000fps
+    pixel_clock = 139200000.0;
     binning     = true;
-    width       = 1280;
-    height      = 720;
+    width       = 640;
+    height      = 132;
     aoi_x       = -1;
     aoi_y       = -1;
     flip_h      = false;
     flip_v      = false;
-    frame_rate  = 60;
-    exposure    = 20;
+    frame_rate  = 1000;
+    exposure    = 1;
     a_gain      = 20;
-    d_gain      = 0;
+    d_gain      = 10;
     bayer_phase = 0;
-    view_scale  = 2;
+    view_scale  = 1;
 
     for ( int i = 1; i < argc; ++i ) {
         if ( strcmp(argv[i], "1000fps") == 0 ) {
@@ -205,19 +209,14 @@ int main(int argc, char *argv[])
 
     auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
-//  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
-    auto reg_wb     = uio_acc.GetAccessor(0x00121000);
-    auto reg_demos  = uio_acc.GetAccessor(0x00122000);
-    auto reg_colmat = uio_acc.GetAccessor(0x00120800);
-//  auto reg_sel    = uio_acc.GetAccessor(0x00130000);
+    auto reg_imgsel = uio_acc.GetAccessor(0x0012f000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
+    auto reg_logger = uio_acc.GetAccessor(0x00300000);
     
 #if 1
     std::cout << "CORE ID" << std::endl;
     std::cout << std::hex << reg_gpio.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
-//  std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
-//  std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
 #endif
 
@@ -233,7 +232,7 @@ int main(int argc, char *argv[])
     std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
     std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
-    jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
+    jelly::VideoDmaControl vdmaw(reg_wdma, 2, 2, true);
 
 
     // カメラON
@@ -256,7 +255,7 @@ int main(int argc, char *argv[])
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
 
-    int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
+    int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 2)));
     int     frame_num     = 1;
 
     if ( rec_frame_num <= 0 ) {
@@ -289,27 +288,74 @@ int main(int argc, char *argv[])
     cv::setTrackbarPos("d_gain",   "img", d_gain);
     cv::createTrackbar("bayer" ,   "img", nullptr, 3);
     cv::setTrackbarPos("bayer",    "img", bayer_phase);
-    cv::createTrackbar("fmtsel",   "img", nullptr, 3);
-    cv::setTrackbarPos("fmtsel",   "img", fmtsel);
+    cv::createTrackbar("imgsel",   "img", nullptr, 3);
+    cv::setTrackbarPos("imgsel",   "img", imgsel);
 
     vdmaw.SetBufferAddr(dmabuf_phys_adr);
     vdmaw.SetImageSize(width, height);
 //  vdmaw.Start();
 
     // White Balance
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET0,    66); // black level R 
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET1,    66); // black level G
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET2,    66); // black level G
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET3,    66); // black level B
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4620); // white balance R
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096); // white balance G
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096); // white balance G
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428); // white balance B
+//    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET0,    66); // black level R 
+//    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET1,    66); // black level G
+//    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET2,    66); // black level G
+//    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET3,    66); // black level B
+//    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4620); // white balance R
+//    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096); // white balance G
+//    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096); // white balance G
+//    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428); // white balance B
+
+    std::vector<double> hist_dx;
+    std::vector<double> hist_dy;
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
-        
+
+        // ログ取得
+        while ( reg_logger.ReadReg(REG_LOGGER_CTL_STATUS) ) {
+            auto ey  = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_POL_DATA(4));
+            auto ex  = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_POL_DATA(3));
+            auto gxy = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_POL_DATA(2));
+            auto gy2 = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_POL_DATA(1));
+            auto gx2 = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_READ_DATA);
+            auto det = gx2 * gy2 - gxy * gxy;
+            auto dx  = (gx2 * ex - gxy * ey) / det;
+            auto dy  = (gy2 * ey - gxy * ex) / det;
+//          std::cout << "dx :" << dx << "   dy : " << dy << std::endl;
+            hist_dx.push_back(dx);
+            hist_dy.push_back(dy);
+            if ( hist_dx.size() > 1000 ) {
+                hist_dx.erase(hist_dx.begin());
+                hist_dy.erase(hist_dy.begin());
+            }
+            
+//          printf("gx2 : %10.0f gy2 : %10.0f gxy : %10.0f ex : %10.0f ey : %10.0f\n", gx2, gy2, gxy, ex, ey);
+//          std::cout << "gx2 : " << gx2 << std::endl;
+//          std::cout << "gy2 : " << gy2 << std::endl;
+//          std::cout << "gxy : " << gxy << std::endl;
+//          std::cout << "ex  : " << ex  << std::endl;
+//          std::cout << "ey  : " << ey  << std::endl;
+        }
+
+        cv::Mat graph = cv::Mat::zeros(200, 1000, CV_8UC3);
+        for ( int i = 0; i < (int)hist_dx.size(); i++ ) {
+            int y0 = 100 - (int)(hist_dx[i] * 1000.0);
+            cv::circle(graph, cv::Point(i, y0), 1, cv::Scalar(0, 255, 0), -1);
+            int y1 = 100 - (int)(hist_dy[i] * 1000.0);
+            cv::circle(graph, cv::Point(i, y1), 1, cv::Scalar(255, 0, 0), -1);
+        }
+        cv::imshow("graph", graph);
+
+        cv::Mat graph2 = cv::Mat::zeros(200, 200, CV_8UC3);
+        for ( int i = 0; i < (int)hist_dx.size(); i++ ) {
+            int x = 100 - (int)(hist_dx[i] * 1000.0);
+            int y = 100 - (int)(hist_dy[i] * 1000.0);
+            cv::circle(graph2, cv::Point(x, y), 1, cv::Scalar(0, 255, 0), -1);
+        }
+        cv::imshow("x-y", graph2);
+
+
         // トラックバー値取得
         view_scale  = cv::getTrackbarPos("scale",    "img");
         frame_rate  = cv::getTrackbarPos("fps",      "img");
@@ -317,7 +363,7 @@ int main(int argc, char *argv[])
         a_gain      = cv::getTrackbarPos("a_gain",   "img");
         d_gain      = cv::getTrackbarPos("d_gain",   "img");
         bayer_phase = cv::getTrackbarPos("bayer" ,   "img");
-        fmtsel      = cv::getTrackbarPos("fmtsel",   "img");
+        imgsel      = cv::getTrackbarPos("imgsel",   "img");
 
         // 設定
         imx219.SetFrameRate(frame_rate);
@@ -325,9 +371,9 @@ int main(int argc, char *argv[])
         imx219.SetGain(a_gain);
         imx219.SetDigitalGain(d_gain);
         imx219.SetFlip(flip_h, flip_v);
-        reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
-        reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
-        reg_gpio.WriteReg(4, fmtsel);
+//        reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
+//        reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+        reg_imgsel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, imgsel);
 
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
@@ -342,30 +388,11 @@ int main(int argc, char *argv[])
             cv::imshow("plane2", planes[2]);
             cv::imshow("plane3", planes[3]);
         }
-
-
+        
         cv::Mat img;
-        switch ( fmtsel ) {
-        case 0: // BGRx
-        case 1: // RGBx
-            img = cv::Mat(height*frame_num, width, CV_8UC4);
-            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-            break;
-
-        case 2: // Raw10bit
-        case 3: // Raw16bit
-            img = cv::Mat(height*frame_num, width, CV_32S);
-            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-            img.convertTo(img, CV_16U);
-//          cv::Mat img_col;
-//          cv::cvtColor(img, img_col, CV_BayerBG2BGR);
-            break;
-
-        default:
-            img = cv::Mat(height*frame_num, width, CV_8UC4);
-            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-            break;
-        }
+        img = cv::Mat(height*frame_num, width, CV_16UC1);
+        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 2 * frame_num);
+        img *= 64;
 
         // 表示
         view_scale = std::max(1, view_scale);
@@ -400,41 +427,29 @@ int main(int argc, char *argv[])
         case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
 
         case 'd':   // image dump
-            switch ( fmtsel ) {
-            case 0:
-            case 1:
-                cv::imwrite("img_dump.png", img);
-                break;
-
-            case 2:
-                cv::imwrite("img_dump_raw10.png", img);
-                write_pgm("img_dump_raw10.pgm", img, 4095);
-                break;
-
-            case 3:
-                cv::imwrite("img_dump_raw.png", img);
-                write_pgm("img_dump_raw.pgm", img, 4095);
-                break;
-
-            default:
-                cv::imwrite("img_dump_x.png", img);
-                break;
-            }
+            cv::imwrite("img_dump.png", img);
             break;
-
+        
         case 'r': // image record
-            std::cout << "record" << std::endl;
-            vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
-            int offset = 0;
-            for ( int i = 0; i < rec_frame_num; i++ ) {
-                char fname[64];
-                sprintf(fname, "rec_%04d.png", i);
-                cv::Mat imgRec(height, width, CV_8UC4);
-                udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
-                offset += width * height * 4;
-                cv::Mat imgRgb;
-                cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
-                cv::imwrite(fname, imgRgb);
+            {
+                std::cout << "record" << std::endl;
+                vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
+                auto now = std::chrono::system_clock::now();
+                auto in_time_t = std::chrono::system_clock::to_time_t(now);
+                std::stringstream ss;
+                ss << std::put_time(std::localtime(&in_time_t), "record/%Y%m%d-%H%M%S");
+                auto rec_dir = ss.str();
+                std::filesystem::path dir(rec_dir);
+                std::filesystem::create_directories(dir);
+                int offset = 0;
+                for ( int i = 0; i < rec_frame_num; i++ ) {
+                    char fname[64];
+                    sprintf(fname, "%s/rec_%04d.png", rec_dir.c_str(), i);
+                    cv::Mat imgRec(height, width, CV_16U);
+                    udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 2);
+                    offset += width * height * 2;
+                    cv::imwrite(fname, imgRec * 64);
+                }
             }
             break;
         }

@@ -1,7 +1,7 @@
 
-TARGET    = kv260_imx219.out
-DT_NAME   = kv260_imx219
-BIT_NAME  = kv260_imx219
+TARGET    = kv260_imx219_of_measuring.out
+DT_NAME   = kv260_imx219_of_measuring
+BIT_NAME  = kv260_imx219_of_measuring
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
