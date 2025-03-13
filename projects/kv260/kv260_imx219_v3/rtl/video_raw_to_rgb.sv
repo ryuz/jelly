@@ -132,8 +132,6 @@ module video_raw_to_rgb
             )
         u_axi4s_mat
             (
-                .cke            (aclken             ),
-
                 .param_rows     (param_height       ),
                 .param_cols     (param_width        ),
                 .param_blank    (4'd5               ),
