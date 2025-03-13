@@ -3,37 +3,37 @@
 `default_nettype none
 
 
-module tb_verilator
+module tb_main
         (
-            input   logic           reset                   ,
-            input   logic           clk100                  ,
-            input   logic           clk200                  ,
-            input   logic           clk250                  ,
+            input   var logic           reset                   ,
+            input   var logic           clk100                  ,
+            input   var logic           clk200                  ,
+            input   var logic           clk250                  ,
             
-            output  logic           s_axi4l_peri_aresetn    ,
-            output  logic           s_axi4l_peri_aclk       ,
-            input   logic   [39:0]  s_axi4l_peri_awaddr     ,
-            input   logic   [2:0]   s_axi4l_peri_awprot     ,
-            input   logic           s_axi4l_peri_awvalid    ,
-            output  logic           s_axi4l_peri_awready    ,
-            input   logic   [63:0]  s_axi4l_peri_wdata      ,
-            input   logic   [7:0]   s_axi4l_peri_wstrb      ,
-            input   logic           s_axi4l_peri_wvalid     ,
-            output  logic           s_axi4l_peri_wready     ,
-            output  logic   [1:0]   s_axi4l_peri_bresp      ,
-            output  logic           s_axi4l_peri_bvalid     ,
-            input   logic           s_axi4l_peri_bready     ,
-            input   logic   [39:0]  s_axi4l_peri_araddr     ,
-            input   logic   [2:0]   s_axi4l_peri_arprot     ,
-            input   logic           s_axi4l_peri_arvalid    ,
-            output  logic           s_axi4l_peri_arready    ,
-            output  logic   [63:0]  s_axi4l_peri_rdata      ,
-            output  logic   [1:0]   s_axi4l_peri_rresp      ,
-            output  logic           s_axi4l_peri_rvalid     ,
-            input   logic           s_axi4l_peri_rready     ,
+            output  var logic           s_axi4l_peri_aresetn    ,
+            output  var logic           s_axi4l_peri_aclk       ,
+            input   var logic   [39:0]  s_axi4l_peri_awaddr     ,
+            input   var logic   [2:0]   s_axi4l_peri_awprot     ,
+            input   var logic           s_axi4l_peri_awvalid    ,
+            output  var logic           s_axi4l_peri_awready    ,
+            input   var logic   [63:0]  s_axi4l_peri_wdata      ,
+            input   var logic   [7:0]   s_axi4l_peri_wstrb      ,
+            input   var logic           s_axi4l_peri_wvalid     ,
+            output  var logic           s_axi4l_peri_wready     ,
+            output  var logic   [1:0]   s_axi4l_peri_bresp      ,
+            output  var logic           s_axi4l_peri_bvalid     ,
+            input   var logic           s_axi4l_peri_bready     ,
+            input   var logic   [39:0]  s_axi4l_peri_araddr     ,
+            input   var logic   [2:0]   s_axi4l_peri_arprot     ,
+            input   var logic           s_axi4l_peri_arvalid    ,
+            output  var logic           s_axi4l_peri_arready    ,
+            output  var logic   [63:0]  s_axi4l_peri_rdata      ,
+            output  var logic   [1:0]   s_axi4l_peri_rresp      ,
+            output  var logic           s_axi4l_peri_rvalid     ,
+            input   var logic           s_axi4l_peri_rready     ,
 
-            output  logic   [31:0]  img_width               ,
-            output  logic   [31:0]  img_height              
+            output  var logic   [31:0]  img_width               ,
+            output  var logic   [31:0]  img_height              
         );
     
 
@@ -76,11 +76,7 @@ module tb_verilator
     always_comb force u_top.u_design_1.clk200 = clk200;
     always_comb force u_top.u_design_1.clk250 = clk250;
 
-//    always_comb force u_top.u_design_1.m_axi4l_peri_aresetn = ~reset;
-//    always_comb force u_top.u_design_1.m_axi4l_peri_aclk    = clk250;
-//    always_comb force u_top.u_design_1.s_axi4_mem_aresetn = ~reset;
-//    always_comb force u_top.u_design_1.s_axi4_mem_aclk    = clk250;
-    
+   
 
     // -----------------------------
     //  Video input
@@ -148,7 +144,6 @@ module tb_verilator
             )
         u_model_axi4s_m
             (
-                .aclken             (1'b1           ),
                 .enable             (1'b1           ),
                 .busy               (               ),
 
@@ -224,9 +219,31 @@ module tb_verilator
                 .s_axi4s_tready     ()
             );
     
+    /*
+    jelly3_model_axi4s_dump
+            #(
+                .COMPONENTS         (3                  ),
+                .DATA_BITS          (8                  ),
+                .INIT_FRAME_NUM     (0                  ),
+                .X_BITS             (32                 ),
+                .Y_BITS             (32                 ),
+                .F_BITS             (32                 ),
+                .FORMAT             ("P3"               ),
+                .FILE_NAME          ("output/wdma2_"    ),
+                .FILE_EXT           (".ppm"             ),
+                .SEQUENTIAL_FILE    (1                  ),
+                .ENDIAN             (1                  )  // BGR -> RGB
+            )
+        u_model_axi4s_dump_wdma
+            (
+                .param_width        (SIM_IMG_WIDTH      ),
+                .param_height       (SIM_IMG_HEIGHT     ),
+                .frame_num          (),
 
-
-
+                .mon_axi4s          (u_top.axi4s_wdma.mon)
+            );
+    */
+    
     jelly2_img_slave_model
             #(
                 .COMPONENTS         (1              ),

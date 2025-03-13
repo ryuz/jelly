@@ -74,6 +74,7 @@ umount: unload
 
 .PHONY: load
 load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
+	-sudo xmutil unloadapp
 	@if [ -e /configfs/device-tree/overlays/k26-starter-kits_image_1 ] ; then \
 		sudo rmdir /configfs/device-tree/overlays/k26-starter-kits_image_1 ; \
 	fi

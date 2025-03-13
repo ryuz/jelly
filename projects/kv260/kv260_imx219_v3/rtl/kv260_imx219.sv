@@ -48,12 +48,12 @@ module kv260_imx219
     logic       axi4_mem_aresetn    ;
     logic       axi4_mem_aclk       ;
 
-    logic       i2c0_scl_i  ;
-    logic       i2c0_scl_o  ;
-    logic       i2c0_scl_t  ;
-    logic       i2c0_sda_i  ;
-    logic       i2c0_sda_o  ;
-    logic       i2c0_sda_t  ;
+    (* MARK_DEBUG=DEBUG *)  logic       i2c0_scl_i  ;
+    (* MARK_DEBUG=DEBUG *)  logic       i2c0_scl_o  ;
+    (* MARK_DEBUG=DEBUG *)  logic       i2c0_scl_t  ;
+    (* MARK_DEBUG=DEBUG *)  logic       i2c0_sda_i  ;
+    (* MARK_DEBUG=DEBUG *)  logic       i2c0_sda_o  ;
+    (* MARK_DEBUG=DEBUG *)  logic       i2c0_sda_t  ;
 
 
     jelly3_axi4l_if
@@ -237,18 +237,20 @@ module kv260_imx219
     //  GPIO
     // ----------------------------------------
     
-    logic           reg_sw_reset;
-    logic           reg_cam_enable;
-    logic   [2:0]   reg_fmt_select;
+    (* MARK_DEBUG=DEBUG *)  logic           reg_sw_reset;
+    (* MARK_DEBUG=DEBUG *)  logic           reg_cam_enable;
+    (* MARK_DEBUG=DEBUG *)  logic   [7:0]   reg_csi_data_type;
+    (* MARK_DEBUG=DEBUG *)  logic   [2:0]   reg_fmt_select;
     always_ff @(posedge axi4l_dec[DEC_GPIO].aclk) begin
         if ( ~axi4l_dec[DEC_GPIO].aresetn ) begin
             axi4l_dec[DEC_GPIO].bvalid <= 1'b0;
             axi4l_dec[DEC_GPIO].rdata  <= 'x;
             axi4l_dec[DEC_GPIO].rvalid <= 1'b0;
 
-            reg_sw_reset   <= 1'b0;
-            reg_cam_enable <= 1'b0;
-            reg_fmt_select <= '0;
+            reg_sw_reset      <= 1'b0;
+            reg_cam_enable    <= 1'b0;
+            reg_csi_data_type <= 8'h2b;
+            reg_fmt_select    <= '0;
         end
         else begin
             // write
@@ -259,9 +261,10 @@ module kv260_imx219
                     && axi4l_dec[DEC_GPIO].wvalid && axi4l_dec[DEC_GPIO].wready
                     && axi4l_dec[DEC_GPIO].wstrb[0] ) begin
                 case ( axi4l_dec[DEC_GPIO].awaddr[5:3] )
-                1: reg_sw_reset   <= 1'(axi4l_dec[DEC_GPIO].wdata);
-                2: reg_cam_enable <= 1'(axi4l_dec[DEC_GPIO].wdata);
-                3: reg_fmt_select <= 3'(axi4l_dec[DEC_GPIO].wdata);
+                1: reg_sw_reset      <= 1'(axi4l_dec[DEC_GPIO].wdata);
+                2: reg_cam_enable    <= 1'(axi4l_dec[DEC_GPIO].wdata);
+                3: reg_csi_data_type <= 8'(axi4l_dec[DEC_GPIO].wdata);
+                4: reg_fmt_select    <= 3'(axi4l_dec[DEC_GPIO].wdata);
                 default:;
                 endcase
                 axi4l_dec[DEC_GPIO].bvalid <= 1'b1;
@@ -274,11 +277,12 @@ module kv260_imx219
             end
             if ( axi4l_dec[DEC_GPIO].arvalid && axi4l_dec[DEC_GPIO].arready ) begin
                 case ( axi4l_dec[DEC_GPIO].awaddr[5:3] )
-                0: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(32'h01234567)     ;
-                1: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_sw_reset)     ;
-                2: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_cam_enable)   ;
-                3: axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_fmt_select)   ;
-                default:;
+                0:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(32'h01234567)     ;
+                1:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_sw_reset)     ;
+                2:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_cam_enable)   ;
+                3:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_csi_data_type);
+                4:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_fmt_select)   ;
+                default:    axi4l_dec[DEC_GPIO].rdata  <= '0    ;
                 endcase
                 axi4l_dec[DEC_GPIO].rvalid <= 1'b1;
             end
@@ -310,10 +314,10 @@ module kv260_imx219
     logic               cl_rxulpsclknot;
     logic               cl_ulpsactivenot;
     
-    (* mark_debug="true" *) logic   [7:0]       dl0_rxdatahs;
-    (* mark_debug="true" *) logic               dl0_rxvalidhs;
-    (* mark_debug="true" *) logic               dl0_rxactivehs;
-    (* mark_debug="true" *) logic               dl0_rxsynchs;
+    (* mark_debug=DEBUG *)  logic   [7:0]       dl0_rxdatahs;
+    (* mark_debug=DEBUG *)  logic               dl0_rxvalidhs;
+    (* mark_debug=DEBUG *)  logic               dl0_rxactivehs;
+    (* mark_debug=DEBUG *)  logic               dl0_rxsynchs;
     
     logic               dl0_forcerxmode   = 0;
     logic               dl0_stopstate;
@@ -333,10 +337,10 @@ module kv260_imx219
     logic               dl0_errsyncesc;
     logic               dl0_errcontrol;
     
-    (* mark_debug="true" *) logic   [7:0]       dl1_rxdatahs;
-    (* mark_debug="true" *) logic               dl1_rxvalidhs;
-    (* mark_debug="true" *) logic               dl1_rxactivehs;
-    (* mark_debug="true" *) logic               dl1_rxsynchs;
+    (* mark_debug=DEBUG *)  logic   [7:0]       dl1_rxdatahs;
+    (* mark_debug=DEBUG *)  logic               dl1_rxvalidhs;
+    (* mark_debug=DEBUG *)  logic               dl1_rxactivehs;
+    (* mark_debug=DEBUG *)  logic               dl1_rxsynchs;
     
     logic               dl1_forcerxmode   = 0;
     logic               dl1_stopstate;
@@ -471,7 +475,9 @@ module kv260_imx219
             (
                 .aresetn            (~sys_reset),
                 .aclk               (sys_clk250),
-                
+
+                .param_data_type    (reg_csi_data_type),
+
                 .ecc_corrected      (mipi_ecc_corrected),
                 .ecc_error          (mipi_ecc_error),
                 .ecc_valid          (mipi_ecc_valid),
@@ -539,7 +545,8 @@ module kv260_imx219
     // 現像
    jelly3_axi4s_if
             #(
-                .DATA_BITS  (4*10               )
+                .DATA_BITS  (4*10               ),
+                .DEBUG      (DEBUG              )
             )
         axi4s_rgb
             (
@@ -916,6 +923,10 @@ module kv260_imx219
     end
     
     // pmod
+ //   assign pmod[0] = reg_counter_rxbyteclkhs[25];
+//    assign pmod[1] = reg_counter_clk100     [25];
+//    assign pmod[2] = reg_counter_clk200     [25];
+//    assign pmod[3] = reg_counter_clk250     [25];
     assign pmod[0] = i2c0_scl_o;
     assign pmod[1] = i2c0_scl_t;
     assign pmod[2] = i2c0_sda_o;

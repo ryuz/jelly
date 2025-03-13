@@ -33,7 +33,7 @@ module jelly3_stream_ff
             // master port
             output  var data_t  m_data      ,
             output  var logic   m_valid     ,
-            input   var logic   m_ready
+            input   var logic   m_ready     
         );
     
     // internal signal
