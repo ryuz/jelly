@@ -9,11 +9,11 @@
 `default_nettype none
 
 
-module tb_sim();
+module tb_top();
     
     initial begin
-        $dumpfile("tb_sim.vcd");
-        $dumpvars(0, tb_sim);
+        $dumpfile("tb_top.vcd");
+        $dumpvars(0, tb_top);
         
     #10000000
         $finish;
@@ -27,12 +27,12 @@ module tb_sim();
 
     localparam RATE    = 1000.0/100.00;
 
-    reg			reset = 1;
+    logic       reset = 1;
     initial #(RATE*100)reset = 0;
 
-    reg			clk = 1'b1;
-    always #(RATE/2.0) clk <= ~clk;
-
+    logic       clk = 1'b1;
+    initial forever #(RATE/2.0) clk = ~clk;
+    
     
 
     // ---------------------------------

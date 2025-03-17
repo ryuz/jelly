@@ -6,7 +6,7 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # setting
-TOP_MODULE = tb_sim
+TOP_MODULE = tb_top
 
 JELLY_TOP_DIR = ../../../../../..
 

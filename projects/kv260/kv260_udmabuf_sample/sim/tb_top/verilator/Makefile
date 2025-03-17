@@ -1,7 +1,7 @@
 
 
 # setting
-TOP_MODULE = tb_sim
+TOP_MODULE = tb_top
 
 JELLY_TOP_DIR = ../../../../../..
 
