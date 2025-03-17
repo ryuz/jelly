@@ -33,7 +33,7 @@ module jelly2_jfive_micro_controller
             parameter   bit     [31:0]                  INIT_PC_ADDR     = 32'h8000_0000,
             parameter   bit                             INIT_CTL_RESET   = 1'b1,
 
-            parameter                                   DEVICE           = "ULTRASCALE",
+            parameter                                   DEVICE           = "RTL",
 
             parameter   bit                             SIMULATION       = 1'b0,
             parameter   bit                             LOG_EXE_ENABLE   = 1'b0,
