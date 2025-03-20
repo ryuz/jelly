@@ -126,7 +126,6 @@ module tang_mega_138k_pro_jfive_simple
 
 
     // GPIO
-    /*
     logic   [WB_DAT_WIDTH-1:0]  wb_gpio_dat_o;
     logic                       wb_gpio_stb_i;
     logic                       wb_gpio_ack_o;
@@ -146,11 +145,14 @@ module tang_mega_138k_pro_jfive_simple
     assign wb_gpio_ack_o = wb_gpio_stb_i;
 
     assign led_n[3:0] = reg_gpio[3:0];
-    */
 
 
     // Health check
-    logic   [25:0]  counter;
+    logic   [24:0]  counter = '0;
+    always_ff @(posedge clk ) begin
+        counter <= counter + 1;
+    end
+    /*
     always_ff @(posedge clk or posedge reset) begin
         if ( reset ) begin
             counter <= 0;
@@ -161,18 +163,20 @@ module tang_mega_138k_pro_jfive_simple
             end
         end
     end
-    assign led_n[5:4] = counter[25:24];
+    */
+    assign led_n[4] = ~counter[24];
+    assign led_n[5] = reset;
 
     // address decode
     assign wb_uart_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h0);
-//  assign wb_gpio_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h1);
+    assign wb_gpio_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h1);
 
     assign wb_mcu_dat_i  = wb_uart_stb_i ? wb_uart_dat_o :
-//                         wb_gpio_stb_i ? wb_gpio_dat_o :
+                           wb_gpio_stb_i ? wb_gpio_dat_o :
                            '0;
 
     assign wb_mcu_ack_i  = wb_uart_stb_i ? wb_uart_ack_o :
-//                           wb_gpio_stb_i ? wb_gpio_ack_o :
+                           wb_gpio_stb_i ? wb_gpio_ack_o :
                            wb_mcu_stb_o;
 
 endmodule

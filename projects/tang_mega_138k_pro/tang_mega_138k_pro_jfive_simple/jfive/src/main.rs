@@ -22,7 +22,7 @@ pub unsafe extern "C" fn main() -> ! {
     let mut i = 0;
     loop {
         println!("Hello world (Rust) {}", i);
-        wrtie_reg(REG_LED, i);
+        wrtie_reg(REG_LED, i >> 8);
         i += 1;
     }
 }
@@ -30,6 +30,7 @@ pub unsafe extern "C" fn main() -> ! {
 
 
 // レジスタ書き込み
+#[allow(dead_code)]
 fn wrtie_reg(adr: usize, data: u32) {
     let p = adr as *mut u32;
     unsafe {
@@ -38,6 +39,7 @@ fn wrtie_reg(adr: usize, data: u32) {
 }
 
 // レジスタ読み出し
+#[allow(dead_code)]
 fn read_reg(adr: usize) -> u32 {
     let p = adr as *mut u32;
     unsafe { core::ptr::read_volatile(p) }

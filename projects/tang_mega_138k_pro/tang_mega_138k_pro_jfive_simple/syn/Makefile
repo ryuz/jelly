@@ -63,10 +63,8 @@ export WSLENV=DEVICE_NAME:DEVICE_VERSION:TOP_MODULE:OUTPUT_BASE_NAME:VLOG_SOURCE
 
 all: $(FS_FILE)
 
-#jfive:
-#	make -C ../jfive/
-#	cp ../jfive/mem.hex .
-#mem.hex: jfive
+jfive:
+	make -C ./jfive_tcm all
 
 $(VG_SOURCES):
 	make -C ./jfive_tcm all
