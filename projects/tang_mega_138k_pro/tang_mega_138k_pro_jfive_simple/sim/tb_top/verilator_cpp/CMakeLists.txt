@@ -36,7 +36,6 @@ endif()
 
 set(RTL_SRCS
     ../tb_main.sv
-    ../../stub/design_1.v
 )
 
 verilate(tb_verilator

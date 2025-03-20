@@ -21,7 +21,6 @@
 -Wno-WIDTHEXPAND
 #-Wno-fatal
 
--y ../../stub
 -y ../../../rtl
 -y ../../../../../../rtl/v1/library
 -y ../../../../../../rtl/v1/bus
@@ -38,6 +37,7 @@
 -y ../../../../../../rtl/v2/bus
 -y ../../../../../../rtl/v2/dma
 -y ../../../../../../rtl/v2/math
+-y ../../../../../../rtl/v2/jfive
 -y ../../../../../../rtl/v2/primitive
 -y ../../../../../../rtl/v2/rtos
 -y ../../../../../../rtl/v2/image

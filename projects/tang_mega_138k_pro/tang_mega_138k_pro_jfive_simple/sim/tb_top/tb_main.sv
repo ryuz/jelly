@@ -41,13 +41,13 @@ module tb_main
     logic           wb_stb_o;
     logic           wb_ack_i;
 
-    assign wb_adr_o = u_top.wb_adr_o;
-    assign wb_dat_i = u_top.wb_dat_i;
-    assign wb_dat_o = u_top.wb_dat_o;
-    assign wb_sel_o = u_top.wb_sel_o;
-    assign wb_we_o  = u_top.wb_we_o;
-    assign wb_stb_o = u_top.wb_stb_o;
-    assign wb_ack_i = u_top.wb_ack_i;
+    assign wb_adr_o = u_top.wb_mcu_adr_o;
+    assign wb_dat_i = u_top.wb_mcu_dat_i;
+    assign wb_dat_o = u_top.wb_mcu_dat_o;
+    assign wb_sel_o = u_top.wb_mcu_sel_o;
+    assign wb_we_o  = u_top.wb_mcu_we_o;
+    assign wb_stb_o = u_top.wb_mcu_stb_o;
+    assign wb_ack_i = u_top.wb_mcu_ack_i;
 
     always_ff @(posedge clk) begin
         if ( !reset ) begin

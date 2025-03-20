@@ -21,9 +21,11 @@ JELLY_TOP_DIR = $(TOP_DIR)
 CONSTRAIN_DIR = ../constrain
 
 VLOG_SOURCES  = $(RTL_DIR)/tang_mega_138k_pro_jfive_simple.sv
-VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_jfive_simple_controller.sv
+VLOG_SOURCES += $(RTL_DIR)/jfive_simple_controller.sv
+#VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_jfive_simple_controller.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_jfive_simple_core.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_register_file.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_register_file_ram.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_register_file_ram32x1d.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/primitive/jelly2_ram32x1d.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/peripheral/jelly2_uart.sv
@@ -39,9 +41,10 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_ram_simple_dualport.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_ram_dualport.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_insert_ff.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_control.v
-
 #VLOG_SOURCES += $(JELLY_RTL_SOURCES)
 
+VG_SOURCES    = ./jfive_tcm/impl/gwsynthesis/jfive_tcm.vg
+VLOG_SOURCES += $(VG_SOURCES)
 
 CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.sdc
 CST_SOURCES += $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.cst
@@ -60,11 +63,20 @@ export WSLENV=DEVICE_NAME:DEVICE_VERSION:TOP_MODULE:OUTPUT_BASE_NAME:VLOG_SOURCE
 
 all: $(FS_FILE)
 
-$(FS_FILE): $(VLOG_SOURCES) $(CST_SOURCES)
+#jfive:
+#	make -C ../jfive/
+#	cp ../jfive/mem.hex .
+#mem.hex: jfive
+
+$(VG_SOURCES):
+	make -C ./jfive_tcm all
+
+$(FS_FILE): $(VLOG_SOURCES) $(CST_SOURCES) $(VG_SOURCES)
 	gw_sh $(TOP_DIR)/scripts/gowin_build.tcl
 
 clean:
 	rm -fr impl
+	make -C ./jfive_tcm clean
 
 run: $(FS_FILE)
 	openFPGALoader $(FS_FILE)
