@@ -18,9 +18,11 @@ RTL_DIR = ../../rtl
 
 CONSTRAIN_DIR = ../../constrain
 
-VLOG_SOURCES += ./jfive_tcm.sv
+VLOG_SOURCES  = ./jfive_tcm.sv
 #VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_ram_dualport.sv
 
+SDC_SOURCES =
+CST_SOURCES =
 
 # for tcl script
 export DEVICE_NAME

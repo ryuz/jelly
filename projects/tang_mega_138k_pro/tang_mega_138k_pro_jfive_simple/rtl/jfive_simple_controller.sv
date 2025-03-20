@@ -16,7 +16,7 @@ module jfive_simple_controller
             
             parameter   bit     [31:0]                  TCM_DECODE_MASK  = 32'hff00_0000,
             parameter   bit     [31:0]                  TCM_DECODE_ADDR  = 32'h8000_0000,
-            parameter   int                             TCM_SIZE         = 4096,
+            parameter   int                             TCM_SIZE         = 32768,
             parameter                                   TCM_RAM_TYPE     = "block",
             parameter                                   TCM_RAM_MODE     = "NO_CHANGE",
             parameter   bit                             TCM_READMEMH     = 1'b0,
@@ -183,42 +183,23 @@ module jfive_simple_controller
     logic   [31:0]                  tcm_dbus_rdata;
 
     jfive_tcm
-    /*
-            #(
-                .ADDR_WIDTH         (TCM_ADDR_WIDTH),
-                .DATA_WIDTH         (32),
-                .WE_WIDTH           (4),
-                .WORD_WIDTH         (8),
-                .MEM_SIZE           (TCM_MEM_SIZE),
-                .RAM_TYPE           (TCM_RAM_TYPE),
-                .DOUT_REGS0         (0),
-                .DOUT_REGS1         (0),
-                .MODE0              (TCM_RAM_MODE),
-                .MODE1              (TCM_RAM_MODE),
-
-                .FILLMEM            (0),
-                .FILLMEM_DATA       (0),
-                .READMEMB           (0),
-                .READMEMH           (TCM_READMEMH),
-                .READMEM_FIlE       (TCM_READMEM_FIlE)
-            )*/
-        i_ram_dualport
+        i_tcm
             (
-                .port0_clk          (clk                        ),
-                .port0_en           (core_cke                   ),
-                .port0_regcke       (core_cke                   ),
-                .port0_we           (tcm_ibus_we            ),
-                .port0_addr         (tcm_ibus_addr              ),
-                .port0_din          (tcm_ibus_wdata  ),
-                .port0_dout         (tcm_ibus_rdata  ),
+                .port0_clk          (clk            ),
+                .port0_en           (core_cke       ),
+                .port0_regcke       (core_cke       ),
+                .port0_we           (tcm_ibus_we    ),
+                .port0_addr         (tcm_ibus_addr  ),
+                .port0_din          (tcm_ibus_wdata ),
+                .port0_dout         (tcm_ibus_rdata ),
 
-                .port1_clk          (clk),
-                .port1_en           (core_cke),
-                .port1_regcke       (core_cke),
-                .port1_we           (tcm_dbus_we   ),
+                .port1_clk          (clk            ),
+                .port1_en           (core_cke       ),
+                .port1_regcke       (core_cke       ),
+                .port1_we           (tcm_dbus_we    ),
                 .port1_addr         (tcm_dbus_addr  ),
-                .port1_din          (tcm_dbus_wdata),
-                .port1_dout         (tcm_dbus_rdata)
+                .port1_din          (tcm_dbus_wdata ),
+                .port1_dout         (tcm_dbus_rdata )
             );
 
     // ibus

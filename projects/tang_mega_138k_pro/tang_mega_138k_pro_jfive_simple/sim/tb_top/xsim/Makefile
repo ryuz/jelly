@@ -20,6 +20,7 @@ ELABFLAGS  = -debug wave
 
 SRCS  = ../$(TOP_MODULE).sv
 SRCS += ../tb_main.sv
+SRCS += ../jfive_tcm.sv
 
 # rulres
 .PHONY: all

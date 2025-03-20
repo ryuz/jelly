@@ -36,6 +36,7 @@ endif()
 
 set(RTL_SRCS
     ../tb_main.sv
+    ../jfive_tcm.sv
 )
 
 verilate(tb_verilator

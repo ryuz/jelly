@@ -48,10 +48,10 @@ module tang_mega_138k_pro_jfive_simple
 
                 .TCM_DECODE_MASK    (32'hff00_0000          ),
                 .TCM_DECODE_ADDR    (32'h8000_0000          ),
-                .TCM_SIZE           (8192                   ),
+                .TCM_SIZE           (8192*4                 ),
                 .TCM_RAM_MODE       ("NORMAL"               ),
-//                .TCM_READMEMH       (JFIVE_TCM_READMEMH     ),
-//                .TCM_READMEM_FIlE   (JFIVE_TCM_READMEM_FIlE ),
+                .TCM_READMEMH       (JFIVE_TCM_READMEMH     ),
+                .TCM_READMEM_FIlE   (JFIVE_TCM_READMEM_FIlE ),
 
                 .PC_WIDTH           (32                     ),
                 .INIT_PC_ADDR       (32'h8000_0000          ),

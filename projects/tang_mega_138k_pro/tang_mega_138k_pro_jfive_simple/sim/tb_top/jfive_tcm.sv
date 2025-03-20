@@ -19,7 +19,7 @@ module jfive_tcm
             parameter   logic   [WE_WIDTH*WORD_WIDTH-1:0]   FILLMEM_DATA = 0,
             parameter   bit                                 READMEMB     = 0,
             parameter   bit                                 READMEMH     = 1,
-            parameter                                       READMEM_FIlE = "./mem.hex"
+            parameter                                       READMEM_FIlE = "../mem.hex"
         )
         (
             // port0

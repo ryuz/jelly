@@ -1,7 +1,7 @@
 
 
 # setting
-TOP_MODULE = tb_sim
+TOP_MODULE = tb_top
 
 JELLY_TOP_DIR = ../../../../../..
 
@@ -29,7 +29,7 @@ FLAGS += -Wno-WIDTHEXPAND
 
 SRCS  = ../$(TOP_MODULE).sv
 SRCS += ../tb_main.sv
-SRCS += ../../stub/design_1.v
+SRCS += ../jfive_tcm.sv
 
 # rulres
 all: build run
