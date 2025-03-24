@@ -2,7 +2,7 @@
 //  Jelly  -- The platform for real-time computing
 //   image processing
 //
-//                                 Copyright (C) 2008-2024 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2025 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -14,28 +14,31 @@
 
 module jelly3_img_bayer_gaussian_core
         #(
-            parameter   int     MAX_COLS    = 4096                  ,
-            parameter           RAM_TYPE    = "block"               ,
-            parameter   bit     BYPASS_SIZE = 1'b1                  
+            parameter   int     MAX_COLS    = 4096          ,
+            parameter           RAM_TYPE    = "block"       ,
+            parameter           BORDER_MODE = "REPLICATE"   ,
+            parameter   bit     BYPASS_SIZE = 1'b1          ,
+            parameter   bit     ROUND       = 1'b1          
         )
         (
-            jelly3_mat_if.s     s_img,
-            jelly3_mat_if.m     m_img
+            input   var logic   enable  ,
+            jelly3_mat_if.s     s_img   ,
+            jelly3_mat_if.m     m_img   
         );
     
-    localparam  int     TAPS      = s_img.TAPS              ;
-    localparam  int     ROWS_BITS = s_img.ROWS_BITS         ;
-    localparam  int     COLS_BITS = s_img.COLS_BITS         ;
-    localparam  int     DE_BITS   = s_img.DE_BITS           ;
-    localparam  int     S_CH_BITS = s_img.CH_BITS           ;
-    localparam  int     M_CH_BITS = m_img.CH_BITS           ;
-    localparam  int     USER_BITS = s_img.USER_BITS         ;
-    localparam  type    rows_t    = logic   [ROWS_BITS-1:0] ;
-    localparam  type    cols_t    = logic   [COLS_BITS-1:0] ;
-    localparam  type    de_t      = logic   [DE_BITS-1:0]   ;
-    localparam  type    s_ch_t    = logic   [S_CH_BITS-1:0] ;
-    localparam  type    m_ch_t    = logic   [S_CH_BITS-1:0] ;
-    localparam  type    user_t    = logic   [USER_BITS-1:0] ;
+    localparam  int     TAPS       = s_img.TAPS              ;
+    localparam  int     ROWS_BITS  = s_img.ROWS_BITS         ;
+    localparam  int     COLS_BITS  = s_img.COLS_BITS         ;
+    localparam  int     DE_BITS    = s_img.DE_BITS           ;
+    localparam  int     S_RAW_BITS = s_img.CH_BITS           ;
+    localparam  int     M_RAW_BITS = m_img.CH_BITS           ;
+    localparam  int     USER_BITS  = s_img.USER_BITS         ;
+    localparam  type    rows_t     = logic   [ROWS_BITS-1:0] ;
+    localparam  type    cols_t     = logic   [COLS_BITS-1:0] ;
+    localparam  type    de_t       = logic   [DE_BITS-1:0]   ;
+    localparam  type    s_raw_t    = logic   [S_RAW_BITS-1:0];
+    localparam  type    m_raw_t    = logic   [M_RAW_BITS-1:0];
+    localparam  type    user_t     = logic   [USER_BITS-1:0] ;
     
     rows_t                          img_blk_rows        ;
     cols_t                          img_blk_cols        ;
@@ -45,7 +48,7 @@ module jelly3_img_bayer_gaussian_core
     logic                           img_blk_col_last    ;
     user_t                          img_blk_user        ;
     de_t                            img_blk_de          ;
-    s_ch_t  [TAPS-1:0][4:0][4:0]    img_blk_data        ;
+    s_raw_t [TAPS-1:0][4:0][4:0]    img_blk_raw         ;
     logic                           img_blk_valid       ;
     
     jelly3_mat_buf_blk
@@ -53,12 +56,12 @@ module jelly3_img_bayer_gaussian_core
                 .TAPS               (TAPS               ),
                 .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
-                .DATA_BITS          (CH_BITS            ),
+                .DATA_BITS          (S_RAW_BITS         ),
                 .ROWS               (5                  ),
                 .COLS               (5                  ),
                 .MAX_COLS           (MAX_COLS           ),
                 .RAM_TYPE           (RAM_TYPE           ),
-                .BORDER_MODE        ("REFLECT_101"      ),
+                .BORDER_MODE        (BORDER_MODE        ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
             )
         u_mat_buf_blk
@@ -91,18 +94,13 @@ module jelly3_img_bayer_gaussian_core
             );
     
 
-    for ( genvar tap = 0; tap < TAPS; tap++ ) begin : loop_calc
-        ch_t        acpi_raw;
-        ch_t        acpi_g;
-
+    for ( genvar tap = 0; tap < TAPS; tap++ ) begin : loop_tap
         jelly3_img_bayer_gaussian_calc
                 #(
-                    .TAPS               (TAPS               ),
-                    .TAP_POS            (tap                ),
-                    .S_CH_BITS          ($bits(s_ch_t)      ),
-                    .s_ch_t             (s_ch_t             ),
-                    .M_CH_BITS          ($bits(m_ch_t)      ),
-                    .m_ch_t             (m_ch_t             )
+                    .S_RAW_BITS         ($bits(s_raw_t)     ),
+                    .s_raw_t            (s_raw_t            ),
+                    .M_RAW_BITS         ($bits(m_raw_t)     ),
+                    .m_raw_t            (m_raw_t            )
                 )
             u_img_bayer_gaussian_calc
                 (
@@ -110,9 +108,10 @@ module jelly3_img_bayer_gaussian_core
                     .clk                (s_img.clk          ),
                     .cke                (s_img.cke          ),
                     
-                    .s_data             (img_blk_data[tap]  ),
-                    
-                    .m_data             (m_img.data[tap]    ),
+                    .enable             (enable             ),
+
+                    .s_raw              (img_blk_raw[tap]   ),
+                    .m_raw              (m_img.data[tap]    )
                 );
     end
     
@@ -122,7 +121,7 @@ module jelly3_img_bayer_gaussian_core
                 .COLS_BITS          (COLS_BITS          ),
                 .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
-                .LATENCY            (7                  ),
+                .LATENCY            (4                  ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
             )
         u_img_delay
@@ -153,10 +152,6 @@ module jelly3_img_bayer_gaussian_core
             );
     
     // assertion
-    initial begin
-        sva_data_bits   : assert ( $bits(ch_t) == s_img.DATA_BITS ) else $warning("$bits(ch_t) != s_img.DATA_BITS");
-        sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS * 2) else $warning("m_img.DATA_BITS != s_img.DATA_BITS * 2");
-    end
     always_comb begin
         sva_connect_clk : assert (m_img.clk === s_img.clk);
     end
