@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <iostream>
+#include <fstream>
 #include <filesystem>
 #include <chrono>
 #include <iomanip>
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
     int     exposure    = 33;
     int     a_gain      = 20;
     int     d_gain      = 0;
-    int     bayer_phase = 0;
+    int     gauss_level = 0;
     int     imgsel      = 0;
     int     view_scale  = 4;
 
@@ -58,7 +59,6 @@ int main(int argc, char *argv[])
     exposure    = 1;
     a_gain      = 20;
     d_gain      = 10;
-    bayer_phase = 0;
     view_scale  = 1;
 
     for ( int i = 1; i < argc; ++i ) {
@@ -75,7 +75,6 @@ int main(int argc, char *argv[])
             exposure    = 1;
             a_gain      = 20;
             d_gain      = 10;
-            bayer_phase = 0;
             view_scale  = 1;
         }
         else if ( strcmp(argv[i], "vga") == 0 ) {
@@ -91,7 +90,6 @@ int main(int argc, char *argv[])
             exposure    = 20;
             a_gain      = 20;
             d_gain      = 0;
-            bayer_phase = 0;
             view_scale  = 1;
         }
         else if ( strcmp(argv[i], "720p") == 0 ) {
@@ -107,7 +105,6 @@ int main(int argc, char *argv[])
             exposure    = 20;
             a_gain      = 20;
             d_gain      = 0;
-            bayer_phase = 0;
             view_scale  = 2;
         }
         else if ( strcmp(argv[i], "1080p") == 0 ) {
@@ -123,7 +120,6 @@ int main(int argc, char *argv[])
             exposure    = 20;
             a_gain      = 20;
             d_gain      = 0;
-            bayer_phase = 0;
             view_scale  = 2;
         }
         else if ( strcmp(argv[i], "full") == 0 ) {
@@ -179,9 +175,9 @@ int main(int argc, char *argv[])
             ++i;
             d_gain = (int)strtof(argv[i], nullptr);
         }
-        else if ( strcmp(argv[i], "-bayer_phase") == 0 && i+1 < argc) {
+        else if ( strcmp(argv[i], "-gauss") == 0 && i+1 < argc) {
             ++i;
-            bayer_phase = strtol(argv[i], nullptr, 0);
+            gauss_level = strtol(argv[i], nullptr, 0);
         }
         else if ( strcmp(argv[i], "-view_scale") == 0 && i+1 < argc) {
             ++i;
@@ -209,15 +205,17 @@ int main(int argc, char *argv[])
 
     auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
+    auto reg_gauss  = uio_acc.GetAccessor(0x00121000);
     auto reg_imgsel = uio_acc.GetAccessor(0x0012f000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     auto reg_logger = uio_acc.GetAccessor(0x00300000);
-    
+
 #if 1
     std::cout << "CORE ID" << std::endl;
-    std::cout << std::hex << reg_gpio.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
+    std::cout << "gpio  : " << std::hex << reg_gpio .ReadReg(0) << std::endl;
+    std::cout << "gauss : " << std::hex << reg_gauss.ReadReg(0) << std::endl;
+    std::cout << "fmtr  : " << std::hex << reg_fmtr .ReadReg(0) << std::endl;
+    std::cout << "wdma  : " << std::hex << reg_wdma .ReadReg(0) << std::endl;
 #endif
 
     // mmap udmabuf
@@ -286,8 +284,8 @@ int main(int argc, char *argv[])
     cv::setTrackbarPos("a_gain",   "img", a_gain);
     cv::createTrackbar("d_gain",   "img", nullptr, 24);
     cv::setTrackbarPos("d_gain",   "img", d_gain);
-    cv::createTrackbar("bayer" ,   "img", nullptr, 3);
-    cv::setTrackbarPos("bayer",    "img", bayer_phase);
+    cv::createTrackbar("gauss" ,   "img", nullptr, 3);
+    cv::setTrackbarPos("gauss",    "img", gauss_level);
     cv::createTrackbar("imgsel",   "img", nullptr, 3);
     cv::setTrackbarPos("imgsel",   "img", imgsel);
 
@@ -307,6 +305,8 @@ int main(int argc, char *argv[])
 
     std::vector<double> hist_dx;
     std::vector<double> hist_dy;
+    std::vector<double> log_hist_dx;
+    std::vector<double> log_hist_dy;
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
@@ -329,7 +329,14 @@ int main(int argc, char *argv[])
                 hist_dx.erase(hist_dx.begin());
                 hist_dy.erase(hist_dy.begin());
             }
-            
+
+            log_hist_dx.push_back(dx);
+            log_hist_dy.push_back(dy);
+            if ( log_hist_dx.size() > 10000 ) {
+                log_hist_dx.erase(log_hist_dx.begin());
+                log_hist_dy.erase(log_hist_dy.begin());
+            }
+
 //          printf("gx2 : %10.0f gy2 : %10.0f gxy : %10.0f ex : %10.0f ey : %10.0f\n", gx2, gy2, gxy, ex, ey);
 //          std::cout << "gx2 : " << gx2 << std::endl;
 //          std::cout << "gy2 : " << gy2 << std::endl;
@@ -362,7 +369,7 @@ int main(int argc, char *argv[])
         exposure    = cv::getTrackbarPos("exposure", "img");
         a_gain      = cv::getTrackbarPos("a_gain",   "img");
         d_gain      = cv::getTrackbarPos("d_gain",   "img");
-        bayer_phase = cv::getTrackbarPos("bayer" ,   "img");
+        gauss_level = cv::getTrackbarPos("gauss" ,   "img");
         imgsel      = cv::getTrackbarPos("imgsel",   "img");
 
         // 設定
@@ -373,7 +380,12 @@ int main(int argc, char *argv[])
         imx219.SetFlip(flip_h, flip_v);
 //        reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
 //        reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
+        
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_PARAM_ENABLE, (1 << gauss_level) - 1);
+        reg_gauss.WriteReg(REG_IMG_GAUSS3X3_CTL_CONTROL,  3);
+
         reg_imgsel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, imgsel);
+
 
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
@@ -421,10 +433,19 @@ int main(int argc, char *argv[])
         case 'v':  flip_v = !flip_v;  break;
         
         // aoi position
-        case 'w':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() - 4);    break;
-        case 'z':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() + 4);    break;
-        case 'a':  imx219.SetAoiPosition(imx219.GetAoiX() - 4, imx219.GetAoiY());    break;
-        case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
+//      case 'w':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() - 4);    break;
+//      case 'z':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() + 4);    break;
+//      case 'a':  imx219.SetAoiPosition(imx219.GetAoiX() - 4, imx219.GetAoiY());    break;
+//      case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
+
+        case 's':   // save data
+            {
+                std::ofstream ofs("data.csv");
+                for ( int i= 0; i < (int)log_hist_dx.size(); i++ ) {
+                    ofs << log_hist_dx[i] << "," << log_hist_dy[i] << std::endl;
+                }
+            }
+            break;
 
         case 'd':   // image dump
             cv::imwrite("img_dump.png", img);
