@@ -105,7 +105,7 @@ module tb_top();
     localparam  axi4l_addr_t    ADR_GPIO   = axi4l_addr_t'(40'ha000_0000);
     localparam  axi4l_addr_t    ADR_FMTR   = axi4l_addr_t'(40'ha010_0000);
     localparam  axi4l_addr_t    ADR_WDMA   = axi4l_addr_t'(40'ha021_0000);
-//    localparam  axi4l_addr_t    ADR_WB     = axi4l_addr_t'(40'ha012_1000);
+    localparam  axi4l_addr_t    ADR_GAUSS  = axi4l_addr_t'(40'ha012_1000);
 //    localparam  axi4l_addr_t    ADR_DEMOS  = axi4l_addr_t'(40'ha012_2000);
 //    localparam  axi4l_addr_t    ADR_COLMAT = axi4l_addr_t'(40'ha012_4000);
     localparam  axi4l_addr_t    ADR_IMGSEL = axi4l_addr_t'(40'ha012_f000);
@@ -170,6 +170,12 @@ module tb_top();
 //        $display("demos");
 //        u_axi4l.write_reg(ADR_DEMOS, `REG_IMG_DEMOSAIC_PARAM_PHASE, axi4l_data_t'(bayer_phase), 8'hff);
 //        u_axi4l.write_reg(ADR_DEMOS, `REG_IMG_DEMOSAIC_CTL_CONTROL, axi4l_data_t'(          3), 8'hff);
+
+
+        $display("gauss");
+        u_axi4l.read_reg (ADR_GAUSS, `REG_IMG_GAUSS3X3_CORE_ID         , rdata);
+        u_axi4l.write_reg(ADR_GAUSS, `REG_IMG_GAUSS3X3_PARAM_ENABLE    , 7, 8'hff);
+        u_axi4l.write_reg(ADR_GAUSS, `REG_IMG_GAUSS3X3_CTL_CONTROL     , 3, 8'hff);
 
         $display("imgsel");
         u_axi4l.write_reg(ADR_IMGSEL, `REG_IMG_SELECTOR_CTL_SELECT, axi4l_data_t'(1), 8'hff);

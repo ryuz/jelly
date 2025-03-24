@@ -69,10 +69,9 @@ module image_processing
     //  Address decoder
     // ----------------------------------------
     
-//    localparam DEC_WB    = 0;
- //   localparam DEC_DEMOS = 1;
-    localparam int DEC_SEL  = 0;
-    localparam int DEC_NUM  = 1;
+    localparam int DEC_GAUSS = 0;
+    localparam int DEC_SEL   = 1;
+    localparam int DEC_NUM   = 2;
 
     jelly3_axi4l_if
             #(
@@ -87,8 +86,7 @@ module image_processing
             );
     
     // address map
-//  assign {axi4l_dec[DEC_WB   ].addr_base, axi4l_dec[DEC_WB   ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
-//  assign {axi4l_dec[DEC_DEMOS].addr_base, axi4l_dec[DEC_DEMOS].addr_high} = {40'ha012_2000, 40'ha012_2fff};
+    assign {axi4l_dec[DEC_GAUSS].addr_base, axi4l_dec[DEC_GAUSS].addr_high} = {40'ha012_1000, 40'ha012_1fff};
     assign {axi4l_dec[DEC_SEL  ].addr_base, axi4l_dec[DEC_SEL  ].addr_high} = {40'ha012_f000, 40'ha012_ffff};
 
     jelly3_axi4l_addr_decoder
@@ -163,18 +161,46 @@ module image_processing
                 .s_mat          (img_sink.s         )
         );
     
-    /*
-    assign img_sink.rows        = img_src.rows      ;
-    assign img_sink.cols        = img_src.cols      ;
-    assign img_sink.row_first   = img_src.row_first ;
-    assign img_sink.row_last    = img_src.row_last  ;
-    assign img_sink.col_first   = img_src.col_first ;
-    assign img_sink.col_last    = img_src.col_last  ;
-    assign img_sink.de          = img_src.de        ;
-    assign img_sink.data        = img_src.data      ;
-    assign img_sink.user        = img_src.user      ;
-    assign img_sink.valid       = img_src.valid     ;
-    */
+    
+    // -------------------------------------
+    //  Gaussian filter
+    // -------------------------------------
+    
+    jelly3_mat_if
+            #(
+                .TAPS       (TAPS           ),
+                .ROWS_BITS  ($bits(rows_t)  ),
+                .COLS_BITS  ($bits(cols_t)  ),
+                .CH_BITS    (S_CH_BITS      ),
+                .CH_DEPTH   (1              )
+            )
+        img_gauss
+            (
+                .reset      (reset          ),
+                .clk        (clk            ),
+                .cke        (cke            )
+            );
+    
+    jelly3_img_bayer_gaussian
+            #(
+                .NUM            (4                      ),
+                .MAX_COLS       (1024                   ),
+                .RAM_TYPE       ("block"                ),
+                .BORDER_MODE    ("REPLICATE"            ),
+                .BYPASS_SIZE    (1'b1                   ),
+                .ROUND          (1'b1                   )
+            )
+        u_img_bayer_gaussian
+            (
+                .in_update_req  (in_update_req          ),
+
+                .s_img          (img_src                ),
+                .m_img          (img_gauss              ),
+            
+                .s_axi4l        (axi4l_dec[DEC_GAUSS]   )
+        );
+    
+
 
     // -------------------------------------
     //  frame buffer
@@ -205,35 +231,14 @@ module image_processing
             )
         u_mat_buf_mem
             (
-                .s_mat          (img_src    ),
+                .s_mat          (img_gauss  ),
                 .m_mat          (img_buf    )
             );
-
-    /*
-    assign img_sink.rows        = img_buf.rows                  ;
-    assign img_sink.cols        = img_buf.cols                  ;
-    assign img_sink.row_first   = img_buf.row_first             ;
-    assign img_sink.row_last    = img_buf.row_last              ;
-    assign img_sink.col_first   = img_buf.col_first             ;
-    assign img_sink.col_last    = img_buf.col_last              ;
-    assign img_sink.de          = img_buf.de                    ;
-    assign img_sink.data        = M_CH_BITS'(img_buf.data[0][0]);
-    assign img_sink.user        = img_buf.user                  ;
-    assign img_sink.valid       = img_buf.valid                 ;
-    */
-
 
     jelly3_img_bayer_lk
             #(
                 .TAPS               (TAPS               ),
-//                .DE_BITS            (DE_BITS            ),
-//                .de_t               (de_t               ),
-//                .CH_DEPTH           (CH_DEPTH           ),
                 .CH_BITS            (S_CH_BITS          ),
-//                .ch_t               (ch_t               ),
-//              .data_t             (data_t             ),
-//                .USER_BITS          (USER_BITS          ),
-//                .user_t             (user_t             ),
                 .ROWS_BITS          (ROWS_BITS          ),
                 .rows_t             (rows_t             ),
                 .COLS_BITS          (COLS_BITS          ),
@@ -278,7 +283,7 @@ module image_processing
     //  output selector
     // -------------------------------------
 
-    localparam int SEL_NUM = 3;
+    localparam int SEL_NUM = 4;
 
     jelly3_mat_if
             #(
@@ -295,29 +300,6 @@ module image_processing
                 .cke        (img_sink.cke      )
             );
 
-    /*
-    jelly3_mat_if
-            #(
-                .USE_DE     (img_sink.USE_DE   ),
-                .USE_USER   (img_sink.USE_USER ),
-                .USE_VALID  (img_sink.USE_VALID),
-                .TAPS       (img_sink.TAPS     ),
-                .DE_BITS    (img_sink.DE_BITS  ),
-                .CH_DEPTH   (img_sink.CH_DEPTH ),
-                .CH_BITS    (img_sink.CH_BITS  ),
-                .ROWS_BITS  (img_sink.ROWS_BITS),
-                .COLS_BITS  (img_sink.COLS_BITS),
-                .DATA_BITS  (img_sink.DATA_BITS),
-                .USER_BITS  (img_sink.USER_BITS),
-            )
-        img_sel_m
-            (
-                .reset      (img_sink.reset    ),
-                .clk        (img_sink.clk      ),
-                .cke        (img_sink.cke      )
-            );
-    */
-
     jelly3_img_selector
             #(
                 .NUM                (SEL_NUM            ),
@@ -330,18 +312,17 @@ module image_processing
                 .s_axi4l            (axi4l_dec[DEC_SEL] )
             );
     
+    assign img_sel_s[0].rows        = img_src.rows                  ;
+    assign img_sel_s[0].cols        = img_src.cols                  ;
+    assign img_sel_s[0].row_first   = img_src.row_first             ;
+    assign img_sel_s[0].row_last    = img_src.row_last              ;
+    assign img_sel_s[0].col_first   = img_src.col_first             ;
+    assign img_sel_s[0].col_last    = img_src.col_last              ;
+    assign img_sel_s[0].de          = img_src.de                    ;
+    assign img_sel_s[0].data        = M_CH_BITS'(img_src.data[0][0]);
+    assign img_sel_s[0].user        = img_src.user                  ;
+    assign img_sel_s[0].valid       = img_src.valid                 ;
 
-    assign img_sel_s[0].rows        = img_buf.rows                  ;
-    assign img_sel_s[0].cols        = img_buf.cols                  ;
-    assign img_sel_s[0].row_first   = img_buf.row_first             ;
-    assign img_sel_s[0].row_last    = img_buf.row_last              ;
-    assign img_sel_s[0].col_first   = img_buf.col_first             ;
-    assign img_sel_s[0].col_last    = img_buf.col_last              ;
-    assign img_sel_s[0].de          = img_buf.de                    ;
-    assign img_sel_s[0].data        = M_CH_BITS'(img_buf.data[0][0]);
-    assign img_sel_s[0].user        = img_buf.user                  ;
-    assign img_sel_s[0].valid       = img_buf.valid                 ;
-    
     assign img_sel_s[1].rows        = img_buf.rows                  ;
     assign img_sel_s[1].cols        = img_buf.cols                  ;
     assign img_sel_s[1].row_first   = img_buf.row_first             ;
@@ -349,7 +330,7 @@ module image_processing
     assign img_sel_s[1].col_first   = img_buf.col_first             ;
     assign img_sel_s[1].col_last    = img_buf.col_last              ;
     assign img_sel_s[1].de          = img_buf.de                    ;
-    assign img_sel_s[1].data        = M_CH_BITS'(img_buf.data[0][1]);
+    assign img_sel_s[1].data        = M_CH_BITS'(img_buf.data[0][0]);
     assign img_sel_s[1].user        = img_buf.user                  ;
     assign img_sel_s[1].valid       = img_buf.valid                 ;
     
@@ -360,9 +341,20 @@ module image_processing
     assign img_sel_s[2].col_first   = img_buf.col_first             ;
     assign img_sel_s[2].col_last    = img_buf.col_last              ;
     assign img_sel_s[2].de          = img_buf.de                    ;
-    assign img_sel_s[2].data        = 512 + M_CH_BITS'(img_buf.data[0][1]) - M_CH_BITS'(img_buf.data[0][0]);
+    assign img_sel_s[2].data        = M_CH_BITS'(img_buf.data[0][1]);
     assign img_sel_s[2].user        = img_buf.user                  ;
     assign img_sel_s[2].valid       = img_buf.valid                 ;
+    
+    assign img_sel_s[3].rows        = img_buf.rows                  ;
+    assign img_sel_s[3].cols        = img_buf.cols                  ;
+    assign img_sel_s[3].row_first   = img_buf.row_first             ;
+    assign img_sel_s[3].row_last    = img_buf.row_last              ;
+    assign img_sel_s[3].col_first   = img_buf.col_first             ;
+    assign img_sel_s[3].col_last    = img_buf.col_last              ;
+    assign img_sel_s[3].de          = img_buf.de                    ;
+    assign img_sel_s[3].data        = 512 + M_CH_BITS'(img_buf.data[0][1]) - M_CH_BITS'(img_buf.data[0][0]);
+    assign img_sel_s[3].user        = img_buf.user                  ;
+    assign img_sel_s[3].valid       = img_buf.valid                 ;
 
 endmodule
 
