@@ -21,9 +21,9 @@ module jelly3_img_bayer_gaussian_core
             parameter   bit     ROUND       = 1'b1          
         )
         (
-            input   var logic   enable  ,
-            jelly3_mat_if.s     s_img   ,
-            jelly3_mat_if.m     m_img   
+            input   var logic               enable  ,
+            jelly3_mat_if.s                 s_img   ,
+            jelly3_mat_if.m                 m_img   
         );
     
     localparam  int     TAPS       = s_img.TAPS              ;
