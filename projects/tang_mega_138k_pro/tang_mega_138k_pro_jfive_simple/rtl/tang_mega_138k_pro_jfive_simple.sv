@@ -147,26 +147,6 @@ module tang_mega_138k_pro_jfive_simple
     assign led_n[3:0] = reg_gpio[3:0];
 
 
-    // Health check
-    logic   [24:0]  counter = '0;
-    always_ff @(posedge clk ) begin
-        counter <= counter + 1;
-    end
-    /*
-    always_ff @(posedge clk or posedge reset) begin
-        if ( reset ) begin
-            counter <= 0;
-        end
-        else begin
-            if ( ~uart_rx ) begin
-                counter <= counter + 1;
-            end
-        end
-    end
-    */
-    assign led_n[4] = ~counter[24];
-    assign led_n[5] = reset;
-
     // address decode
     assign wb_uart_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h0);
     assign wb_gpio_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h1);
@@ -179,7 +159,26 @@ module tang_mega_138k_pro_jfive_simple
                            wb_gpio_stb_i ? wb_gpio_ack_o :
                            wb_mcu_stb_o;
 
+
+    // Health check
+    logic   [24:0]  counter = '0;
+    always_ff @(posedge clk or posedge reset) begin
+        if ( reset ) begin
+            counter <= 0;
+        end
+        else begin
+            if ( ~uart_rx ) begin
+                counter <= counter + 1;
+            end
+        end
+    end
+    assign led_n[4] = ~counter[24];
+    assign led_n[5] = ~reset;
+
 endmodule
 
 
 `default_nettype wire
+
+
+// End of file
