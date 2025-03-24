@@ -73,5 +73,19 @@ if {[info exists ::env(CST_SOURCES)]} {
     }
 }
 
+# disable_io_insertion
+if {[info exists ::env(DISABLE_IO_INSERTION)]} {
+    set disable_io_insertion $::env(DISABLE_IO_INSERTION)
+} else {
+    set disable_io_insertion "0"
+}
+set_option -disable_io_insertion $disable_io_insertion
+
 # run
-run all
+if {[info exists ::env(RUN)]} {
+    set run $::env(RUN)
+} else {
+    set run "all"
+}
+
+run $run

@@ -112,6 +112,21 @@ module jelly2_ram_dualport
             end
         end
     end
+    else if ( 256'(MODE0) == 256'("NORMAL") ) begin : blk_norm0
+        // normal
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we0
+            always_ff @ ( posedge port0_clk ) begin
+                if ( port0_en ) begin
+                    if ( port0_we[i] ) begin
+                        mem[port0_addr][i*WORD_WIDTH +: WORD_WIDTH] <= port0_din[i*WORD_WIDTH +: WORD_WIDTH] ;
+                    end
+                    else begin
+                        tmp_port0_dout[i*WORD_WIDTH +: WORD_WIDTH]  <= mem[port0_addr][i*WORD_WIDTH +: WORD_WIDTH];
+                    end
+                end
+            end
+        end
+    end
     else begin
         // error
         initial begin
@@ -183,6 +198,21 @@ module jelly2_ram_dualport
                     if ( ~|port1_we ) begin
                     tmp_port1_dout <= mem[port1_addr];
                     end
+            end
+        end
+    end
+    else if ( 256'(MODE1) == 256'("NORMAL") ) begin : blk_norm1
+        // normal
+        for ( genvar i = 0; i < WE_WIDTH; ++i ) begin : loop_we1
+            always_ff @ ( posedge port1_clk ) begin
+                if ( port1_en ) begin
+                    if ( port1_we[i] ) begin
+                        mem[port1_addr][i*WORD_WIDTH +: WORD_WIDTH] <= port1_din[i*WORD_WIDTH +: WORD_WIDTH];
+                    end
+                    else begin
+                        tmp_port1_dout[i*WORD_WIDTH +: WORD_WIDTH] <= mem[port1_addr][i*WORD_WIDTH +: WORD_WIDTH];
+                    end
+                end
             end
         end
     end
