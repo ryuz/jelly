@@ -9,6 +9,7 @@ SIM_LIB_DIRS += ../../../rtl
 FLAGS  = --binary -j 0
 FLAGS += --assert
 FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
+FLAGS += --coverage
 FLAGS += -D__VERILATOR__ -D__SIMULATION__
 FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
 
