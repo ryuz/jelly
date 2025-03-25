@@ -33,8 +33,8 @@ module tb_top();
     // ---------------------------------
 
     typedef logic   [39:0]  addr_t;
-    typedef logic   [127:0] data_t;
-    typedef logic   [15:0]  strb_t;
+    typedef logic   [63:0]  data_t;
+    typedef logic   [7:0]   strb_t;
     typedef logic   [2:0]   prot_t;
     typedef logic   [1:0]   resp_t;
 

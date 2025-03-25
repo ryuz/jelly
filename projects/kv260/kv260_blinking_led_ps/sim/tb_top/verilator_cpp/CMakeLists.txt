@@ -8,18 +8,6 @@ if (NOT verilator_FOUND)
     message(FATAL_ERROR "Verilator was not found. Either install it, or set the VERILATOR_ROOT environment variable")
 endif()
 
-
-# vivado version
-execute_process (
-    COMMAND vivado -version
-    OUTPUT_VARIABLE VIVADO_VERSION_TEXT
-)
-string(REGEX MATCH [[v[0-9]+\.[0-9]+]] VIVADO_VERSION ${VIVADO_VERSION_TEXT})
-string(SUBSTRING ${VIVADO_VERSION} 1 6 VIVADO_VERSION)
-string(SUBSTRING ${VIVADO_VERSION} 0 4 VIVADO_VERSION_MAJOR)
-string(SUBSTRING ${VIVADO_VERSION} 5 1 VIVADO_VERSION_MINOR)
-message("VIVADO_VERSION: ${VIVADO_VERSION}")
-
 add_executable(tb_verilator ./tb_verilator.cpp)
 
 target_include_directories(tb_verilator PUBLIC "../../../../../../include")
@@ -31,7 +19,7 @@ set(RTL_SRCS
 )
 
 verilate(tb_verilator
-#    COVERAGE
+    COVERAGE
     TRACE
     INCLUDE_DIRS "."
     VERILATOR_ARGS -f verilator_cmd.txt -O3

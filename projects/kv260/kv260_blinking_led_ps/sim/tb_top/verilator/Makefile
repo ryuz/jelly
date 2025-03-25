@@ -11,7 +11,6 @@ FLAGS += --assert
 FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
 FLAGS += -D__VERILATOR__ -D__SIMULATION__
 FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
-#FLAGS += -Wno-SIDEEFFECT
 
 SRCS  = ../$(TOP_MODULE).sv
 
@@ -28,8 +27,6 @@ clean:
 .PHONY : distclean
 distclean: clean
 	rm -f *.fst *.vcd
-	rm -f *.ppm *.pgm
-	rm -f axi*.txt
 	rm -f coverage.dat
 	rm -fr annotated
 

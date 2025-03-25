@@ -1,8 +1,6 @@
 
-
 # cmake のフラグ
 CMAKE_FLAGS = 
-
 
 # clang があれば使う
 ifeq (,$(shell which clang))
@@ -41,8 +39,6 @@ clean:
 .PHONY : distclean
 distclean: clean
 	rm -f *.fst *.vcd
-	rm -f *.ppm *.pgm
-	rm -f axi*.txt
 	rm -f coverage.dat
 	rm -fr annotated
 
