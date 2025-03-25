@@ -59,29 +59,27 @@ module jelly3_histry_buffer_mem_sdp
         addr_t          rd_addr;
         data_t  [N-2:0] rd_data;
 
-        for ( genvar i = 0; i < N-1; i++ ) begin : ram
-            jelly3_ram_simple_dualport
-                    #(
-                        .addr_t     (addr_t     ),
-                        .data_t     (data_t     ),
-                        .MEM_DEPTH  (BUF_SIZE   ),
-                        .RAM_TYPE   (RAM_TYPE   ),
-                        .DOUT_REG   (DOUT_REG   )
-                    )
-                u_ram_simple_dualport
-                    (
-                        .wr_clk     (clk        ),
-                        .wr_en      (wr_en      ),
-                        .wr_addr    (wr_addr    ),
-                        .wr_din     (wr_data[i] ),
-                
-                        .rd_clk     (clk        ),
-                        .rd_en      (cke        ),
-                        .rd_regcke  (cke        ),
-                        .rd_addr    (rd_addr    ),
-                        .rd_dout    (rd_data[i] )
-                    );
-        end
+        jelly3_ram_simple_dualport
+                #(
+                    .ADDR_BITS  ($bits(wr_addr) ),
+                    .DATA_BITS  ($bits(wr_data) ),
+                    .MEM_DEPTH  (BUF_SIZE       ),
+                    .RAM_TYPE   (RAM_TYPE       ),
+                    .DOUT_REG   (DOUT_REG       )
+                )
+            u_ram_simple_dualport
+                (
+                    .wr_clk     (clk            ),
+                    .wr_en      (wr_en          ),
+                    .wr_addr    (wr_addr        ),
+                    .wr_din     (wr_data        ),
+            
+                    .rd_clk     (clk            ),
+                    .rd_en      (cke            ),
+                    .rd_regcke  (cke            ),
+                    .rd_addr    (rd_addr        ),
+                    .rd_dout    (rd_data        )
+                );
 
         addr_t  st0_addr    ;
         logic   st0_first   ;

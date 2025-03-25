@@ -21,7 +21,7 @@ module tb_main
     localparam  int     DATA_BITS    = 16                           ;
     localparam  type    data_t       = logic    [DATA_BITS-1:0]     ;
     localparam  int     BUF_SIZE     = 1024                         ;
-    localparam  bit     SDP          = 1'b0                         ;
+    localparam  bit     SDP          = 1'b1                         ;
     localparam          RAM_TYPE     = "block"                      ;
     localparam  bit     DOUT_REG     = 1'b1                         ;
 
