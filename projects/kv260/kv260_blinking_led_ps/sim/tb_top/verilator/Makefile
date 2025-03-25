@@ -1,8 +1,4 @@
 
-# jelly
-JELLY_TOP_DIR = ../../../../../..
--include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
-
 # setting
 TOP_MODULE = tb_top
 
@@ -15,7 +11,7 @@ FLAGS += --assert
 FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
 FLAGS += -D__VERILATOR__ -D__SIMULATION__
 FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
-FLAGS += -Wno-SIDEEFFECT
+#FLAGS += -Wno-SIDEEFFECT
 
 SRCS  = ../$(TOP_MODULE).sv
 
@@ -37,7 +33,6 @@ distclean: clean
 	rm -f coverage.dat
 	rm -fr annotated
 
-
 .PHONY : run
 run:
 	./obj_dir/V$(TOP_MODULE)
@@ -45,5 +40,3 @@ run:
 .PHONY : coverage
 coverage:
 	verilator_coverage --annotate annotated coverage.dat
-
-
