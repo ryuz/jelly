@@ -124,7 +124,7 @@ module jelly3_img_demosaic_acpi_g_calc
     always_ff @(posedge clk) begin
         if ( cke ) begin
             // stage 0
-            st0_phase[0] <= st0_phase[0] + TAP_POS[0];
+            st0_phase[0] <= st0_phase[0] + TAPS[0];
             if ( in_pixel_first ) begin
                 if ( in_line_first ) begin
                     reg_param_phase[0] <= param_phase[0] + TAP_POS[0];
