@@ -13,26 +13,28 @@
 module jelly3_mat_buf_blk
         #(
             parameter   int     TAPS         = 1                        ,
-            parameter   int     ROWS_BITS    = 16                       ,
-            parameter   type    rows_t       = logic [ROWS_BITS-1:0]    ,
-            parameter   int     COLS_BITS    = 16                       ,
-            parameter   type    cols_t       = logic [COLS_BITS-1:0]    ,
-            parameter   int     DE_BITS      = TAPS                     ,
-            parameter   type    de_t         = logic [DE_BITS-1:0]      ,
-            parameter   int     USER_BITS    = 1                        ,
-            parameter   type    user_t       = logic [USER_BITS-1:0]    ,
-            parameter   int     DATA_BITS    = 3*8                      ,
-            parameter   type    data_t       = logic [DATA_BITS-1:0]    ,
-            parameter   int     ROWS         = 3                        ,
-            parameter   int     COLS         = 3                        ,
-            parameter   int     ROW_ANCHOR   = (ROWS-1) / 2             ,
-            parameter   int     COL_ANCHOR   = (COLS-1) / 2             ,
-            parameter   int     MAX_COLS     = 1024                     ,
-            parameter           BORDER_MODE  = "REPLICATE"              ,   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
-            parameter   data_t  BORDER_VALUE = '0                       ,   // BORDER_MODE == "CONSTANT"
-            parameter           RAM_TYPE     = "block"                  ,
-            parameter   bit     BYPASS_SIZE  = 1'b1                     ,
-            parameter   bit     ENDIAN       = 0                            // 0: little, 1:big
+            parameter   int     ROWS_BITS    = 16                               ,
+            parameter   type    rows_t       = logic [ROWS_BITS-1:0]            ,
+            parameter   int     COLS_BITS    = 16                               ,
+            parameter   type    cols_t       = logic [COLS_BITS-1:0]            ,
+            parameter   int     DE_BITS      = TAPS                             ,
+            parameter   type    de_t         = logic [DE_BITS-1:0]              ,
+            parameter   int     USER_BITS    = 1                                ,
+            parameter   type    user_t       = logic [USER_BITS-1:0]            ,
+            parameter   int     DATA_BITS    = 3*8                              ,
+            parameter   type    data_t       = logic [DATA_BITS-1:0]            ,
+            parameter   int     ROWS         = 3                                ,
+            parameter   int     COLS         = 3                                ,
+            parameter   int     ROW_ANCHOR   = (ROWS-1) / 2                     ,
+            parameter   int     COL_ANCHOR   = (COLS-1) / 2                     ,
+            parameter   int     MAX_COLS     = 1024                             ,
+            parameter           BORDER_MODE  = "REPLICATE"                      ,   // NONE, CONSTANT, REPLICATE, REFLECT, REFLECT_101
+            parameter   data_t  BORDER_VALUE = '0                               ,   // BORDER_MODE == "CONSTANT"
+            parameter   bit     RAM_SDP      = MAX_COLS > 64                    ,
+            parameter           RAM_TYPE     = RAM_SDP ? "block" : "distributed",
+            parameter   bit     RAM_DOUT_REG = RAM_SDP                          ,
+            parameter   bit     BYPASS_SIZE  = 1'b1                             ,
+            parameter   bit     ENDIAN       = 0                                    // 0: little, 1:big
         )
         (
             input   var logic                                   reset               ,
@@ -85,7 +87,9 @@ module jelly3_mat_buf_blk
                 .MAX_COLS           (MAX_COLS           ),
                 .BORDER_MODE        (BORDER_MODE        ),
                 .BORDER_VALUE       (BORDER_VALUE       ),
+                .RAM_SDP            (RAM_SDP            ),
                 .RAM_TYPE           (RAM_TYPE           ),
+                .RAM_DOUT_REG       (RAM_DOUT_REG       ),
                 .BYPASS_SIZE        (BYPASS_SIZE        ),
                 .ENDIAN             (ENDIAN             )
             )
