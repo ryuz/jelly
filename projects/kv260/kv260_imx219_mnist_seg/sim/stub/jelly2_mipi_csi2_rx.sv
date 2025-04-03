@@ -13,34 +13,36 @@ module jelly2_mipi_csi2_rx
             parameter M_FIFO_RAM_TYPE  = "distributed"
         )
         (
-            input   wire                        aresetn,
-            input   wire                        aclk,
-            
-            output  wire                        ecc_corrected,
-            output  wire                        ecc_error,
-            output  wire                        ecc_valid,
-            output  wire                        crc_error,
-            output  wire                        crc_valid,
-            output  wire                        packet_lost,
-            output  wire                        fifo_overflow,
+            input   var logic                       aresetn,
+            input   var logic                       aclk,
+
+            input   var logic   [7:0]               param_data_type,
+
+            output  var logic                       ecc_corrected,
+            output  var logic                       ecc_error,
+            output  var logic                       ecc_valid,
+            output  var logic                       crc_error,
+            output  var logic                       crc_valid,
+            output  var logic                       packet_lost,
+            output  var logic                       fifo_overflow,
             
             // input
-            input   wire                        rxreseths,
-            input   wire                        rxbyteclkhs,
-            input   wire    [LANES*8-1:0]       rxdatahs,
-            input   wire    [LANES-1:0]         rxvalidhs,
-            input   wire    [LANES-1:0]         rxactivehs,
-            input   wire    [LANES-1:0]         rxsynchs,
+            input   var logic                       rxreseths,
+            input   var logic                       rxbyteclkhs,
+            input   var logic  [LANES*8-1:0]        rxdatahs,
+            input   var logic  [LANES-1:0]          rxvalidhs,
+            input   var logic  [LANES-1:0]          rxactivehs,
+            input   var logic  [LANES-1:0]          rxsynchs,
             
             
             // output
-            input   wire                        m_axi4s_aresetn,
-            input   wire                        m_axi4s_aclk,
-            output  wire    [0:0]               m_axi4s_tuser,
-            output  wire                        m_axi4s_tlast,
-            output  wire    [DATA_WIDTH-1:0]    m_axi4s_tdata,
-            output  wire    [0:0]               m_axi4s_tvalid,
-            input   wire                        m_axi4s_tready
+            input   var logic                       m_axi4s_aresetn,
+            input   var logic                       m_axi4s_aclk,
+            output  var logic   [0:0]               m_axi4s_tuser,
+            output  var logic                       m_axi4s_tlast,
+            output  var logic   [DATA_WIDTH-1:0]    m_axi4s_tdata,
+            output  var logic   [0:0]               m_axi4s_tvalid,
+            input   var logic                       m_axi4s_tready
         );
     
     logic                       axi4s_aresetn ;
@@ -51,13 +53,13 @@ module jelly2_mipi_csi2_rx
     logic   [0:0]               axi4s_tvalid  ;
     logic                       axi4s_tready  ;
 
-    assign axi4s_aresetn = m_axi4s_aresetn ;
-    assign axi4s_aclk    = m_axi4s_aclk    ;
-    assign m_axi4s_tuser   = axi4s_tuser   ;
-    assign m_axi4s_tlast   = axi4s_tlast   ;
-    assign m_axi4s_tdata   = axi4s_tdata   ;
-    assign m_axi4s_tvalid  = axi4s_tvalid  ;
-    assign axi4s_tready  = m_axi4s_tready  ;
+    assign axi4s_aresetn  = m_axi4s_aresetn ;
+    assign axi4s_aclk     = m_axi4s_aclk    ;
+    assign m_axi4s_tuser  = axi4s_tuser     ;
+    assign m_axi4s_tlast  = axi4s_tlast     ;
+    assign m_axi4s_tdata  = axi4s_tdata     ;
+    assign m_axi4s_tvalid = axi4s_tvalid    ;
+    assign axi4s_tready   = m_axi4s_tready  ;
 
 endmodule
 
