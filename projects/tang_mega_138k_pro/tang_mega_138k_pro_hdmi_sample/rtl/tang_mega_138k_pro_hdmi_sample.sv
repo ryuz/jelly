@@ -12,7 +12,7 @@ module tang_mega_138k_pro_hdmi_sample
             output  var logic   [2:0]   dvi_tx_data_p   ,
             output  var logic   [2:0]   dvi_tx_data_n   ,
 
-//          input   var logic   [0:0]   push_sw_n       ,
+            input   var logic   [3:0]   push_sw_n       ,
             output  var logic   [5:0]   led_n           
         );
 
@@ -131,12 +131,12 @@ module tang_mega_138k_pro_hdmi_sample
                 .X_WIDTH    (11),
                 .Y_WIDTH    (11)
             )
-        i_draw_video
+        u_draw_video
             (
                 .reset,
                 .clk,
 
-                .push_sw    (1'b0),
+                .push_sw    (~{push_sw_n[3], push_sw_n[0]}),
 
                 .in_vsync   (syncgen_vsync),
                 .in_hsync   (syncgen_hsync),
@@ -173,20 +173,21 @@ module tang_mega_138k_pro_hdmi_sample
     
 
     // LED
-    logic   [27:0]  counter;
+    logic   [24:0]  counter;
     always_ff @(posedge clk) begin
-//        if ( !reset ) begin
-//            counter <= 0;
-//        end
-//        else begin
+        if ( reset ) begin
+            counter <= 0;
+        end
+        else begin
             counter <= counter + 1;
- //       end
+        end
     end
-    assign led_n[0] = ~counter[27:23];
-    assign led_n[2:1] = 2'b10;
-    assign led_n[3]   = ~lock;
-    assign led_n[4]   = ~in_reset;
-    assign led_n[5]   = ~reset;
+    assign led_n[0] = ~counter[24];
+    assign led_n[1] = push_sw_n[0];
+    assign led_n[2] = push_sw_n[3];
+    assign led_n[4] = ~in_reset;
+    assign led_n[3] = ~lock;
+    assign led_n[5] = ~reset;
 
 endmodule
 
