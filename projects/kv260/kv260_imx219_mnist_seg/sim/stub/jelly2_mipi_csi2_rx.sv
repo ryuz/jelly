@@ -15,7 +15,7 @@ module jelly2_mipi_csi2_rx
         (
             input   var logic                       aresetn,
             input   var logic                       aclk,
-            
+
             input   var logic   [7:0]               param_data_type,
 
             output  var logic                       ecc_corrected,
@@ -29,11 +29,10 @@ module jelly2_mipi_csi2_rx
             // input
             input   var logic                       rxreseths,
             input   var logic                       rxbyteclkhs,
-            input   var logic   [LANES*8-1:0]       rxdatahs,
-            input   var logic   [LANES-1:0]         rxvalidhs,
-            input   var logic   [LANES-1:0]         rxactivehs,
-            input   var logic   [LANES-1:0]         rxsynchs,
-            
+            input   var logic  [LANES*8-1:0]        rxdatahs,
+            input   var logic  [LANES-1:0]          rxvalidhs,
+            input   var logic  [LANES-1:0]          rxactivehs,
+            input   var logic  [LANES-1:0]          rxsynchs,
             
             // output
             input   var logic                       m_axi4s_aresetn,
@@ -53,13 +52,13 @@ module jelly2_mipi_csi2_rx
     logic   [0:0]               axi4s_tvalid  ;
     logic                       axi4s_tready  ;
 
-    assign axi4s_aresetn = m_axi4s_aresetn ;
-    assign axi4s_aclk    = m_axi4s_aclk    ;
-    assign m_axi4s_tuser   = axi4s_tuser   ;
-    assign m_axi4s_tlast   = axi4s_tlast   ;
-    assign m_axi4s_tdata   = axi4s_tdata   ;
-    assign m_axi4s_tvalid  = axi4s_tvalid  ;
-    assign axi4s_tready  = m_axi4s_tready  ;
+    assign axi4s_aresetn  = m_axi4s_aresetn ;
+    assign axi4s_aclk     = m_axi4s_aclk    ;
+    assign m_axi4s_tuser  = axi4s_tuser     ;
+    assign m_axi4s_tlast  = axi4s_tlast     ;
+    assign m_axi4s_tdata  = axi4s_tdata     ;
+    assign m_axi4s_tvalid = axi4s_tvalid    ;
+    assign axi4s_tready   = m_axi4s_tready  ;
 
 endmodule
 
