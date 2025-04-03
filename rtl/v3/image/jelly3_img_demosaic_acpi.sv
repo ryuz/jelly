@@ -15,28 +15,28 @@
 // demosaic with ACPI
 module jelly3_img_demosaic_acpi
         #(
-            parameter   int             DATA_BITS        = 10                       ,
-            parameter   type            data_t           = logic [DATA_BITS-1:0]    ,
+            parameter   int             CH_BITS          = 10                       ,
+            parameter   type            ch_t             = logic [CH_BITS-1:0]      ,
 
             parameter   int             MAX_COLS         = 4096                     ,
             parameter                   RAM_TYPE         = "block"                  ,
+            parameter   bit             RGB_SWAP         = 0                        ,
 
             parameter   int             INDEX_BITS       = 1                        ,
             parameter   type            index_t          = logic [INDEX_BITS-1:0]   ,
             parameter   int             REGADR_BITS      = 8                        ,
             parameter   type            regadr_t         = logic [REGADR_BITS-1:0]  ,
 
-            parameter                   CORE_ID          = 32'h527a_2110,
-            parameter                   CORE_VERSION     = 32'h0001_0000,
+            parameter                   CORE_ID          = 32'h527a_2110            ,
+            parameter                   CORE_VERSION     = 32'h0001_0000            ,
         
-            parameter   bit     [1:0]   INIT_CTL_CONTROL = 2'b01,
-            parameter   bit     [1:0]   INIT_PARAM_PHASE = 2'b00
+            parameter   bit     [1:0]   INIT_CTL_CONTROL = 2'b01                    ,
+            parameter   bit     [1:0]   INIT_PARAM_PHASE = 2'b00                    
         )
         (
-            
             input   wire        in_update_req,
-            jelly3_img_if.s     s_img,
-            jelly3_img_if.m     m_img,
+            jelly3_mat_if.s     s_img,
+            jelly3_mat_if.m     m_img,
             
             jelly3_axi4l_if.s   s_axi4l
         );
@@ -149,6 +149,7 @@ module jelly3_img_demosaic_acpi
                 REGADR_CURRENT_PHASE:  s_axi4l.rdata <= axi4l_data_t'(core_param_phase   );   // debug use only
                 default:               s_axi4l.rdata <= '0;
                 endcase
+                s_axi4l.rvalid <= 1'b1;
             end
         end
     end
@@ -192,7 +193,7 @@ module jelly3_img_demosaic_acpi
         if ( s_img.reset ) begin
             reg_update_req   <= 1'b0;
             
-            core_ctl_control <= 1'b0;
+            core_ctl_control <= INIT_CTL_CONTROL[0];
             core_param_phase <= INIT_PARAM_PHASE;
         end
         else begin
@@ -215,10 +216,11 @@ module jelly3_img_demosaic_acpi
     // core
     jelly3_img_demosaic_acpi_core
             #(
-                .DATA_BITS      (DATA_BITS  ),
-                .data_t         (data_t     ),
+                .CH_BITS        (CH_BITS    ),
+                .ch_t           (ch_t       ),
                 .MAX_COLS       (MAX_COLS   ),
-                .RAM_TYPE       (RAM_TYPE   )
+                .RAM_TYPE       (RAM_TYPE   ),
+                .RGB_SWAP       (RGB_SWAP   )
             )
         u_img_demosaic_acpi_core
             (
@@ -229,7 +231,7 @@ module jelly3_img_demosaic_acpi
 
     // assertion
     initial begin
-        sva_data_bits   : assert ( DATA_BITS == s_img.DATA_BITS ) else $warning("DATA_BITS != s_img.DATA_BITS");
+        sva_data_bits   : assert ( $bits(ch_t) == s_img.DATA_BITS ) else $warning("$bits(ch_t) != s_img.DATA_BITS");
         sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS * 4) else $warning("m_img.DATA_BITS != s_img.DATA_BITS * 4");
     end
     always_comb begin

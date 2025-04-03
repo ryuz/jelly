@@ -93,6 +93,12 @@ _xmsgs/
 NA/
 bd/
 
+# Efinix
+outflow/
+work_pnr/
+work_syn/
+work_pt/
+
 # Gowin
 impl/
 *.fs

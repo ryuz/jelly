@@ -33,28 +33,22 @@ pub unsafe extern "C" fn main() -> ! {
         println!("v7 feature is not enabled.");
     }
 
-    if cfg!(target_feature = "vfpv2") {
+    if cfg!(target_feature = "vfp2") {
         println!("vfp2 feature is enabled.");
     } else {
         println!("vfp2 feature is not enabled.");
     }
 
-    if cfg!(target_feature = "vfpv3") {
+    if cfg!(target_feature = "vfp3") {
         println!("vfp3 feature is enabled.");
     } else {
         println!("vfp3 feature is not enabled.");
     }
-
-    if cfg!(target_feature = "vfpv3-d16") {
-        println!("vfpv3-d16 feature is enabled.");
+    
+    if cfg!(target_feature = "d32") {
+        println!("d32 feature is enabled.");
     } else {
-        println!("vfpv3-d16 feature is not enabled.");
-    }
-
-    if cfg!(target_feature = "vfp3-d32") {
-        println!("vfp3-d32 feature is enabled.");
-    } else {
-        println!("vfp3-d32 feature is not enabled.");
+        println!("d32 feature is not enabled.");
     }
 
     loop {}

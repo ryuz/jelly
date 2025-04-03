@@ -27,12 +27,12 @@ module jelly3_img_bayer_white_balance_core
             localparam  type    phase_t     = logic [1:0]                   
         )
         (
-            input   var logic               enable,
-            input   var phase_t             param_phase,
+            input   var logic               enable      ,
+            input   var phase_t             param_phase ,
             input   var offset_t    [3:0]   param_offset,
-            input   var coeff_t     [3:0]   param_coeff,
-            jelly3_img_if.s                 s_img,
-            jelly3_img_if.m                 m_img
+            input   var coeff_t     [3:0]   param_coeff ,
+            jelly3_mat_if.s                 s_img       ,
+            jelly3_mat_if.m                 m_img       
         );
 
     localparam  int DE_BITS   = s_img.DE_BITS;

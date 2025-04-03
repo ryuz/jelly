@@ -26,30 +26,30 @@ module jelly3_img_bayer_white_balance
             parameter   type            coeff_t            = logic [COEFF_BITS-1:0]        ,
             localparam  type            phase_t            = logic [1:0]                   ,
   
-            parameter   int             INDEX_BITS         = 1                        ,
-            parameter   type            index_t            = logic [INDEX_BITS-1:0]   ,
-            parameter   int             REGADR_BITS        = 8                        ,
-            parameter   type            regadr_t           = logic [REGADR_BITS-1:0]  ,
+            parameter   int             INDEX_BITS         = 1                          ,
+            parameter   type            index_t            = logic [INDEX_BITS-1:0]     ,
+            parameter   int             REGADR_BITS        = 8                          ,
+            parameter   type            regadr_t           = logic [REGADR_BITS-1:0]    ,
   
-            parameter                   CORE_ID            = 32'h527a_ffff,
-            parameter                   CORE_VERSION       = 32'h0001_0000,
+            parameter                   CORE_ID            = 32'h527a_ffff              ,
+            parameter                   CORE_VERSION       = 32'h0001_0000              ,
           
-            parameter   bit     [1:0]   INIT_CTL_CONTROL   = 2'b01  ,
-            parameter   phase_t         INIT_PARAM_PHASE   = 2'b00  ,
-            parameter   offset_t        INIT_PARAM_OFFSET0 = 0      ,
-            parameter   offset_t        INIT_PARAM_OFFSET1 = 0      ,
-            parameter   offset_t        INIT_PARAM_OFFSET2 = 0      ,
-            parameter   offset_t        INIT_PARAM_OFFSET3 = 0      ,
-            parameter   coeff_t         INIT_PARAM_COEFF0  = (1 << COEFF_Q),
-            parameter   coeff_t         INIT_PARAM_COEFF1  = (1 << COEFF_Q),
-            parameter   coeff_t         INIT_PARAM_COEFF2  = (1 << COEFF_Q),
-            parameter   coeff_t         INIT_PARAM_COEFF3  = (1 << COEFF_Q)
+            parameter   bit     [1:0]   INIT_CTL_CONTROL   = 2'b01                      ,
+            parameter   phase_t         INIT_PARAM_PHASE   = 2'b00                      ,
+            parameter   offset_t        INIT_PARAM_OFFSET0 = 0                          ,
+            parameter   offset_t        INIT_PARAM_OFFSET1 = 0                          ,
+            parameter   offset_t        INIT_PARAM_OFFSET2 = 0                          ,
+            parameter   offset_t        INIT_PARAM_OFFSET3 = 0                          ,
+            parameter   coeff_t         INIT_PARAM_COEFF0  = coeff_t'(1 << COEFF_Q)     ,
+            parameter   coeff_t         INIT_PARAM_COEFF1  = coeff_t'(1 << COEFF_Q)     ,
+            parameter   coeff_t         INIT_PARAM_COEFF2  = coeff_t'(1 << COEFF_Q)     ,
+            parameter   coeff_t         INIT_PARAM_COEFF3  = coeff_t'(1 << COEFF_Q)     
         )
         (
             
             input   wire        in_update_req,
-            jelly3_img_if.s     s_img,
-            jelly3_img_if.m     m_img,
+            jelly3_mat_if.s     s_img,
+            jelly3_mat_if.m     m_img,
             
             jelly3_axi4l_if.s   s_axi4l
         );

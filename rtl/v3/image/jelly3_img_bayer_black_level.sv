@@ -41,8 +41,8 @@ module jelly3_img_bayer_black_level
         (
             
             input   wire        in_update_req,
-            jelly3_img_if.s     s_img,
-            jelly3_img_if.m     m_img,
+            jelly3_mat_if.s     s_img,
+            jelly3_mat_if.m     m_img,
             
             jelly3_axi4l_if.s   s_axi4l
         );
@@ -71,19 +71,19 @@ module jelly3_img_bayer_black_level
     localparam  regadr_t REGADR_PARAM_OFFSET3 = regadr_t'('h13);
     
     // registers
-    logic       [1:0]   reg_ctl_control;    // bit[0]:enable, bit[1]:update
-    phase_t             reg_param_phase;
-    offset_t    [3:0]   reg_param_offset;
+    logic       [1:0]   reg_ctl_control     ;    // bit[0]:enable, bit[1]:update
+    phase_t             reg_param_phase     ;
+    offset_t    [3:0]   reg_param_offset    ;
     
     // shadow registers(core domain)
-    logic   [0:0]       core_ctl_control;
-    phase_t             core_param_phase;
-    offset_t    [3:0]   core_param_offset;
+    logic       [0:0]   core_ctl_control    ;
+    phase_t             core_param_phase    ;
+    offset_t    [3:0]   core_param_offset   ;
     
     // handshake with core domain
-    index_t         update_index;
-    logic           update_ack;
-    index_t         ctl_index;
+    index_t             update_index        ;
+    logic               update_ack          ;
+    index_t             ctl_index           ;
     
     jelly_param_update_master
             #(
@@ -193,19 +193,19 @@ module jelly3_img_bayer_black_level
     
     jelly_param_update_slave
             #(
-                .INDEX_WIDTH    ($bits(index_t))
+                .INDEX_WIDTH    ($bits(index_t)     )
             )
         u_param_update_slave
             (
-                .reset          (s_img.reset),
-                .clk            (s_img.clk  ),
-                .cke            (s_img.cke  ),
+                .reset          (s_img.reset        ),
+                .clk            (s_img.clk          ),
+                .cke            (s_img.cke          ),
                 
                 .in_trigger     (update_trig        ),
                 .in_update      (reg_ctl_control[1] ),
                 
-                .out_update     (update_en      ),
-                .out_index      (update_index   )
+                .out_update     (update_en          ),
+                .out_index      (update_index       )
             );
     
     // wait for frame start to update parameters
@@ -214,12 +214,12 @@ module jelly3_img_bayer_black_level
         if ( s_img.reset ) begin
             reg_update_req   <= 1'b0;
             
-            core_ctl_control     <= 1'b0;
-            core_param_phase     <= INIT_PARAM_PHASE;
-            core_param_offset[0] <= INIT_PARAM_OFFSET0;
-            core_param_offset[1] <= INIT_PARAM_OFFSET1;
-            core_param_offset[2] <= INIT_PARAM_OFFSET2;
-            core_param_offset[3] <= INIT_PARAM_OFFSET3;
+            core_ctl_control     <= INIT_CTL_CONTROL[0] ;
+            core_param_phase     <= INIT_PARAM_PHASE    ;
+            core_param_offset[0] <= INIT_PARAM_OFFSET0  ;
+            core_param_offset[1] <= INIT_PARAM_OFFSET1  ;
+            core_param_offset[2] <= INIT_PARAM_OFFSET2  ;
+            core_param_offset[3] <= INIT_PARAM_OFFSET3  ;
         end
         else begin
             if ( in_update_req ) begin
@@ -228,7 +228,7 @@ module jelly3_img_bayer_black_level
             
             if ( s_img.cke ) begin
                 if ( reg_update_req & update_trig & update_en ) begin
-                    reg_update_req     <= 1'b0;
+                    reg_update_req    <= 1'b0;
                     
                     core_ctl_control  <= reg_ctl_control[0] ;
                     core_param_phase  <= reg_param_phase    ;

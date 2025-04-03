@@ -26,8 +26,13 @@ ifeq ($(WITH_NINJA),Yes)
 CMAKE_FLAGS += -GNinja
 endif
 
+IMG_FILE = ../../../../../data/images/windowswallpaper/Chrysanthemum_320x240_bayer10.pgm
 
+.PHONY : all
 all: build run
+
+$(IMG_FILE):
+	$(MAKE) -C ../../../../../data/images/windowswallpaper Chrysanthemum_320x240_bayer10.pgm
 
 .PHONY : build
 build:
@@ -48,7 +53,7 @@ distclean: clean
 
 
 .PHONY : run
-run:
+run: $(IMG_FILE)
 	build/tb_verilator
 
 .PHONY : coverage

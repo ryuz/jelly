@@ -14,11 +14,12 @@
 
 module video_raw_to_rgb
         #(
-            parameter   int     WIDTH_BITS  = 10    ,
-            parameter   int     HEIGHT_BITS = 9     ,
-            parameter   type    width_t     = logic [WIDTH_BITS-1:0],
-            parameter   type    height_t    = logic [HEIGHT_BITS-1:0],
-            parameter           DEVICE      = "RTL" 
+            parameter   int     WIDTH_BITS  = 10                        ,
+            parameter   int     HEIGHT_BITS = 9                         ,
+            parameter   type    width_t     = logic [WIDTH_BITS-1:0]    ,
+            parameter   type    height_t    = logic [HEIGHT_BITS-1:0]   ,
+            parameter   int     M_CH_DEPTH  = 4                         ,
+            parameter           DEVICE      = "RTL"                     
         )
         (
             input   var logic           aclken, 
@@ -31,7 +32,20 @@ module video_raw_to_rgb
 
             jelly3_axi4l_if.s           s_axi4l
         );
-    
+
+    // ----------------------------------------
+    //  local patrameter
+    // ----------------------------------------
+
+    localparam  int     ROWS_BITS  = $bits(height_t);
+    localparam  int     COLS_BITS  = $bits(width_t);
+    localparam  type    rows_t     = logic [ROWS_BITS-1:0];
+    localparam  type    cols_t     = logic [COLS_BITS-1:0];
+
+    localparam  int     S_CH_BITS  = s_axi4s.DATA_BITS;
+    localparam  int     S_CH_DEPTH = 1;
+    localparam  int     M_CH_BITS  = m_axi4s.DATA_BITS / M_CH_DEPTH;
+
 
     // ----------------------------------------
     //  Address decoder
@@ -80,11 +94,12 @@ module video_raw_to_rgb
     assign  reset = ~s_axi4s.aresetn;
     assign  clk   = s_axi4s.aclk;
     
-    localparam int SRC_DATA_BITS = s_axi4s.DATA_BITS;
-
-    jelly3_img_if
+    jelly3_mat_if
             #(
-                .DATA_BITS  (SRC_DATA_BITS)
+                .ROWS_BITS  ($bits(rows_t)  ),
+                .COLS_BITS  ($bits(cols_t)  ),
+                .CH_BITS    (S_CH_BITS      ),
+                .CH_DEPTH   (S_CH_DEPTH     )
             )
         img_src
             (
@@ -93,9 +108,12 @@ module video_raw_to_rgb
                 .cke        (cke    )
             );
 
-   jelly3_img_if
+   jelly3_mat_if
             #(
-                .DATA_BITS  (m_axi4s.DATA_BITS)
+                .ROWS_BITS  ($bits(rows_t)  ),
+                .COLS_BITS  ($bits(cols_t)  ),
+                .CH_BITS    (M_CH_BITS      ),
+                .CH_DEPTH   (M_CH_DEPTH     )
             )
         img_sink
             (
@@ -105,26 +123,24 @@ module video_raw_to_rgb
             );
     
 
-    jelly3_axi4s_img
+    jelly3_axi4s_mat
             #(
-                .WIDTH_BITS     ($bits(param_width) ),
-                .HEIGHT_BITS    ($bits(param_height)),
+                .ROWS_BITS      ($bits(rows_t)      ),
+                .COLS_BITS      ($bits(cols_t)      ),
                 .BLANK_BITS     (4                  ),
                 .CKE_BUFG       (0                  ) 
             )
-        u_axi4s_img
+        u_axi4s_mat
             (
-                .cke            (aclken             ),
-
-                .param_width    (param_width        ),
-                .param_height   (param_height       ),
+                .param_rows     (param_height       ),
+                .param_cols     (param_width        ),
                 .param_blank    (4'd5               ),
                 .s_axi4s        (s_axi4s            ),
                 .m_axi4s        (m_axi4s            ),
 
                 .img_cke        (cke                ),
-                .m_img          (img_src.m          ),
-                .s_img          (img_sink.s         )
+                .m_mat          (img_src.m          ),
+                .s_mat          (img_sink.s         )
         );
     
     /*
@@ -144,26 +160,26 @@ module video_raw_to_rgb
     // -------------------------------------
 
     // 現像用データサイズ
-    localparam  int     DATA_BITS = SRC_DATA_BITS + 1;
-    localparam  type    data_t    = logic signed [DATA_BITS-1:0];
+    localparam  int     CH_BITS = S_CH_BITS + 1;
+    localparam  type    ch_t    = logic signed [CH_BITS-1:0];
 
-    jelly3_img_if
+    jelly3_mat_if
             #(
-                .DATA_BITS  (DATA_BITS)
+                .CH_BITS    ($bits(ch_t)),
+                .CH_DEPTH   (S_CH_DEPTH )
             )
         img_wb
             (
-                .reset      (reset  ),
-                .clk        (clk    ),
-                .cke        (cke    )
+                .reset      (reset      ),
+                .clk        (clk        ),
+                .cke        (cke        )
             );
 
     jelly3_img_bayer_white_balance
             #(
-                .S_DATA_BITS        (SRC_DATA_BITS          ),
-                .M_DATA_BITS        (DATA_BITS              ),
-                .m_data_t           (data_t                 ),
-                .OFFSET_BITS        (SRC_DATA_BITS          ),
+                .S_DATA_BITS        (S_CH_BITS              ),
+                .M_DATA_BITS        ($bits(ch_t)            ),
+                .OFFSET_BITS        (S_CH_BITS              ),
                 .COEFF_BITS         (16                     ),
                 .COEFF_Q            (12                     ),
                 .INIT_CTL_CONTROL   (2'b01                  ),
@@ -188,9 +204,10 @@ module video_raw_to_rgb
     //  demosaic
     // -------------------------------------
 
-    jelly3_img_if
+    jelly3_mat_if
             #(
-                .DATA_BITS      (DATA_BITS*4    )
+                .CH_BITS        ($bits(ch_t)    ),
+                .CH_DEPTH       (4              )
             )
          img_demos
             (
@@ -201,8 +218,8 @@ module video_raw_to_rgb
     
     jelly3_img_demosaic_acpi
             #(
-                .DATA_BITS          (DATA_BITS  ),
-                .data_t             (data_t     ),
+                .CH_BITS            ($bits(ch_t)),
+                .ch_t               (ch_t       ),
                 .MAX_COLS           (4096       ),
                 .RAM_TYPE           ("block"    ),
                 .INIT_PARAM_PHASE   (2'b00      )
@@ -229,31 +246,29 @@ module video_raw_to_rgb
     //  clamp
     // -------------------------------------
 
-    jelly3_img_if
+    jelly3_mat_if
             #(
-                .DATA_BITS      (img_sink.DATA_BITS)
+                .CH_BITS        (img_sink.CH_BITS   ),
+                .CH_DEPTH       (img_sink.CH_DEPTH  )
             )
          img_clamp
             (
-                .reset          (img_src.reset    ),
-                .clk            (img_src.clk      ),
-                .cke            (img_src.cke      )
+                .reset          (img_src.reset      ),
+                .clk            (img_src.clk        ),
+                .cke            (img_src.cke        )
             );
 
-    jelly3_img_clamp_core
+    jelly3_mat_clamp_core
             #(
-                .N              (4                  ),
-                .s_data_t       (data_t             ),
-                .M_DATA_BITS    (img_src.DATA_BITS  ),
-                .calc_t         (data_t             )
+                .calc_t         (ch_t               )
             )
-        u_img_clamp_core
+        u_mat_clamp_core
             (
                 .enable         (1'b1               ),
                 .min_value      (11'd0              ),
                 .max_value      (11'd1023           ),
-                .s_img          (img_demos.s        ),
-                .m_img          (img_clamp.m        )
+                .s_mat          (img_demos.s        ),
+                .m_mat          (img_clamp.m        )
             );
 
     assign img_sink.row_first   = img_clamp.row_first;

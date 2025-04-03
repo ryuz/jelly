@@ -26,9 +26,9 @@ KV260 にはインジゲーターとして使えるLEDが無いので、PMOD に
 bootgen を使うのでインストールしておきます。
 
 ```
-git clone https://github.com/Xilinx/bootgen  
-cd bootgen/  
-make  
+git clone https://github.com/Xilinx/bootgen
+cd bootgen/
+make
 sudo cp bootgen /usr/local/bin/
 ```
 

@@ -14,25 +14,30 @@
 
 module jelly3_img_demosaic_acpi_core
         #(
-            parameter   int             DATA_BITS        = 10                       ,
-            parameter   type            data_t           = logic [DATA_BITS-1:0]    ,
-            parameter   int             MAX_COLS         = 4096                     ,
-            parameter                   RAM_TYPE         = "block"                  ,
-            localparam  type            phase_t          = logic [1:0]              
+            parameter   int     CH_BITS          = 10                       ,
+            parameter   type    ch_t             = logic [CH_BITS-1:0]      ,
+            parameter   int     MAX_COLS         = 4096                     ,
+            parameter           RAM_TYPE         = "block"                  ,
+            parameter   bit     RGB_SWAP         = 0                        ,
+            parameter   bit     BYPASS_SIZE      = 1'b1                     ,
+            localparam  type    phase_t          = logic [1:0]              
         )
         (
             input   var phase_t     param_phase,
-            jelly3_img_if.s         s_img,
-            jelly3_img_if.m         m_img
+            jelly3_mat_if.s         s_img,
+            jelly3_mat_if.m         m_img
         );
     
-    localparam  int     USER_BITS = s_img.USER_BITS;
+    localparam  int     TAPS      = s_img.TAPS      ;
+    localparam  int     USER_BITS = s_img.USER_BITS ;
     localparam  type    user_t    = logic   [USER_BITS-1:0];
     
     // G
-    jelly3_img_if
+    jelly3_mat_if
             #(
-                .DATA_BITS      ($bits(data_t)*2),
+                .TAPS           (TAPS           ),
+                .CH_BITS        ($bits(ch_t)    ),
+                .CH_DEPTH       (2              ),
                 .USER_BITS      ($bits(user_t)  )
             )
          img_g
@@ -44,26 +49,29 @@ module jelly3_img_demosaic_acpi_core
     
     jelly3_img_demosaic_acpi_g_core
             #(
-                .DATA_BITS      (DATA_BITS  ),
-                .data_t         (data_t     ),
-                .MAX_COLS       (MAX_COLS   ),
-                .RAM_TYPE       (RAM_TYPE   )
+                .CH_BITS        ($bits(ch_t)    ),
+                .ch_t           (ch_t           ),
+                .MAX_COLS       (MAX_COLS       ),
+                .RAM_TYPE       (RAM_TYPE       ),
+                .BYPASS_SIZE    (BYPASS_SIZE    )
             )
         u_img_demosaic_acpi_g_core
             (
-                .param_phase    (param_phase),
-                .s_img          (s_img),
-                .m_img          (img_g.m)
+                .param_phase    (param_phase    ),
+                .s_img          (s_img          ),
+                .m_img          (img_g.m        )
             );
     
     
     // R,B
     jelly3_img_demosaic_acpi_rb_core
             #(
-                .DATA_BITS      (DATA_BITS      ),
-                .data_t         (data_t         ),
+                .CH_BITS        ($bits(ch_t)    ),
+                .ch_t           (ch_t           ),
                 .MAX_COLS       (MAX_COLS       ),
-                .RAM_TYPE       (RAM_TYPE       )
+                .RAM_TYPE       (RAM_TYPE       ),
+                .BYPASS_SIZE    (BYPASS_SIZE    ),
+                .RGB_SWAP       (RGB_SWAP       )
             )
         u_img_demosaic_acpi_rb_core
             (
@@ -74,7 +82,7 @@ module jelly3_img_demosaic_acpi_core
     
     // assertion
     initial begin
-        sva_data_bits   : assert ( $bits(data_t) == s_img.DATA_BITS ) else $warning("$bits(data_t) != s_img.DATA_BITS");
+        sva_data_bits   : assert ( $bits(ch_t) == s_img.DATA_BITS ) else $warning("$bits(ch_t) != s_img.DATA_BITS");
         sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS * 4) else $warning("m_img.DATA_BITS != s_img.DATA_BITS * 4");
     end
     always_comb begin

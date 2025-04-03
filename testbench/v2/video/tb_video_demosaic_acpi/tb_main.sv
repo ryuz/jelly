@@ -29,12 +29,18 @@ module tb_main
         );
     
     
-    localparam                              FILE_NAME  = "../../../../data/dump_img_1000fps_raw10.pgm";
-    localparam                              FILE_X_NUM = 640;
-    localparam                              FILE_Y_NUM = 132;
+//  localparam                              FILE_NAME  = "../../../../data_/dump_img_1000fps_raw10.pgm";
+//  localparam                              FILE_X_NUM = 640;
+//  localparam                              FILE_Y_NUM = 132;
+//  localparam  int                         IMG_WIDTH  = 640;
+//  localparam  int                         IMG_HEIGHT = 132;
 
-    localparam  int                         IMG_WIDTH  = 640;
-    localparam  int                         IMG_HEIGHT = 132;
+    localparam                              FILE_NAME  = "../../../../../data/images/windowswallpaper/Chrysanthemum_320x240_bayer10.pgm";
+    localparam                              FILE_X_NUM = 320;
+    localparam                              FILE_Y_NUM = 240;
+    localparam  int                         IMG_WIDTH  = 320;
+    localparam  int                         IMG_HEIGHT = 240;
+
 
     // -----------------------------------------
     //  top
@@ -55,7 +61,7 @@ module tb_main
     localparam  bit     [31:0]              CORE_VERSION     = 32'h0001_0000;
     localparam  int                         INDEX_WIDTH      = 1;
 
-    localparam  bit     [1:0]               INIT_CTL_CONTROL = 2'b00;
+    localparam  bit     [1:0]               INIT_CTL_CONTROL = 2'b11;
     localparam  bit     [1:0]               INIT_PARAM_PHASE = 2'b00;
 
 //    logic                           aresetn;
@@ -88,7 +94,7 @@ module tb_main
                 .DATA_WIDTH         (DATA_WIDTH),
                 .IMG_X_WIDTH        (IMG_X_WIDTH),
                 .IMG_Y_WIDTH        (IMG_Y_WIDTH),
-                .MAX_X_NUM          (MAX_X_NUM),
+                .MAX_COLS           (MAX_X_NUM),
                 .RAM_TYPE           (RAM_TYPE),
                 .INIT_Y_NUM         (INIT_Y_NUM),
                 .FIFO_PTR_WIDTH     (FIFO_PTR_WIDTH),

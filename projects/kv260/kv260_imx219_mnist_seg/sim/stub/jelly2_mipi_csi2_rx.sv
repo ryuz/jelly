@@ -34,7 +34,6 @@ module jelly2_mipi_csi2_rx
             input   var logic  [LANES-1:0]          rxactivehs,
             input   var logic  [LANES-1:0]          rxsynchs,
             
-            
             // output
             input   var logic                       m_axi4s_aresetn,
             input   var logic                       m_axi4s_aclk,

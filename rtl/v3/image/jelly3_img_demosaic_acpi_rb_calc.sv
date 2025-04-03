@@ -14,11 +14,14 @@
 
 module jelly3_img_demosaic_acpi_rb_calc
         #(
-            parameter   int   DATA_BITS = 10,
-            parameter   type  data_t    = logic [DATA_BITS-1:0],
-            parameter   int   CALC_BITS = DATA_BITS + 6,
-            parameter   type  calc_t    = logic signed  [CALC_BITS-1:0],
-            localparam  type  phase_t   = logic [1:0]        )
+            parameter   int   TAPS      = 1                                 ,
+            parameter   int   TAP_POS   = 0                                 ,
+            parameter   int   CH_BITS   = 10                                ,
+            parameter   type  ch_t      = logic [CH_BITS-1:0]               ,
+            parameter   int   CALC_BITS = CH_BITS + 6                       ,
+            parameter   type  calc_t    = logic signed  [CALC_BITS-1:0]     ,
+            localparam  type  phase_t   = logic [1:0]                       
+        )
         (
             input   var logic                       reset,
             input   var logic                       clk,
@@ -28,21 +31,21 @@ module jelly3_img_demosaic_acpi_rb_calc
             
             input   var logic                       in_line_first,
             input   var logic                       in_pixel_first,
-            input   var data_t  [2:0][2:0][1:0]     in_data,
+            input   var ch_t    [2:0][2:0][1:0]     in_data,
             
-            output  var data_t                      out_raw,
-            output  var data_t                      out_r,
-            output  var data_t                      out_g,
-            output  var data_t                      out_b
+            output  var ch_t                        out_raw,
+            output  var ch_t                        out_r,
+            output  var ch_t                        out_g,
+            output  var ch_t                        out_b
         );
     
     
     // 計算用に余裕を持った幅を定義
-    localparam type data_sign_t = logic signed [$bits(data_t):0];
-    localparam DATA_SIGNED = data_sign_t'(data_t'(data_sign_t'(-1))) == data_sign_t'(-1);
+    localparam type ch_sign_t = logic signed [$bits(ch_t):0];
+    localparam CH_SIGNED = ch_sign_t'(ch_t'(ch_sign_t'(-1))) == ch_sign_t'(-1);
 
-    localparam calc_t   MAX_VALUE = DATA_SIGNED ? calc_t'($signed({1'b0, {($bits(data_t)-1){1'b1}}})) : calc_t'({1'b0, {$bits(data_t){1'b1}}});
-    localparam calc_t   MIN_VALUE = DATA_SIGNED ? calc_t'($signed({1'b1, {($bits(data_t)-1){1'b0}}})) : calc_t'({1'b0, {$bits(data_t){1'b0}}});
+    localparam calc_t   MAX_VALUE = CH_SIGNED ? calc_t'($signed({1'b0, {($bits(ch_t)-1){1'b1}}})) : calc_t'({1'b0, {$bits(ch_t){1'b1}}});
+    localparam calc_t   MIN_VALUE = CH_SIGNED ? calc_t'($signed({1'b1, {($bits(ch_t)-1){1'b0}}})) : calc_t'({1'b0, {$bits(ch_t){1'b0}}});
     
     function calc_t  abs(input calc_t a);
         return a >= 0 ? a : -a;
@@ -142,11 +145,13 @@ module jelly3_img_demosaic_acpi_rb_calc
     always_ff @(posedge clk) begin
         if ( cke ) begin
             // stage 0
-            st0_phase[0] <= ~st0_phase[0];
+            st0_phase[0] <= st0_phase[0] + TAPS[0];
             if ( in_pixel_first ) begin
                 if ( in_line_first ) begin
-                    reg_param_phase <= param_phase;
-                    st0_phase       <= param_phase;
+                    reg_param_phase[0] <= param_phase[0] + TAP_POS[0];
+                    reg_param_phase[1] <= param_phase[1];
+                    st0_phase[0]       <= param_phase[0] + TAP_POS[0];
+                    st0_phase[1]       <= param_phase[1];
                 end
                 else begin
                     st0_phase[0] <= reg_param_phase[0];
@@ -249,10 +254,10 @@ module jelly3_img_demosaic_acpi_rb_calc
         end
     end
     
-    assign  out_raw  = data_t'(st6_raw);
-    assign  out_r    = data_t'(st6_r);
-    assign  out_g    = data_t'(st6_g);
-    assign  out_b    = data_t'(st6_b);
+    assign  out_raw  = ch_t'(st6_raw);
+    assign  out_r    = ch_t'(st6_r);
+    assign  out_g    = ch_t'(st6_g);
+    assign  out_b    = ch_t'(st6_b);
     
 endmodule
 

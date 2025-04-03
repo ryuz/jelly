@@ -28,6 +28,7 @@ SIM_LIB_DIRS += $(JELLY_TOP_DIR)/rtl/v2/misc
 SIM_LIB_DIRS += $(JELLY_TOP_DIR)/rtl/v2/model
 SIM_LIB_DIRS += $(JELLY_TOP_DIR)/rtl/v2/network
 SIM_LIB_DIRS += $(JELLY_TOP_DIR)/rtl/v2/primitive
+SIM_LIB_DIRS += $(JELLY_TOP_DIR)/rtl/v2/peripheral
 SIM_LIB_DIRS += $(JELLY_TOP_DIR)/rtl/v2/rtos
 SIM_LIB_DIRS += $(JELLY_TOP_DIR)/rtl/v2/video
 
