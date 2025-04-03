@@ -13,10 +13,10 @@ module tb_main
         #(
 //          parameter   X_NUM = 3280 / 2,
 //          parameter   Y_NUM = 2464 / 2
-            parameter   X_NUM = 640,
-            parameter   Y_NUM = 480,
 //          parameter   X_NUM = 640,
-//          parameter   Y_NUM = 132,
+//          parameter   Y_NUM = 480,
+            parameter   X_NUM = 640,
+            parameter   Y_NUM = 132,
 
             parameter   WB_ADR_WIDTH = 37,
             parameter   WB_DAT_WIDTH = 64,

@@ -64,11 +64,15 @@ int main(int argc, char** argv)
     auto wb = jsim::WishboneMasterNode_Create(wishbone_signals);
     mng->AddNode(wb);
 
-//    const int X_NUM = 640;
-//    const int Y_NUM = 480;
+    // シミュレーションを進めて値を確定させてから取り出す
+    mng->Run(1);
     const int X_NUM = top->img_x_num; // 640;
     const int Y_NUM = top->img_y_num; // 480;
-    
+    std::cout << "X_NUM = " << X_NUM << std::endl;
+    std::cout << "Y_NUM = " << Y_NUM << std::endl;
+//    const int X_NUM = 640;
+//    const int Y_NUM = 480;
+
     const int reg_gid    = (0x00000000 >> 3);
     const int reg_fmtr   = (0x00100000 >> 3);
     const int reg_demos  = (0x00120000 >> 3);
@@ -78,7 +82,7 @@ int main(int argc, char** argv)
         
     wb->Wait(1000);
     wb->Display("start");
-    
+
     wb->Wait(1000);
     wb->Display("read core ID");
     wb->ExecRead (reg_gid);     // gid
