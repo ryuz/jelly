@@ -29,18 +29,19 @@ module jelly3_img_region_rect
             parameter                   CORE_VERSION      = 32'h0003_0000            ,
 
             parameter   bit     [1:0]   INIT_CTL_CONTROL  = 2'b01                    ,
-            parameter   x_t             INIT_PARAM_LEFT   = '0                       ,
-            parameter   x_t             INIT_PARAM_RIGHT  = '1                       ,
-            parameter   y_t             INIT_PARAM_TOP    = '0                       ,
-            parameter   y_t             INIT_PARAM_BOTTOM = '1                       
+            parameter   x_t             INIT_PARAM_X      = '0                       ,
+            parameter   y_t             INIT_PARAM_Y      = '0                       ,
+            parameter   x_t             INIT_PARAM_WIDTH  = '1                       ,
+            parameter   y_t             INIT_PARAM_HEIGHT = '1                       
         )
         (
-            input   wire        in_update_req,
+            input   wire        in_update_req   ,
 
-            jelly3_mat_if.s     s_img,
-            jelly3_mat_if.m     m_img,
+            jelly3_mat_if.s     s_img           ,
+            jelly3_mat_if.m     m_img           ,
+            jelly3_mat_if.m     m_img_org       ,
             
-            jelly3_axi4l_if.s   s_axi4l
+            jelly3_axi4l_if.s   s_axi4l         
         );
     
     
@@ -60,24 +61,24 @@ module jelly3_img_region_rect
     localparam  regadr_t REGADR_CTL_CONTROL   = regadr_t'('h04);
     localparam  regadr_t REGADR_CTL_STATUS    = regadr_t'('h05);
     localparam  regadr_t REGADR_CTL_INDEX     = regadr_t'('h07);
-    localparam  regadr_t REGADR_PARAM_LEFT    = regadr_t'('h08);
-    localparam  regadr_t REGADR_PARAM_RIGHT   = regadr_t'('h09);
-    localparam  regadr_t REGADR_PARAM_TOP     = regadr_t'('h0a);
-    localparam  regadr_t REGADR_PARAM_BOTTOM  = regadr_t'('h0b);
+    localparam  regadr_t REGADR_PARAM_X       = regadr_t'('h08);
+    localparam  regadr_t REGADR_PARAM_Y       = regadr_t'('h09);
+    localparam  regadr_t REGADR_PARAM_WIDTH   = regadr_t'('h0a);
+    localparam  regadr_t REGADR_PARAM_HEIGHT  = regadr_t'('h0b);
     
     // registers
     logic   [1:0]   reg_ctl_control     ;    // bit[0]:enable, bit[1]:update
-    x_t             reg_param_left      ;
-    x_t             reg_param_right     ;
-    y_t             reg_param_top       ;
-    y_t             reg_param_bottom    ;
+    x_t             reg_param_x         ;
+    y_t             reg_param_y         ;
+    x_t             reg_param_width     ;
+    y_t             reg_param_height    ;
     
     // shadow registers(core domain)
     logic   [0:0]   core_ctl_control    ;
-    x_t             core_param_left     ;
-    x_t             core_param_right    ;
-    y_t             core_param_top      ;
-    y_t             core_param_bottom   ;
+    x_t             core_param_x        ;
+    y_t             core_param_y        ;
+    x_t             core_param_width    ;
+    y_t             core_param_height   ;
     
     // handshake with core domain
     index_t         update_index        ;
@@ -119,10 +120,10 @@ module jelly3_img_region_rect
     always_ff @(posedge s_axi4l.aclk) begin
         if ( ~s_axi4l.aresetn ) begin
             reg_ctl_control  <= INIT_CTL_CONTROL    ;
-            reg_param_left   <= INIT_PARAM_LEFT     ;
-            reg_param_right  <= INIT_PARAM_RIGHT    ;
-            reg_param_top    <= INIT_PARAM_TOP      ;
-            reg_param_bottom <= INIT_PARAM_BOTTOM   ;
+            reg_param_x      <= INIT_PARAM_X        ;
+            reg_param_y      <= INIT_PARAM_Y        ;
+            reg_param_width  <= INIT_PARAM_WIDTH    ;
+            reg_param_height <= INIT_PARAM_HEIGHT   ;
 
             s_axi4l.bvalid   <= 1'b0    ;
             s_axi4l.rdata    <= 'x      ;
@@ -141,10 +142,10 @@ module jelly3_img_region_rect
             if ( s_axi4l.awvalid && s_axi4l.awready && s_axi4l.wvalid && s_axi4l.wready ) begin
                 case ( regadr_write )
                 REGADR_CTL_CONTROL  :   reg_ctl_control  <=   2'(write_mask(axi4l_data_t'(reg_ctl_control ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_LEFT   :   reg_param_left   <= x_t'(write_mask(axi4l_data_t'(reg_param_left  ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_RIGHT  :   reg_param_right  <= x_t'(write_mask(axi4l_data_t'(reg_param_right ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_TOP    :   reg_param_top    <= y_t'(write_mask(axi4l_data_t'(reg_param_top   ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_BOTTOM :   reg_param_bottom <= y_t'(write_mask(axi4l_data_t'(reg_param_bottom), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_X      :   reg_param_x      <= x_t'(write_mask(axi4l_data_t'(reg_param_x     ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_Y      :   reg_param_y      <= y_t'(write_mask(axi4l_data_t'(reg_param_y     ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_WIDTH  :   reg_param_width  <= x_t'(write_mask(axi4l_data_t'(reg_param_width ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_HEIGHT :   reg_param_height <= y_t'(write_mask(axi4l_data_t'(reg_param_height), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
                 s_axi4l.bvalid <= 1'b1;
@@ -161,11 +162,10 @@ module jelly3_img_region_rect
                 REGADR_CTL_CONTROL  :   s_axi4l.rdata <= axi4l_data_t'(reg_ctl_control  );
                 REGADR_CTL_STATUS   :   s_axi4l.rdata <= axi4l_data_t'(core_ctl_control );   // debug use only
                 REGADR_CTL_INDEX    :   s_axi4l.rdata <= axi4l_data_t'(ctl_index        );
-                REGADR_CTL_CONTROL  :   s_axi4l.rdata <= axi4l_data_t'(reg_ctl_control  );
-                REGADR_PARAM_LEFT   :   s_axi4l.rdata <= axi4l_data_t'(reg_param_left   );
-                REGADR_PARAM_RIGHT  :   s_axi4l.rdata <= axi4l_data_t'(reg_param_right  );
-                REGADR_PARAM_TOP    :   s_axi4l.rdata <= axi4l_data_t'(reg_param_top    );
-                REGADR_PARAM_BOTTOM :   s_axi4l.rdata <= axi4l_data_t'(reg_param_bottom );
+                REGADR_PARAM_X      :   s_axi4l.rdata <= axi4l_data_t'(reg_param_x      );
+                REGADR_PARAM_Y      :   s_axi4l.rdata <= axi4l_data_t'(reg_param_y      );
+                REGADR_PARAM_WIDTH  :   s_axi4l.rdata <= axi4l_data_t'(reg_param_width  );
+                REGADR_PARAM_HEIGHT :   s_axi4l.rdata <= axi4l_data_t'(reg_param_height );
                 default:                s_axi4l.rdata <= '0;
                 endcase
                 s_axi4l.rvalid <= 1'b1;
@@ -213,10 +213,10 @@ module jelly3_img_region_rect
             reg_update_req   <= 1'b0;
             
             core_ctl_control  <= INIT_CTL_CONTROL[0]    ;
-            core_param_left   <= INIT_PARAM_LEFT        ;
-            core_param_right  <= INIT_PARAM_RIGHT       ;
-            core_param_top    <= INIT_PARAM_TOP         ;
-            core_param_bottom <= INIT_PARAM_BOTTOM      ;
+            core_param_x      <= INIT_PARAM_X           ;
+            core_param_y      <= INIT_PARAM_Y           ;
+            core_param_width  <= INIT_PARAM_WIDTH       ;
+            core_param_height <= INIT_PARAM_HEIGHT      ;
         end
         else begin
             if ( in_update_req ) begin
@@ -228,10 +228,10 @@ module jelly3_img_region_rect
                     reg_update_req     <= 1'b0;
                     
                     core_ctl_control  <= reg_ctl_control[0];
-                    core_param_left   <= reg_param_left    ;
-                    core_param_right  <= reg_param_right   ;
-                    core_param_top    <= reg_param_top     ;
-                    core_param_bottom <= reg_param_bottom  ;
+                    core_param_x       <= reg_param_x      ;
+                    core_param_y       <= reg_param_y      ;
+                    core_param_width   <= reg_param_width  ;
+                    core_param_height  <= reg_param_height ;
                 end
             end
         end
@@ -241,17 +241,24 @@ module jelly3_img_region_rect
     // core
     jelly3_img_region_rect_core
             #(
-                .X_BITS         (X_BITS         ),
-                .x_t            (x_t            ),
-                .Y_BITS         (Y_BITS         ),
-                .y_t            (y_t            ),
-                .BYPASS_SIZE    (BYPASS_SIZE    )
+                .X_BITS         (X_BITS             ),
+                .x_t            (x_t                ),
+                .Y_BITS         (Y_BITS             ),
+                .y_t            (y_t                ),
+                .BYPASS_SIZE    (BYPASS_SIZE        )
             )
         u_img_region_rect_core
             (
-                .param_phase    (core_param_phase   ),
+                .enable         (core_ctl_control[0]),
+
+                .param_x        (core_param_x       ),
+                .param_y        (core_param_y       ),
+                .param_width    (core_param_width   ),
+                .param_height   (core_param_height  ),
+
                 .s_img          (s_img              ),
-                .m_img          (m_img              )
+                .m_img          (m_img              ),
+                .m_img_org      (m_img_org          )
             );
 
 
