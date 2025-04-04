@@ -22,7 +22,7 @@
 #-Wno-MULTITOP
 #-Wno-WIDTHEXPAND
 #-Wno-MULTIDRIVEN
--Wno-fatal
+#-Wno-fatal
 
 -y ../../stub
 -y ../../../rtl
