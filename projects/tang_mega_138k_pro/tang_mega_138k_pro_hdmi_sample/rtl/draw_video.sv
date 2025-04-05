@@ -20,7 +20,7 @@ module draw_video
             input   var logic                   clk,
 
             // control
-            input   var logic                   push_sw,
+            input   var logic   [1:0]           push_sw,
 
             // input        
             input   var logic                   in_vsync,
@@ -63,10 +63,10 @@ module draw_video
                 bar_x <= coord_t'(X_SIZE / 2);
             end
             else if ( frame_start ) begin
-                if ( bar_x <= coord_t'(X_SIZE - BAR_W / 2) && push_sw ) begin
+                if ( bar_x <= coord_t'(X_SIZE - BAR_W / 2) && push_sw[0] ) begin
                     bar_x <= bar_x + 3;
                 end
-                if ( bar_x >= coord_t'(BAR_W / 2) && ~push_sw ) begin
+                if ( bar_x >= coord_t'(BAR_W / 2) && push_sw[1] ) begin
                     bar_x <= bar_x - 3;
                 end
             end

@@ -137,6 +137,7 @@ module jelly3_img_bayer_gaussian_core
                 .s_mat_col_first    (img_blk_col_first  ),
                 .s_mat_col_last     (img_blk_col_last   ),
                 .s_mat_de           (img_blk_de         ),
+                .s_mat_data         ('0                 ),
                 .s_mat_user         (img_blk_user       ),
                 .s_mat_valid        (img_blk_valid      ),
                 
@@ -147,6 +148,7 @@ module jelly3_img_bayer_gaussian_core
                 .m_mat_col_first    (m_img.col_first    ),
                 .m_mat_col_last     (m_img.col_last     ),
                 .m_mat_de           (m_img.de           ),
+                .m_mat_data         (                   ),
                 .m_mat_user         (m_img.user         ),
                 .m_mat_valid        (m_img.valid        )
             );

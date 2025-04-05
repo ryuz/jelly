@@ -196,9 +196,10 @@ module kv260_imx219_of_measuring
     localparam DEC_FMTR  = 1;
     localparam DEC_IMPRC = 2;
     localparam DEC_WDMA  = 3;
-    localparam DEC_LOG   = 4;
+    localparam DEC_LOG0  = 4;
+    localparam DEC_LOG1  = 5;
 
-    localparam DEC_NUM   = 5;
+    localparam DEC_NUM   = 6;
 
     jelly3_axi4l_if
             #(
@@ -217,7 +218,8 @@ module kv260_imx219_of_measuring
     assign {axi4l_dec[DEC_FMTR ].addr_base, axi4l_dec[DEC_FMTR ].addr_high} = {40'ha010_0000, 40'ha010_ffff};
     assign {axi4l_dec[DEC_IMPRC].addr_base, axi4l_dec[DEC_IMPRC].addr_high} = {40'ha012_0000, 40'ha012_ffff};
     assign {axi4l_dec[DEC_WDMA ].addr_base, axi4l_dec[DEC_WDMA ].addr_high} = {40'ha021_0000, 40'ha021_ffff};
-    assign {axi4l_dec[DEC_LOG  ].addr_base, axi4l_dec[DEC_LOG  ].addr_high} = {40'ha030_0000, 40'ha030_ffff};
+    assign {axi4l_dec[DEC_LOG0 ].addr_base, axi4l_dec[DEC_LOG0 ].addr_high} = {40'ha030_0000, 40'ha030_ffff};
+    assign {axi4l_dec[DEC_LOG1 ].addr_base, axi4l_dec[DEC_LOG1 ].addr_high} = {40'ha031_0000, 40'ha031_ffff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -624,7 +626,7 @@ module kv260_imx219_of_measuring
                 .FIFO_ASYNC     (1                  ),
                 .FIFO_PTR_BITS  (10                 )
             )
-        u_data_logger_fifo
+        u_data_logger_fifo_lk
             (
                 .reset          (~axi4s_proc.aresetn),
                 .clk            (axi4s_proc.aclk    ),
@@ -634,9 +636,56 @@ module kv260_imx219_of_measuring
                 .s_valid        (lk_valid           ),
                 .s_ready        (                   ),
 
-                .s_axi4l        (axi4l_dec[DEC_LOG] )
+                .s_axi4l        (axi4l_dec[DEC_LOG0])
             );
 
+
+    // logger
+    logic           axi4s_csi2_first;
+    logic   [15:0]  log_line_count  ;
+    logic           log_line_valid  ;
+    always_ff @(posedge axi4s_csi2.aclk) begin
+        if ( ~axi4s_csi2.aresetn ) begin
+            axi4s_csi2_first <= 1'b1;
+            log_line_count   <= '0;
+            log_line_valid   <= 1'b0;
+        end
+        else begin
+            if ( axi4s_csi2.tvalid && axi4s_csi2.tready ) begin
+                axi4s_csi2_first <= axi4s_csi2.tlast;
+            end
+
+            log_line_valid <= 1'b0;
+            if ( axi4s_csi2_first && axi4s_csi2.tvalid && axi4s_csi2.tready ) begin
+                log_line_valid <= 1'b1;
+                log_line_count <= log_line_count + 1;
+            end
+            if ( axi4s_csi2.tuser[0] && axi4s_csi2.tvalid && axi4s_csi2.tready ) begin
+                log_line_count <= '0;
+            end
+        end
+    end
+
+    jelly3_data_logger_fifo
+            #(
+                .NUM            (1                  ),
+                .DATA_BITS      (16                 ),
+                .TIMER_BITS     (64                 ),
+                .FIFO_ASYNC     (1                  ),
+                .FIFO_PTR_BITS  (12                 )
+            )
+        u_data_logger_fifo_line
+            (
+                .reset          (~axi4s_csi2.aresetn),
+                .clk            (axi4s_csi2.aclk    ),
+                .cke            (axi4s_csi2.aclken  ),
+
+                .s_data         (log_line_count     ),
+                .s_valid        (log_line_valid     ),
+                .s_ready        (                   ),
+
+                .s_axi4l        (axi4l_dec[DEC_LOG1])
+            );
 
 
 
@@ -858,7 +907,8 @@ module kv260_imx219_of_measuring
     end
     
     // pmod
-    assign pmod[0] = reg_counter_rxbyteclkhs[25];
+    assign pmod[0] = axi4s_csi2.tvalid && axi4s_csi2.tready;
+//  assign pmod[0] = reg_counter_rxbyteclkhs[25];
     assign pmod[1] = reg_counter_clk100     [25];
     assign pmod[2] = reg_counter_clk200     [25];
     assign pmod[3] = reg_counter_clk250     [25];

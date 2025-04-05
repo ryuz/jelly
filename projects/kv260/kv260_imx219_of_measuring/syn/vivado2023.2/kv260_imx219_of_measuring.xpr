@@ -752,6 +752,14 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../../../../rtl/v3/image/jelly3_mat_buf_row copy_.sv">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../../../../rtl/v2/library/jelly2_ram_singleport.sv">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
@@ -761,6 +769,30 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../../../../../rtl/v3/bus/jelly3_axi4s_fifo.sv">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../../rtl/v3/image/jelly3_img_bayer_black_level.sv">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../../rtl/v3/image/jelly3_img_bayer_black_level_calc.sv">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../../rtl/v3/image/jelly3_img_bayer_black_level_core.sv">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -840,38 +872,6 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../../rtl/v3/image/jelly3_img_bayer_black_level_core.sv">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../../rtl/v3/image/jelly3_img_bayer_black_level_calc.sv">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../../rtl/v3/image/jelly3_mat_buf_row copy_.sv">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../../rtl/v3/library/jelly3_stream_fifo_sr.sv">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../../../../../rtl/v3/library/jelly3_stream_clkgear_up_.sv">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
@@ -880,7 +880,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../../../../../rtl/v3/image/jelly3_img_bayer_black_level.sv">
+      <File Path="$PPRDIR/../../../../../rtl/v3/library/jelly3_stream_fifo_sr.sv">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>

@@ -5,18 +5,28 @@ IO_LOC "in_clk" P16;
 IO_LOC "in_reset" U4;
 IO_PORT "in_reset" PULL_MODE=UP DRIVE=OFF BANK_VCCIO=3.3;
 
+
 IO_LOC "led_n[0]" J14;
-IO_LOC "led_n[1]" N23;
-IO_LOC "led_n[2]" N21;
+IO_LOC "led_n[1]" R26;
+IO_LOC "led_n[2]" L20;
 IO_LOC "led_n[3]" M25;
-IO_LOC "led_n[4]" L20;
-IO_LOC "led_n[5]" R26;
+IO_LOC "led_n[4]" N21;
+IO_LOC "led_n[5]" N23;
 IO_PORT "led_n[0]" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 IO_PORT "led_n[1]" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 IO_PORT "led_n[2]" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 IO_PORT "led_n[3]" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 IO_PORT "led_n[4]" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 IO_PORT "led_n[5]" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+
+IO_LOC "push_sw_n[0]" K16;
+IO_LOC "push_sw_n[1]" F15;
+IO_LOC "push_sw_n[2]" G15;
+IO_LOC "push_sw_n[3]" G16;
+IO_PORT "push_sw_n[0]" PULL_MODE=NONE DRIVE=OFF BANK_VCCIO=3.3;
+IO_PORT "push_sw_n[1]" PULL_MODE=NONE DRIVE=OFF BANK_VCCIO=3.3;
+IO_PORT "push_sw_n[2]" PULL_MODE=NONE DRIVE=OFF BANK_VCCIO=3.3;
+IO_PORT "push_sw_n[3]" PULL_MODE=NONE DRIVE=OFF BANK_VCCIO=3.3;
 
 IO_LOC "dvi_tx_data_p[0]" AB24,AC24;
 IO_PORT "dvi_tx_data_p[0]" PULL_MODE=NONE DRIVE=8;
