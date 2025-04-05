@@ -631,6 +631,37 @@
 #define REG_IMG_BIN_PARAM_VAL0(x)               (4*(x)+0x40)
 #define REG_IMG_BIN_PARAM_VAL1(x)               (4*(x)+0x41)
 
+/* LK acc */
+#define  REG_IMG_LK_ACC_CORE_ID                 0x00
+#define  REG_IMG_LK_ACC_CORE_VERSION            0x01
+#define  REG_IMG_LK_ACC_CTL_CONTROL             0x04
+#define  REG_IMG_LK_ACC_CTL_STATUS              0x05
+#define  REG_IMG_LK_ACC_CTL_INDEX               0x07
+#define  REG_IMG_LK_ACC_IRQ_ENABLE              0x08
+#define  REG_IMG_LK_ACC_IRQ_STATUS              0x09
+#define  REG_IMG_LK_ACC_IRQ_CLR                 0x0a
+#define  REG_IMG_LK_ACC_IRQ_SET                 0x0b
+#define  REG_IMG_LK_ACC_PARAM_X                 0x10
+#define  REG_IMG_LK_ACC_PARAM_Y                 0x11
+#define  REG_IMG_LK_ACC_PARAM_WIDTH             0x12
+#define  REG_IMG_LK_ACC_PARAM_HEIGHT            0x13
+#define  REG_IMG_LK_ACC_ACC_VALID               0x40
+#define  REG_IMG_LK_ACC_ACC_GXX0                0x42
+#define  REG_IMG_LK_ACC_ACC_GXX1                0x43
+#define  REG_IMG_LK_ACC_ACC_GYY0                0x44
+#define  REG_IMG_LK_ACC_ACC_GYY1                0x45
+#define  REG_IMG_LK_ACC_ACC_GXY0                0x46
+#define  REG_IMG_LK_ACC_ACC_GXY1                0x47
+#define  REG_IMG_LK_ACC_ACC_EX0                 0x48
+#define  REG_IMG_LK_ACC_ACC_EX1                 0x49
+#define  REG_IMG_LK_ACC_ACC_EY0                 0x4a
+#define  REG_IMG_LK_ACC_ACC_EY1                 0x4b
+#define  REG_IMG_LK_ACC_OUT_VALID               0x60
+#define  REG_IMG_LK_ACC_OUT_DX0                 0x64
+#define  REG_IMG_LK_ACC_OUT_DX1                 0x65
+#define  REG_IMG_LK_ACC_OUT_DY0                 0x66
+#define  REG_IMG_LK_ACC_OUT_DY1                 0x67
+
 /* image selector */
 #define REG_IMG_SELECTOR_CORE_ID                0x00
 #define REG_IMG_SELECTOR_CORE_VERSION           0x01
