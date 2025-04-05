@@ -216,7 +216,7 @@ module kv260_imx219_of_measuring
     // address map
     assign {axi4l_dec[DEC_GPIO ].addr_base, axi4l_dec[DEC_GPIO ].addr_high} = {40'ha000_0000, 40'ha000_ffff};
     assign {axi4l_dec[DEC_FMTR ].addr_base, axi4l_dec[DEC_FMTR ].addr_high} = {40'ha010_0000, 40'ha010_ffff};
-    assign {axi4l_dec[DEC_IMPRC].addr_base, axi4l_dec[DEC_IMPRC].addr_high} = {40'ha012_0000, 40'ha012_ffff};
+    assign {axi4l_dec[DEC_IMPRC].addr_base, axi4l_dec[DEC_IMPRC].addr_high} = {40'ha040_0000, 40'ha04f_ffff};
     assign {axi4l_dec[DEC_WDMA ].addr_base, axi4l_dec[DEC_WDMA ].addr_high} = {40'ha021_0000, 40'ha021_ffff};
     assign {axi4l_dec[DEC_LOG0 ].addr_base, axi4l_dec[DEC_LOG0 ].addr_high} = {40'ha030_0000, 40'ha030_ffff};
     assign {axi4l_dec[DEC_LOG1 ].addr_base, axi4l_dec[DEC_LOG1 ].addr_high} = {40'ha031_0000, 40'ha031_ffff};

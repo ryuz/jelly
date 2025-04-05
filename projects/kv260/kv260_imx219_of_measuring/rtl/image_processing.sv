@@ -70,8 +70,9 @@ module image_processing
     // ----------------------------------------
     
     localparam int DEC_GAUSS = 0;
-    localparam int DEC_SEL   = 1;
-    localparam int DEC_NUM   = 2;
+    localparam int DEC_LK    = 1;
+    localparam int DEC_SEL   = 2;
+    localparam int DEC_NUM   = 3;
 
     jelly3_axi4l_if
             #(
@@ -86,13 +87,14 @@ module image_processing
             );
     
     // address map
-    assign {axi4l_dec[DEC_GAUSS].addr_base, axi4l_dec[DEC_GAUSS].addr_high} = {40'ha012_1000, 40'ha012_1fff};
-    assign {axi4l_dec[DEC_SEL  ].addr_base, axi4l_dec[DEC_SEL  ].addr_high} = {40'ha012_f000, 40'ha012_ffff};
+    assign {axi4l_dec[DEC_GAUSS].addr_base, axi4l_dec[DEC_GAUSS].addr_high} = {40'ha040_1000, 40'ha040_1fff};
+    assign {axi4l_dec[DEC_LK   ].addr_base, axi4l_dec[DEC_LK   ].addr_high} = {40'ha041_0000, 40'ha041_4fff};
+    assign {axi4l_dec[DEC_SEL  ].addr_base, axi4l_dec[DEC_SEL  ].addr_high} = {40'ha040_f000, 40'ha040_ffff};
 
     jelly3_axi4l_addr_decoder
             #(
                 .NUM            (DEC_NUM    ),
-                .DEC_ADDR_BITS  (16         )
+                .DEC_ADDR_BITS  (20         )
             )
         u_axi4l_addr_decoder
             (
@@ -258,6 +260,8 @@ module image_processing
                 .reset              (img_buf.reset      ),
                 .clk                (img_buf.clk        ),
                 .cke                (img_buf.cke        ),
+                
+                .s_axi4l            (axi4l_dec[DEC_LK]  ),
 
                 .s_img_rows         (img_buf.rows       ),
                 .s_img_cols         (img_buf.cols       ),

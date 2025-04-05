@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-module jelly3_img_bayer_lk_calc
+module jelly3_img_lk_calc
         #(
             parameter   int   RAW_BITS   = 8                                ,
             parameter   type  raw_t      = logic         [RAW_BITS-1:0]     ,

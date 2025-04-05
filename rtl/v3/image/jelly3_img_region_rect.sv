@@ -35,7 +35,7 @@ module jelly3_img_region_rect
             parameter   y_t             INIT_PARAM_HEIGHT = '1                       
         )
         (
-            input   wire        in_update_req   ,
+            input   var logic   in_update_req   ,
 
             jelly3_mat_if.s     s_img           ,
             jelly3_mat_if.m     m_img           ,
@@ -61,10 +61,10 @@ module jelly3_img_region_rect
     localparam  regadr_t REGADR_CTL_CONTROL   = regadr_t'('h04);
     localparam  regadr_t REGADR_CTL_STATUS    = regadr_t'('h05);
     localparam  regadr_t REGADR_CTL_INDEX     = regadr_t'('h07);
-    localparam  regadr_t REGADR_PARAM_X       = regadr_t'('h08);
-    localparam  regadr_t REGADR_PARAM_Y       = regadr_t'('h09);
-    localparam  regadr_t REGADR_PARAM_WIDTH   = regadr_t'('h0a);
-    localparam  regadr_t REGADR_PARAM_HEIGHT  = regadr_t'('h0b);
+    localparam  regadr_t REGADR_PARAM_X       = regadr_t'('h10);
+    localparam  regadr_t REGADR_PARAM_Y       = regadr_t'('h11);
+    localparam  regadr_t REGADR_PARAM_WIDTH   = regadr_t'('h12);
+    localparam  regadr_t REGADR_PARAM_HEIGHT  = regadr_t'('h13);
     
     // registers
     logic   [1:0]   reg_ctl_control     ;    // bit[0]:enable, bit[1]:update

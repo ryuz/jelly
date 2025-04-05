@@ -14,6 +14,7 @@
 
 module jelly3_img_bayer_lk
         #(
+            parameter   int     REGIONS     = 1                             ,
             parameter   int     TAPS        = 1                             ,
             parameter   int     DE_BITS     = TAPS                          ,
             parameter   type    de_t        = logic         [DE_BITS-1:0]   ,
@@ -38,27 +39,29 @@ module jelly3_img_bayer_lk
             parameter   bit     BYPASS_SIZE = 1'b1                          
         )
         (
-            input   var logic               reset           ,
-            input   var logic               clk             ,
-            input   var logic               cke             ,
+            input   var logic                   reset           ,
+            input   var logic                   clk             ,
+            input   var logic                   cke             ,
 
-            input   var rows_t              s_img_rows      ,
-            input   var cols_t              s_img_cols      ,
-            input   var logic               s_img_row_first ,
-            input   var logic               s_img_row_last  ,
-            input   var logic               s_img_col_first ,
-            input   var logic               s_img_col_last  ,
-            input   var de_t                s_img_de        ,
-            input   var data_t  [TAPS-1:0]  s_img_data      ,
-            input   var user_t              s_img_user      ,
-            input   var logic               s_img_valid     ,
+            jelly3_axi4l_if.s                   s_axi4l         ,
 
-            output  var acc_t               m_lk_gx2        ,
-            output  var acc_t               m_lk_gy2        ,
-            output  var acc_t               m_lk_gxy        ,
-            output  var acc_t               m_lk_ex         ,
-            output  var acc_t               m_lk_ey         ,
-            output  var logic               m_lk_valid      
+            input   var rows_t                  s_img_rows      ,
+            input   var cols_t                  s_img_cols      ,
+            input   var logic                   s_img_row_first ,
+            input   var logic                   s_img_row_last  ,
+            input   var logic                   s_img_col_first ,
+            input   var logic                   s_img_col_last  ,
+            input   var de_t                    s_img_de        ,
+            input   var data_t  [TAPS-1:0]      s_img_data      ,
+            input   var user_t                  s_img_user      ,
+            input   var logic                   s_img_valid     ,
+
+            output  var acc_t   [REGIONS-1:0]   m_lk_gx2        ,
+            output  var acc_t   [REGIONS-1:0]   m_lk_gy2        ,
+            output  var acc_t   [REGIONS-1:0]   m_lk_gxy        ,
+            output  var acc_t   [REGIONS-1:0]   m_lk_ex         ,
+            output  var acc_t   [REGIONS-1:0]   m_lk_ey         ,
+            output  var logic   [REGIONS-1:0]   m_lk_valid      
         );
     
     localparam  int     RAW_BITS  = $bits(ch_t)                     ;
@@ -212,7 +215,7 @@ module jelly3_img_bayer_lk
     calc_t  [TAPS-1:0]      img_calc_ey         ;
 
     for ( genvar i = 0; i < TAPS; i++ ) begin : loop_calc
-        jelly3_img_bayer_lk_calc
+        jelly3_img_lk_calc
                 #(
                     .RAW_BITS   (RAW_BITS           ),
                     .raw_t      (raw_t              ),
@@ -221,7 +224,7 @@ module jelly3_img_bayer_lk
                     .CALC_BITS  (CALC_BITS          ),
                     .calc_t     (calc_t             )
                 )
-            u_img_bayer_lk_calc
+            u_img_lk_calc
                 (
                     .reset      (reset              ),
                     .clk        (clk                ),
@@ -289,56 +292,106 @@ module jelly3_img_bayer_lk
                 .m_mat_valid        (img_calc_valid     )
             );
     
+    /*
+    typedef struct packed {
+        calc_t  [TAPS-1:0]  gx2 ;
+        calc_t  [TAPS-1:0]  gy2 ;
+        calc_t  [TAPS-1:0]  gxy ;
+        calc_t  [TAPS-1:0]  ex  ;
+        calc_t  [TAPS-1:0]  ey  ;
+    } lk_feature_t;
+
+    jelly3_mat_if
+            #(
+                .TAPS       (1                  ),
+                .ROWS_BITS  ($bits(rows_t)      ),
+                .COLS_BITS  ($bits(cols_t)      ),
+                .CH_BITS    ($bits(lk_feature_t)),
+                .CH_DEPTH   (1                  ),
+                .data_t    (lk_feature_t       ),
+            )
+        img_calc
+            (
+                .reset      (reset              ),
+                .clk        (clk                ),
+                .cke        (cke                )
+            );
     
+    assign img_calc.rows      = img_calc_rows       ;
+    assign img_calc.cols      = img_calc_cols       ;
+    assign img_calc.row_first = img_calc_row_first  ;
+    assign img_calc.row_last  = img_calc_row_last   ;
+    assign img_calc.col_first = img_calc_col_first  ;
+    assign img_calc.col_last  = img_calc_col_last   ;
+    assign img_calc.de        = img_calc_de         ;
+    assign img_calc.data.gx2  = img_calc_gx2        ;
+    assign img_calc.data.gy2  = img_calc_gy2        ;
+    assign img_calc.data.gxy  = img_calc_gxy        ;
+    assign img_calc.data.ex   = img_calc_ex         ;
+    assign img_calc.data.ey   = img_calc_ey         ;
+    assign img_calc.user      = img_calc_user       ;
+    assign img_calc.valid     = img_calc_valid      ;
+    */
+
 
     // ------------------------------------------------
     //  Lucas Kanade  Accumulation
     // ------------------------------------------------
 
-    acc_t       acc_gx2         ;
-    acc_t       acc_gy2         ;
-    acc_t       acc_gxy         ;
-    acc_t       acc_ex          ;
-    acc_t       acc_ey          ;
-    logic       acc_valid       ;
 
-    jelly3_img_bayer_lk_acc
-            #(
-                .CALC_BITS      (CALC_BITS      ),
-                .calc_t         (calc_t         ),
-                .ACC_BITS       (ACC_BITS       ),
-                .acc_t          (acc_t          )
-            )
-        u_img_bayer_lk_acc
-            (
-                .reset          (reset          ),
-                .clk            (clk            ),
-                .cke            (cke            ),
+    for ( genvar i = 0; i < REGIONS; i++ ) begin : loop_region
 
-                .in_first       (img_calc_row_first & img_calc_col_first),
-                .in_last        (img_calc_row_last  & img_calc_col_last ),
-                .in_de          (img_calc_de    ),
-                .in_gx2         (img_calc_gx2   ),
-                .in_gy2         (img_calc_gy2   ),
-                .in_gxy         (img_calc_gxy   ),
-                .in_ex          (img_calc_ex    ),
-                .in_ey          (img_calc_ey    ),
-                .in_valid       (img_calc_valid ),
+        acc_t       acc_gx2         ;
+        acc_t       acc_gy2         ;
+        acc_t       acc_gxy         ;
+        acc_t       acc_ex          ;
+        acc_t       acc_ey          ;
+        logic       acc_valid       ;
 
-                .out_gx2        (acc_gx2        ),
-                .out_gy2        (acc_gy2        ),
-                .out_gxy        (acc_gxy        ),
-                .out_ex         (acc_ex         ),
-                .out_ey         (acc_ey         ),
-                .out_valid      (acc_valid      )
-            );
+        jelly3_img_lk_acc
+                #(
+                    .CALC_BITS          (CALC_BITS          ),
+                    .calc_t             (calc_t             ),
+                    .ACC_BITS           (ACC_BITS           ),
+                    .acc_t              (acc_t              )
+                )
+            u_img_lk_acc
+                (
+                    .reset              (reset              ),
+                    .clk                (clk                ),
+                    .cke                (cke                ),
 
-    assign m_lk_gx2    = acc_gx2    ;
-    assign m_lk_gy2    = acc_gy2    ;
-    assign m_lk_gxy    = acc_gxy    ;
-    assign m_lk_ex     = acc_ex     ;
-    assign m_lk_ey     = acc_ey     ;
-    assign m_lk_valid  = acc_valid  ;
+                    .in_update_req      (1'b1               ),
+
+                    .s_axi4l            (s_axi4l            ),
+
+                    .s_img_row_first    (img_calc_row_first ),
+                    .s_img_row_last     (img_calc_row_last  ),
+                    .s_img_col_first    (img_calc_col_first ),
+                    .s_img_col_last     (img_calc_col_last  ),
+                    .s_img_de           (img_calc_de        ),
+                    .s_img_gx2          (img_calc_gx2       ),
+                    .s_img_gy2          (img_calc_gy2       ),
+                    .s_img_gxy          (img_calc_gxy       ),
+                    .s_img_ex           (img_calc_ex        ),
+                    .s_img_ey           (img_calc_ey        ),
+                    .s_img_valid        (img_calc_valid     ),
+
+                    .out_acc_gx2        (acc_gx2            ),
+                    .out_acc_gy2        (acc_gy2            ),
+                    .out_acc_gxy        (acc_gxy            ),
+                    .out_acc_ex         (acc_ex             ),
+                    .out_acc_ey         (acc_ey             ),
+                    .out_acc_valid      (acc_valid          )
+                );
+
+        assign m_lk_gx2  [i]  = acc_gx2    ;
+        assign m_lk_gy2  [i]  = acc_gy2    ;
+        assign m_lk_gxy  [i]  = acc_gxy    ;
+        assign m_lk_ex   [i]  = acc_ex     ;
+        assign m_lk_ey   [i]  = acc_ey     ;
+        assign m_lk_valid[i]  = acc_valid  ;
+    end
 
 endmodule
 
