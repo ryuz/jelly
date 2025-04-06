@@ -5,7 +5,7 @@
 
 module kv260_rpu_sample
         #(
-            parameter  int COUNT_LIMIT = 100000000
+            parameter  int COUNT_LIMIT = 50_000_000 // 0.5秒
         )
         (
             output  var logic   [7:0]   pmod    ,
@@ -38,7 +38,7 @@ module kv260_rpu_sample
         end
         else begin
             counter <= counter + 1'b1;
-            if ( counter >= 27'(COUNT_LIMIT - 1) ) begin // 1秒をカウントする
+            if ( counter >= 27'(COUNT_LIMIT - 1) ) begin
                 counter <= '0;
                 led     <= led + 1'b1;
             end
