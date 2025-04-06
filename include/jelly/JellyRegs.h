@@ -646,6 +646,7 @@
 #define  REG_IMG_LK_ACC_PARAM_WIDTH             0x12
 #define  REG_IMG_LK_ACC_PARAM_HEIGHT            0x13
 #define  REG_IMG_LK_ACC_ACC_VALID               0x40
+#define  REG_IMG_LK_ACC_ACC_READY               0x41
 #define  REG_IMG_LK_ACC_ACC_GXX0                0x42
 #define  REG_IMG_LK_ACC_ACC_GXX1                0x43
 #define  REG_IMG_LK_ACC_ACC_GYY0                0x44
@@ -657,6 +658,7 @@
 #define  REG_IMG_LK_ACC_ACC_EY0                 0x4a
 #define  REG_IMG_LK_ACC_ACC_EY1                 0x4b
 #define  REG_IMG_LK_ACC_OUT_VALID               0x60
+#define  REG_IMG_LK_ACC_OUT_READY               0x61
 #define  REG_IMG_LK_ACC_OUT_DX0                 0x64
 #define  REG_IMG_LK_ACC_OUT_DX1                 0x65
 #define  REG_IMG_LK_ACC_OUT_DY0                 0x66

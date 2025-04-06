@@ -4,6 +4,7 @@
 module design_1
    (
     fan_en,
+    pl_ps_irq1,
     i2c_scl_i,
     i2c_scl_o,
     i2c_scl_t,
@@ -77,6 +78,7 @@ module design_1
     s_axi4_mem_aclk,
     s_axi4_mem_aresetn);
   output fan_en;
+  input [7:0]pl_ps_irq1;
   input i2c_scl_i;
   output i2c_scl_o;
   output i2c_scl_t;
@@ -151,6 +153,7 @@ module design_1
   output [0:0]s_axi4_mem_aresetn;
 
   wire fan_en;
+  wire [7:0]pl_ps_irq1;
   wire i2c_scl_i;
   wire i2c_scl_io;
   wire i2c_scl_o;

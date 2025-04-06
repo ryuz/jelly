@@ -14,6 +14,7 @@
 
 module jelly3_img_lk_acc
         #(
+            parameter   bit             AXI4L_ASYNC       = 1                               ,
             parameter   int             TAPS              = 1                               ,
             parameter   int             X_BITS            = 11                              ,
             parameter   type            x_t               = logic [X_BITS-1:0]              ,
@@ -23,6 +24,10 @@ module jelly3_img_lk_acc
             parameter   type            calc_t            = logic signed  [CALC_BITS-1:0]   ,
             parameter   int             ACC_BITS          = $bits(calc_t) + 20              ,
             parameter   type            acc_t             = logic signed  [ACC_BITS-1:0]    ,
+            parameter   int             DX_BITS           = 32                              ,
+            parameter   type            dx_t              = logic signed  [DX_BITS-1:0]     ,
+            parameter   int             DY_BITS           = 32                              ,
+            parameter   type            dy_t              = logic signed  [DY_BITS-1:0]     ,
             parameter   int             INDEX_BITS        = 1                               ,
             parameter   type            index_t           = logic [INDEX_BITS-1:0]          ,
             parameter   int             REGADR_BITS       = 8                               ,
@@ -30,6 +35,7 @@ module jelly3_img_lk_acc
             parameter                   CORE_ID           = 32'h527a_2391                   ,
             parameter                   CORE_VERSION      = 32'h0003_0000                   ,
             parameter   bit     [1:0]   INIT_CTL_CONTROL  = 2'b01                           ,
+            parameter   bit     [0:0]   INIT_IRQ_ENABLE   = 1'b0                            ,
             parameter   x_t             INIT_PARAM_X      = '0                              ,
             parameter   y_t             INIT_PARAM_Y      = '0                              ,
             parameter   x_t             INIT_PARAM_WIDTH  = '1                              ,
@@ -43,6 +49,7 @@ module jelly3_img_lk_acc
             input   var logic               in_update_req   ,
 
             jelly3_axi4l_if.s               s_axi4l         ,
+            output  var logic               out_irq         ,
 
             input   var logic               s_img_row_first ,
             input   var logic               s_img_row_last  ,
@@ -56,6 +63,9 @@ module jelly3_img_lk_acc
             input   var calc_t  [TAPS-1:0]  s_img_ey        ,
             input   var logic               s_img_valid     ,
 
+            output  var dx_t                m_of_dx         ,
+            output  var dy_t                m_of_dy         ,
+            output  var logic               m_of_valid      ,
 
             output  var acc_t               out_acc_gx2     ,
             output  var acc_t               out_acc_gy2     ,
@@ -71,9 +81,12 @@ module jelly3_img_lk_acc
     // -------------------------------------
 
     // type
-    localparam type axi4l_addr_t = logic [$bits(s_axi4l.awaddr)-1:0];
-    localparam type axi4l_data_t = logic [$bits(s_axi4l.wdata) -1:0];
-    localparam type axi4l_strb_t = logic [$bits(s_axi4l.wstrb) -1:0];
+    localparam int  AXI4L_ADDR_BITS = s_axi4l.ADDR_BITS;
+    localparam int  AXI4L_DATA_BITS = s_axi4l.DATA_BITS;
+    localparam int  AXI4L_STRB_BITS = s_axi4l.STRB_BITS;
+    localparam type axi4l_addr_t = logic [AXI4L_ADDR_BITS-1:0];
+    localparam type axi4l_data_t = logic [AXI4L_DATA_BITS-1:0];
+    localparam type axi4l_strb_t = logic [AXI4L_STRB_BITS-1:0];
 
     // register address offset
     localparam  regadr_t REGADR_CORE_ID       = regadr_t'('h00);
@@ -90,6 +103,7 @@ module jelly3_img_lk_acc
     localparam  regadr_t REGADR_PARAM_WIDTH   = regadr_t'('h12);
     localparam  regadr_t REGADR_PARAM_HEIGHT  = regadr_t'('h13);
     localparam  regadr_t REGADR_ACC_VALID     = regadr_t'('h40);
+    localparam  regadr_t REGADR_ACC_READY     = regadr_t'('h41);
     localparam  regadr_t REGADR_ACC_GXX0      = regadr_t'('h42);
     localparam  regadr_t REGADR_ACC_GXX1      = regadr_t'('h43);
     localparam  regadr_t REGADR_ACC_GYY0      = regadr_t'('h44);
@@ -101,17 +115,36 @@ module jelly3_img_lk_acc
     localparam  regadr_t REGADR_ACC_EY0       = regadr_t'('h4a);
     localparam  regadr_t REGADR_ACC_EY1       = regadr_t'('h4b);
     localparam  regadr_t REGADR_OUT_VALID     = regadr_t'('h60);
+    localparam  regadr_t REGADR_OUT_READY     = regadr_t'('h61);
     localparam  regadr_t REGADR_OUT_DX0       = regadr_t'('h64);
     localparam  regadr_t REGADR_OUT_DX1       = regadr_t'('h65);
     localparam  regadr_t REGADR_OUT_DY0       = regadr_t'('h66);
     localparam  regadr_t REGADR_OUT_DY1       = regadr_t'('h67);
-    
+
+    typedef struct packed {
+        acc_t   gx2 ;
+        acc_t   gy2 ;
+        acc_t   gxy ;
+        acc_t   ex  ;
+        acc_t   ey  ;
+    } acc_moment_t;
+
+
     // registers
     logic   [1:0]   reg_ctl_control     ;    // bit[0]:enable, bit[1]:update
+    logic   [0:0]   reg_irq_enable      ;
+    logic   [0:0]   reg_irq_status      ;
     x_t             reg_param_x         ;
     y_t             reg_param_y         ;
     x_t             reg_param_width     ;
     y_t             reg_param_height    ;
+    acc_moment_t    reg_acc_moment      ;
+    logic           reg_acc_valid       ;
+    logic           reg_acc_ready       ;
+    dx_t            reg_out_dx          ;
+    dy_t            reg_out_dy          ;
+    logic           reg_out_valid       ;
+    logic           reg_out_ready       ;
     
     // shadow registers(core domain)
     logic   [0:0]   core_ctl_control    ;
@@ -119,12 +152,15 @@ module jelly3_img_lk_acc
     y_t             core_param_y        ;
     x_t             core_param_width    ;
     y_t             core_param_height   ;
+    acc_moment_t    core_acc_moment     ;
+    logic           core_acc_valid      ;
     
     // handshake with core domain
     index_t         update_index        ;
     logic           update_ack          ;
     index_t         ctl_index           ;
-    
+
+
     jelly_param_update_master
             #(
                 .INDEX_WIDTH    ($bits(index_t)     )
@@ -139,18 +175,75 @@ module jelly3_img_lk_acc
                 .out_index      (ctl_index          )
             );
     
+    jelly_data_async
+            #(
+                .ASYNC      (1'b1               ),
+                .DATA_WIDTH ($bits(acc_moment_t))
+            )
+        u_data_async_acc
+            (
+                .s_reset    (reset              ),
+                .s_clk      (clk                ),
+                .s_data     (core_acc_moment    ),
+                .s_valid    (core_acc_valid     ),
+                .s_ready    (                   ),
+                
+                .m_reset    (~s_axi4l.aresetn   ),
+                .m_clk      (s_axi4l.aclk       ),
+                .m_data     (reg_acc_moment     ),
+                .m_valid    (reg_acc_valid      ),
+                .m_ready    (reg_acc_ready      )
+            );
+
+    jelly_data_async
+            #(
+                .ASYNC      (1'b1               ),
+                .DATA_WIDTH ($bits(dx_t)
+                             + $bits(dy_t)      )
+            )
+        u_data_async_out
+            (
+                .s_reset    (~s_axi4l.aresetn   ),
+                .s_clk      (s_axi4l.aclk       ),
+                .s_data     ({
+                                reg_out_dx,
+                                reg_out_dy
+                            }),
+                .s_valid    (reg_out_valid      ),
+                .s_ready    (reg_out_ready      ),
+                
+                .m_reset    (~s_axi4l.aresetn   ),
+                .m_clk      (s_axi4l.aclk       ),
+                .m_data     ({
+                                m_of_dx,
+                                m_of_dy
+                            }),
+                .m_valid    (m_of_valid         ),
+                .m_ready    (1'b1               )
+            );
+
+
 
     // write mask
-    function [s_axi4l.DATA_BITS-1:0] write_mask(
+    function [AXI4L_DATA_BITS-1:0] write_mask(
                                         input axi4l_data_t org,
                                         input axi4l_data_t data,
                                         input axi4l_strb_t strb
                                     );
-        for ( int i = 0; i < s_axi4l.DATA_BITS; i++ ) begin
+        for ( int i = 0; i < AXI4L_DATA_BITS; i++ ) begin
             write_mask[i] = strb[i/8] ? data[i] : org[i];
         end
     endfunction
-    
+
+    function [AXI4L_DATA_BITS-1:0] lo(logic [127:0] v);
+        return AXI4L_DATA_BITS'(v);
+    endfunction
+
+    function [AXI4L_DATA_BITS-1:0] hi(logic [127:0] v);
+        return AXI4L_DATA_BITS'(v >> AXI4L_DATA_BITS);
+    endfunction
+
+
     // registers control
     regadr_t  regadr_write;
     regadr_t  regadr_read;
@@ -160,19 +253,34 @@ module jelly3_img_lk_acc
     always_ff @(posedge s_axi4l.aclk) begin
         if ( ~s_axi4l.aresetn ) begin
             reg_ctl_control  <= INIT_CTL_CONTROL    ;
+            reg_irq_enable   <= INIT_IRQ_ENABLE     ;
+            reg_irq_status   <= '0                  ;
             reg_param_x      <= INIT_PARAM_X        ;
             reg_param_y      <= INIT_PARAM_Y        ;
             reg_param_width  <= INIT_PARAM_WIDTH    ;
             reg_param_height <= INIT_PARAM_HEIGHT   ;
+            reg_acc_ready    <= 1'b0                ;
+            reg_out_dx       <= '0                  ;
+            reg_out_dy       <= '0                  ;
+            reg_out_valid    <= 1'b0                ;
 
             s_axi4l.bvalid   <= 1'b0    ;
             s_axi4l.rdata    <= 'x      ;
             s_axi4l.rvalid   <= 1'b0    ;
         end
         else begin
+            // IRQ
+            if ( reg_acc_valid ) begin
+                reg_irq_status[0] <= 1'b1;
+            end
+
             // auto clear
             if ( update_ack ) begin
                 reg_ctl_control[1] <= 1'b0;
+            end
+            reg_acc_ready <= 1'b0;
+            if ( reg_out_ready ) begin
+                reg_out_valid <= 1'b0;
             end
 
             // write
@@ -181,11 +289,20 @@ module jelly3_img_lk_acc
             end
             if ( s_axi4l.awvalid && s_axi4l.awready && s_axi4l.wvalid && s_axi4l.wready ) begin
                 case ( regadr_write )
-                REGADR_CTL_CONTROL  :   reg_ctl_control  <=   2'(write_mask(axi4l_data_t'(reg_ctl_control ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_X      :   reg_param_x      <= x_t'(write_mask(axi4l_data_t'(reg_param_x     ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_Y      :   reg_param_y      <= y_t'(write_mask(axi4l_data_t'(reg_param_y     ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_WIDTH  :   reg_param_width  <= x_t'(write_mask(axi4l_data_t'(reg_param_width ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_HEIGHT :   reg_param_height <= y_t'(write_mask(axi4l_data_t'(reg_param_height), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_CTL_CONTROL  :   reg_ctl_control  <=    2'(write_mask(axi4l_data_t'(reg_ctl_control ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_IRQ_ENABLE   :   reg_irq_enable   <=    1'(write_mask(axi4l_data_t'(reg_irq_enable  ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_IRQ_CLR      :   reg_irq_status   <=   ~1'(write_mask(axi4l_data_t'(0               ), s_axi4l.wdata, s_axi4l.wstrb)) & reg_irq_status;
+                REGADR_IRQ_SET      :   reg_irq_status   <=    1'(write_mask(axi4l_data_t'(0               ), s_axi4l.wdata, s_axi4l.wstrb)) | reg_irq_status;
+                REGADR_PARAM_X      :   reg_param_x      <=  x_t'(write_mask(axi4l_data_t'(reg_param_x     ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_Y      :   reg_param_y      <=  y_t'(write_mask(axi4l_data_t'(reg_param_y     ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_WIDTH  :   reg_param_width  <=  x_t'(write_mask(axi4l_data_t'(reg_param_width ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_HEIGHT :   reg_param_height <=  y_t'(write_mask(axi4l_data_t'(reg_param_height), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_ACC_READY    :   reg_acc_ready    <=    1'(write_mask(axi4l_data_t'(reg_acc_ready   ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_OUT_VALID    :   reg_out_valid    <=    1'(write_mask(axi4l_data_t'(reg_out_valid   ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_OUT_DX0      :   reg_out_dx       <= dx_t'({hi(128'(reg_out_dx)), write_mask(lo(128'(reg_out_dx)), s_axi4l.wdata, s_axi4l.wstrb)});
+                REGADR_OUT_DX1      :   reg_out_dx       <= dx_t'({write_mask(hi(128'(reg_out_dx)), s_axi4l.wdata, s_axi4l.wstrb), lo(128'(reg_out_dx))});
+                REGADR_OUT_DY0      :   reg_out_dy       <= dx_t'({hi(128'(reg_out_dy)), write_mask(lo(128'(reg_out_dy)), s_axi4l.wdata, s_axi4l.wstrb)});
+                REGADR_OUT_DY1      :   reg_out_dy       <= dx_t'({write_mask(hi(128'(reg_out_dy)), s_axi4l.wdata, s_axi4l.wstrb), lo(128'(reg_out_dy))});
                 default: ;
                 endcase
                 s_axi4l.bvalid <= 1'b1;
@@ -197,15 +314,35 @@ module jelly3_img_lk_acc
             end
             if ( s_axi4l.arvalid && s_axi4l.arready ) begin
                 case ( regadr_read )
-                REGADR_CORE_ID      :   s_axi4l.rdata <= axi4l_data_t'(CORE_ID          );
-                REGADR_CORE_VERSION :   s_axi4l.rdata <= axi4l_data_t'(CORE_VERSION     );
-                REGADR_CTL_CONTROL  :   s_axi4l.rdata <= axi4l_data_t'(reg_ctl_control  );
-                REGADR_CTL_STATUS   :   s_axi4l.rdata <= axi4l_data_t'(core_ctl_control );   // debug use only
-                REGADR_CTL_INDEX    :   s_axi4l.rdata <= axi4l_data_t'(ctl_index        );
-                REGADR_PARAM_X      :   s_axi4l.rdata <= axi4l_data_t'(reg_param_x      );
-                REGADR_PARAM_Y      :   s_axi4l.rdata <= axi4l_data_t'(reg_param_y      );
-                REGADR_PARAM_WIDTH  :   s_axi4l.rdata <= axi4l_data_t'(reg_param_width  );
-                REGADR_PARAM_HEIGHT :   s_axi4l.rdata <= axi4l_data_t'(reg_param_height );
+                REGADR_CORE_ID      :   s_axi4l.rdata <= axi4l_data_t'(CORE_ID                      );
+                REGADR_CORE_VERSION :   s_axi4l.rdata <= axi4l_data_t'(CORE_VERSION                 );
+                REGADR_CTL_CONTROL  :   s_axi4l.rdata <= axi4l_data_t'(reg_ctl_control              );
+                REGADR_CTL_STATUS   :   s_axi4l.rdata <= axi4l_data_t'(core_ctl_control             );   // debug use only
+                REGADR_CTL_INDEX    :   s_axi4l.rdata <= axi4l_data_t'(ctl_index                    );
+                REGADR_IRQ_ENABLE   :   s_axi4l.rdata <= axi4l_data_t'(reg_irq_enable               );
+                REGADR_IRQ_STATUS   :   s_axi4l.rdata <= axi4l_data_t'(reg_irq_status               );
+                REGADR_PARAM_X      :   s_axi4l.rdata <= axi4l_data_t'(reg_param_x                  );
+                REGADR_PARAM_Y      :   s_axi4l.rdata <= axi4l_data_t'(reg_param_y                  );
+                REGADR_PARAM_WIDTH  :   s_axi4l.rdata <= axi4l_data_t'(reg_param_width              );
+                REGADR_PARAM_HEIGHT :   s_axi4l.rdata <= axi4l_data_t'(reg_param_height             );
+                REGADR_ACC_VALID    :   s_axi4l.rdata <= axi4l_data_t'(reg_acc_valid                );
+                REGADR_ACC_READY    :   s_axi4l.rdata <= axi4l_data_t'(reg_acc_ready                );
+                REGADR_ACC_GXX0     :   s_axi4l.rdata <= axi4l_data_t'(lo(128'(reg_acc_moment.gx2)) );
+                REGADR_ACC_GXX1     :   s_axi4l.rdata <= axi4l_data_t'(hi(128'(reg_acc_moment.gx2)) );
+                REGADR_ACC_GYY0     :   s_axi4l.rdata <= axi4l_data_t'(lo(128'(reg_acc_moment.gy2)) );
+                REGADR_ACC_GYY1     :   s_axi4l.rdata <= axi4l_data_t'(hi(128'(reg_acc_moment.gy2)) );
+                REGADR_ACC_GXY0     :   s_axi4l.rdata <= axi4l_data_t'(lo(128'(reg_acc_moment.gxy)) );
+                REGADR_ACC_GXY1     :   s_axi4l.rdata <= axi4l_data_t'(hi(128'(reg_acc_moment.gxy)) );
+                REGADR_ACC_EX0      :   s_axi4l.rdata <= axi4l_data_t'(lo(128'(reg_acc_moment.ex )) );
+                REGADR_ACC_EX1      :   s_axi4l.rdata <= axi4l_data_t'(hi(128'(reg_acc_moment.ex )) );
+                REGADR_ACC_EY0      :   s_axi4l.rdata <= axi4l_data_t'(lo(128'(reg_acc_moment.ey )) );
+                REGADR_ACC_EY1      :   s_axi4l.rdata <= axi4l_data_t'(hi(128'(reg_acc_moment.ey )) );
+                REGADR_OUT_VALID    :   s_axi4l.rdata <= axi4l_data_t'(reg_out_valid                );
+                REGADR_OUT_READY    :   s_axi4l.rdata <= axi4l_data_t'(reg_out_ready                );
+                REGADR_OUT_DX0      :   s_axi4l.rdata <= axi4l_data_t'(lo(128'(reg_out_dx        )) );
+                REGADR_OUT_DX1      :   s_axi4l.rdata <= axi4l_data_t'(hi(128'(reg_out_dx        )) );
+                REGADR_OUT_DY0      :   s_axi4l.rdata <= axi4l_data_t'(lo(128'(reg_out_dy        )) );
+                REGADR_OUT_DY1      :   s_axi4l.rdata <= axi4l_data_t'(hi(128'(reg_out_dy        )) );
                 default:                s_axi4l.rdata <= '0;
                 endcase
                 s_axi4l.rvalid <= 1'b1;
@@ -219,7 +356,9 @@ module jelly3_img_lk_acc
     assign s_axi4l.arready = ~s_axi4l.rvalid || s_axi4l.rready;
     assign s_axi4l.rresp   = '0;
     
+    assign out_irq = |(reg_irq_status & reg_irq_enable);
     
+
 
     // -------------------------------------
     //  core domain
@@ -374,14 +513,20 @@ module jelly3_img_lk_acc
                 .in_ey              (rect_moment.ey                 ),
                 .in_valid           (rect_valid                     ),
 
-                .out_gx2            (out_acc_gx2                    ),
-                .out_gy2            (out_acc_gy2                    ),
-                .out_gxy            (out_acc_gxy                    ),
-                .out_ex             (out_acc_ex                     ),
-                .out_ey             (out_acc_ey                     ),
-                .out_valid          (out_acc_valid                  )
+                .out_gx2            (core_acc_moment.gx2            ),
+                .out_gy2            (core_acc_moment.gy2            ),
+                .out_gxy            (core_acc_moment.gxy            ),
+                .out_ex             (core_acc_moment.ex             ),
+                .out_ey             (core_acc_moment.ey             ),
+                .out_valid          (core_acc_valid                 )
             );
 
+    assign out_acc_gx2   = core_acc_moment.gx2  ;
+    assign out_acc_gy2   = core_acc_moment.gy2  ;
+    assign out_acc_gxy   = core_acc_moment.gxy  ;
+    assign out_acc_ex    = core_acc_moment.ex   ;
+    assign out_acc_ey    = core_acc_moment.ey   ;
+    assign out_acc_valid = core_acc_valid       ;
 
 endmodule
 

@@ -34,6 +34,10 @@ module jelly3_img_bayer_lk
             parameter   type    calc_t      = logic signed  [CALC_BITS-1:0] ,
             parameter   int     ACC_BITS    = $bits(calc_t) + 20            ,
             parameter   type    acc_t       = logic signed  [ACC_BITS-1:0]  ,
+            parameter   int     DX_BITS     = 32                            ,
+            parameter   type    dx_t        = logic signed  [DX_BITS-1:0]   ,
+            parameter   int     DY_BITS     = 32                            ,
+            parameter   type    dy_t        = logic signed  [DY_BITS-1:0]   ,
             parameter   int     MAX_COLS    = 4096                          ,
             parameter           RAM_TYPE    = "block"                       ,
             parameter   bit     BYPASS_SIZE = 1'b1                          
@@ -44,6 +48,7 @@ module jelly3_img_bayer_lk
             input   var logic                   cke             ,
 
             jelly3_axi4l_if.s                   s_axi4l         ,
+            output  var logic   [REGIONS-1:0]   out_irq         ,
 
             input   var rows_t                  s_img_rows      ,
             input   var cols_t                  s_img_cols      ,
@@ -55,6 +60,10 @@ module jelly3_img_bayer_lk
             input   var data_t  [TAPS-1:0]      s_img_data      ,
             input   var user_t                  s_img_user      ,
             input   var logic                   s_img_valid     ,
+
+            output  var dx_t    [REGIONS-1:0]   m_of_dx         ,
+            output  var dx_t    [REGIONS-1:0]   m_of_dy         ,
+            output  var logic   [REGIONS-1:0]   m_of_valid      ,
 
             output  var acc_t   [REGIONS-1:0]   m_lk_gx2        ,
             output  var acc_t   [REGIONS-1:0]   m_lk_gy2        ,
@@ -292,47 +301,6 @@ module jelly3_img_bayer_lk
                 .m_mat_valid        (img_calc_valid     )
             );
     
-    /*
-    typedef struct packed {
-        calc_t  [TAPS-1:0]  gx2 ;
-        calc_t  [TAPS-1:0]  gy2 ;
-        calc_t  [TAPS-1:0]  gxy ;
-        calc_t  [TAPS-1:0]  ex  ;
-        calc_t  [TAPS-1:0]  ey  ;
-    } lk_feature_t;
-
-    jelly3_mat_if
-            #(
-                .TAPS       (1                  ),
-                .ROWS_BITS  ($bits(rows_t)      ),
-                .COLS_BITS  ($bits(cols_t)      ),
-                .CH_BITS    ($bits(lk_feature_t)),
-                .CH_DEPTH   (1                  ),
-                .data_t    (lk_feature_t       ),
-            )
-        img_calc
-            (
-                .reset      (reset              ),
-                .clk        (clk                ),
-                .cke        (cke                )
-            );
-    
-    assign img_calc.rows      = img_calc_rows       ;
-    assign img_calc.cols      = img_calc_cols       ;
-    assign img_calc.row_first = img_calc_row_first  ;
-    assign img_calc.row_last  = img_calc_row_last   ;
-    assign img_calc.col_first = img_calc_col_first  ;
-    assign img_calc.col_last  = img_calc_col_last   ;
-    assign img_calc.de        = img_calc_de         ;
-    assign img_calc.data.gx2  = img_calc_gx2        ;
-    assign img_calc.data.gy2  = img_calc_gy2        ;
-    assign img_calc.data.gxy  = img_calc_gxy        ;
-    assign img_calc.data.ex   = img_calc_ex         ;
-    assign img_calc.data.ey   = img_calc_ey         ;
-    assign img_calc.user      = img_calc_user       ;
-    assign img_calc.valid     = img_calc_valid      ;
-    */
-
 
     // ------------------------------------------------
     //  Lucas Kanade  Accumulation
@@ -340,6 +308,10 @@ module jelly3_img_bayer_lk
 
 
     for ( genvar i = 0; i < REGIONS; i++ ) begin : loop_region
+
+        dx_t        of_dx           ;
+        dy_t        of_dy           ;
+        logic       of_valid        ;
 
         acc_t       acc_gx2         ;
         acc_t       acc_gy2         ;
@@ -353,7 +325,9 @@ module jelly3_img_bayer_lk
                     .CALC_BITS          (CALC_BITS          ),
                     .calc_t             (calc_t             ),
                     .ACC_BITS           (ACC_BITS           ),
-                    .acc_t              (acc_t              )
+                    .acc_t              (acc_t              ),
+                    .dx_t               (dx_t               ),
+                    .dy_t               (dy_t               )
                 )
             u_img_lk_acc
                 (
@@ -364,6 +338,7 @@ module jelly3_img_bayer_lk
                     .in_update_req      (1'b1               ),
 
                     .s_axi4l            (s_axi4l            ),
+                    .out_irq            (out_irq[i]         ),
 
                     .s_img_row_first    (img_calc_row_first ),
                     .s_img_row_last     (img_calc_row_last  ),
@@ -377,6 +352,10 @@ module jelly3_img_bayer_lk
                     .s_img_ey           (img_calc_ey        ),
                     .s_img_valid        (img_calc_valid     ),
 
+                    .m_of_dx            (of_dx              ),
+                    .m_of_dy            (of_dy              ),
+                    .m_of_valid         (of_valid           ),
+
                     .out_acc_gx2        (acc_gx2            ),
                     .out_acc_gy2        (acc_gy2            ),
                     .out_acc_gxy        (acc_gxy            ),
@@ -384,6 +363,10 @@ module jelly3_img_bayer_lk
                     .out_acc_ey         (acc_ey             ),
                     .out_acc_valid      (acc_valid          )
                 );
+
+        assign m_of_dx   [i]  = of_dx       ;
+        assign m_of_dy   [i]  = of_dy       ;
+        assign m_of_valid[i]  = of_valid    ;
 
         assign m_lk_gx2  [i]  = acc_gx2    ;
         assign m_lk_gy2  [i]  = acc_gy2    ;

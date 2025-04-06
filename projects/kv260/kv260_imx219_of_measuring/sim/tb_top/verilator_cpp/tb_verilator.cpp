@@ -135,6 +135,9 @@ int main(int argc, char** argv)
     axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_PARAM_HEIGHT,  64, 0xff);
     axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_CTL_CONTROL,    3, 0xff);
 
+    axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_IRQ_ENABLE,     1, 0xff);
+
+
     axi4l->Display("imgsel");
     axi4l->ExecWrite(reg_imgsel + bw * REG_IMG_SELECTOR_CTL_SELECT, 1, 0xff);
 
@@ -162,6 +165,24 @@ int main(int argc, char** argv)
     axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 3                             , 0xff);  // update & enable
     axi4l->Wait(100000);
 //  axi4l->ExecWrite(reg_wdma + 8 * REG_VDMA_WRITE_CTL_CONTROL     , 0                             , 0xff);  // update & enable
+
+    axi4l->Display("wait for IRQ");
+    for ( int i = 0; i < 3; i++ ) {
+        while ( axi4l->ExecRead(reg_lk + bw * REG_IMG_LK_ACC_IRQ_STATUS) == 0 ) {
+            axi4l->Wait(1000);
+        }
+        axi4l->ExecRead(reg_lk + bw * REG_IMG_LK_ACC_ACC_GXX0);
+        axi4l->ExecRead(reg_lk + bw * REG_IMG_LK_ACC_ACC_GXX1);
+        axi4l->ExecRead(reg_lk + bw * REG_IMG_LK_ACC_ACC_GYY0);
+        axi4l->ExecRead(reg_lk + bw * REG_IMG_LK_ACC_ACC_GYY1);
+        axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_ACC_READY, 1, 0xff);
+        axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_IRQ_CLR,   1, 0xff);
+
+        axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_OUT_DX0, 200+i, 0xff);
+        axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_OUT_DY0, 100+i, 0xff);
+        axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_OUT_VALID, 1, 0xff);
+    }
+
 
     mng->Run(10000000);
 

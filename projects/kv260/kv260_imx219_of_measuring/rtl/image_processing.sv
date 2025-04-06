@@ -14,6 +14,7 @@
 
 module image_processing
         #(
+            parameter   int     LK_REGIONS  = 1                             ,
             parameter   int     WIDTH_BITS  = 10                            ,
             parameter   int     HEIGHT_BITS = 9                             ,
             parameter   type    width_t     = logic [WIDTH_BITS-1:0]        ,
@@ -27,6 +28,10 @@ module image_processing
             parameter   type    calc_t      = logic signed  [CALC_BITS-1:0] ,
             parameter   int     ACC_BITS    = $bits(calc_t) + 20            ,
             parameter   type    acc_t       = logic signed  [ACC_BITS-1:0]  ,
+            parameter   int     DX_BITS     = 32                            ,
+            parameter   type    dx_t        = logic signed  [DX_BITS-1:0]   ,
+            parameter   int     DY_BITS     = 32                            ,
+            parameter   type    dy_t        = logic signed  [DY_BITS-1:0]   ,
             parameter   int     MAX_COLS    = 4096                          ,
             parameter           RAM_TYPE    = "block"                       ,
             parameter   bit     BYPASS_SIZE = 1'b1                          ,
@@ -34,21 +39,26 @@ module image_processing
             parameter           DEVICE      = "RTL"                     
         )
         (
-            input   var logic           in_update_req   ,
-            input   var width_t         param_width     ,
-            input   var height_t        param_height    ,
+            input   var logic                       in_update_req   ,
+            input   var width_t                     param_width     ,
+            input   var height_t                    param_height    ,
 
-            jelly3_axi4s_if.s           s_axi4s         ,
-            jelly3_axi4s_if.m           m_axi4s         ,
+            jelly3_axi4s_if.s                       s_axi4s         ,
+            jelly3_axi4s_if.m                       m_axi4s         ,
 
-            jelly3_axi4l_if.s           s_axi4l         ,
+            jelly3_axi4l_if.s                       s_axi4l         ,
+            output  var logic   [LK_REGIONS-1:0]    out_irq         ,
+            
+            output  var dx_t    [LK_REGIONS-1:0]    m_of_dx         ,
+            output  var dx_t    [LK_REGIONS-1:0]    m_of_dy         ,
+            output  var logic   [LK_REGIONS-1:0]    m_of_valid      ,
 
-            output  var acc_t           m_lk_gx2        ,
-            output  var acc_t           m_lk_gy2        ,
-            output  var acc_t           m_lk_gxy        ,
-            output  var acc_t           m_lk_ex         ,
-            output  var acc_t           m_lk_ey         ,
-            output  var logic           m_lk_valid      
+            output  var acc_t   [LK_REGIONS-1:0]    m_lk_gx2        ,
+            output  var acc_t   [LK_REGIONS-1:0]    m_lk_gy2        ,
+            output  var acc_t   [LK_REGIONS-1:0]    m_lk_gxy        ,
+            output  var acc_t   [LK_REGIONS-1:0]    m_lk_ex         ,
+            output  var acc_t   [LK_REGIONS-1:0]    m_lk_ey         ,
+            output  var logic   [LK_REGIONS-1:0]    m_lk_valid      
         );
 
 
@@ -239,6 +249,7 @@ module image_processing
 
     jelly3_img_bayer_lk
             #(
+                .REGIONS            (LK_REGIONS         ),
                 .TAPS               (TAPS               ),
                 .CH_BITS            (S_CH_BITS          ),
                 .ROWS_BITS          (ROWS_BITS          ),
@@ -251,6 +262,10 @@ module image_processing
                 .calc_t             (calc_t             ),
                 .ACC_BITS           (ACC_BITS           ),
                 .acc_t              (acc_t              ),
+                .DX_BITS            (DX_BITS            ),
+                .dx_t               (dx_t               ),
+                .DY_BITS            (DY_BITS            ),
+                .dy_t               (dy_t               ),
                 .MAX_COLS           (MAX_COLS           ),
                 .RAM_TYPE           (RAM_TYPE           ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
@@ -262,6 +277,7 @@ module image_processing
                 .cke                (img_buf.cke        ),
                 
                 .s_axi4l            (axi4l_dec[DEC_LK]  ),
+                .out_irq            (out_irq            ),
 
                 .s_img_rows         (img_buf.rows       ),
                 .s_img_cols         (img_buf.cols       ),
@@ -273,6 +289,10 @@ module image_processing
                 .s_img_data         (img_buf.data       ),
                 .s_img_user         (img_buf.user       ),
                 .s_img_valid        (img_buf.valid      ),
+
+                .m_of_dx            (m_of_dx            ),
+                .m_of_dy            (m_of_dy            ),
+                .m_of_valid         (m_of_valid         ),
                 
                 .m_lk_gx2           (m_lk_gx2           ),
                 .m_lk_gy2           (m_lk_gy2           ),

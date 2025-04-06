@@ -40,15 +40,17 @@ module kv260_imx219_of_measuring
     localparam  int     AXI4_MEM_DATA_BITS   = 128;
    
 
-    logic       sys_reset           ;
-    logic       sys_clk100          ;
-    logic       sys_clk200          ;
-    logic       sys_clk250          ;
+    logic           sys_reset           ;
+    logic           sys_clk100          ;
+    logic           sys_clk200          ;
+    logic           sys_clk250          ;
 
-    logic       axi4l_peri_aresetn  ;
-    logic       axi4l_peri_aclk     ;
-    logic       axi4_mem_aresetn    ;
-    logic       axi4_mem_aclk       ;
+    logic           axi4l_peri_aresetn  ;
+    logic           axi4l_peri_aclk     ;
+    logic           axi4_mem_aresetn    ;
+    logic           axi4_mem_aclk       ;
+
+    logic   [7:0]   irq1                ;
 
     (* MARK_DEBUG=DEBUG *)  logic       i2c0_scl_i  ;
     (* MARK_DEBUG=DEBUG *)  logic       i2c0_scl_o  ;
@@ -83,10 +85,13 @@ module kv260_imx219_of_measuring
                 .aclken     (1'b1                   )
             );
     
+
     design_1
         u_design_1
             (
                 .fan_en                 (fan_en             ),
+
+                .pl_ps_irq1             (irq1               ),
                 
                 .out_reset              (sys_reset          ),
                 .out_clk100             (sys_clk100         ),
@@ -198,8 +203,8 @@ module kv260_imx219_of_measuring
     localparam DEC_WDMA  = 3;
     localparam DEC_LOG0  = 4;
     localparam DEC_LOG1  = 5;
-
-    localparam DEC_NUM   = 6;
+    localparam DEC_LOG2  = 6;
+    localparam DEC_NUM   = 7;
 
     jelly3_axi4l_if
             #(
@@ -220,6 +225,7 @@ module kv260_imx219_of_measuring
     assign {axi4l_dec[DEC_WDMA ].addr_base, axi4l_dec[DEC_WDMA ].addr_high} = {40'ha021_0000, 40'ha021_ffff};
     assign {axi4l_dec[DEC_LOG0 ].addr_base, axi4l_dec[DEC_LOG0 ].addr_high} = {40'ha030_0000, 40'ha030_ffff};
     assign {axi4l_dec[DEC_LOG1 ].addr_base, axi4l_dec[DEC_LOG1 ].addr_high} = {40'ha031_0000, 40'ha031_ffff};
+    assign {axi4l_dec[DEC_LOG2 ].addr_base, axi4l_dec[DEC_LOG2 ].addr_high} = {40'ha032_0000, 40'ha032_ffff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -553,6 +559,10 @@ module kv260_imx219_of_measuring
     localparam  type    calc_t      = logic signed  [CALC_BITS-1:0] ;
     localparam  int     ACC_BITS    = $bits(calc_t) + 20            ;
     localparam  type    acc_t       = logic signed  [ACC_BITS-1:0]  ;
+    localparam  int     DX_BITS     = 32                            ;
+    localparam  type    dx_t        = logic signed  [DX_BITS-1:0]   ;
+    localparam  int     DY_BITS     = 32                            ;
+    localparam  type    dy_t        = logic signed  [DY_BITS-1:0]   ;
 
     jelly3_axi4s_if
             #(
@@ -565,6 +575,10 @@ module kv260_imx219_of_measuring
                 .aclk       (axi4s_cam_aclk         ),
                 .aclken     (1'b1                   )
             );
+
+    dx_t            of_dx     ;
+    dy_t            of_dy     ;
+    logic           of_valid  ;
 
     acc_t           lk_gx2    ;
     acc_t           lk_gy2    ;
@@ -585,6 +599,10 @@ module kv260_imx219_of_measuring
                 .calc_t         (calc_t                 ),
                 .ACC_BITS       (ACC_BITS               ),
                 .acc_t          (acc_t                  ),
+                .DX_BITS        (DX_BITS                ),
+                .dx_t           (dx_t                   ),
+                .DY_BITS        (DY_BITS                ),
+                .dy_t           (dy_t                   ),
                 .MAX_COLS       (1024                   ),
                 .RAM_TYPE       ("block"                ),
                 .BYPASS_SIZE    (1'b1                   ),
@@ -600,6 +618,11 @@ module kv260_imx219_of_measuring
                 .m_axi4s        (axi4s_proc.m           ),
 
                 .s_axi4l        (axi4l_dec[DEC_IMPRC]   ),
+                .out_irq        (irq1[0]                ),
+
+                .m_of_dx        (of_dx                  ),
+                .m_of_dy        (of_dy                  ),
+                .m_of_valid     (of_valid               ),
 
                 .m_lk_gx2       (lk_gx2                 ),
                 .m_lk_gy2       (lk_gy2                 ),
@@ -608,16 +631,43 @@ module kv260_imx219_of_measuring
                 .m_lk_ey        (lk_ey                  ),
                 .m_lk_valid     (lk_valid               )
             );
-    
+    assign irq1[7:1] = '0;
 
 
     // logger
-    logic  [4:0][63:0]  logger_data;
-    assign logger_data[0] = 64'(lk_gx2  );
-    assign logger_data[1] = 64'(lk_gy2  );
-    assign logger_data[2] = 64'(lk_gxy  );
-    assign logger_data[3] = 64'(lk_ex   );
-    assign logger_data[4] = 64'(lk_ey   );
+    logic  [1:0][63:0]  of_log_data;
+    assign of_log_data[0] = 64'(of_dx   );
+    assign of_log_data[1] = 64'(of_dy   );
+
+    jelly3_data_logger_fifo
+            #(
+                .NUM            (2                  ),
+                .DATA_BITS      (64                 ),
+                .TIMER_BITS     (64                 ),
+                .FIFO_ASYNC     (1                  ),
+                .FIFO_PTR_BITS  (10                 )
+            )
+        u_data_logger_fifo_of
+            (
+                .reset          (~axi4s_proc.aresetn),
+                .clk            (axi4s_proc.aclk    ),
+                .cke            (axi4s_proc.aclken  ),
+
+                .s_data         (of_log_data        ),
+                .s_valid        (of_valid           ),
+                .s_ready        (                   ),
+
+                .s_axi4l        (axi4l_dec[DEC_LOG0])
+            );
+
+
+
+    logic  [4:0][63:0]  lk_log_data;
+    assign lk_log_data[0] = 64'(lk_gx2  );
+    assign lk_log_data[1] = 64'(lk_gy2  );
+    assign lk_log_data[2] = 64'(lk_gxy  );
+    assign lk_log_data[3] = 64'(lk_ex   );
+    assign lk_log_data[4] = 64'(lk_ey   );
 
     jelly3_data_logger_fifo
             #(
@@ -633,11 +683,11 @@ module kv260_imx219_of_measuring
                 .clk            (axi4s_proc.aclk    ),
                 .cke            (axi4s_proc.aclken  ),
 
-                .s_data         (logger_data        ),
+                .s_data         (lk_log_data        ),
                 .s_valid        (lk_valid           ),
                 .s_ready        (                   ),
 
-                .s_axi4l        (axi4l_dec[DEC_LOG0])
+                .s_axi4l        (axi4l_dec[DEC_LOG1])
             );
 
 
@@ -685,9 +735,8 @@ module kv260_imx219_of_measuring
                 .s_valid        (log_line_valid     ),
                 .s_ready        (                   ),
 
-                .s_axi4l        (axi4l_dec[DEC_LOG1])
+                .s_axi4l        (axi4l_dec[DEC_LOG2])
             );
-
 
     // DMA write
     jelly3_dma_video_write
@@ -922,7 +971,7 @@ module kv260_imx219_of_measuring
     jelly_axi4s_debug_monitor
             #(
                 .TUSER_WIDTH    (1      ),
-                .TDATA_WIDTH    (10     ),
+                .TDATA_WIDTH    (16     ),
                 .TIMER_WIDTH    (32     ),
                 .FRAME_WIDTH    (16     ),
                 .PIXEL_WIDTH    (16     ),
