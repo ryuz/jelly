@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     pixel_clock = 139200000.0;
     binning     = true;
     width       = 640;
-    height      = 132;
+    height      = 130;//2;
     aoi_x       = -1;
     aoi_y       = -1;
     flip_h      = false;
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
     auto reg_gauss  = uio_acc.GetAccessor(0x00401000);
     auto reg_lk     = uio_acc.GetAccessor(0x00410000);
-    auto reg_imgsel = uio_acc.GetAccessor(0x0012f000);
+    auto reg_imgsel = uio_acc.GetAccessor(0x0040f000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     auto reg_log0   = uio_acc.GetAccessor(0x00300000);
     auto reg_log1   = uio_acc.GetAccessor(0x00310000);
@@ -276,6 +276,8 @@ int main(int argc, char *argv[])
     int     rect_cy = height / 2;
     int     rect_w  = 64;
     int     rect_h  = 64;
+    double  track_x = rect_cx;
+    double  track_y = rect_cy;
 
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
     cv::createTrackbar("scale",    "img", nullptr, 4);
@@ -338,8 +340,8 @@ int main(int argc, char *argv[])
             auto gy2 = (double)(std::int64_t)reg_log0.ReadReg(REG_LOGGER_POL_DATA(1));
             auto gx2 = (double)(std::int64_t)reg_log0.ReadReg(REG_LOGGER_READ_DATA);
             auto det = gx2 * gy2 - gxy * gxy;
-            auto dx  = (gx2 * ex - gxy * ey) / det;
-            auto dy  = (gy2 * ey - gxy * ex) / det;
+            auto dx  = -(gx2 * ex - gxy * ey) / det;
+            auto dy  = -(gy2 * ey - gxy * ex) / det;
 //          std::cout << "dx :" << dx << "   dy : " << dy << std::endl;
             hist_dx.push_back(dx);
             hist_dy.push_back(dy);
@@ -361,6 +363,13 @@ int main(int argc, char *argv[])
 //          std::cout << "gxy : " << gxy << std::endl;
 //          std::cout << "ex  : " << ex  << std::endl;
 //          std::cout << "ey  : " << ey  << std::endl;
+            
+            track_x += dx * 64.0;
+            track_y += dy * 64.0;
+            track_x = std::max(0.0,            track_x);
+            track_x = std::min((double)width,  track_x);
+            track_y = std::max(0.0,            track_y);
+            track_y = std::min((double)height, track_y);
         }
 
         for ( int i = 0; i < 1000 && reg_log1.ReadReg(REG_LOGGER_CTL_STATUS); i++ ) {
@@ -455,6 +464,7 @@ int main(int argc, char *argv[])
         cv::Mat view_img;
         cv::cvtColor(img, view_img, cv::COLOR_BayerRG2RGB);
         cv::rectangle(view_img, cv::Point(x0, y0), cv::Point(x1, y1), cv::Scalar(0, 65535, 0), 1);
+        cv::circle(view_img, cv::Point(track_x, track_y), 4, cv::Scalar(0, 0, 65535), -1);
 //      cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
         cv::imshow("img", view_img);
 
@@ -477,6 +487,11 @@ int main(int argc, char *argv[])
         // flip
         case 'h':  flip_h = !flip_h;  break;
         case 'v':  flip_v = !flip_v;  break;
+
+        case 'a':
+            track_x = rect_cx;
+            track_y = rect_cy;
+            break;
         
         // aoi position
 //      case 'w':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() - 4);    break;
