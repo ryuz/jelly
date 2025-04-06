@@ -9,6 +9,9 @@ LED チカチカをベースに PL の割り込みを RPU に入れるサンプ�
 
 LED点滅信号をそのまま IRQ入力に接続して、エッジ割り込みとして受けています。
 
+RPUのコードを Rust で書いておりますが [main.rs](./app/rust/src/main.rs) でベアメタルでの割り込み設定や、割り込みハンドラなどが参考になれば幸いです。
+
+
 なお PL の割り込みを APU(Linux) に入れる場合は UIO の利用が便利であり、[こちら](https://github.com/ryuz/jelly/tree/master/projects/kv260/kv260_udmabuf_sample)などにサンプルがあります。
 
 
