@@ -1,11 +1,13 @@
-# Kria KV260 で LED チカチカ を試すサンプル
+# Kria KV260 で PL -> RPU の割り込みを試すサンプル
 
 
 ## 概要
 
 [KV260](https://www.amd.com/ja/products/system-on-modules/kria/k26/kv260-vision-starter-kit.html)で RPU を試すサンプルです。
 
-主に PL の割り込みを RPU に入れるサンプルです。
+LED チカチカをベースに PL の割り込みを RPU に入れるサンプルです。
+
+LED点滅信号をそのまま IRQ入力に接続して、エッジ割り込みとして受けています。
 
 なお PL の割り込みを APU(Linux) に入れる場合は UIO の利用が便利であり、[こちら](https://github.com/ryuz/jelly/tree/master/projects/kv260/kv260_udmabuf_sample)などにサンプルがあります。
 
