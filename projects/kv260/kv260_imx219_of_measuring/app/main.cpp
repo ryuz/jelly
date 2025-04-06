@@ -203,14 +203,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
-    auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
-    auto reg_gauss  = uio_acc.GetAccessor(0x00401000);
-    auto reg_lk     = uio_acc.GetAccessor(0x00410000);
-    auto reg_imgsel = uio_acc.GetAccessor(0x0040f000);
-    auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
-    auto reg_log0   = uio_acc.GetAccessor(0x00300000);
-    auto reg_log1   = uio_acc.GetAccessor(0x00310000);
+    auto reg_gpio    = uio_acc.GetAccessor(0x00000000);
+    auto reg_fmtr    = uio_acc.GetAccessor(0x00100000);
+    auto reg_gauss   = uio_acc.GetAccessor(0x00401000);
+    auto reg_lk      = uio_acc.GetAccessor(0x00410000);
+    auto reg_imgsel  = uio_acc.GetAccessor(0x0040f000);
+    auto reg_wdma    = uio_acc.GetAccessor(0x00210000);
+    auto reg_log_of  = uio_acc.GetAccessor(0x00300000);
+    auto reg_log_lk  = uio_acc.GetAccessor(0x00310000);
+    auto reg_log_lin = uio_acc.GetAccessor(0x00320000);
 
 #if 1
     std::cout << "CORE ID" << std::endl;
@@ -332,16 +333,17 @@ int main(int argc, char *argv[])
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
 
+#if 0
         // LK ログ取得
-        while ( reg_log0.ReadReg(REG_LOGGER_CTL_STATUS) ) {
-            auto ey  = (double)(std::int64_t)reg_log0.ReadReg(REG_LOGGER_POL_DATA(4));
-            auto ex  = (double)(std::int64_t)reg_log0.ReadReg(REG_LOGGER_POL_DATA(3));
-            auto gxy = (double)(std::int64_t)reg_log0.ReadReg(REG_LOGGER_POL_DATA(2));
-            auto gy2 = (double)(std::int64_t)reg_log0.ReadReg(REG_LOGGER_POL_DATA(1));
-            auto gx2 = (double)(std::int64_t)reg_log0.ReadReg(REG_LOGGER_READ_DATA);
+        while ( reg_log_lk.ReadReg(REG_LOGGER_CTL_STATUS) ) {
+            auto ey  = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_POL_DATA(4));
+            auto ex  = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_POL_DATA(3));
+            auto gxy = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_POL_DATA(2));
+            auto gy2 = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_POL_DATA(1));
+            auto gx2 = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_READ_DATA);
             auto det = gx2 * gy2 - gxy * gxy;
-            auto dx  = -(gx2 * ex - gxy * ey) / det;
-            auto dy  = -(gy2 * ey - gxy * ex) / det;
+            auto dx  = 64 * -(gx2 * ex - gxy * ey) / det;
+            auto dy  = 64 * -(gy2 * ey - gxy * ex) / det;
 //          std::cout << "dx :" << dx << "   dy : " << dy << std::endl;
             hist_dx.push_back(dx);
             hist_dy.push_back(dy);
@@ -364,38 +366,55 @@ int main(int argc, char *argv[])
 //          std::cout << "ex  : " << ex  << std::endl;
 //          std::cout << "ey  : " << ey  << std::endl;
             
-            track_x += dx * 64.0;
-            track_y += dy * 64.0;
+            track_x += dx;
+            track_y += dy;
             track_x = std::max(0.0,            track_x);
             track_x = std::min((double)width,  track_x);
             track_y = std::max(0.0,            track_y);
             track_y = std::min((double)height, track_y);
         }
+#else
+        // LK ログ取得
+        while ( reg_log_of.ReadReg(REG_LOGGER_CTL_STATUS) ) {
+            auto dy = ((double)(std::int64_t)reg_log_of.ReadReg(REG_LOGGER_POL_DATA(1))) / 65536.0;
+            auto dx = ((double)(std::int64_t)reg_log_of.ReadReg(REG_LOGGER_READ_DATA)  ) / 65536.0;
+//          std::cout << "dx :" << dx << "   dy : " << dy << std::endl;
+            hist_dx.push_back(dx);
+            hist_dy.push_back(dy);
+            if ( hist_dx.size() > 1000 ) {
+                hist_dx.erase(hist_dx.begin());
+                hist_dy.erase(hist_dy.begin());
+            }
 
-        for ( int i = 0; i < 1000 && reg_log1.ReadReg(REG_LOGGER_CTL_STATUS); i++ ) {
-            auto time = reg_log1.ReadReg(REG_LOGGER_POL_TIMER0);
-            auto line = reg_log1.ReadReg(REG_LOGGER_READ_DATA);
-            log_line_time.push_back(time);
-            log_line_num.push_back(line);
+            log_hist_dx.push_back(dx);
+            log_hist_dy.push_back(dy);
+            if ( log_hist_dx.size() > 10000 ) {
+                log_hist_dx.erase(log_hist_dx.begin());
+                log_hist_dy.erase(log_hist_dy.begin());
+            }
+            
+            track_x += dx;
+            track_y += dy;
+            track_x = std::max(0.0,            track_x);
+            track_x = std::min((double)width,  track_x);
+            track_y = std::max(0.0,            track_y);
+            track_y = std::min((double)height, track_y);
         }
-        while ( log_line_time.size() > 4000 ) {
-            log_line_time.erase(log_line_time.begin());
-            log_line_num.erase(log_line_num.begin());
-        }
+#endif
 
         cv::Mat graph = cv::Mat::zeros(200, 1000, CV_8UC3);
         for ( int i = 0; i < (int)hist_dx.size(); i++ ) {
-            int y0 = 100 - (int)(hist_dx[i] * 1000.0);
+            int y0 = 100 - (int)(hist_dx[i] * 10.0);
             cv::circle(graph, cv::Point(i, y0), 1, cv::Scalar(0, 255, 0), -1);
-            int y1 = 100 - (int)(hist_dy[i] * 1000.0);
+            int y1 = 100 - (int)(hist_dy[i] * 10.0);
             cv::circle(graph, cv::Point(i, y1), 1, cv::Scalar(255, 0, 0), -1);
         }
         cv::imshow("graph", graph);
 
         cv::Mat graph2 = cv::Mat::zeros(200, 200, CV_8UC3);
         for ( int i = 0; i < (int)hist_dx.size(); i++ ) {
-            int x = 100 - (int)(hist_dx[i] * 1000.0);
-            int y = 100 - (int)(hist_dy[i] * 1000.0);
+            int x = 100 - (int)(hist_dx[i] * 10.0);
+            int y = 100 - (int)(hist_dy[i] * 10.0);
             cv::circle(graph2, cv::Point(x, y), 1, cv::Scalar(0, 255, 0), -1);
         }
         cv::imshow("x-y", graph2);
@@ -510,13 +529,13 @@ int main(int argc, char *argv[])
             {
                 log_line_time.clear();
                 log_line_num.clear();
-                while ( reg_log1.ReadReg(REG_LOGGER_CTL_STATUS) ) {
-                    reg_log1.ReadReg(REG_LOGGER_READ_DATA);
+                while ( reg_log_lin.ReadReg(REG_LOGGER_CTL_STATUS) ) {
+                    reg_log_lin.ReadReg(REG_LOGGER_READ_DATA);
                 }
                 while ( log_line_time.size() < 1000 ) {
-                    if ( reg_log1.ReadReg(REG_LOGGER_CTL_STATUS) ) {
-                        auto time = reg_log1.ReadReg(REG_LOGGER_POL_TIMER0);
-                        auto line = reg_log1.ReadReg(REG_LOGGER_READ_DATA);
+                    if ( reg_log_lin.ReadReg(REG_LOGGER_CTL_STATUS) ) {
+                        auto time = reg_log_lin.ReadReg(REG_LOGGER_POL_TIMER0);
+                        auto line = reg_log_lin.ReadReg(REG_LOGGER_READ_DATA);
                         log_line_time.push_back(time);
                         log_line_num.push_back(line);
                     }

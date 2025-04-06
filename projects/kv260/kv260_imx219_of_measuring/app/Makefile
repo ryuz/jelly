@@ -22,7 +22,15 @@ OBJS = main.o
 
 
 .PHONY: all
-all: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+all: build
+
+.PHONY: build
+build: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+	make -C rpu build
+
+.PHONY: fmt
+fmt: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+	make -C rpu fmt
 
 .PHONY: clean
 clean:
@@ -30,19 +38,13 @@ clean:
 
 .PHONY: run
 run: $(TARGET) load
+	make -C rpu run
 	./$(TARGET) $(RUN_OPT)
+	make -C rpu stop
 
-.PHONY: run_rust
-run_rust: load
-	cd rust; cargo run
-
-.PHONY: build_rust
-build_rust:
-	cd rust; cargo build
-
-.PHONY: server
-server: load
-	cd grpc/server; cargo run
+.PHONY: stop
+stop:
+	make -C rpu stop
 
 
 $(TARGET): $(OBJS)
@@ -93,7 +95,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo chmod 666 /dev/i2c-6
 
 .PHONY: unload
-unload:
+unload: stop
 	@if [ -e $(DEVTREE_PATH)/overlays/full ] ; then \
 		echo unload ; \
 		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
