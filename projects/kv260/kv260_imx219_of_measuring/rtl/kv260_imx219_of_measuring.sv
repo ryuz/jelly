@@ -809,6 +809,47 @@ module kv260_imx219_of_measuring
     
     
     // ----------------------------------------
+    //  DAC
+    // ----------------------------------------
+    
+    logic   dac_sync_n  ;
+    logic   dac_dina    ;
+    logic   dac_dinb    ;
+    logic   dac_sclk    ;
+    
+    output_dac
+            #(
+                .DIV_BITS       (4                  ),
+                .SHIFT          (8                  ),
+                .DX_BITS        (DX_BITS            ),
+                .dx_t           (dx_t               ),
+                .DY_BITS        (DY_BITS            ),
+                .dy_t           (dy_t               )
+            )
+        u_output_dac
+            (
+                .reset          (~axi4s_proc.aresetn),
+                .clk            (axi4s_proc.aclk    ),
+                .cke            (axi4s_proc.aclken  ),
+
+                .s_of_dx        (of_dx              ),
+                .s_of_dy        (of_dy              ),
+                .s_of_valid     (of_valid           ),
+                
+                .dac_sync_n     (dac_sync_n         ),
+                .dac_dina       (dac_dina           ),
+                .dac_dinb       (dac_dinb           ),
+                .dac_sclk       (dac_sclk           )
+            );
+
+    assign pmod[4] = dac_sync_n ;
+    assign pmod[5] = dac_dina   ;
+    assign pmod[6] = dac_dinb   ;
+    assign pmod[7] = dac_sclk   ;
+
+
+
+    // ----------------------------------------
     //  Debug
     // ----------------------------------------
     
@@ -894,9 +935,9 @@ module kv260_imx219_of_measuring
 //  assign pmod[1] = i2c0_scl_t;
 //  assign pmod[2] = i2c0_sda_o;
 //  assign pmod[3] = i2c0_sda_t;
-    assign pmod[4] = cam_enable;
-    assign pmod[5] = reg_frame_count[7];
-    assign pmod[7:6] = reg_counter_clk100[9:8];
+//    assign pmod[4] = cam_enable;
+//    assign pmod[5] = reg_frame_count[7];
+//    assign pmod[7:6] = reg_counter_clk100[9:8];
     
     
     // Debug

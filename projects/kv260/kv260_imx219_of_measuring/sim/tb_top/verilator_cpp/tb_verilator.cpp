@@ -178,8 +178,8 @@ int main(int argc, char** argv)
         axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_ACC_READY, 1, 0xff);
         axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_IRQ_CLR,   1, 0xff);
 
-        axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_OUT_DX0, 200+i, 0xff);
-        axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_OUT_DY0, 100+i, 0xff);
+        axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_OUT_DX0,  8192 * (210+i), 0xff);
+        axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_OUT_DY0, -8192 * (123+i), 0xff);
         axi4l->ExecWrite(reg_lk + bw * REG_IMG_LK_ACC_OUT_VALID, 1, 0xff);
     }
 

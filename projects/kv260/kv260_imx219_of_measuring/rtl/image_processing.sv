@@ -50,7 +50,7 @@ module image_processing
             output  var logic   [LK_REGIONS-1:0]    out_irq         ,
             
             output  var dx_t    [LK_REGIONS-1:0]    m_of_dx         ,
-            output  var dx_t    [LK_REGIONS-1:0]    m_of_dy         ,
+            output  var dy_t    [LK_REGIONS-1:0]    m_of_dy         ,
             output  var logic   [LK_REGIONS-1:0]    m_of_valid      ,
 
             output  var acc_t   [LK_REGIONS-1:0]    m_lk_gx2        ,
