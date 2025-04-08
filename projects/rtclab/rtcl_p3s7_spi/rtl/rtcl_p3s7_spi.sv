@@ -84,9 +84,9 @@ module rtcl_p3s7_spi
                 .reset          (reset          ),
                 .clk            (clk72          ),
 
-                .s_addr         (9'b100000001   ),
+                .s_addr         (9'b000000000   ),
                 .s_we           ('0             ),
-                .s_wdata        (16'h8001       ),
+                .s_wdata        (16'h0000       ),
                 .s_valid        (ready          ),
                 .s_ready        (               ),
                 .m_rdata        (               ),
@@ -97,6 +97,19 @@ module rtcl_p3s7_spi
                 .spi_mosi       (python_mosi    ),
                 .spi_miso       (python_miso    )
             );
+
+    (* MARK_DEBUG = "true" *)   logic   spi_ss_n  ;
+    (* MARK_DEBUG = "true" *)   logic   spi_sck   ;
+    (* MARK_DEBUG = "true" *)   logic   spi_mosi  ;
+    (* MARK_DEBUG = "true" *)   logic   spi_miso  ;
+    always_ff @(posedge clk72) begin
+        spi_ss_n <= python_ss_n ;
+        spi_sck  <= python_sck  ;
+        spi_mosi <= python_mosi ;
+        spi_miso <= python_miso ;
+    end
+
+
 
 
 //    assign sensor_pwr_en_vdd18 = 1'b0;
