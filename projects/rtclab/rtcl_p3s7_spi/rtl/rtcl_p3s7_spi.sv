@@ -60,6 +60,7 @@ module rtcl_p3s7_spi
 
 
     // Sensor Power Management
+    logic ready;
     sensor_pwr_mng
         u_sensor_pwr_mng
             (
@@ -67,7 +68,7 @@ module rtcl_p3s7_spi
                 .clk72                   (clk72                 ),
                 
                 .enable                  (enable                ),
-                .ready                   (                      ),
+                .ready                   (ready                 ),
 
                 .sensor_pwr_en_vdd18     (sensor_pwr_en_vdd18   ),
                 .sensor_pwr_en_vdd33     (sensor_pwr_en_vdd33   ),
@@ -77,14 +78,35 @@ module rtcl_p3s7_spi
                 .python_clk_pll          (python_clk_pll        )
             );
 
+    python_spi
+        u_python_spi
+            (
+                .reset          (reset          ),
+                .clk            (clk72          ),
+
+                .s_addr         (9'b100000001   ),
+                .s_we           ('0             ),
+                .s_wdata        (16'h8001       ),
+                .s_valid        (ready          ),
+                .s_ready        (               ),
+                .m_rdata        (               ),
+                .m_rvalid       (               ),
+
+                .spi_ss_n       (python_ss_n    ),
+                .spi_sck        (python_sck     ),
+                .spi_mosi       (python_mosi    ),
+                .spi_miso       (python_miso    )
+            );
+
+
 //    assign sensor_pwr_en_vdd18 = 1'b0;
 //    assign sensor_pwr_en_vdd33 = 1'b0;
 //    assign sensor_pwr_en_pix   = 1'b0;
 //    assign python_reset_n      = 1'b0;
 //    assign python_clk_pll      = 1'b0;
-    assign python_ss_n         = 1'b0;
-    assign python_mosi         = 1'b0;
-    assign python_sck          = 1'b0;
+//    assign python_ss_n         = 1'b0;
+//    assign python_mosi         = 1'b0;
+//    assign python_sck          = 1'b0;
 
     logic           python_clk  ;
     logic   [3:0]   python_data ;
