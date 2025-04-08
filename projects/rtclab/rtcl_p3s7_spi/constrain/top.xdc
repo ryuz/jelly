@@ -50,6 +50,7 @@ set_property IOSTANDARD LVCMOS33 [get_ports sensor_pwr_en_vdd18]
 set_property IOSTANDARD LVCMOS33 [get_ports sensor_pwr_en_vdd33]
 set_property IOSTANDARD LVCMOS33 [get_ports sensor_pwr_en_pix]
 set_property IOSTANDARD LVCMOS33 [get_ports sensor_pgood]
+set_property PULLTYPE PULLDOWN [get_ports sensor_pgood]
 
 set_property PACKAGE_PIN D14 [get_ports python_reset_n]
 set_property PACKAGE_PIN J13 [get_ports python_clk_pll]

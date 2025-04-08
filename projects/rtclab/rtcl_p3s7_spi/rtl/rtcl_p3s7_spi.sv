@@ -30,12 +30,58 @@ module rtcl_p3s7_spi
             input   var logic           python_sync_n           
         );
     
+    // 初期リセット生成
+    logic   [7:0]   reset_counter = '0;
+    logic           reset = 1'b1;
+    always_ff @(posedge clk72) begin
+        if ( reset_counter == '1 ) begin
+            reset <= 1'b0;
+        end
+        else begin
+            reset_counter <= reset_counter + 1;
+        end
+    end
 
-    assign sensor_pwr_en_vdd18 = 1'b0;
-    assign sensor_pwr_en_vdd33 = 1'b0;
-    assign sensor_pwr_en_pix   = 1'b0;
-    assign python_reset_n      = 1'b0;
-    assign python_clk_pll      = 1'b0;
+    // 時限タイマ
+    logic [31:0] timer_counter;
+    logic        enable       ;
+    always_ff @(posedge clk72) begin
+        if ( reset ) begin
+            timer_counter <= '0;
+            enable        <= 1'b0;
+        end
+        else begin
+            if ( timer_counter != '1 ) begin
+                timer_counter <= timer_counter + 1;
+            end
+            enable <= timer_counter < 72_000_000 * 10;
+        end
+    end
+
+
+    // Sensor Power Management
+    sensor_pwr_mng
+        u_sensor_pwr_mng
+            (
+                .reset                   (reset                 ),
+                .clk72                   (clk72                 ),
+                
+                .enable                  (enable                ),
+                .ready                   (                      ),
+
+                .sensor_pwr_en_vdd18     (sensor_pwr_en_vdd18   ),
+                .sensor_pwr_en_vdd33     (sensor_pwr_en_vdd33   ),
+                .sensor_pwr_en_pix       (sensor_pwr_en_pix     ),
+                .sensor_pgood            (sensor_pgood          ),
+                .python_reset_n          (python_reset_n        ),
+                .python_clk_pll          (python_clk_pll        )
+            );
+
+//    assign sensor_pwr_en_vdd18 = 1'b0;
+//    assign sensor_pwr_en_vdd33 = 1'b0;
+//    assign sensor_pwr_en_pix   = 1'b0;
+//    assign python_reset_n      = 1'b0;
+//    assign python_clk_pll      = 1'b0;
     assign python_ss_n         = 1'b0;
     assign python_mosi         = 1'b0;
     assign python_sck          = 1'b0;
@@ -46,9 +92,9 @@ module rtcl_p3s7_spi
     IBUFDS
         u_ibufds_python_clk
             (
-                .I      (python_clk_p)       ,
-                .IB     (python_clk_n)       ,
-                .O      (python_clk)     
+                .I      (python_clk_p   ),
+                .IB     (python_clk_n   ),
+                .O      (python_clk     ) 
             );
     
     for ( genvar i = 0; i < 4; i++ ) begin
@@ -81,8 +127,9 @@ module rtcl_p3s7_spi
         clk72_counter <= clk72_counter + 1;
     end
 
-    assign led[0] = clk50_counter[24];
+//  assign led[0] = clk50_counter[24];
 //  assign led[1] = clk72_counter[24];
+    assign led[0] = enable;
     assign led[1] = sensor_pgood;
 
     assign pmod[7:0] = clk50_counter[15:8];
