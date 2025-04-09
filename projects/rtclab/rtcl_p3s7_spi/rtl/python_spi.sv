@@ -23,7 +23,7 @@ module python_spi
         );
     
     // 分周
-    logic   [7:0]   clk_div;
+    logic   [2:0]   clk_div;
     logic           clk_puls;
     always_ff @(posedge clk ) begin
         if (reset) begin
@@ -50,24 +50,28 @@ module python_spi
     state_t                 state   ;
     logic                   phase   ;
     logic    [5:0]          count   ;
-    logic    [1+9+1+16-1:0] send    ;
+    logic    [9+1+16-1:0]   data    ;
     always_ff @(posedge clk) begin
         if (reset) begin
             busy     <= 1'b0    ;
             state    <= IDLE    ;
             count    <= 'x      ;
-            send     <= '0      ;
+            data     <= '0      ;
+            m_rvalid <= '0      ;
             spi_ss_n <= 1'b1    ;
             spi_sck  <= 1'b0    ;
         end
         else begin
+            m_rvalid <= 1'b0;
+
             if (s_valid && s_ready) begin
                 busy     <= 1'b1    ;
                 state    <= IDLE    ;
                 count    <= '0      ;
-                send     <= {1'b0, s_addr, s_we, s_wdata};
+                data     <= {s_addr, s_we, s_wdata};
                 spi_ss_n <= 1'b1    ;
                 spi_sck  <= 1'b0    ;
+                spi_mosi <= 1'b0    ;
             end
             else if ( busy && clk_puls ) begin
                 phase    <= ~phase  ;
@@ -83,19 +87,20 @@ module python_spi
                     begin
                         state    <= SEND        ;
                         count    <= '0          ;
-                        send     <= send << 1   ;
                         spi_ss_n <= 1'b0        ;
                         spi_sck  <= 1'b0        ;
+                        {spi_mosi, data} <= {data, spi_miso};
                     end
 
                 SEND:
                     begin
                         spi_sck <= ~spi_sck;
                         if ( spi_sck ) begin
-                            count    <= count + 1'b1;   ;
-                            send     <= send << 1       ;
+                            count            <= count + 1'b1;   ;
+                            {spi_mosi, data} <= {data, spi_miso};
                             if ( count == 6'd25 ) begin
-                                state <= STOP0;
+                                state    <= STOP0;
+                                m_rvalid <= 1'b1;
                             end
                         end
                     end
@@ -126,8 +131,8 @@ module python_spi
         end
     end
 
-    assign spi_mosi = send[$bits(send)-1];
-
+//  assign spi_mosi = send[$bits(send)-1];
+    assign m_rdata = data[15:0];
     assign s_ready = !busy;
 
 endmodule

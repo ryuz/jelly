@@ -60,7 +60,7 @@ module rtcl_p3s7_spi
 
 
     // Sensor Power Management
-    logic ready;
+    logic sensor_ready;
     sensor_pwr_mng
         u_sensor_pwr_mng
             (
@@ -68,7 +68,7 @@ module rtcl_p3s7_spi
                 .clk72                   (clk72                 ),
                 
                 .enable                  (enable                ),
-                .ready                   (ready                 ),
+                .ready                   (sensor_ready          ),
 
                 .sensor_pwr_en_vdd18     (sensor_pwr_en_vdd18   ),
                 .sensor_pwr_en_vdd33     (sensor_pwr_en_vdd33   ),
@@ -78,6 +78,8 @@ module rtcl_p3s7_spi
                 .python_clk_pll          (python_clk_pll        )
             );
 
+    (* MARK_DEBUG = "true" *) logic   [15:0]  spi_rdata ;
+    (* MARK_DEBUG = "true" *) logic           spi_rvalid;
     python_spi
         u_python_spi
             (
@@ -87,10 +89,10 @@ module rtcl_p3s7_spi
                 .s_addr         (9'b000000000   ),
                 .s_we           ('0             ),
                 .s_wdata        (16'h0000       ),
-                .s_valid        (ready          ),
+                .s_valid        (sensor_ready   ),
                 .s_ready        (               ),
-                .m_rdata        (               ),
-                .m_rvalid       (               ),
+                .m_rdata        (spi_rdata      ),
+                .m_rvalid       (spi_rvalid     ),
 
                 .spi_ss_n       (python_ss_n    ),
                 .spi_sck        (python_sck     ),
