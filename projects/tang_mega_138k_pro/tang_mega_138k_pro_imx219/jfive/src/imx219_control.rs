@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use core::cmp::{max, min};
-use core::error::Error;
+//use core::error::Error;
 use core::u32;
 
 use jelly_mem_access::*;
@@ -215,8 +215,12 @@ impl Imx219Control {
     }
 
     pub fn i2c_write(&mut self, addr: u16, data: &[u8]) -> Result<(), &'static str> {
-        self.i2c.write(IMX219_DEVADR, &addr.to_be_bytes());
-        self.i2c.write(IMX219_DEVADR, data);
+        let mut buffer = [0u8; 8]; // Maximum size: 2 (address) + 256 (data)
+        let addr_bytes = addr.to_be_bytes();
+        buffer[0] = addr_bytes[0];
+        buffer[1] = addr_bytes[1];
+        buffer[2..2 + data.len()].copy_from_slice(data);
+        self.i2c.write(IMX219_DEVADR, &buffer[..2 + data.len()]);
         Ok(())
     }
 
@@ -228,7 +232,8 @@ impl Imx219Control {
 
     pub fn i2c_write_u8(&mut self, addr: u16, data: u8) -> Result<(), &'static str> {
         self.i2c_write(addr, &(data.to_be_bytes()))?;
-//      println!("i2c_u8  {:04x} <= {:02x}", addr, data);
+        println!("i2c_u8  {:04x} <= {:02x}", addr, data);
+        println!("{:02x}", self.i2c_read_u8(addr)?);
         Ok(())
     }
 
@@ -240,7 +245,8 @@ impl Imx219Control {
 
     pub fn i2c_write_u16(&mut self, addr: u16, data: u16) -> Result<(), &'static str> {
         self.i2c_write(addr, &(data.to_be_bytes()))?;
-//      println!("i2c_u16 {:04x} <= {:04x}", addr, data);
+        println!("i2c_u16 {:04x} <= {:04x}", addr, data);
+        println!("{:04x}", self.i2c_read_u16(addr)?);
         Ok(())
     }
 
@@ -318,7 +324,7 @@ impl Imx219Control {
         Ok(20.0 * libm::log10(gain))
     }
 
-    pub fn set_digital_gain(&mut self, db: f64) -> Result<(),&'static str> {
+    pub fn set_digital_gain(&mut self, db: f64) -> Result<(), &'static str> {
 //      self.check_open()?;
 
         let db = if db > 0.0 { db } else { 0.0 };
@@ -334,9 +340,8 @@ impl Imx219Control {
         Ok(20.0 * libm::log10(gain))
     }
 
-    /*
-    pub fn set_frame_rate(&mut self, fps: f64) -> Result<(), Box<dyn Error>> {
-        self.check_open()?;
+    pub fn set_frame_rate(&mut self, fps: f64) -> Result<(), &'static str> {
+//      self.check_open()?;
 
         let new_frm_length =
             ((2.0 * self.get_pixel_clock()?) / (self.line_length as f64 * fps)) as i32;
@@ -356,12 +361,12 @@ impl Imx219Control {
         Ok(())
     }
 
-    pub fn get_frame_rate(&mut self) -> Result<f64, Box<dyn Error>> {
+    pub fn get_frame_rate(&mut self) -> Result<f64, &'static str> {
         Ok((2.0 * self.get_pixel_clock()?) / (self.frm_length as f64 * self.line_length as f64))
     }
 
-    pub fn set_exposure_time(&mut self, exposure_time: f64) -> Result<(), Box<dyn Error>> {
-        self.check_open()?;
+    pub fn set_exposure_time(&mut self, exposure_time: f64) -> Result<(), &'static str> {
+//      self.check_open()?;
 
         let new_coarse_integration_time =
             ((2.0 * self.get_pixel_clock()?) * exposure_time / self.line_length as f64) as u16;
@@ -374,7 +379,7 @@ impl Imx219Control {
         Ok(())
     }
 
-    pub fn get_exposure_time(&mut self) -> Result<f64, Box<dyn Error>> {
+    pub fn get_exposure_time(&mut self) -> Result<f64, &'static str> {
         Ok(
             (self.coarse_integration_time as f64 * self.line_length as f64)
                 / (2.0 * self.get_pixel_clock()?),
@@ -418,8 +423,8 @@ impl Imx219Control {
         y: i32,
         binning_h: bool,
         binning_v: bool,
-    ) -> Result<(), Box<dyn Error>> {
-        self.check_open()?;
+    ) -> Result<(), &'static str> {
+//        self.check_open()?;
 
         self.binning_h = binning_h;
         self.binning_v = binning_v;
@@ -455,7 +460,7 @@ impl Imx219Control {
         Ok(())
     }
 
-    pub fn set_aoi_size(&mut self, width: i32, height: i32) -> Result<(), Box<dyn Error>> {
+    pub fn set_aoi_size(&mut self, width: i32, height: i32) -> Result<(), &'static str> {
         self.set_aoi(
             width,
             height,
@@ -466,7 +471,7 @@ impl Imx219Control {
         )
     }
 
-    pub fn set_aoi_position(&mut self, x: i32, y: i32) -> Result<(), Box<dyn Error>> {
+    pub fn set_aoi_position(&mut self, x: i32, y: i32) -> Result<(), &'static str> {
         self.set_aoi(
             self.width,
             self.height,
@@ -490,8 +495,8 @@ impl Imx219Control {
         self.aoi_y
     }
 
-    pub fn set_flip(&mut self, flip_h: bool, flip_v: bool) -> Result<(), Box<dyn Error>> {
-        self.check_open()?;
+    pub fn set_flip(&mut self, flip_h: bool, flip_v: bool) -> Result<(), &'static str> {
+//      self.check_open()?;
 
         self.flip_h = flip_h;
         self.flip_v = flip_v;
@@ -514,8 +519,8 @@ impl Imx219Control {
         self.flip_v
     }
 
-    pub fn setup(&mut self) -> Result<(), Box<dyn Error>> {
-        self.check_open()?;
+    pub fn setup(&mut self) -> Result<(), &'static str> {
+//      self.check_open()?;
 
         self.i2c_write_u8(IMX219_MODE_SEL, 0x00)?; // mode_select [4:0]  (0: SW standby, 1: Streaming)
 
@@ -579,7 +584,6 @@ impl Imx219Control {
 
         Ok(())
     }
-    */
 }
 
 
