@@ -5,6 +5,10 @@
 mod uart;
 use uart::*;
 
+//mod i2c_access_imx219;
+//mod i2c_imx219;
+mod imx219_control;
+
 use jelly_mem_access::*;
 use jelly_pac::i2c::*;
 
@@ -25,6 +29,7 @@ const IMX219_DEVADR: u8 =     0x10;    // 7bit address
 
 #[no_mangle]
 pub unsafe extern "C" fn main() -> ! {
+    println!("start");
 
     type I2cAccessor = PhysAccessor<u32, 0x10000200, 0x100>;
     let  i2c = JellyI2c::<I2cAccessor>::new(I2cAccessor::new().into(), None);
@@ -40,6 +45,8 @@ pub unsafe extern "C" fn main() -> ! {
     i2c.write(IMX219_DEVADR, &[0x00, 0x00]);
     i2c.read(IMX219_DEVADR, &mut model_id);
     println!("model_id: 0x{:02x}{:02x}", model_id[0], model_id[1]);
+    println!("end!");
+    loop {}
 
     let mut i = 0;
     loop {
