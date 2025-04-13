@@ -46,6 +46,7 @@ module tang_mega_138k_pro_imx219
     logic           csi0_d1ln_deskew_done   ;
 
     logic           csi0_rx_clk             ;
+    logic           csi0_drst_n             ;
 
     wire    logic           csi0_lprx_en_ck          = 1'b1         ;
     wire    logic           csi0_lprx_en_d0          = 1'b1         ;
@@ -57,8 +58,8 @@ module tang_mega_138k_pro_imx219
     wire    logic           csi0_d1ln_hsrx_dren      = 1'b1         ;
     wire    logic           csi0_hsrx_en_ck          = 1'b1         ;
     wire    logic           csi0_hs_8bit_mode        = 1'b1         ;
-    wire    logic           csi0_rx_clk_1x           = 1'b0;//clk         ;
-    wire    logic           csi0_rx_invert           = '0        ;
+    wire    logic           csi0_rx_clk_1x           = csi0_rx_clk  ;
+    wire    logic           csi0_rx_invert           = '0           ;
     wire    logic           csi0_lalign_en           = 1'b1         ;
     wire    logic           csi0_walign_by           = '0           ;
     wire    logic           csi0_do_lptx0_n          = '0           ;
@@ -78,11 +79,11 @@ module tang_mega_138k_pro_imx219
     wire    logic   [12:0]  csi0_deskew_mth          = '0           ;
     wire    logic   [6:0]   csi0_deskew_owval        = '0           ;
     wire    logic           csi0_deskew_req          = '0           ;
-    wire    logic           csi0_drst_n              = ~reset       ;
+//  wire    logic           csi0_drst_n              = ~reset       ;
     wire    logic           csi0_one_byte0_match     = '0           ;
     wire    logic           csi0_word_lendian        = '0           ;
     wire    logic   [2:0]   csi0_fifo_rd_std         = 3'd1         ;
-    wire    logic           csi0_deskew_by           = '1           ;
+    wire    logic           csi0_deskew_by           = '0           ;
     wire    logic           csi0_deskew_en_oedge     = '0           ;
     wire    logic   [5:0]   csi0_deskew_half_opening = '0           ;
     wire    logic   [1:0]   csi0_deskew_lsb_mode     = '0           ;
