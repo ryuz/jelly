@@ -59,8 +59,8 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
         // camera 設定
         let pixel_clock: f64 = 91000000.0;
         let binning: bool = true;
-        let width: i32 = 1280;
-        let height: i32 = 720;
+        let width: i32 = 1280/2;
+        let height: i32 = 720/2;
         let aoi_x: i32 = -1;
         let aoi_y: i32 = -1;
         imx219.set_pixel_clock(pixel_clock)?;
