@@ -480,12 +480,15 @@ module tang_mega_138k_pro_imx219
     assign led_n[4] = ~counter[24];
     assign led_n[5] = ~reset;
 
+    /*
     assign pmod1[0] = i2c_scl_i;
     assign pmod1[1] = i2c_sda_i;
 //    assign pmod1[2] = csi0_rstn;
 //    assign pmod1[7:3] = counter[7:3];
 //    assign pmod1[7:2] = csi0_d0ln_hsrxd;
-    assign pmod1[7:2] = csi0_d1ln_hsrxd >> 8;
+    assign pmod1[7:2] = csi0_d1ln_hsrxd;
+    */
+    assign pmod1[7:0] = csi0_d0ln_hsrxd[7:0];
 
 //    assign pmod1 = counter[15:8];
     assign pmod2 = counter[15:8];
