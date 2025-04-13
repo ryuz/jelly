@@ -23,9 +23,8 @@ CONSTRAIN_DIR = ../constrain
 
 VLOG_SOURCES  = $(RTL_DIR)/tang_mega_138k_pro_imx219.sv
 VLOG_SOURCES += $(RTL_DIR)/jfive_simple_controller.sv
-#VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_jfive_simple_controller.sv
-#VLOG_SOURCES += $(IP_DIR)/mipi_rx_advance/mipi_rx_advance.v
-VLOG_SOURCES += $(RTL_DIR)/gowin_mipi_dphy_rx.v
+VLOG_SOURCES += $(IP_DIR)/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v
+VLOG_SOURCES += $(IP_DIR)/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_jfive_simple_core.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_register_file.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_register_file_ram.sv
@@ -46,7 +45,6 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_insert_ff.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_control.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c_core.v
-
 #VLOG_SOURCES += $(JELLY_RTL_SOURCES)
 
 VG_SOURCES    = ./jfive_tcm/impl/gwsynthesis/jfive_tcm.vg

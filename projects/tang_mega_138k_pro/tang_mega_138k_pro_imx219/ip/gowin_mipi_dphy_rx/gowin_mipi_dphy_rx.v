@@ -5,7 +5,7 @@
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138
 //Device Version: B
-//Created Time: Sat Apr 12 09:09:18 2025
+//Created Time: Sun Apr 13 20:20:57 2025
 
 module Gowin_MIPI_DPHY_RX (d0ln_hsrxd, d1ln_hsrxd, d0ln_hsrxd_vld, d1ln_hsrxd_vld, di_lprx0_n, di_lprx0_p, di_lprx1_n, di_lprx1_p, di_lprxck_n, di_lprxck_p, rx_clk_o, deskew_error, d0ln_deskew_done, d1ln_deskew_done, ck_n, ck_p, rx0_n, rx0_p, rx1_n, rx1_p, lprx_en_ck, lprx_en_d0, lprx_en_d1, hsrx_odten_ck, hsrx_odten_d0, hsrx_odten_d1, d0ln_hsrx_dren, d1ln_hsrx_dren, hsrx_en_ck, hs_8bit_mode, rx_clk_1x, rx_invert, lalign_en, walign_by, do_lptx0_n, do_lptx0_p, do_lptx1_n, do_lptx1_p, do_lptxck_n, do_lptxck_p, lptx_en_ck, lptx_en_d0, lptx_en_d1, byte_lendian, hsrx_stop, pwron, reset, deskew_lnsel, deskew_mth, deskew_owval, deskew_req, drst_n, one_byte0_match, word_lendian, fifo_rd_std, deskew_by, deskew_en_oedge, deskew_half_opening, deskew_lsb_mode, deskew_m, deskew_mset, deskew_oclkedg_en, eqcs_lane0, eqcs_lane1, eqcs_ck, eqrs_lane0, eqrs_lane1, eqrs_ck, hsrx_dlydir_lane0, hsrx_dlydir_lane1, hsrx_dlydir_ck, hsrx_dlyldn_lane0, hsrx_dlyldn_lane1, hsrx_dlyldn_ck, hsrx_dlymv_lane0, hsrx_dlymv_lane1, hsrx_dlymv_ck, walign_dvld);
 
