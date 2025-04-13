@@ -31,23 +31,24 @@ module tang_mega_138k_pro_imx219
             output  var logic   [5:0]   led_n
         );
 
+    logic           csi0_rx_clk             ;
+    logic           csi0_drst_n             ;
+
     logic   [15:0]  csi0_d0ln_hsrxd         ;
     logic   [15:0]  csi0_d1ln_hsrxd         ;
-    logic           csi0_d0ln_hsrxd_vld     ;
-    logic           csi0_d1ln_hsrxd_vld     ;
-    logic           csi0_di_lprx0_n         ;
-    logic           csi0_di_lprx0_p         ;
-    logic           csi0_di_lprx1_n         ;
-    logic           csi0_di_lprx1_p         ;
-    logic           csi0_di_lprxck_n        ;
-    logic           csi0_di_lprxck_p        ;
+    logic   [1:0]   csi0_hsrxd_vld          ;
+    logic   [1:0]   csi0_hsrx_odten         ;
+
+    logic   [1:0]   csi0_di_lprxck          ;
+    logic   [1:0]   csi0_di_lprx0           ;
+    logic   [1:0]   csi0_di_lprx1           ;
+
     logic           csi0_deskew_error       ;
     logic           csi0_d0ln_deskew_done   ;
     logic           csi0_d1ln_deskew_done   ;
 
-    logic           csi0_rx_clk             ;
-    logic           csi0_drst_n             ;
 
+    /*
     wire    logic           csi0_lprx_en_ck          = 1'b1         ;
     wire    logic           csi0_lprx_en_d0          = 1'b1         ;
     wire    logic           csi0_lprx_en_d1          = 1'b1         ;
@@ -58,7 +59,7 @@ module tang_mega_138k_pro_imx219
     wire    logic           csi0_d1ln_hsrx_dren      = 1'b1         ;
     wire    logic           csi0_hsrx_en_ck          = 1'b1         ;
     wire    logic           csi0_hs_8bit_mode        = 1'b1         ;
-    wire    logic           csi0_rx_clk_1x           = csi0_rx_clk  ;
+//  wire    logic           csi0_rx_clk_1x           = csi0_rx_clk  ;
     wire    logic           csi0_rx_invert           = '0           ;
     wire    logic           csi0_lalign_en           = 1'b1         ;
     wire    logic           csi0_walign_by           = '0           ;
@@ -106,89 +107,184 @@ module tang_mega_138k_pro_imx219
     wire    logic           csi0_hsrx_dlymv_lane1    = '0           ;
     wire    logic           csi0_hsrx_dlymv_ck       = '0           ;
     wire    logic           csi0_walign_dvld         = '0           ;
+    */
 
     Gowin_MIPI_DPHY_RX
         u_MIPI_DPHY_RX
             (
-                .d0ln_hsrxd         (csi0_d0ln_hsrxd        ), //output [15:0] d0ln_hsrxd
-                .d1ln_hsrxd         (csi0_d1ln_hsrxd        ), //output [15:0] d1ln_hsrxd
-                .d0ln_hsrxd_vld     (csi0_d0ln_hsrxd_vld    ), //output d0ln_hsrxd_vld
-                .d1ln_hsrxd_vld     (csi0_d1ln_hsrxd_vld    ), //output d1ln_hsrxd_vld
-                .di_lprx0_n         (csi0_di_lprx0_n        ), //output di_lprx0_n
-                .di_lprx0_p         (csi0_di_lprx0_p        ), //output di_lprx0_p
-                .di_lprx1_n         (csi0_di_lprx1_n        ), //output di_lprx1_n
-                .di_lprx1_p         (csi0_di_lprx1_p        ), //output di_lprx1_p
-                .di_lprxck_n        (csi0_di_lprxck_n       ), //output di_lprxck_n
-                .di_lprxck_p        (csi0_di_lprxck_p       ), //output di_lprxck_p
-                .rx_clk_o           (csi0_rx_clk            ), //output rx_clk_o
-                .deskew_error       (csi0_deskew_error      ), //output deskew_error
-                .d0ln_deskew_done   (csi0_d0ln_deskew_done  ), //output d0ln_deskew_done
-                .d1ln_deskew_done   (csi0_d1ln_deskew_done  ), //output d1ln_deskew_done
                 .ck_n               (csi0_clk_n             ),  //inout ck_n
                 .ck_p               (csi0_clk_p             ),  //inout ck_p
                 .rx0_n              (csi0_data_n[0]         ),  //inout rx0_n
                 .rx0_p              (csi0_data_p[0]         ),  //inout rx0_p
                 .rx1_n              (csi0_data_n[1]         ),  //inout rx1_n
                 .rx1_p              (csi0_data_p[1]         ),  //inout rx1_p
-                .lprx_en_ck         (csi0_lprx_en_ck        ), //input lprx_en_ck
-                .lprx_en_d0         (csi0_lprx_en_d0        ), //input lprx_en_d0
-                .lprx_en_d1         (csi0_lprx_en_d1        ), //input lprx_en_d1
-                .hsrx_odten_ck      (csi0_hsrx_odten_ck     ), //input hsrx_odten_ck
-                .hsrx_odten_d0      (csi0_hsrx_odten_d0     ), //input hsrx_odten_d0
-                .hsrx_odten_d1      (csi0_hsrx_odten_d1     ), //input hsrx_odten_d1
-                .d0ln_hsrx_dren     (csi0_d0ln_hsrx_dren    ), //input d0ln_hsrx_dren
-                .d1ln_hsrx_dren     (csi0_d1ln_hsrx_dren    ), //input d1ln_hsrx_dren
-                .hsrx_en_ck         (csi0_hsrx_en_ck        ), //input hsrx_en_ck
-                .hs_8bit_mode       (csi0_hs_8bit_mode      ), //input hs_8bit_mode
-                .rx_clk_1x          (csi0_rx_clk_1x         ), //input rx_clk_1x
-                .rx_invert          (csi0_rx_invert         ), //input rx_invert
-                .lalign_en          (csi0_lalign_en         ), //input lalign_en
-                .walign_by          (csi0_walign_by         ), //input walign_by
-                .do_lptx0_n         (csi0_do_lptx0_n        ), //input do_lptx0_n
-                .do_lptx0_p         (csi0_do_lptx0_p        ), //input do_lptx0_p
-                .do_lptx1_n         (csi0_do_lptx1_n        ), //input do_lptx1_n
-                .do_lptx1_p         (csi0_do_lptx1_p        ), //input do_lptx1_p
-                .do_lptxck_n        (csi0_do_lptxck_n       ), //input do_lptxck_n
-                .do_lptxck_p        (csi0_do_lptxck_p       ), //input do_lptxck_p
-                .lptx_en_ck         (csi0_lptx_en_ck        ), //input lptx_en_ck
-                .lptx_en_d0         (csi0_lptx_en_d0        ), //input lptx_en_d0
-                .lptx_en_d1         (csi0_lptx_en_d1        ), //input lptx_en_d1
-                .byte_lendian       (csi0_byte_lendian      ), //input byte_lendian
-                .hsrx_stop          (csi0_hsrx_stop         ), //input hsrx_stop
-                .pwron              (csi0_pwron             ), //input pwron
-                .reset              (csi0_reset             ), //input reset
-                .deskew_lnsel       (csi0_deskew_lnsel      ), //input [2:0] deskew_lnsel
-                .deskew_mth         (csi0_deskew_mth        ), //input [12:0] deskew_mth
-                .deskew_owval       (csi0_deskew_owval      ), //input [6:0] deskew_owval
-                .deskew_req         (csi0_deskew_req        ), //input deskew_req
+
+                .rx_clk_o           (csi0_rx_clk            ), //output rx_clk_o
+                .rx_clk_1x          (csi0_rx_clk            ), //input rx_clk_1x
+
                 .drst_n             (csi0_drst_n            ), //input drst_n
-                .one_byte0_match    (csi0_one_byte0_match   ), //input one_byte0_match
-                .word_lendian       (csi0_word_lendian      ), //input word_lendian
-                .fifo_rd_std        (csi0_fifo_rd_std       ), //input [2:0] fifo_rd_std
-                .deskew_by          (csi0_deskew_by         ), //input deskew_by
-                .deskew_en_oedge    (csi0_deskew_en_oedge   ), //input deskew_en_oedge
-                .deskew_half_opening(csi0_deskew_half_opening), //input [5:0] deskew_half_opening
-                .deskew_lsb_mode    (csi0_deskew_lsb_mode   ), //input [1:0] deskew_lsb_mode
-                .deskew_m           (csi0_deskew_m          ), //input [2:0] deskew_m
-                .deskew_mset        (csi0_deskew_mset       ), //input [6:0] deskew_mset
-                .deskew_oclkedg_en  (csi0_deskew_oclkedg_en ), //input deskew_oclkedg_en
-                .eqcs_lane0         (csi0_eqcs_lane0        ), //input [2:0] eqcs_lane0
-                .eqcs_lane1         (csi0_eqcs_lane1        ), //input [2:0] eqcs_lane1
-                .eqcs_ck            (csi0_eqcs_ck           ), //input [2:0] eqcs_ck
-                .eqrs_lane0         (csi0_eqrs_lane0        ), //input [2:0] eqrs_lane0
-                .eqrs_lane1         (csi0_eqrs_lane1        ), //input [2:0] eqrs_lane1
-                .eqrs_ck            (csi0_eqrs_ck           ), //input [2:0] eqrs_ck
-                .hsrx_dlydir_lane0  (csi0_hsrx_dlydir_lane0 ), //input hsrx_dlydir_lane0
-                .hsrx_dlydir_lane1  (csi0_hsrx_dlydir_lane1 ), //input hsrx_dlydir_lane1
-                .hsrx_dlydir_ck     (csi0_hsrx_dlydir_ck    ), //input hsrx_dlydir_ck
-                .hsrx_dlyldn_lane0  (csi0_hsrx_dlyldn_lane0 ), //input hsrx_dlyldn_lane0
-                .hsrx_dlyldn_lane1  (csi0_hsrx_dlyldn_lane1 ), //input hsrx_dlyldn_lane1
-                .hsrx_dlyldn_ck     (csi0_hsrx_dlyldn_ck    ), //input hsrx_dlyldn_ck
-                .hsrx_dlymv_lane0   (csi0_hsrx_dlymv_lane0  ), //input hsrx_dlymv_lane0
-                .hsrx_dlymv_lane1   (csi0_hsrx_dlymv_lane1  ), //input hsrx_dlymv_lane1
-                .hsrx_dlymv_ck      (csi0_hsrx_dlymv_ck     ), //input hsrx_dlymv_ck
-                .walign_dvld        (csi0_walign_dvld       ) //input walign_dvld
+                .pwron              (1'b1                   ), //input pwron
+                .reset              (reset                  ), //input reset
+                .hsrx_stop          (1'b0                   ), //input hsrx_stop
+
+                .hs_8bit_mode       (1'b1                   ), //input hs_8bit_mode
+                .rx_invert          (1'b0                   ), //input rx_invert
+                .byte_lendian       (1'b1                   ), //input byte_lendian
+                .lalign_en          (1'b1                   ), //input lalign_en
+
+                .walign_by          (1'b0                   ), //input walign_by
+                .one_byte0_match    (1'b0                   ), //input one_byte0_match
+                .word_lendian       (1'b1                   ), //input word_lendian
+                .fifo_rd_std        (3'b001                 ), //input [2:0] fifo_rd_std
+                .walign_dvld        (1'b0                   ), //input walign_dvld
+
+                .hsrx_en_ck         (1'b1                   ), //input hsrx_en_ck
+                .d0ln_hsrx_dren     (1'b1                   ), //input d0ln_hsrx_dren
+                .d1ln_hsrx_dren     (1'b1                   ), //input d1ln_hsrx_dren
+                .hsrx_odten_ck      (1'b1                   ), //input hsrx_odten_ck
+                .hsrx_odten_d0      (csi0_hsrx_odten[0]     ), //input hsrx_odten_d0
+                .hsrx_odten_d1      (csi0_hsrx_odten[1]     ), //input hsrx_odten_d1
+                .d0ln_hsrxd_vld     (csi0_hsrxd_vld[0]      ), //output d0ln_hsrxd_vld
+                .d1ln_hsrxd_vld     (csi0_hsrxd_vld[1]      ), //output d1ln_hsrxd_vld
+                .d0ln_hsrxd         (csi0_d0ln_hsrxd        ), //output [15:0] d0ln_hsrxd
+                .d1ln_hsrxd         (csi0_d1ln_hsrxd        ), //output [15:0] d1ln_hsrxd
+
+                .lprx_en_ck         (1'b1                   ), //input lprx_en_ck
+                .lprx_en_d0         (1'b1                   ), //input lprx_en_d0
+                .lprx_en_d1         (1'b1                   ), //input lprx_en_d1
+                .di_lprxck_n        (csi0_di_lprxck[0]      ), //output di_lprxck_n
+                .di_lprxck_p        (csi0_di_lprxck[1]      ), //output di_lprxck_p
+                .di_lprx0_n         (csi0_di_lprx0[0]       ), //output di_lprx0_n
+                .di_lprx0_p         (csi0_di_lprx0[1]       ), //output di_lprx0_p
+                .di_lprx1_n         (csi0_di_lprx1[0]       ), //output di_lprx1_n
+                .di_lprx1_p         (csi0_di_lprx1[1]       ), //output di_lprx1_p
+
+                .lptx_en_ck         (1'b0                   ), //input lptx_en_ck
+                .lptx_en_d0         (1'b0                   ), //input lptx_en_d0
+                .lptx_en_d1         (1'b0                   ), //input lptx_en_d1
+                .do_lptxck_n        (1'b0                   ), //input do_lptxck_n
+                .do_lptxck_p        (1'b0                   ), //input do_lptxck_p
+                .do_lptx0_n         (1'b0                   ), //input do_lptx0_n
+                .do_lptx0_p         (1'b0                   ), //input do_lptx0_p
+                .do_lptx1_n         (1'b0                   ), //input do_lptx1_n
+                .do_lptx1_p         (1'b0                   ), //input do_lptx1_p
+
+                .deskew_by          (1'b1                   ), //input deskew_by
+                .deskew_en_oedge    (1'b0                   ), //input deskew_en_oedge
+                .deskew_req         (1'b0                   ), //input deskew_req
+                .deskew_lnsel       ('0                     ), //input [2:0] deskew_lnsel
+                .deskew_lsb_mode    ('0                     ), //input [1:0] deskew_lsb_mode
+                .deskew_m           ('0                     ), //input [2:0] deskew_m
+                .deskew_mset        ('0                     ), //input [6:0] deskew_mset
+                .deskew_mth         ('0                     ), //input [12:0] deskew_mth
+                .deskew_owval       ('0                     ), //input [6:0] deskew_owval
+                .deskew_half_opening('0                     ), //input [5:0] deskew_half_opening
+                .deskew_oclkedg_en  (1'b0                   ), //input deskew_oclkedg_en
+                .deskew_error       (csi0_deskew_error      ), //output deskew_error
+                .d0ln_deskew_done   (csi0_d0ln_deskew_done  ), //output d0ln_deskew_done
+                .d1ln_deskew_done   (csi0_d1ln_deskew_done  ), //output d1ln_deskew_done
+
+                .eqcs_ck            (3'b100                 ), //input [2:0] eqcs_ck
+                .eqcs_lane0         (3'b100                 ), //input [2:0] eqcs_lane0
+                .eqcs_lane1         (3'b100                 ), //input [2:0] eqcs_lane1
+                .eqrs_ck            (3'b100                 ), //input [2:0] eqrs_ck
+                .eqrs_lane0         (3'b100                 ), //input [2:0] eqrs_lane0
+                .eqrs_lane1         (3'b100                 ), //input [2:0] eqrs_lane1
+                .hsrx_dlydir_ck     (1'b0                   ), //input hsrx_dlydir_ck
+                .hsrx_dlydir_lane0  (1'b0                   ), //input hsrx_dlydir_lane0
+                .hsrx_dlydir_lane1  (1'b0                   ), //input hsrx_dlydir_lane1
+                .hsrx_dlyldn_ck     (1'b0                   ), //input hsrx_dlyldn_ck
+                .hsrx_dlyldn_lane0  (1'b0                   ), //input hsrx_dlyldn_lane0
+                .hsrx_dlyldn_lane1  (1'b0                   ), //input hsrx_dlyldn_lane1
+                .hsrx_dlymv_ck      (1'b0                   ), //input hsrx_dlymv_ck
+                .hsrx_dlymv_lane0   (1'b0                   ), //input hsrx_dlymv_lane0
+                .hsrx_dlymv_lane1   (1'b0                   )  //input hsrx_dlymv_lane1
             );
+
+    logic               csi0_byte_ready  ;
+    logic   [7:0]       csi0_byte_d0     ;
+    logic   [7:0]       csi0_byte_d1     ;
+    logic   [1:0]       csi0_lp0_reg_0   = 2'b11;
+    logic   [1:0]       csi0_lp0_reg_1   = 2'b11;
+    logic               csi0_odt_en_msk  = '0;
+    logic               csi0_hsrx_en_msk = 1'b0;
+    logic   [5:0]       csi0_hsrx_cnt    = 'b0;
+    logic               csi0_reg3to1     = 1'b0;
+
+    wire logic          csi0_from0to3    = (csi0_lp0_reg_1==0)&(csi0_lp0_reg_0==3);
+    wire logic          csi0_from1to0    = (csi0_lp0_reg_1==1)&(csi0_lp0_reg_0==0);
+    wire logic          csi0_from1to2    = (csi0_lp0_reg_1==1)&(csi0_lp0_reg_0==2);
+    wire logic          csi0_from1to3    = (csi0_lp0_reg_1==1)&(csi0_lp0_reg_0==3);
+    wire logic          csi0_from3to1    = (csi0_lp0_reg_1==3)&(csi0_lp0_reg_0==1);
+    wire logic          csi0_fromXto3    = (csi0_lp0_reg_1!=3)&(csi0_lp0_reg_0==3);
+    wire logic          csi0_from1toX    = (csi0_lp0_reg_1==1)&(csi0_lp0_reg_0!=1);
+    wire logic  [ 1:0]  csi0_odt_en      = {(csi0_di_lprx1==0), (csi0_di_lprx0==0)} & {2{csi0_odt_en_msk}};
+
+    always_ff @(posedge csi0_rx_clk or posedge reset) begin
+        if (reset)                  csi0_odt_en_msk  <= 'b0;
+        else if (~csi0_odt_en_msk)  csi0_odt_en_msk  <= csi0_from3to1;
+        else if (1)                 csi0_odt_en_msk  <= !(csi0_from1to2|csi0_from1to3|csi0_fromXto3);
+    //!______________________________________________________________________________
+        if (reset)                  csi0_reg3to1 <= 'b0;
+        else if (~csi0_reg3to1)     csi0_reg3to1 <= csi0_from3to1;
+        else if (1)                 csi0_reg3to1 <= ~csi0_from1toX;
+    //!______________________________________________________________________________
+        if (reset)                  csi0_hsrx_cnt    <= 'b0;
+        else if (|csi0_odt_en)      csi0_hsrx_cnt    <= 6'd10;
+        else if (csi0_hsrx_cnt>0)   csi0_hsrx_cnt    <= csi0_hsrx_cnt - 6'd1;
+    end
+
+    always_ff @(posedge csi0_rx_clk) begin
+        csi0_lp0_reg_0   <= csi0_di_lprx0;
+    //    lp1_reg_0   <= lp_data1;
+        csi0_lp0_reg_1   <= csi0_lp0_reg_0;
+    //!______________________________________________________________________________
+        csi0_drst_n      <= ~(csi0_reg3to1&csi0_from1to0);
+    //    rx_drst_n   <= ~from3to1;
+    //!______________________________________________________________________________
+    //    odt_en      <= {(lp1_reg_0==0), (lp0_reg_0==0)} & {2{odt_en_msk}};
+    //!______________________________________________________________________________
+        csi0_hsrx_en_msk <= (csi0_hsrx_cnt>0);
+        csi0_byte_ready  <= csi0_hsrx_en_msk & csi0_hsrxd_vld[0];
+        csi0_byte_d0     <= csi0_d0ln_hsrxd[7:0];
+        csi0_byte_d1     <= csi0_d1ln_hsrxd[7:0];
+    end
+    
+    assign csi0_hsrx_odten = {(csi0_di_lprx1==0), (csi0_di_lprx0==0)} & {2{csi0_odt_en_msk}};
+
+
+    wire            csi_rx_sp_en       /* synthesis syn_keep = 1 */;
+    wire            csi_rx_lp_en       /* synthesis syn_keep = 1 */;
+    wire            csi_rx_lp_av_en    /* synthesis syn_keep = 1 */;
+    wire            csi_rx_ecc_ok      ;
+    wire [15:0]     csi_rx_wc          ;
+    wire [ 1:0]     csi_rx_vc          ;
+    wire [ 5:0]     csi_rx_dt          ;
+    wire [ 7:0]     csi_rx_ecc         ;
+    wire [ 1:0]     csi_rx_payload_dv  /* synthesis syn_keep = 1 */;
+    wire [15:0]     csi_rx_payload     /* synthesis syn_keep = 1 */;
+
+    MIPI_DSI_CSI2_RX_Top
+        u_MIPI_DSI_CSI2_RX
+            (
+                .I_RSTN         (~reset         ), //input I_RSTN
+                .I_BYTE_CLK     (csi0_rx_clk    ), //input I_BYTE_CLK
+                .I_REF_DT       (8'h2b          ), //input [5:0] I_REF_DT  RAW10
+                .I_READY        (csi0_byte_ready), //input I_READY
+                .I_DATA0        (csi0_byte_d0   ), //input [7:0] I_DATA0
+                .I_DATA1        (csi0_byte_d1   ), //input [7:0] I_DATA1
+                .O_SP_EN        (csi_rx_sp_en          ), //output O_SP_EN
+                .O_LP_EN        (csi_rx_lp_en          ), //output O_LP_EN
+                .O_LP_AV_EN     (csi_rx_lp_av_en       ), //output O_LP_AV_EN
+                .O_ECC_OK       (csi_rx_ecc_ok         ), //output O_ECC_OK
+                .O_ECC          (csi_rx_ecc            ), //output [7:0] O_ECC
+                .O_WC           (csi_rx_wc             ), //output [15:0] O_WC
+                .O_VC           (csi_rx_vc             ), //output [1:0] O_VC
+                .O_DT           (csi_rx_dt             ), //output [5:0] O_DT
+                .O_PAYLOAD_DV   (csi_rx_payload_dv     ), //output [1:0] O_PAYLOAD_DV
+                .O_PAYLOAD      (csi_rx_payload        )  //output [15:0] O_PAYLOAD
+            );
+
 
     /*
     logic           lp_clk_out          ;

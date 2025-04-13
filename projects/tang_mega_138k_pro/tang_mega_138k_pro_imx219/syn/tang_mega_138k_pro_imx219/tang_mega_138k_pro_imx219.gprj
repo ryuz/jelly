@@ -8,6 +8,7 @@
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219/rtl/gowin_mipi_dphy_rx.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219/rtl/jfive_simple_controller.sv" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219/rtl/tang_mega_138k_pro_imx219.sv" type="file.verilog" enable="1"/>
+        <File path="src/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly/rtl/v1/library/jelly_pipeline_control.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly/rtl/v1/library/jelly_pipeline_insert_ff.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly/rtl/v1/peripheral/jelly_i2c.v" type="file.verilog" enable="1"/>
