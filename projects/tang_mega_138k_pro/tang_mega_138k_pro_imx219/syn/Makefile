@@ -1,6 +1,3 @@
-
-
-
 #DEVICE_NAME = GW1NSR-LV4CQN48PC6/I5
 #DEVICE_NAME = GW1NSR-LV4CQN48PC6/I5
 #DEVICE_NAME = GW1NR-LV9QN88PC6/I5
@@ -85,5 +82,5 @@ clean:
 run: $(FS_FILE)
 	openFPGALoader $(FS_FILE)
 
-#run2:
-#	programmer_cli --device GW1NSR-4C --run 2 --fsFile $(TARGET).fs --location `programmer_cli --scan-cable | grep -oP 'USB location:\K\d+'`
+run_win: $(FS_FILE)
+	programmer_cli --device GW5AST-138C --run 2 --fsFile '$(shell wslpath -w $(FS_FILE))'

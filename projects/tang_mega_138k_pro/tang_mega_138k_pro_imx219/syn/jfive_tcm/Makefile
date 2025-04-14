@@ -51,3 +51,4 @@ $(VG_FILE): jfive $(VLOG_SOURCES) $(CST_SOURCES) $(MEM_FILE)
 clean:
 	rm -fr impl
 	rm -f $(MEM_FILE)
+
