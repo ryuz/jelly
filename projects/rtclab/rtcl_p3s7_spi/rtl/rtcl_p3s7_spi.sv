@@ -78,19 +78,26 @@ module rtcl_p3s7_spi
                 .python_clk_pll          (python_clk_pll        )
             );
 
-    (* MARK_DEBUG = "true" *) logic   [15:0]  spi_rdata ;
-    (* MARK_DEBUG = "true" *) logic           spi_rvalid;
+
+    (* MARK_DEBUG = "true" *)   logic   [8:0]   spi_addr    ;
+    (* MARK_DEBUG = "true" *)   logic           spi_we      ;
+    (* MARK_DEBUG = "true" *)   logic   [15:0]  spi_wdata   ;
+    (* MARK_DEBUG = "true" *)   logic           spi_valid   ;
+    (* MARK_DEBUG = "true" *)   logic           spi_ready   ;
+    (* MARK_DEBUG = "true" *)   logic   [15:0]  spi_rdata   ;
+    (* MARK_DEBUG = "true" *)   logic           spi_rvalid  ;
+
     python_spi
         u_python_spi
             (
                 .reset          (reset          ),
                 .clk            (clk72          ),
 
-                .s_addr         (9'b000000000   ),
-                .s_we           ('0             ),
-                .s_wdata        (16'h0000       ),
-                .s_valid        (sensor_ready   ),
-                .s_ready        (               ),
+                .s_addr         (spi_addr       ),
+                .s_we           (spi_we         ),
+                .s_wdata        (spi_wdata      ),
+                .s_valid        (spi_valid      ),
+                .s_ready        (spi_ready      ),
                 .m_rdata        (spi_rdata      ),
                 .m_rvalid       (spi_rvalid     ),
 
@@ -100,15 +107,31 @@ module rtcl_p3s7_spi
                 .spi_miso       (python_miso    )
             );
 
-    (* MARK_DEBUG = "true" *)   logic   spi_ss_n  ;
-    (* MARK_DEBUG = "true" *)   logic   spi_sck   ;
-    (* MARK_DEBUG = "true" *)   logic   spi_mosi  ;
-    (* MARK_DEBUG = "true" *)   logic   spi_miso  ;
+
+    spi_cmd
+        u_spi_cmd
+            (
+                .reset          (reset          ),
+                .clk            (clk72          ),
+
+                .enable         (sensor_ready   ),
+
+                .m_spi_addr     (spi_addr       ),
+                .m_spi_we       (spi_we         ),
+                .m_spi_wdata    (spi_wdata      ),
+                .m_spi_valid    (spi_valid      ),
+                .m_spi_ready    (spi_ready      )
+            );
+
+    (* MARK_DEBUG = "true" *)   logic   dbg_spi_ss_n  ;
+    (* MARK_DEBUG = "true" *)   logic   dbg_spi_sck   ;
+    (* MARK_DEBUG = "true" *)   logic   dbg_spi_mosi  ;
+    (* MARK_DEBUG = "true" *)   logic   dbg_spi_miso  ;
     always_ff @(posedge clk72) begin
-        spi_ss_n <= python_ss_n ;
-        spi_sck  <= python_sck  ;
-        spi_mosi <= python_mosi ;
-        spi_miso <= python_miso ;
+        dbg_spi_ss_n <= python_ss_n ;
+        dbg_spi_sck  <= python_sck  ;
+        dbg_spi_mosi <= python_mosi ;
+        dbg_spi_miso <= python_miso ;
     end
 
 

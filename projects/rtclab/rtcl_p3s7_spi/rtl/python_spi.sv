@@ -60,6 +60,7 @@ module python_spi
             m_rvalid <= '0      ;
             spi_ss_n <= 1'b1    ;
             spi_sck  <= 1'b0    ;
+            spi_mosi <= 1'b0    ;
         end
         else begin
             m_rvalid <= 1'b0;
@@ -100,6 +101,7 @@ module python_spi
                             {spi_mosi, data} <= {data, spi_miso};
                             if ( count == 6'd25 ) begin
                                 state    <= STOP0;
+                                spi_mosi <= 1'b0;
                                 m_rvalid <= 1'b1;
                             end
                         end
