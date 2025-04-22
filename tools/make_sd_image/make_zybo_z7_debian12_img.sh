@@ -49,26 +49,26 @@ sudo cp    $DEBIAN_PATH/debian/* $MNT_P2/home/fpga/debian
 # qemu のインストールや binfmt の設定は事前にしておくこと
 # HOST で sudo apt-get reinstall binfmt-support
 
-#sudo cp resize2fs_once $MNT_P2/etc/init.d/
-#sudo chmod 755         $MNT_P2/etc/init.d/resize2fs_once
-#
-#sudo mv $MNT_P2/etc/resolv.conf    $MNT_P2/etc/resolv.conf.org
-#sudo cp /etc/resolv.conf           $MNT_P2/etc
-#sudo cp /usr/bin/qemu-arm-static   $MNT_P2/usr/bin
-#
-#sudo sh -c "cat <<EOT >> $MNT_P2/setup.sh
-##!/bin/bash
-#apt update
-#apt install -y parted
-#update-rc.d resize2fs_once defaults
-#exit
-#EOT"
-#sudo chmod 755 $MNT_P2/setup.sh
-#sudo chroot $MNT_P2/ /setup.sh
-#sudo rm     $MNT_P2/setup.sh
-#sudo rm     $MNT_P2/resolv.conf
-#sudo rm     $MNT_P2/usr/bin/qemu-arm-static
-#sudo mv     $MNT_P2/etc/resolv.conf.org $MNT_P2/etc/resolv.conf
+sudo cp resize2fs_once $MNT_P2/etc/init.d/
+sudo chmod 755         $MNT_P2/etc/init.d/resize2fs_once
+
+sudo mv $MNT_P2/etc/resolv.conf    $MNT_P2/etc/resolv.conf.org
+sudo cp /etc/resolv.conf           $MNT_P2/etc
+sudo cp /usr/bin/qemu-arm-static   $MNT_P2/usr/bin
+
+sudo sh -c "cat <<EOT >> $MNT_P2/setup.sh
+#!/bin/bash
+apt update
+apt install -y parted
+update-rc.d resize2fs_once defaults
+exit
+EOT"
+sudo chmod 755 $MNT_P2/setup.sh
+sudo chroot $MNT_P2/ /setup.sh
+sudo rm     $MNT_P2/setup.sh
+sudo rm     $MNT_P2/resolv.conf
+sudo rm     $MNT_P2/usr/bin/qemu-arm-static
+sudo mv     $MNT_P2/etc/resolv.conf.org $MNT_P2/etc/resolv.conf
 
 sudo umount $MNT_P1
 sudo umount $MNT_P2
