@@ -41,6 +41,7 @@ export HLS_IP
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/kv260_imx219_of_measuring.sv
 SOURCES += $(PRJ_DIR)/rtl/image_processing.sv
+SOURCES += $(PRJ_DIR)/rtl/output_dac.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 

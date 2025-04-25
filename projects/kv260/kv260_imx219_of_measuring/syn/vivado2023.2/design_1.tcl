@@ -275,6 +275,10 @@ proc create_root_design { parentCell } {
    CONFIG.ASSOCIATED_BUSIF {s_axi4_mem0} \
  ] $s_axi4_mem_aclk
   set s_axi4_mem_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst s_axi4_mem_aresetn ]
+  set pl_ps_irq1 [ create_bd_port -dir I -from 7 -to 0 -type intr pl_ps_irq1 ]
+  set_property -dict [ list \
+   CONFIG.PortWidth {8} \
+ ] $pl_ps_irq1
 
   # Create instance: axi_iic_0, and set properties
   set axi_iic_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_iic:2.1 axi_iic_0 ]
@@ -1328,7 +1332,7 @@ Port;FD4A0000;FD4AFFFF;0|FPD;DPDMA;FD4C0000;FD4CFFFF;0|FPD;DDR_XMPU5_CFG;FD05000
     CONFIG.PSU__USE__GDMA {0} \
     CONFIG.PSU__USE__IRQ {0} \
     CONFIG.PSU__USE__IRQ0 {1} \
-    CONFIG.PSU__USE__IRQ1 {0} \
+    CONFIG.PSU__USE__IRQ1 {1} \
     CONFIG.PSU__USE__M_AXI_GP0 {1} \
     CONFIG.PSU__USE__M_AXI_GP1 {1} \
     CONFIG.PSU__USE__M_AXI_GP2 {0} \
@@ -1400,6 +1404,7 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets S_AXI_HP0_FPD_0_1] [get_bd_intf_
   connect_bd_net -net clk_wiz_0_clk_out2 [get_bd_pins clk_wiz_0/clk_out2] [get_bd_ports out_clk200]
   connect_bd_net -net clk_wiz_0_clk_out3 [get_bd_pins clk_wiz_0/clk_out3] [get_bd_ports out_clk250] [get_bd_ports s_axi4_mem_aclk] [get_bd_pins ila_0/clk] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_0/dcm_locked]
+  connect_bd_net -net pl_ps_irq1_0_1 [get_bd_ports pl_ps_irq1] [get_bd_pins zynq_ultra_ps_e_0/pl_ps_irq1]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_ports s_axi4_mem_aresetn]
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset] [get_bd_ports out_reset]
   connect_bd_net -net rst_ps8_0_99M_interconnect_aresetn [get_bd_pins rst_ps8_0_99M/interconnect_aresetn] [get_bd_pins axi_protocol_convert_0/aresetn]

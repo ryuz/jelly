@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     pixel_clock = 139200000.0;
     binning     = true;
     width       = 640;
-    height      = 132;
+    height      = 130;//2;
     aoi_x       = -1;
     aoi_y       = -1;
     flip_h      = false;
@@ -203,12 +203,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
-    auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
-    auto reg_gauss  = uio_acc.GetAccessor(0x00121000);
-    auto reg_imgsel = uio_acc.GetAccessor(0x0012f000);
-    auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
-    auto reg_logger = uio_acc.GetAccessor(0x00300000);
+    auto reg_gpio    = uio_acc.GetAccessor(0x00000000);
+    auto reg_fmtr    = uio_acc.GetAccessor(0x00100000);
+    auto reg_gauss   = uio_acc.GetAccessor(0x00401000);
+    auto reg_lk      = uio_acc.GetAccessor(0x00410000);
+    auto reg_imgsel  = uio_acc.GetAccessor(0x0040f000);
+    auto reg_wdma    = uio_acc.GetAccessor(0x00210000);
+    auto reg_log_of  = uio_acc.GetAccessor(0x00300000);
+    auto reg_log_lk  = uio_acc.GetAccessor(0x00310000);
+    auto reg_log_lin = uio_acc.GetAccessor(0x00320000);
 
 #if 1
     std::cout << "CORE ID" << std::endl;
@@ -270,6 +273,13 @@ int main(int argc, char *argv[])
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
 
+    int     rect_cx = width  / 2;
+    int     rect_cy = height / 2;
+    int     rect_w  = 64;
+    int     rect_h  = 64;
+    double  track_x = rect_cx;
+    double  track_y = rect_cy;
+
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
     cv::createTrackbar("scale",    "img", nullptr, 4);
     cv::setTrackbarMin("scale",    "img", 1);
@@ -286,6 +296,14 @@ int main(int argc, char *argv[])
     cv::setTrackbarPos("d_gain",   "img", d_gain);
     cv::createTrackbar("gauss" ,   "img", nullptr, 3);
     cv::setTrackbarPos("gauss",    "img", gauss_level);
+    cv::createTrackbar("x" ,       "img", nullptr, width);
+    cv::setTrackbarPos("x",        "img", rect_cx);
+    cv::createTrackbar("y" ,       "img", nullptr, height);
+    cv::setTrackbarPos("y",        "img", rect_cy);
+    cv::createTrackbar("w" ,       "img", nullptr, width);
+    cv::setTrackbarPos("w",        "img", rect_w);
+    cv::createTrackbar("h" ,       "img", nullptr, height);
+    cv::setTrackbarPos("h",        "img", rect_h);
     cv::createTrackbar("imgsel",   "img", nullptr, 3);
     cv::setTrackbarPos("imgsel",   "img", imgsel);
 
@@ -308,20 +326,24 @@ int main(int argc, char *argv[])
     std::vector<double> log_hist_dx;
     std::vector<double> log_hist_dy;
 
+    std::vector<std::uint64_t> log_line_time;
+    std::vector<std::uint64_t> log_line_num;
+
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
 
-        // ログ取得
-        while ( reg_logger.ReadReg(REG_LOGGER_CTL_STATUS) ) {
-            auto ey  = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_POL_DATA(4));
-            auto ex  = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_POL_DATA(3));
-            auto gxy = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_POL_DATA(2));
-            auto gy2 = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_POL_DATA(1));
-            auto gx2 = (double)(std::int64_t)reg_logger.ReadReg(REG_LOGGER_READ_DATA);
+#if 0
+        // LK ログ取得
+        while ( reg_log_lk.ReadReg(REG_LOGGER_CTL_STATUS) ) {
+            auto ey  = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_POL_DATA(4));
+            auto ex  = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_POL_DATA(3));
+            auto gxy = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_POL_DATA(2));
+            auto gy2 = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_POL_DATA(1));
+            auto gx2 = (double)(std::int64_t)reg_log_lk.ReadReg(REG_LOGGER_READ_DATA);
             auto det = gx2 * gy2 - gxy * gxy;
-            auto dx  = (gx2 * ex - gxy * ey) / det;
-            auto dy  = (gy2 * ey - gxy * ex) / det;
+            auto dx  = 64 * -(gx2 * ex - gxy * ey) / det;
+            auto dy  = 64 * -(gy2 * ey - gxy * ex) / det;
 //          std::cout << "dx :" << dx << "   dy : " << dy << std::endl;
             hist_dx.push_back(dx);
             hist_dy.push_back(dy);
@@ -343,21 +365,56 @@ int main(int argc, char *argv[])
 //          std::cout << "gxy : " << gxy << std::endl;
 //          std::cout << "ex  : " << ex  << std::endl;
 //          std::cout << "ey  : " << ey  << std::endl;
+            
+            track_x += dx;
+            track_y += dy;
+            track_x = std::max(0.0,            track_x);
+            track_x = std::min((double)width,  track_x);
+            track_y = std::max(0.0,            track_y);
+            track_y = std::min((double)height, track_y);
         }
+#else
+        // LK ログ取得
+        while ( reg_log_of.ReadReg(REG_LOGGER_CTL_STATUS) ) {
+            auto dy = ((double)(std::int64_t)reg_log_of.ReadReg(REG_LOGGER_POL_DATA(1))) / 65536.0;
+            auto dx = ((double)(std::int64_t)reg_log_of.ReadReg(REG_LOGGER_READ_DATA)  ) / 65536.0;
+//          std::cout << "dx :" << dx << "   dy : " << dy << std::endl;
+            hist_dx.push_back(dx);
+            hist_dy.push_back(dy);
+            if ( hist_dx.size() > 1000 ) {
+                hist_dx.erase(hist_dx.begin());
+                hist_dy.erase(hist_dy.begin());
+            }
+
+            log_hist_dx.push_back(dx);
+            log_hist_dy.push_back(dy);
+            if ( log_hist_dx.size() > 10000 ) {
+                log_hist_dx.erase(log_hist_dx.begin());
+                log_hist_dy.erase(log_hist_dy.begin());
+            }
+            
+            track_x += dx;
+            track_y += dy;
+            track_x = std::max(0.0,            track_x);
+            track_x = std::min((double)width,  track_x);
+            track_y = std::max(0.0,            track_y);
+            track_y = std::min((double)height, track_y);
+        }
+#endif
 
         cv::Mat graph = cv::Mat::zeros(200, 1000, CV_8UC3);
         for ( int i = 0; i < (int)hist_dx.size(); i++ ) {
-            int y0 = 100 - (int)(hist_dx[i] * 1000.0);
+            int y0 = 100 - (int)(hist_dx[i] * 10.0);
             cv::circle(graph, cv::Point(i, y0), 1, cv::Scalar(0, 255, 0), -1);
-            int y1 = 100 - (int)(hist_dy[i] * 1000.0);
+            int y1 = 100 - (int)(hist_dy[i] * 10.0);
             cv::circle(graph, cv::Point(i, y1), 1, cv::Scalar(255, 0, 0), -1);
         }
         cv::imshow("graph", graph);
 
         cv::Mat graph2 = cv::Mat::zeros(200, 200, CV_8UC3);
         for ( int i = 0; i < (int)hist_dx.size(); i++ ) {
-            int x = 100 - (int)(hist_dx[i] * 1000.0);
-            int y = 100 - (int)(hist_dy[i] * 1000.0);
+            int x = 100 - (int)(hist_dx[i] * 10.0);
+            int y = 100 - (int)(hist_dy[i] * 10.0);
             cv::circle(graph2, cv::Point(x, y), 1, cv::Scalar(0, 255, 0), -1);
         }
         cv::imshow("x-y", graph2);
@@ -371,6 +428,14 @@ int main(int argc, char *argv[])
         d_gain      = cv::getTrackbarPos("d_gain",   "img");
         gauss_level = cv::getTrackbarPos("gauss" ,   "img");
         imgsel      = cv::getTrackbarPos("imgsel",   "img");
+        rect_cx     = cv::getTrackbarPos("x",        "img");
+        rect_cy     = cv::getTrackbarPos("y",        "img");
+        rect_w      = cv::getTrackbarPos("w",        "img");
+        rect_h      = cv::getTrackbarPos("h",        "img");
+        int x0 = std::max(0,      rect_cx - rect_w/2);
+        int x1 = std::min(width,  rect_cx + rect_w/2);
+        int y0 = std::max(0,      rect_cy - rect_h/2);
+        int y1 = std::min(height, rect_cy + rect_h/2);
 
         // 設定
         imx219.SetFrameRate(frame_rate);
@@ -383,6 +448,13 @@ int main(int argc, char *argv[])
         
         reg_gauss.WriteReg(REG_IMG_GAUSS3X3_PARAM_ENABLE, (1 << gauss_level) - 1);
         reg_gauss.WriteReg(REG_IMG_GAUSS3X3_CTL_CONTROL,  3);
+        
+        reg_lk.WriteReg(REG_IMG_LK_ACC_PARAM_X,          x0);
+        reg_lk.WriteReg(REG_IMG_LK_ACC_PARAM_Y,          y0);
+        reg_lk.WriteReg(REG_IMG_LK_ACC_PARAM_WIDTH,   x1-x0);
+        reg_lk.WriteReg(REG_IMG_LK_ACC_PARAM_HEIGHT,  y1-y0);
+        reg_lk.WriteReg(REG_IMG_LK_ACC_CTL_CONTROL,       3);
+    
 
         reg_imgsel.WriteReg(REG_IMG_SELECTOR_CTL_SELECT, imgsel);
 
@@ -407,9 +479,12 @@ int main(int argc, char *argv[])
         img *= 64;
 
         // 表示
-        view_scale = std::max(1, view_scale);
+//      view_scale = std::max(1, view_scale);
         cv::Mat view_img;
-        cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
+        cv::cvtColor(img, view_img, cv::COLOR_BayerRG2RGB);
+        cv::rectangle(view_img, cv::Point(x0, y0), cv::Point(x1, y1), cv::Scalar(0, 65535, 0), 1);
+        cv::circle(view_img, cv::Point(track_x, track_y), 4, cv::Scalar(0, 0, 65535), -1);
+//      cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
         cv::imshow("img", view_img);
 
         // ユーザー操作
@@ -431,6 +506,11 @@ int main(int argc, char *argv[])
         // flip
         case 'h':  flip_h = !flip_h;  break;
         case 'v':  flip_v = !flip_v;  break;
+
+        case 'a':
+            track_x = rect_cx;
+            track_y = rect_cy;
+            break;
         
         // aoi position
 //      case 'w':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() - 4);    break;
@@ -445,6 +525,27 @@ int main(int argc, char *argv[])
                     ofs << log_hist_dx[i] << "," << log_hist_dy[i] << std::endl;
                 }
             }
+
+            {
+                log_line_time.clear();
+                log_line_num.clear();
+                while ( reg_log_lin.ReadReg(REG_LOGGER_CTL_STATUS) ) {
+                    reg_log_lin.ReadReg(REG_LOGGER_READ_DATA);
+                }
+                while ( log_line_time.size() < 1000 ) {
+                    if ( reg_log_lin.ReadReg(REG_LOGGER_CTL_STATUS) ) {
+                        auto time = reg_log_lin.ReadReg(REG_LOGGER_POL_TIMER0);
+                        auto line = reg_log_lin.ReadReg(REG_LOGGER_READ_DATA);
+                        log_line_time.push_back(time);
+                        log_line_num.push_back(line);
+                    }
+                }
+                std::ofstream ofs("line_time.csv");
+                for ( int i= 0; i < (int)log_line_time.size(); i++ ) {
+                    ofs << log_line_time[i] << "," << log_line_num[i] << std::endl;
+                }
+            }
+
             break;
 
         case 'd':   // image dump

@@ -139,6 +139,7 @@ module jelly3_img_region_rect_core
                 .m_mat_col_first    (m_mat_col_first    ),
                 .m_mat_col_last     (m_mat_col_last     ),
                 .m_mat_de           (m_mat_de           ),
+                .m_mat_data         (m_mat_data         ),
                 .m_mat_user         (m_mat_user         ),
                 .m_mat_valid        (m_mat_valid        )
             );
@@ -154,16 +155,16 @@ module jelly3_img_region_rect_core
     assign m_img.user             = m_mat_user              ;
     assign m_img.valid            = m_mat_valid             ;
 
-    assign m_img_org.rows         = m_mat_rows         ;
-    assign m_img_org.cols         = m_mat_cols         ;
-    assign m_img_org.row_first    = m_mat_row_first    ;
-    assign m_img_org.row_last     = m_mat_row_last     ;
-    assign m_img_org.col_first    = m_mat_col_first    ;
-    assign m_img_org.col_last     = m_mat_col_last     ;
-    assign m_img_org.de           = m_mat_de           ;
-    assign m_img_org.data         = m_mat_data         ;
-    assign m_img_org.user         = m_mat_user         ;
-    assign m_img_org.valid        = m_mat_valid        ;
+    assign m_img_org.rows         = m_mat_rows              ;
+    assign m_img_org.cols         = m_mat_cols              ;
+    assign m_img_org.row_first    = m_mat_row_first         ;
+    assign m_img_org.row_last     = m_mat_row_last          ;
+    assign m_img_org.col_first    = m_mat_col_first         ;
+    assign m_img_org.col_last     = m_mat_col_last          ;
+    assign m_img_org.de           = m_mat_de                ;
+    assign m_img_org.data         = m_mat_data              ;
+    assign m_img_org.user         = m_mat_user              ;
+    assign m_img_org.valid        = m_mat_valid             ;
 
 endmodule
 

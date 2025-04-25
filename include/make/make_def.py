@@ -18,7 +18,7 @@ def remove_ignore_file(file_list):
     """無視ファイルの除去"""
     new_list = []
     for file in file_list:
-        if "model" not in file and "_." not in file and " " not in file:
+        if "model" not in file and "dependencies" not in file and "_." not in file and " " not in file:
             new_list.append(file)
     return new_list
 
