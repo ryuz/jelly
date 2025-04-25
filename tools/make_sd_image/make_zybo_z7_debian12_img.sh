@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# ikwzm氏の Debian12 イメージを img化する
 # https://github.com/ikwzm/FPGA-SoC-Debian12
 
 
@@ -39,16 +40,9 @@ sudo cat   $DEBIAN_PATH/debian12-rootfs-vanilla.tgz.files/* | sudo tar xfz - -C 
 sudo mkdir                       $MNT_P2/home/fpga/debian
 sudo cp    $DEBIAN_PATH/debian/* $MNT_P2/home/fpga/debian
 
-# bootパーティーションマウント設定
-#sudo mkdir $MNT_P2/mnt/boot
-#sudo sh -c "cat <<EOT >> $MNT_P2/etc/fstab
-#/dev/mmcblk0p1  /mnt/boot   auto    defaults    0   0
-#EOT"
-
 # パーティーション自動拡張
 # qemu のインストールや binfmt の設定は事前にしておくこと
 # HOST で sudo apt-get reinstall binfmt-support
-
 sudo cp resize2fs_once $MNT_P2/etc/init.d/
 sudo chmod 755         $MNT_P2/etc/init.d/resize2fs_once
 
