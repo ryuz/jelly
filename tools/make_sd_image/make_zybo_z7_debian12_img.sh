@@ -6,6 +6,7 @@
 
 VERSION="7.0.0"
 TGZ_FILE="v$VERSION.tar.gz"
+IMG_SIZE=6GiB
 
 MNT_P1=/mnt/img1
 MNT_P2=/mnt/img2
@@ -21,7 +22,7 @@ DEV_LOOP=`sudo losetup -f`
 
 IMG_FILE="Zybo-Z7-FPGA-SoC-Debian12-7.0.0.img"
 rm -f $IMG_FILE
-truncate -s 6GiB $IMG_FILE
+truncate -s $IMG_SIZE $IMG_FILE
 
 sudo losetup -P $DEV_LOOP $IMG_FILE
 
@@ -60,8 +61,8 @@ EOT"
 sudo chmod 755 $MNT_P2/setup.sh
 sudo chroot $MNT_P2/ /setup.sh
 sudo rm     $MNT_P2/setup.sh
-sudo rm     $MNT_P2/resolv.conf
 sudo rm     $MNT_P2/usr/bin/qemu-arm-static
+sudo rm     $MNT_P2/etc/resolv.conf
 sudo mv     $MNT_P2/etc/resolv.conf.org $MNT_P2/etc/resolv.conf
 
 sudo umount $MNT_P1
