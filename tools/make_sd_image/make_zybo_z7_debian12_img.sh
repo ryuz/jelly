@@ -6,7 +6,7 @@
 
 VERSION="7.0.0"
 TGZ_FILE="v$VERSION.tar.gz"
-IMG_SIZE=6GiB
+IMG_SIZE=2GiB
 
 MNT_P1=/mnt/img1
 MNT_P2=/mnt/img2
