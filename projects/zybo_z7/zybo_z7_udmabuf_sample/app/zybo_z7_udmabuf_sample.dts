@@ -1,8 +1,9 @@
 /dts-v1/; /plugin/;
 
 / {
+    
     fragment@0 {  
-        target = <&fpga_full>;
+        target = <&fpga_region0>;
         __overlay__ {
             #address-cells = <1>;
             #size-cells = <1>;
@@ -12,7 +13,8 @@
     };
 
     fragment@1 {
-        target-path = "/amba";
+//      target-path = "/axi";
+        target = <&amba>;
         __overlay__ {
             #address-cells = <0x1>;
             #size-cells = <0x1>;
@@ -23,7 +25,7 @@
             };
 
             udmabuf4 {
-/*              compatible = "ikwzm,udmabuf-0.10.a"; */
+//              compatible = "ikwzm,udmabuf-0.10.a";
                 compatible = "ikwzm,u-dma-buf";
                 minor-number = <4>;
                 size = <0x00400000>;
