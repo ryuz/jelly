@@ -9,10 +9,25 @@ module rtcl_p3s7_spi
             output  var logic   [1:0]   led                     ,
             output  var logic   [7:0]   pmod                    ,
 
+
+
             output  var logic           sensor_pwr_en_vdd18     ,
             output  var logic           sensor_pwr_en_vdd33     ,
             output  var logic           sensor_pwr_en_pix       ,
             input   var logic           sensor_pgood            ,
+
+//          output  var logic           mipi_clk_lp_p           ,
+//          output  var logic           mipi_clk_lp_n           ,
+//          output  var logic           mipi_clk_hp_p           ,
+//          output  var logic           mipi_clk_hp_n           ,
+//          output  var logic   [1:0]   mipi_data_lp_p          ,
+//          output  var logic   [1:0]   mipi_data_lp_n          ,
+//          output  var logic   [1:0]   mipi_data_hp_p          ,
+//          output  var logic   [1:0]   mipi_data_hp_n          ,
+            input   var logic           mipi_reset_n            ,
+//          input   var logic           mipi_clk                ,
+            inout   tri logic           mipi_scl                ,
+            inout   tri logic           mipi_sda                ,
 
             output  var logic           python_reset_n          ,
             output  var logic           python_clk_pll          ,
@@ -42,21 +57,60 @@ module rtcl_p3s7_spi
         end
     end
 
+    // MIPI
+    logic mipi_scl_i;
+    logic mipi_scl_t;
+    logic mipi_sda_i;
+    logic mipi_sda_t;
+    IOBUF
+        u_iobuf_mipi_scl
+            (
+                .IO     (mipi_scl   ),
+                .I      (1'b0       ),
+                .O      (mipi_scl_i ),
+                .T      (mipi_scl_t )
+            );
+
+    IOBUF
+        u_iobuf_mipi_sda
+            (
+                .IO     (mipi_sda   ),
+                .I      (1'b0       ),
+                .O      (mipi_sda_i ),
+                .T      (mipi_sda_t )
+            );
+
+    assign mipi_scl_t = 1'b1;
+    assign mipi_sda_t = 1'b1;
+
+    logic  mipi_enable;
+    always_ff @(posedge clk72 or negedge mipi_reset_n) begin
+        if ( !mipi_reset_n ) begin
+            mipi_enable <= 1'b0;
+        end
+        else begin
+            mipi_enable <= 1'b1;
+        end
+    end
+
+    
     // 時限タイマ
-    logic [31:0] timer_counter;
-    logic        enable       ;
+    logic [31:0] timer_counter  ;
+    logic        timer_enable   ;
     always_ff @(posedge clk72) begin
         if ( reset ) begin
             timer_counter <= '0;
-            enable        <= 1'b0;
+            timer_enable  <= 1'b0;
         end
         else begin
             if ( timer_counter != '1 ) begin
                 timer_counter <= timer_counter + 1;
             end
-            enable <= timer_counter < 72_000_000 * 10;
+            timer_enable <= timer_counter < 72_000_000 * 10;
         end
     end
+    logic enable;
+    assign enable = timer_enable & mipi_enable;
 
 
     // Sensor Power Management
@@ -123,19 +177,6 @@ module rtcl_p3s7_spi
                 .m_spi_ready    (spi_ready      )
             );
 
-    (* MARK_DEBUG = "true" *)   logic   dbg_spi_ss_n  ;
-    (* MARK_DEBUG = "true" *)   logic   dbg_spi_sck   ;
-    (* MARK_DEBUG = "true" *)   logic   dbg_spi_mosi  ;
-    (* MARK_DEBUG = "true" *)   logic   dbg_spi_miso  ;
-    always_ff @(posedge clk72) begin
-        dbg_spi_ss_n <= python_ss_n ;
-        dbg_spi_sck  <= python_sck  ;
-        dbg_spi_mosi <= python_mosi ;
-        dbg_spi_miso <= python_miso ;
-    end
-
-
-
 
 //    assign sensor_pwr_en_vdd18 = 1'b0;
 //    assign sensor_pwr_en_vdd33 = 1'b0;
@@ -187,12 +228,45 @@ module rtcl_p3s7_spi
         clk72_counter <= clk72_counter + 1;
     end
 
+    logic   [24:0]     python_clk_counter; // リセットがないので初期値を設定
+    always_ff @(posedge python_clk) begin
+        python_clk_counter <= python_clk_counter + 1;
+    end
+
+
 //  assign led[0] = clk50_counter[24];
 //  assign led[1] = clk72_counter[24];
     assign led[0] = enable;
-    assign led[1] = sensor_pgood;
+    assign led[1] = python_clk_counter[24];//sensor_pgood;
 
     assign pmod[7:0] = clk50_counter[15:8];
+
+
+    // --------------------------------
+    //  Debug
+    // --------------------------------
+
+    (* MARK_DEBUG = "true" *)   logic   dbg_mipi_reset_n;
+    (* MARK_DEBUG = "true" *)   logic   dbg_mipi_scl;
+    (* MARK_DEBUG = "true" *)   logic   dbg_mipi_sda;
+    always_ff @(posedge clk72) begin
+        dbg_mipi_reset_n <= mipi_reset_n ;
+        dbg_mipi_scl     <= mipi_scl_i ;
+        dbg_mipi_sda     <= mipi_sda_i ;
+    end
+    
+    (* MARK_DEBUG = "true" *)   logic   dbg_sensor_ready    ;
+    (* MARK_DEBUG = "true" *)   logic   dbg_spi_ss_n        ;
+    (* MARK_DEBUG = "true" *)   logic   dbg_spi_sck         ;
+    (* MARK_DEBUG = "true" *)   logic   dbg_spi_mosi        ;
+    (* MARK_DEBUG = "true" *)   logic   dbg_spi_miso        ;
+    always_ff @(posedge clk72) begin
+        dbg_sensor_ready <= sensor_ready ;
+        dbg_spi_ss_n <= python_ss_n ;
+        dbg_spi_sck  <= python_sck  ;
+        dbg_spi_mosi <= python_mosi ;
+        dbg_spi_miso <= python_miso ;
+    end
 
 endmodule
 

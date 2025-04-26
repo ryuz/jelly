@@ -67,6 +67,11 @@ module spi_cmd
                                 m_spi_valid <= 1'b0;
                             end
 
+                            2'b10: begin
+                                state       <= IDLE;
+                                tbl_addr    <= 8'(tbl_data);
+                            end
+
                             default: begin
                             end
                         endcase

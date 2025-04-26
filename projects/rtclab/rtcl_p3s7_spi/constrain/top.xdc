@@ -40,6 +40,14 @@ set_property IOSTANDARD LVCMOS33 [get_ports {pmod[5]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod[6]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod[7]}]
 
+set_property PACKAGE_PIN P10 [get_ports mipi_reset_n]
+set_property PACKAGE_PIN P11 [get_ports mipi_scl]
+set_property PACKAGE_PIN N11 [get_ports mipi_sda]
+set_property IOSTANDARD LVCMOS33 [get_ports mipi_reset_n]
+set_property PULLTYPE PULLDOWN [get_ports mipi_reset_n]
+set_property IOSTANDARD LVCMOS33 [get_ports mipi_scl]
+set_property IOSTANDARD LVCMOS33 [get_ports mipi_sda]
+
 
 # PYTHON300
 set_property PACKAGE_PIN D12 [get_ports sensor_pwr_en_vdd18]
