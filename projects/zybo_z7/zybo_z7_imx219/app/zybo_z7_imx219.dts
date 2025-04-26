@@ -41,15 +41,13 @@
                 reg = <0x40000000 0x10000000>;
             };
 
-            udmabuf0 {
-//              compatible = "ikwzm,udmabuf-0.10.a";
+            udmabuf_jelly_buffer {
                 compatible = "ikwzm,u-dma-buf";
-                minor-number = <0>;
+                device-name = "udmabuf-jelly-buffer";
                 size = <0x03000000>;
             };
         };
     };
-
 
     /*
     fragment@3 {
