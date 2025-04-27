@@ -104,7 +104,7 @@ module tb_top();
         sensor_pgood = 1'b1;
       #10000000
         sensor_pgood = 1'b0;
-        #1000000
+        #10000000
         $finish;
     end
     
@@ -154,7 +154,90 @@ module tb_top();
         #(I2C_RATE) scl = 1'b1;
         #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
         #(I2C_RATE) scl = 1'b1;
+
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
         #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1; sda = 1'b1; // stop
+
+        // read
+        #(I2C_RATE*2);
+        #(I2C_RATE) scl = 1'b1; sda = 1'b0; // start
+
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // R/W
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0; // ACK
+//      #(I2C_RATE) scl = 1'b0; sda = 1'b1; // NAK
+        #(I2C_RATE) scl = 1'b1;
+
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0; // ACK
         #(I2C_RATE) scl = 1'b1;
 
 
@@ -164,6 +247,8 @@ module tb_top();
 
         // end
         #(I2C_RATE) scl = 1'b1; sda = 1'b1;
+
+        
     end
 
     assign mipi_scl = scl ? 1'bz : 1'b0;

@@ -83,30 +83,39 @@ module rtcl_p3s7_spi
     assign mipi_scl_t = 1'b1;
 //  assign mipi_sda_t = 1'b1;
 
+    logic           i2c_start   ;
+    logic           i2c_wr_en   ;
+    logic   [7:0]   i2c_wr_data ;
+    logic           i2c_rd_req  ;
+    logic           i2c_rd_en   ;
+    logic   [7:0]   i2c_rd_data ;
+
     jelly2_i2c_slave_core
             #(
                 .DIVIDER_WIDTH  (8)
             )
         u_i2c_slave_core
             (
-                .reset       (reset         ),
-                .clk         (clk72         ),
+                .reset      (reset          ),
+                .clk        (clk72          ),
 
-                .i2c_scl     (mipi_scl_i    ),
-                .i2c_sda     (mipi_sda_i    ),
-                .i2c_sda_t   (mipi_sda_t    ),
+                .i2c_scl    (mipi_scl_i     ),
+                .i2c_sda    (mipi_sda_i     ),
+                .i2c_sda_t  (mipi_sda_t     ),
 
-                .divider     (8             ),
-                .dev         (7'h10         )
-/*
-                .m_addr      (),
-                .m_we        (),
-                .m_wdata     (),
-                .m_valid     (),
-                .s_rdata     (),
-                .s_valid     ()*/
+                .divider    (8              ),
+                .dev        (7'h10          ),
+
+                .start      (i2c_start      ),
+                .wr_en      (i2c_wr_en      ),
+                .wr_data    (i2c_wr_data    ),
+                .rd_req     (i2c_rd_req     ),
+                .rd_en      (i2c_rd_en      ),
+                .rd_data    (i2c_rd_data    )
             );
 
+    assign i2c_rd_en   = i2c_rd_req;
+    assign i2c_rd_data = 8'h55;
 
 
     logic  mipi_enable;

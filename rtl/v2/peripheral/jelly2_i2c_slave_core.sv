@@ -105,7 +105,7 @@ module jelly2_i2c_slave_core
             state   <= IDLE;
             count   <= 'x   ;
             rx_data <= 'x   ;
-            tx_data <= {1'b1, 8'hxx};
+            tx_data <= '1   ;
             ack     <= 1'b0 ;
             start   <= 1'b0 ;
             wr_en   <= 1'b0 ;
@@ -131,11 +131,14 @@ module jelly2_i2c_slave_core
                 if ( {ff2_scl, ff1_scl} == 2'b01 ) begin
                     rx_data <= {rx_data[6:0], ff2_sda};
                     count   <= count + 1;
+                    if ( count >= 4'd8 ) begin
+                        count <= '0;
+                    end
                 end
 
                 if ( ack && {ff2_scl, ff1_scl} == 2'b10 ) begin
                     ack   <= 1'b0;
-                    count <= 4'd0;
+//                  count <= 4'd0;
                 end
 
                 case ( state )
@@ -150,7 +153,7 @@ module jelly2_i2c_slave_core
                                 end
                                 else begin
                                     state  <= READ;
-                                    rd_req <= 1'b1;
+//                                  rd_req <= 1'b1;
                                 end
                             end
                             else begin
@@ -171,6 +174,14 @@ module jelly2_i2c_slave_core
                     begin
                         if ( {ff2_scl, ff1_scl} == 2'b10 ) begin
                             tx_data <= {tx_data[7:0], 1'b1};
+                        end
+                        if ( {ff2_scl, ff1_scl} == 2'b01 && count == 4'd8 ) begin
+                            if ( ff1_sda == 1'b0 ) begin
+                                rd_req <= 1'b1; // ACK
+                            end
+                            else begin
+                                state <= IDLE; // NAK
+                            end
                         end
                     end
                 default: ;
