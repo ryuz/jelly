@@ -14,8 +14,8 @@ Zynqを活用するうえで非常に有用なソフトウェアですので同�
 環境は下記の通りです。
 
 - [ZYBO-Z7](https://reference.digilentinc.com/reference/programmable-logic/zybo-z7/start)
--  iwkzm氏の [Debianブートイメージ v1.0.1](https://qiita.com/ikwzm/items/7e90f0ca2165dbb9a577)
-- Vivado 2019.2
+- iwkzm氏の [FPGA-SoC-Debian12](https://github.com/ikwzm/FPGA-SoC-Debian12)
+- Vivado 2022.2
 
 Debianイメージは一度起動SDを作ってしまえば Vivado だけでもいろいろできるのが素敵です。
 [こちら](https://qiita.com/Ryuz/items/fcda012ce0deeca068c6)の別記事でも少し紹介しておりますので参考になれば幸いです。
@@ -55,7 +55,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/zybo_z7/zybo_z7_udmabuf_sample/syn/vivado2019.2/zybo_z7_udmabuf_sample.xpr
+/projects/zybo_z7/zybo_z7_udmabuf_sample/syn/vivado2022.2/zybo_z7_udmabuf_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -120,11 +120,11 @@ zybo_z7_udmabuf_sample.dts が Device Tree overlay のソースファイルと�
 
 ``` 
     fragment@0 {  
-        target = <&fpga_full>;
+        target = <&fpga_region0>;
         __overlay__ {
             #address-cells = <1>;
             #size-cells = <1>;
-  
+
             firmware-name = "zybo_z7_udmabuf_sample.bit.bin";
         };
     };
@@ -154,7 +154,7 @@ bootgen -image zybo_z7_udmabuf_sample.bif -arch zynq -process_bitstream bin
 続いて uio と udmabuf です。
 ``` 
     fragment@1 {
-        target-path = "/amba";
+        target = <&amba>;
         __overlay__ {
             #address-cells = <0x1>;
             #size-cells = <0x1>;
@@ -164,9 +164,9 @@ bootgen -image zybo_z7_udmabuf_sample.bif -arch zynq -process_bitstream bin
                 reg = <0x43c00000 0x00100000>;
             };
 
-            udmabuf4 {
-                compatible = "ikwzm,udmabuf-0.10.a";
-                minor-number = <4>;
+            udmabuf_jelly_sample {
+                compatible = "ikwzm,u-dma-buf";
+                device-name = "udmabuf-jelly-sample";
                 size = <0x00400000>;
             };
         };
@@ -176,7 +176,7 @@ bootgen -image zybo_z7_udmabuf_sample.bif -arch zynq -process_bitstream bin
 今回はペリフェラル領域をまとめて一個の uio に割り当てています。
 開始アドレス 0x43c00000番地から サイズ 0x00100000 バイトの領域が uio_pl_peri  という名前の uio として生成されます。
 
-また udmabuf4 という名前で、0x00400000 バイトの CMA(Continuous Memory Allocator) を確保してもらうように指定しています。udmabuf を用いることで、連続した物理メモリアドレスを割り当ててもらうことが可能になります。
+また udmabuf-jelly-sample という名前で、0x00400000 バイトの CMA(Continuous Memory Allocator) を確保してもらうように指定しています。udmabuf を用いることで、連続した物理メモリアドレスを割り当ててもらうことが可能になります。
 
 
 ### dtcでのコンパイル

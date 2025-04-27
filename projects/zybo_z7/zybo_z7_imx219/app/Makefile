@@ -13,8 +13,8 @@ BIN_FILE  = $(BIT_FILE).bin
 FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
 
-CFLAGS  += -Wall -g -O0 `pkg-config --cflags opencv` -I../../../../include
-LDFLAGS += `pkg-config --libs opencv`
+CFLAGS  += -Wall -g -O0 `pkg-config --cflags opencv4` -I../../../../include
+LDFLAGS += `pkg-config --libs opencv4`
 
 OBJS = main.o
 
@@ -31,7 +31,7 @@ run: $(TARGET) load
 	./$(TARGET)
 
 $(TARGET): $(OBJS)
-	g++ $(LDFLAGS) -o $(TARGET) $(OBJS)
+	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 %.o : %.cpp
 	g++ $(CFLAGS) -c $< -o $@
@@ -68,7 +68,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo rm /lib/firmware/$(BIN_FILE)
 	sudo chmod 666 /dev/i2c-0
 	sudo chmod 666 /dev/uio0*
-	sudo chmod 666 /dev/udmabuf0
+	sudo chmod 666 /dev/udmabuf*
 
 .PHONY: unload
 unload:
