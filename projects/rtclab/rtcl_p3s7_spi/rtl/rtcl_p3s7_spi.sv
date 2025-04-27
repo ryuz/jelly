@@ -246,6 +246,11 @@ module rtcl_p3s7_spi
     //  Debug
     // --------------------------------
 
+    (* MARK_DEBUG = "true" *)   logic   [7:0]   dbg_clk72_counter;
+    always_ff @(posedge clk72) begin
+        dbg_clk72_counter <= dbg_clk72_counter + 1;
+    end
+
     (* MARK_DEBUG = "true" *)   logic   dbg_mipi_reset_n;
     (* MARK_DEBUG = "true" *)   logic   dbg_mipi_scl;
     (* MARK_DEBUG = "true" *)   logic   dbg_mipi_sda;
@@ -254,7 +259,7 @@ module rtcl_p3s7_spi
         dbg_mipi_scl     <= mipi_scl_i ;
         dbg_mipi_sda     <= mipi_sda_i ;
     end
-    
+
     (* MARK_DEBUG = "true" *)   logic   dbg_sensor_ready    ;
     (* MARK_DEBUG = "true" *)   logic   dbg_spi_ss_n        ;
     (* MARK_DEBUG = "true" *)   logic   dbg_spi_sck         ;
