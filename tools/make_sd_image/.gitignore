@@ -1,0 +1,8 @@
+FPGA-SoC-Debian12-*/
+
+*.tgz
+*.gz
+*.xz
+
+*.img
+
