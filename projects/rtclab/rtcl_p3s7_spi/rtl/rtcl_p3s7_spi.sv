@@ -83,12 +83,12 @@ module rtcl_p3s7_spi
     assign mipi_scl_t = 1'b1;
 //  assign mipi_sda_t = 1'b1;
 
-    logic           i2c_start   ;
-    logic           i2c_wr_en   ;
-    logic   [7:0]   i2c_wr_data ;
-    logic           i2c_rd_req  ;
-    logic           i2c_rd_en   ;
-    logic   [7:0]   i2c_rd_data ;
+    (* MARK_DEBUG = "true" *)   logic           i2c_start   ;
+    (* MARK_DEBUG = "true" *)   logic           i2c_wr_en   ;
+    (* MARK_DEBUG = "true" *)   logic   [7:0]   i2c_wr_data ;
+    (* MARK_DEBUG = "true" *)   logic           i2c_rd_req  ;
+    (* MARK_DEBUG = "true" *)   logic           i2c_rd_en   ;
+    (* MARK_DEBUG = "true" *)   logic   [7:0]   i2c_rd_data ;
 
     jelly2_i2c_slave_core
             #(

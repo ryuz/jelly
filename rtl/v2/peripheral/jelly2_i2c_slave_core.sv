@@ -138,7 +138,6 @@ module jelly2_i2c_slave_core
 
                 if ( ack && {ff2_scl, ff1_scl} == 2'b10 ) begin
                     ack   <= 1'b0;
-//                  count <= 4'd0;
                 end
 
                 case ( state )
@@ -153,7 +152,6 @@ module jelly2_i2c_slave_core
                                 end
                                 else begin
                                     state  <= READ;
-//                                  rd_req <= 1'b1;
                                 end
                             end
                             else begin
