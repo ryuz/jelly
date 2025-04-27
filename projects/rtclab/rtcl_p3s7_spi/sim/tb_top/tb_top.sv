@@ -32,6 +32,11 @@ module tb_top();
 
     logic   [1:0]   led                 ;
     logic   [7:0]   pmod                ;
+
+    logic           mipi_reset_n        ;
+    wire            mipi_scl            ;
+    wire            mipi_sda            ;
+
     logic           sensor_pwr_en_vdd18 ;
     logic           sensor_pwr_en_vdd33 ;
     logic           sensor_pwr_en_pix   ;
@@ -51,13 +56,23 @@ module tb_top();
     logic           python_sync_p       ;
     logic           python_sync_n       ;
 
+    pullup(mipi_scl);
+    pullup(mipi_sda);
+
+
     rtcl_p3s7_spi
         u_top
             (
                 .clk50                  ,
                 .clk72                  ,
+
                 .led                    ,
                 .pmod                   ,
+
+                .mipi_reset_n           ,
+                .mipi_scl               ,
+                .mipi_sda               ,
+
                 .sensor_pwr_en_vdd18    ,
                 .sensor_pwr_en_vdd33    ,
                 .sensor_pwr_en_pix      ,
@@ -89,9 +104,70 @@ module tb_top();
         sensor_pgood = 1'b1;
       #10000000
         sensor_pgood = 1'b0;
-      #1000000
+        #1000000
         $finish;
     end
+    
+
+    localparam I2C_RATE = 100000;
+    logic  scl = 1'b1;
+    logic  sda = 1'b1;
+    initial begin
+        #(I2C_RATE*10);
+       
+        #(I2C_RATE) scl = 1'b1; sda = 1'b0; // start
+
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0; // R/W
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+
+//      #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+//      #(I2C_RATE) scl = 1'b1; sda = 1'b0;
+//      #(I2C_RATE) scl = 1'b1; sda = 1'b1; // stop
+
+        // end
+        #(I2C_RATE) scl = 1'b1; sda = 1'b1;
+    end
+
+    assign mipi_scl = scl ? 1'bz : 1'b0;
+    assign mipi_sda = sda ? 1'bz : 1'b0;
 
 endmodule
 

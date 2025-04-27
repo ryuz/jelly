@@ -271,7 +271,7 @@ module zybo_z7_rtcl_py300
                 .T      (IIC_0_0_sda_t)
             );
     
-    
+
     
     // -----------------------------
     //  Peripheral BUS (WISHBONE)
@@ -893,7 +893,7 @@ module zybo_z7_rtcl_py300
     assign led[0] = reg_counter_rxbyteclkhs[24];
     assign led[1] = reg_counter_peri_aclk[24]; // reg_counter_clk200[24];
     assign led[2] = reg_counter_mem_aclk[24];  // reg_counter_clk100[24];
-    assign led[3] = frame_toggle;
+    assign led[3] = cam_gpio;
     
     assign pmod_a[0]   = frame_toggle;
     assign pmod_a[1]   = reg_counter_rxbyteclkhs[5];

@@ -29,11 +29,12 @@ module jelly2_i2c_slave_core
             input   var logic   [DIVIDER_WIDTH-1:0]     divider     ,
             input   var logic   [7:1]                   dev         ,
 
-            output  var logic   [7:0]                   m_addr      ,
-            output  var logic                           m_we        ,
-            output  var logic   [7:0]                   m_wdata     ,
-            input   var logic                           m_rdata     ,
-            output  var logic                           m_valid     
+            output  var logic                           start       ,
+            output  var logic                           wr_en       ,
+            output  var logic   [7:0]                   wr_data     ,
+            output  var logic                           rd_req      ,
+            input   var logic                           rd_en       ,
+            input   var logic   [7:0]                   rd_data     
         );
     
     // -------------------------
@@ -72,9 +73,6 @@ module jelly2_i2c_slave_core
         ff1_scl <= ff0_scl;
         ff0_sda <= i2c_sda;
         ff1_sda <= ff0_sda;
-
-        ff2_scl <= ff1_scl;
-        ff2_sda <= ff1_sda;
     end
 
     logic   ff2_scl;
@@ -93,48 +91,113 @@ module jelly2_i2c_slave_core
     typedef enum {
         IDLE  ,
         DEV   ,
-        ACK   ,
-        ADDR  ,
         WRITE ,
         READ  
     } state_t;
 
-    logic  [3:0]   count;
-    logic  [7:0]   data ;
+    state_t         state   ;
+    logic   [3:0]   count   ;
+    logic   [7:0]   rx_data ;
+    logic   [8:0]   tx_data ;
+    logic           ack     ;
     always_ff @ ( posedge clk ) begin
         if ( reset ) begin
-            state       <= IDLE;
-            m_addr      <= '0  ;
-            m_we        <= 1'b0;
-            m_wdata     <= '0  ;
-            m_valid     <= 1'b0;
+            state   <= IDLE;
+            count   <= 'x   ;
+            rx_data <= 'x   ;
+            tx_data <= {1'b1, 8'hxx};
+            ack     <= 1'b0 ;
+            start   <= 1'b0 ;
+            wr_en   <= 1'b0 ;
         end
         else begin
+            start  <= 1'b0;
+            wr_en  <= 1'b0;
+            rd_req <= 1'b0;
+            if ( rd_en ) begin
+                tx_data <= {1'b1, rd_data};
+            end
+
             if ( div_pulse ) begin
                 if ( {ff2_scl, ff1_scl} == 2'b11 && {ff2_sda, ff1_sda} == 2'b10 ) begin
                     // START condition
                     state <= DEV    ;
-                    count <= 4'd8   ;
+                    count <= 4'd0   ;
                 end
                 if ( {ff2_scl, ff1_scl} == 2'b11 && {ff2_sda, ff1_sda} == 2'b01 ) begin
                     // STOP condition
                     state <= IDLE   ;
                 end
                 if ( {ff2_scl, ff1_scl} == 2'b01 ) begin
-                    data <= {data[6:0], ff2_sda};
-                    count <= count - 1;
-                end
-                if ( {ff2_scl, ff1_scl} == 2'b10 && count == 4'd0 ) begin
+                    rx_data <= {rx_data[6:0], ff2_sda};
+                    count   <= count + 1;
                 end
 
-            endcase
+                if ( ack && {ff2_scl, ff1_scl} == 2'b10 ) begin
+                    ack   <= 1'b0;
+                    count <= 4'd0;
+                end
+
+                case ( state )
+                DEV:
+                    begin
+                        if ( {ff2_scl, ff1_scl} == 2'b10 && count == 4'd8 ) begin
+                            if ( rx_data[7:1] == dev ) begin
+                                ack   <= 1'b1;
+                                start <= 1'b1;
+                                if ( rx_data[0] == 1'b0 ) begin
+                                    state <= WRITE;
+                                end
+                                else begin
+                                    state  <= READ;
+                                    rd_req <= 1'b1;
+                                end
+                            end
+                            else begin
+                                state <= IDLE;
+                            end
+                        end
+                    end
+
+                WRITE:
+                    begin
+                        if ( {ff2_scl, ff1_scl} == 2'b10 && count == 4'd8 ) begin
+                            wr_en <= 1'b1;
+                            ack   <= 1'b1;
+                        end
+                    end
+
+                READ:
+                    begin
+                        if ( {ff2_scl, ff1_scl} == 2'b10 ) begin
+                            tx_data <= {tx_data[7:0], 1'b1};
+                        end
+                    end
+                default: ;
+                endcase
+            end
         end
+    end
 
-    
+    always_ff @ ( posedge clk ) begin
+        if ( reset ) begin
+            i2c_sda_t <= 1'b1;
+        end
+        else begin
+            i2c_sda_t <= 1'b1;
+            if ( ack ) begin
+                i2c_sda_t <= 1'b0;
+            end
+            else if ( state == READ ) begin
+                i2c_sda_t <= tx_data[8];
+            end
+        end
+    end
+
+    assign wr_data = rx_data;
+
 endmodule
 
-
 `default_nettype wire
-
 
 // end of file

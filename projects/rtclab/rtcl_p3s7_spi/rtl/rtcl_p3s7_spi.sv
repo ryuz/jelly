@@ -81,7 +81,33 @@ module rtcl_p3s7_spi
             );
 
     assign mipi_scl_t = 1'b1;
-    assign mipi_sda_t = 1'b1;
+//  assign mipi_sda_t = 1'b1;
+
+    jelly2_i2c_slave_core
+            #(
+                .DIVIDER_WIDTH  (8)
+            )
+        u_i2c_slave_core
+            (
+                .reset       (reset         ),
+                .clk         (clk72         ),
+
+                .i2c_scl     (mipi_scl_i    ),
+                .i2c_sda     (mipi_sda_i    ),
+                .i2c_sda_t   (mipi_sda_t    ),
+
+                .divider     (8             ),
+                .dev         (7'h10         )
+/*
+                .m_addr      (),
+                .m_we        (),
+                .m_wdata     (),
+                .m_valid     (),
+                .s_rdata     (),
+                .s_valid     ()*/
+            );
+
+
 
     logic  mipi_enable;
     always_ff @(posedge clk72 or negedge mipi_reset_n) begin
@@ -110,7 +136,7 @@ module rtcl_p3s7_spi
         end
     end
     logic enable;
-    assign enable = timer_enable & mipi_enable;
+    assign enable = mipi_enable; // && timer_enable;
 
 
     // Sensor Power Management
@@ -237,7 +263,7 @@ module rtcl_p3s7_spi
 //  assign led[0] = clk50_counter[24];
 //  assign led[1] = clk72_counter[24];
     assign led[0] = enable;
-    assign led[1] = python_clk_counter[24];//sensor_pgood;
+    assign led[1] = mipi_enable; // python_clk_counter[24];//sensor_pgood;
 
     assign pmod[7:0] = clk50_counter[15:8];
 
@@ -254,10 +280,12 @@ module rtcl_p3s7_spi
     (* MARK_DEBUG = "true" *)   logic   dbg_mipi_reset_n;
     (* MARK_DEBUG = "true" *)   logic   dbg_mipi_scl;
     (* MARK_DEBUG = "true" *)   logic   dbg_mipi_sda;
+    (* MARK_DEBUG = "true" *)   logic   dbg_mipi_sda_t;
     always_ff @(posedge clk72) begin
         dbg_mipi_reset_n <= mipi_reset_n ;
         dbg_mipi_scl     <= mipi_scl_i ;
         dbg_mipi_sda     <= mipi_sda_i ;
+        dbg_mipi_sda_t   <= mipi_sda_t ;
     end
 
     (* MARK_DEBUG = "true" *)   logic   dbg_sensor_ready    ;

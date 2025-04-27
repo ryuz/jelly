@@ -8,7 +8,7 @@ VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
 PROJECT_NAME = zybo_z7_rtcl_py300
-BOARD_NAME   = zybo-z7
+BOARD_NAME   = zybo_z7
 export PRJ_NAME     = $(PROJECT_NAME)_tcl
 export TOP_MODULE   = $(PROJECT_NAME)
 export BOARD_PART   = digilentinc.com:zybo-z7-20*
