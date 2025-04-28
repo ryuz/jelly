@@ -83,9 +83,10 @@ module rtcl_p3s7_spi
     assign mipi_scl_t = 1'b1;
 //  assign mipi_sda_t = 1'b1;
 
-    (* MARK_DEBUG = "true" *)   logic           i2c_start   ;
+    (* MARK_DEBUG = "true" *)   logic           i2c_wr_start;
     (* MARK_DEBUG = "true" *)   logic           i2c_wr_en   ;
     (* MARK_DEBUG = "true" *)   logic   [7:0]   i2c_wr_data ;
+    (* MARK_DEBUG = "true" *)   logic           i2c_rd_start;
     (* MARK_DEBUG = "true" *)   logic           i2c_rd_req  ;
     (* MARK_DEBUG = "true" *)   logic           i2c_rd_en   ;
     (* MARK_DEBUG = "true" *)   logic   [7:0]   i2c_rd_data ;
@@ -106,16 +107,14 @@ module rtcl_p3s7_spi
                 .divider    (8              ),
                 .dev        (7'h10          ),
 
-                .start      (i2c_start      ),
+                .wr_start   (i2c_wr_start   ),
                 .wr_en      (i2c_wr_en      ),
                 .wr_data    (i2c_wr_data    ),
+                .rd_start   (i2c_rd_start   ),
                 .rd_req     (i2c_rd_req     ),
                 .rd_en      (i2c_rd_en      ),
                 .rd_data    (i2c_rd_data    )
             );
-
-    assign i2c_rd_en   = i2c_rd_req;
-    assign i2c_rd_data = 8'h55;
 
 
     logic  mipi_enable;
@@ -168,6 +167,7 @@ module rtcl_p3s7_spi
             );
 
 
+
     (* MARK_DEBUG = "true" *)   logic   [8:0]   spi_addr    ;
     (* MARK_DEBUG = "true" *)   logic           spi_we      ;
     (* MARK_DEBUG = "true" *)   logic   [15:0]  spi_wdata   ;
@@ -196,7 +196,7 @@ module rtcl_p3s7_spi
                 .spi_miso       (python_miso    )
             );
 
-
+    /*
     spi_cmd
         u_spi_cmd
             (
@@ -211,6 +211,50 @@ module rtcl_p3s7_spi
                 .m_spi_valid    (spi_valid      ),
                 .m_spi_ready    (spi_ready      )
             );
+    */
+
+    // -------------------------
+    //  I2C to SPI
+    // -------------------------
+
+    (* MARK_DEBUG = "true" *)   logic   [1:0]    cmd_wcnt    ;
+    (* MARK_DEBUG = "true" *)   logic   [31:0]   cmd_wdata   ;
+    (* MARK_DEBUG = "true" *)   logic   [15:0]   cmd_rdata   ;
+    always_ff @(posedge clk72) begin
+        if ( reset ) begin
+            cmd_wcnt  <= '0;
+            cmd_wdata <= 'x;
+            cmd_rdata <= 'x;
+            spi_valid <= 1'b0;
+        end
+        else begin
+            if ( spi_ready ) begin
+                spi_valid <= 1'b0;
+            end
+            if ( i2c_wr_start ) begin
+                cmd_wcnt <= '0;
+            end
+            if ( i2c_wr_en ) begin
+                cmd_wcnt  <= cmd_wcnt + 1;
+                cmd_wdata <= {cmd_wdata[23:0], i2c_wr_data};
+                spi_valid <= (cmd_wcnt == 2'd3);
+            end
+            if ( i2c_rd_req ) begin
+                cmd_rdata <= (cmd_rdata >> 8);
+            end
+            if ( spi_rvalid ) begin
+                cmd_rdata <= spi_rdata;
+            end
+        end
+    end
+
+    assign spi_we    = cmd_wdata[31];
+    assign spi_addr  = cmd_wdata[16 +:  9];
+    assign spi_wdata = cmd_wdata[ 0 +: 16];
+
+    assign i2c_rd_en   = i2c_rd_req;
+    assign i2c_rd_data = cmd_rdata[7:0];
+
 
 
 //    assign sensor_pwr_en_vdd18 = 1'b0;
@@ -222,9 +266,9 @@ module rtcl_p3s7_spi
 //    assign python_mosi         = 1'b0;
 //    assign python_sck          = 1'b0;
 
+    /*
     logic           python_clk  ;
     logic   [3:0]   python_data ;
-    logic           python_sync ;
     IBUFDS
         u_ibufds_python_clk
             (
@@ -242,13 +286,33 @@ module rtcl_p3s7_spi
                     .O      (python_data[i])     
                 );
     end
+    */
 
+    logic           python_sync ;
     IBUFDS
         u_ibufds_python_sync
             (
                 .I      (python_sync_p)       ,
                 .IB     (python_sync_n)       ,
                 .O      (python_sync)     
+            );
+
+    logic            python_clk  ;
+    logic   [15:0]   python_data ;
+    selectio_wiz_0
+        u_selectio_wiz_0
+            (
+                .clk_reset              (reset          ),
+                .io_reset               (reset          ),
+
+                .clk_in_p               (python_clk_p   ),
+                .clk_in_n               (python_clk_n   ),
+                .data_in_from_pins_p    (python_data_p  ),
+                .data_in_from_pins_n    (python_data_n  ),
+
+                .clk_div_out            (python_clk     ),
+                .data_in_to_device      (python_data    ),
+                .bitslip                (4'd0           )
             );
 
 
@@ -272,7 +336,9 @@ module rtcl_p3s7_spi
 //  assign led[0] = clk50_counter[24];
 //  assign led[1] = clk72_counter[24];
     assign led[0] = enable;
-    assign led[1] = mipi_enable; // python_clk_counter[24];//sensor_pgood;
+//  assign led[1] = mipi_enable;
+//  assign led[1] = sensor_pgood;
+    assign led[1] = python_clk_counter[24];
 
     assign pmod[7:0] = clk50_counter[15:8];
 
@@ -308,6 +374,11 @@ module rtcl_p3s7_spi
         dbg_spi_sck  <= python_sck  ;
         dbg_spi_mosi <= python_mosi ;
         dbg_spi_miso <= python_miso ;
+    end
+
+    (* MARK_DEBUG = "true" *)   logic   [15:0]   dbg_python_data ;
+    always_ff @(posedge python_clk) begin
+        dbg_python_data <= python_data;
     end
 
 endmodule

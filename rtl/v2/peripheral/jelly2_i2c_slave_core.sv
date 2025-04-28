@@ -29,9 +29,10 @@ module jelly2_i2c_slave_core
             input   var logic   [DIVIDER_WIDTH-1:0]     divider     ,
             input   var logic   [7:1]                   dev         ,
 
-            output  var logic                           start       ,
+            output  var logic                           wr_start    ,
             output  var logic                           wr_en       ,
             output  var logic   [7:0]                   wr_data     ,
+            output  var logic                           rd_start    ,
             output  var logic                           rd_req      ,
             input   var logic                           rd_en       ,
             input   var logic   [7:0]                   rd_data     
@@ -102,18 +103,21 @@ module jelly2_i2c_slave_core
     logic           ack     ;
     always_ff @ ( posedge clk ) begin
         if ( reset ) begin
-            state   <= IDLE;
-            count   <= 'x   ;
-            rx_data <= 'x   ;
-            tx_data <= '1   ;
-            ack     <= 1'b0 ;
-            start   <= 1'b0 ;
-            wr_en   <= 1'b0 ;
+            state    <= IDLE;
+            count    <= 'x   ;
+            rx_data  <= 'x   ;
+            tx_data  <= '1   ;
+            ack      <= 1'b0 ;
+            wr_start <= 1'b0 ;
+            wr_en    <= 1'b0 ;
+            rd_start <= 1'b0 ;
+            rd_req   <= 1'b0 ;
         end
         else begin
-            start  <= 1'b0;
-            wr_en  <= 1'b0;
-            rd_req <= 1'b0;
+            wr_start <= 1'b0;
+            wr_en    <= 1'b0;
+            rd_start <= 1'b0;
+            rd_req   <= 1'b0;
             if ( rd_en ) begin
                 tx_data <= {1'b1, rd_data};
             end
@@ -146,12 +150,13 @@ module jelly2_i2c_slave_core
                         if ( {ff2_scl, ff1_scl} == 2'b10 && count == 4'd8 ) begin
                             if ( rx_data[7:1] == dev ) begin
                                 ack   <= 1'b1;
-                                start <= 1'b1;
                                 if ( rx_data[0] == 1'b0 ) begin
-                                    state <= WRITE;
+                                    state    <= WRITE;
+                                    wr_start <= 1'b1;
                                 end
                                 else begin
-                                    state  <= READ;
+                                    state    <= READ;
+                                    rd_start <= 1'b1;
                                 end
                             end
                             else begin
