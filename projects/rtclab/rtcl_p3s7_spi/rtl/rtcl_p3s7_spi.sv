@@ -4,8 +4,8 @@
 
 module rtcl_p3s7_spi
         (
-            input   var logic           clk50                   ,
-            input   var logic           clk72                   ,
+            input   var logic           in_clk50                ,
+            input   var logic           in_clk72                ,
             output  var logic   [1:0]   led                     ,
             output  var logic   [7:0]   pmod                    ,
 
@@ -56,6 +56,23 @@ module rtcl_p3s7_spi
             reset_counter <= reset_counter + 1;
         end
     end
+
+
+    logic   clk50   ;
+    logic   clk100  ;
+    logic   clk200  ;
+    clk_wiz_0
+        u_clk_wiz_0
+             (
+                .clk_in1    (in_clk50   ),
+                .clk_out1   (clk50      ),
+                .clk_out2   (clk100     ),
+                .clk_out3   (clk200     )
+            );
+
+    logic clk72;
+    assign clk72 = in_clk72;
+
 
     // MIPI
     logic mipi_scl_i;
@@ -217,9 +234,9 @@ module rtcl_p3s7_spi
     //  I2C to SPI
     // -------------------------
 
-    (* MARK_DEBUG = "true" *)   logic   [1:0]    cmd_wcnt    ;
-    (* MARK_DEBUG = "true" *)   logic   [31:0]   cmd_wdata   ;
-    (* MARK_DEBUG = "true" *)   logic   [15:0]   cmd_rdata   ;
+    logic   [1:0]    cmd_wcnt    ;
+    logic   [31:0]   cmd_wdata   ;
+    logic   [15:0]   cmd_rdata   ;
     always_ff @(posedge clk72) begin
         if ( reset ) begin
             cmd_wcnt  <= '0;
@@ -287,7 +304,7 @@ module rtcl_p3s7_spi
                 );
     end
     */
-
+    /*
     logic           python_sync ;
     IBUFDS
         u_ibufds_python_sync
@@ -296,25 +313,49 @@ module rtcl_p3s7_spi
                 .IB     (python_sync_n)       ,
                 .O      (python_sync)     
             );
+    */
 
-    logic            python_clk  ;
-    logic   [15:0]   python_data ;
+    logic            io_reset           ;
+    logic            python_clk         ;
+    logic   [19:0]   python_data_tmp    ;
     selectio_wiz_0
         u_selectio_wiz_0
             (
                 .clk_reset              (reset          ),
                 .io_reset               (reset          ),
+                .ref_clock              (clk200         ),
+                .delay_locked           (               ),
 
                 .clk_in_p               (python_clk_p   ),
                 .clk_in_n               (python_clk_n   ),
-                .data_in_from_pins_p    (python_data_p  ),
-                .data_in_from_pins_n    (python_data_n  ),
+                .data_in_from_pins_p    ({python_sync_p, python_data_p}),
+                .data_in_from_pins_n    ({python_sync_n, python_data_n}),
 
                 .clk_div_out            (python_clk     ),
-                .data_in_to_device      (python_data    ),
-                .bitslip                (4'd0           )
+                .data_in_to_device      (python_data_tmp),
+                .bitslip                ('0             )
             );
+    
+    logic   [7:0]   io_reset_cnt;
+    always_ff @(posedge python_clk or posedge reset) begin
+        if ( reset ) begin
+            io_reset_cnt <= '1;
+            io_reset     <= 1'b1;
+        end
+        else begin
+            if ( io_reset_cnt > 0 ) begin
+                io_reset_cnt <= io_reset_cnt - 1;
+            end
+            io_reset <= (io_reset_cnt != 0);
+        end
+    end
 
+    logic   [4:0][3:0]   python_data    ;
+    for ( genvar i = 0; i < 5; i++ ) begin
+        for ( genvar j = 0; j < 4; j++ ) begin
+            assign python_data[i][j] = python_data_tmp[j*5 + i];
+        end
+    end
 
     // Blinking LED
     logic   [24:0]     clk50_counter; // リセットがないので初期値を設定
@@ -376,9 +417,17 @@ module rtcl_p3s7_spi
         dbg_spi_miso <= python_miso ;
     end
 
-    (* MARK_DEBUG = "true" *)   logic   [15:0]   dbg_python_data ;
+    (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_data0;
+    (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_data1;
+    (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_data2;
+    (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_data3;
+    (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_sync;
     always_ff @(posedge python_clk) begin
-        dbg_python_data <= python_data;
+        dbg_python_data0 <= python_data[0];
+        dbg_python_data1 <= python_data[1];
+        dbg_python_data2 <= python_data[2];
+        dbg_python_data3 <= python_data[3];
+        dbg_python_sync  <= python_data[4];
     end
 
 endmodule

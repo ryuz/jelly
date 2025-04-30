@@ -1,8 +1,8 @@
 # set_property CONFIG_MODE SPIx4 [current_design]
 
 # Clock
-create_clock -period 20.000 -name clk50 -waveform {0.000 10.000} [get_ports clk50]
-create_clock -period 13.888 -name clk72 -waveform {0.000  6.944} [get_ports clk72]
+create_clock -period 20.000 -name in_clk50 -waveform {0.000 10.000} [get_ports in_clk50]
+create_clock -period 13.888 -name in_clk72 -waveform {0.000  6.944} [get_ports in_clk72]
 
 # 720Mbps (360MHz)
 create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports python_clk_p]
@@ -10,11 +10,11 @@ create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports
 
 
 # clock
-set_property PACKAGE_PIN H4 [get_ports clk50]
-set_property IOSTANDARD LVCMOS18 [get_ports {clk50}]
+set_property PACKAGE_PIN H4 [get_ports in_clk50]
+set_property IOSTANDARD LVCMOS18 [get_ports in_clk50]
 
-set_property PACKAGE_PIN G11 [get_ports clk72]
-set_property IOSTANDARD LVCMOS33 [get_ports {clk72}]
+set_property PACKAGE_PIN G11 [get_ports in_clk72]
+set_property IOSTANDARD LVCMOS33 [get_ports in_clk72]
 
 # LED
 set_property PACKAGE_PIN P12 [get_ports {led[0]}]
