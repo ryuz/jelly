@@ -24,10 +24,10 @@
                 reg = <0x43c00000 0x00100000>;
             };
 
-            udmabuf4 {
+            udmabuf_jelly_sample {
 //              compatible = "ikwzm,udmabuf-0.10.a";
                 compatible = "ikwzm,u-dma-buf";
-                minor-number = <4>;
+                device-name = "udmabuf-jelly-sample";
                 size = <0x00400000>;
             };
         };

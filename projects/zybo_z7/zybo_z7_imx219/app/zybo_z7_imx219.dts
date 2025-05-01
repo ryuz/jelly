@@ -2,7 +2,8 @@
 
 / {
     fragment@0 {  
-        target = <&fpga_full>;
+//      target = <&fpga_full>;
+        target = <&fpga_region0>;
         __overlay__ {
             #address-cells = <1>;
             #size-cells = <1>;
@@ -12,7 +13,8 @@
     };
 
     fragment@1 {
-        target-path = "/amba";
+//      target-path = "/amba";
+        target = <&amba>;
         __overlay__ {
             fclk0 {
                 compatible  = "ikwzm,fclkcfg-0.10.a";
@@ -28,7 +30,8 @@
     };
 
     fragment@2 {
-        target-path = "/amba";
+//      target-path = "/amba";
+        target = <&amba>;
         __overlay__ {
             #address-cells = <0x1>;
             #size-cells = <0x1>;
@@ -38,17 +41,27 @@
                 reg = <0x40000000 0x10000000>;
             };
 
-            udmabuf0 {
-                compatible = "ikwzm,udmabuf-0.10.a";
-                minor-number = <0>;
+            udmabuf_jelly_buffer {
+                compatible = "ikwzm,u-dma-buf";
+                device-name = "udmabuf-jelly-buffer";
                 size = <0x03000000>;
             };
         };
     };
 
-
+    /*
     fragment@3 {
-        target-path = "/amba";
+        target = <&i2c0>;
+        __overlay__ {
+            status = "okay";
+        };
+    };
+    */
+
+    /*
+    fragment@3 {
+//      target-path = "/amba";
+        target = <&amba>;
         __overlay__ {
     		i2c@e0004000 {
                 compatible = "cdns,i2c-r1p10";
@@ -62,6 +75,7 @@
             };
 		};
     };
+    */
 };
 
 
