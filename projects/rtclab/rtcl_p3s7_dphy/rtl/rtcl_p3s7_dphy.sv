@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module rtcl_p3s7_spi
+module rtcl_p3s7_dphy
         (
             input   var logic           in_clk50                ,
             input   var logic           in_clk72                ,
@@ -16,16 +16,16 @@ module rtcl_p3s7_spi
             output  var logic           sensor_pwr_en_pix       ,
             input   var logic           sensor_pgood            ,
 
-//          output  var logic           mipi_clk_lp_p           ,
-//          output  var logic           mipi_clk_lp_n           ,
-//          output  var logic           mipi_clk_hp_p           ,
-//          output  var logic           mipi_clk_hp_n           ,
-//          output  var logic   [1:0]   mipi_data_lp_p          ,
-//          output  var logic   [1:0]   mipi_data_lp_n          ,
-//          output  var logic   [1:0]   mipi_data_hp_p          ,
-//          output  var logic   [1:0]   mipi_data_hp_n          ,
+            output  var logic           mipi_clk_lp_p           ,
+            output  var logic           mipi_clk_lp_n           ,
+            output  var logic           mipi_clk_hs_p           ,
+            output  var logic           mipi_clk_hs_n           ,
+            output  var logic   [1:0]   mipi_data_lp_p          ,
+            output  var logic   [1:0]   mipi_data_lp_n          ,
+            output  var logic   [1:0]   mipi_data_hs_p          ,
+            output  var logic   [1:0]   mipi_data_hs_n          ,
             input   var logic           mipi_reset_n            ,
-//          input   var logic           mipi_clk                ,
+            input   var logic           mipi_clk                ,
             inout   tri logic           mipi_scl                ,
             inout   tri logic           mipi_sda                ,
 
@@ -57,7 +57,7 @@ module rtcl_p3s7_spi
         end
     end
 
-
+    
     logic   clk50   ;
     logic   clk100  ;
     logic   clk200  ;
@@ -69,9 +69,78 @@ module rtcl_p3s7_spi
                 .clk_out2   (clk100     ),
                 .clk_out3   (clk200     )
             );
+    
+//    logic clk50;
+//    assign clk50 = in_clk50;
 
     logic clk72;
     assign clk72 = in_clk72;
+
+
+    // MIPI DPHY
+    mipi_dphy_0
+        u_mipi_dphy_0
+            (
+                .core_clk                (clk200            ),    // input                            
+                .core_rst                (reset             ),    // input                            
+                .txclkesc_out            (                  ),    // output                           
+                .txbyteclkhs             (                  ),    // output                           
+                .oserdes_clkdiv_out      (                  ),    // output                           
+                .oserdes_clk_out         (                  ),    // output                           
+                .oserdes_clk90_out       (                  ),    // output                           
+                .mmcm_lock_out           (                  ),    // output                           
+                .system_rst_out          (                  ),    // output                           
+                .init_done               (                  ),    // output                           
+                .cl_txclkactivehs        (                  ),    // output                           
+                .cl_txrequesths          ('1                ),    // input                            
+                .cl_stopstate            (                  ),    // output                           
+                .cl_enable               ('1                ),    // input                            
+                .cl_txulpsclk            ('0                ),    // input                            
+                .cl_txulpsexit           ('0                ),    // input                            
+                .cl_ulpsactivenot        (                  ),    // output                           
+                .dl0_txdatahs            ('0                ),    // input    [7:0]                   
+                .dl0_txrequesths         ('0                ),    // input                            
+                .dl0_txreadyhs           (                  ),    // output                           
+                .dl0_forcetxstopmode     ('0                ),    // input                            
+                .dl0_stopstate           (                  ),    // output                           
+                .dl0_enable              ('1                ),    // input                            
+                .dl0_txrequestesc        ('0                ),    // input                            
+                .dl0_txlpdtesc           ('0                ),    // input                            
+                .dl0_txulpsexit          ('0                ),    // input                            
+                .dl0_ulpsactivenot       (                  ),    // output                           
+                .dl0_txulpsesc           ('0                ),    // input                            
+                .dl0_txtriggeresc        ('0                ),    // input    [3:0]                   
+                .dl0_txdataesc           ('0                ),    // input    [7:0]                   
+                .dl0_txvalidesc          ('0                ),    // input                            
+                .dl0_txreadyesc          (                  ),    // output                           
+                .dl1_txdatahs            ('0                ),    // input    [7:0]                   
+                .dl1_txrequesths         ('0                ),    // input                            
+                .dl1_txreadyhs           (                  ),    // output                           
+                .dl1_forcetxstopmode     ('0                ),    // input                            
+                .dl1_stopstate           (                  ),    // output                           
+                .dl1_enable              ('0                ),    // input                            
+                .dl1_txrequestesc        ('0                ),    // input                            
+                .dl1_txlpdtesc           ('0                ),    // input                            
+                .dl1_txulpsexit          ('0                ),    // input                            
+                .dl1_ulpsactivenot       (                  ),    // output                           
+                .dl1_txulpsesc           ('0                ),    // input                            
+                .dl1_txtriggeresc        ('0                ),    // input    [3:0]                   
+                .dl1_txdataesc           ('0                ),    // input    [7:0]                   
+                .dl1_txvalidesc          ('0                ),    // input                            
+                .dl1_txreadyesc          (                  ),    // output                           
+
+                .clk_hs_txp              (mipi_clk_hs_p     ),    // output                           
+                .clk_hs_txn              (mipi_clk_hs_n     ),    // output                           
+                .data_hs_txp             (mipi_data_hs_p    ),    // output    [C_DPHY_LANES -1:0]    
+                .data_hs_txn             (mipi_data_hs_n    ),    // output    [C_DPHY_LANES -1:0]    
+                .clk_lp_txp              (mipi_clk_lp_p     ),    // output                           
+                .clk_lp_txn              (mipi_clk_lp_n     ),    // output                           
+                .data_lp_txp             (mipi_data_lp_p    ),    // output    [C_DPHY_LANES -1:0]    
+                .data_lp_txn             (mipi_data_lp_n    )     // output    [C_DPHY_LANES -1:0]    
+            );
+
+
+
 
 
     // MIPI
@@ -303,8 +372,7 @@ module rtcl_p3s7_spi
                     .O      (python_data[i])     
                 );
     end
-    */
-    /*
+    
     logic           python_sync ;
     IBUFDS
         u_ibufds_python_sync
@@ -335,7 +403,7 @@ module rtcl_p3s7_spi
                 .data_in_to_device      (python_data_tmp),
                 .bitslip                ('0             )
             );
-    
+
     logic   [7:0]   io_reset_cnt;
     always_ff @(posedge python_clk or posedge reset) begin
         if ( reset ) begin
@@ -350,12 +418,14 @@ module rtcl_p3s7_spi
         end
     end
 
+    /*
     logic   [4:0][3:0]   python_data    ;
     for ( genvar i = 0; i < 5; i++ ) begin
         for ( genvar j = 0; j < 4; j++ ) begin
             assign python_data[i][j] = python_data_tmp[j*5 + i];
         end
     end
+    */
 
     // Blinking LED
     logic   [24:0]     clk50_counter; // リセットがないので初期値を設定
@@ -388,6 +458,7 @@ module rtcl_p3s7_spi
     //  Debug
     // --------------------------------
 
+    /*
     (* MARK_DEBUG = "true" *)   logic   [7:0]   dbg_clk72_counter;
     always_ff @(posedge clk72) begin
         dbg_clk72_counter <= dbg_clk72_counter + 1;
@@ -429,6 +500,7 @@ module rtcl_p3s7_spi
         dbg_python_data3 <= python_data[3];
         dbg_python_sync  <= python_data[4];
     end
+    */
 
 endmodule
 
