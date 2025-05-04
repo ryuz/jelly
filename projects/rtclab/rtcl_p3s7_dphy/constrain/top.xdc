@@ -1,13 +1,13 @@
 # set_property CONFIG_MODE SPIx4 [current_design]
 
 # Clock
-#create_clock -period 20.000 -name in_clk50 -waveform {0.000 10.000} [get_ports in_clk50]
-create_clock -period  5.000 -name in_clk50 -waveform {0.000  2.500} [get_ports in_clk50]
+create_clock -period 20.000 -name in_clk50 -waveform {0.000 10.000} [get_ports in_clk50]
 create_clock -period 13.888 -name in_clk72 -waveform {0.000  6.944} [get_ports in_clk72]
 
 # 720Mbps (360MHz)
 create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports python_clk_p]
 
+set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks clk_out1_clk_mipi_core] 10.000
 
 
 # clock

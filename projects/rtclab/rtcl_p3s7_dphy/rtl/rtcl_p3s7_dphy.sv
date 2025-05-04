@@ -57,7 +57,7 @@ module rtcl_p3s7_dphy
         end
     end
 
-    
+    /*
     logic   clk50   ;
     logic   clk100  ;
     logic   clk200  ;
@@ -69,15 +69,59 @@ module rtcl_p3s7_dphy
                 .clk_out2   (clk100     ),
                 .clk_out3   (clk200     )
             );
-    
+    */
+
 //    logic clk50;
 //    assign clk50 = in_clk50;
 
+
+    logic clk50;
+    BUFG
+        u_bufg_clk50
+            (
+                .I  (in_clk50   ),
+                .O  (clk50      )
+            );
+
     logic clk72;
-    assign clk72 = in_clk72;
+    BUFG
+        u_bufg_clk72
+            (
+                .I  (in_clk72   ),
+                .O  (clk72      )
+            );
+
+
+
+    logic   dphy_core_reset          ;
+    logic   dphy_core_clk            ;
+    logic   dphy_system_reset        ;
+    logic   dphy_txbyteclkhs         ;
+    logic   dphy_txclkesc            ;
+    logic   dphy_oserdes_clkdiv      ;
+    logic   dphy_oserdes_clk         ;
+    logic   dphy_oserdes_clk90       ;
+
+    mipi_dphy_clk_gen
+        u_mipi_dphy_clk_gen
+            (
+                .reset              (reset                  ),
+                .clk50              (clk50                  ),
+
+                .core_reset         (dphy_core_reset        ),
+                .core_clk           (dphy_core_clk          ),
+                .system_reset       (dphy_system_reset      ),
+                .txbyteclkhs        (dphy_txbyteclkhs       ),
+                .txclkesc           (dphy_txclkesc          ),
+                .oserdes_clkdiv     (dphy_oserdes_clkdiv    ),
+                .oserdes_clk        (dphy_oserdes_clk       ),
+                .oserdes_clk90      (dphy_oserdes_clk90     )
+            );
+
 
 
     // MIPI DPHY
+    /*
     mipi_dphy_0
         u_mipi_dphy_0
             (
@@ -138,10 +182,68 @@ module rtcl_p3s7_dphy
                 .data_lp_txp             (mipi_data_lp_p    ),    // output    [C_DPHY_LANES -1:0]    
                 .data_lp_txn             (mipi_data_lp_n    )     // output    [C_DPHY_LANES -1:0]    
             );
+    */
+    mipi_dphy_0
+        u_mipi_dphy_0
+            (
+                .core_clk               (dphy_core_clk      ),   //  input  
+                .core_rst               (dphy_core_reset    ),   //  input  
+                .txclkesc_in            (dphy_txclkesc      ),   //  input  
+                .txbyteclkhs_in         (dphy_txbyteclkhs   ),   //  input  
+                .oserdes_clkdiv_in      (dphy_oserdes_clkdiv),   //  input  
+                .oserdes_clk_in         (dphy_oserdes_clk   ),   //  input  
+                .oserdes_clk90_in       (dphy_oserdes_clk90 ),   //  input  
+                .system_rst_in          (dphy_system_reset  ),   //  input  
 
+                .init_done               (                  ),    // output                           
+                .cl_txclkactivehs        (                  ),    // output                           
+                .cl_txrequesths          ('1                ),    // input                            
+                .cl_stopstate            (                  ),    // output                           
+                .cl_enable               ('1                ),    // input                            
+                .cl_txulpsclk            ('0                ),    // input                            
+                .cl_txulpsexit           ('0                ),    // input                            
+                .cl_ulpsactivenot        (                  ),    // output                           
 
+                .dl0_txdatahs            ('0                ),    // input    [7:0]                   
+                .dl0_txrequesths         ('0                ),    // input                            
+                .dl0_txreadyhs           (                  ),    // output                           
+                .dl0_forcetxstopmode     ('0                ),    // input                            
+                .dl0_stopstate           (                  ),    // output                           
+                .dl0_enable              ('1                ),    // input                            
+                .dl0_txrequestesc        ('0                ),    // input                            
+                .dl0_txlpdtesc           ('0                ),    // input                            
+                .dl0_txulpsexit          ('0                ),    // input                            
+                .dl0_ulpsactivenot       (                  ),    // output                           
+                .dl0_txulpsesc           ('0                ),    // input                            
+                .dl0_txtriggeresc        ('0                ),    // input    [3:0]                   
+                .dl0_txdataesc           ('0                ),    // input    [7:0]                   
+                .dl0_txvalidesc          ('0                ),    // input                            
+                .dl0_txreadyesc          (                  ),    // output                           
+                .dl1_txdatahs            ('0                ),    // input    [7:0]                   
+                .dl1_txrequesths         ('0                ),    // input                            
+                .dl1_txreadyhs           (                  ),    // output                           
+                .dl1_forcetxstopmode     ('0                ),    // input                            
+                .dl1_stopstate           (                  ),    // output                           
+                .dl1_enable              ('0                ),    // input                            
+                .dl1_txrequestesc        ('0                ),    // input                            
+                .dl1_txlpdtesc           ('0                ),    // input                            
+                .dl1_txulpsexit          ('0                ),    // input                            
+                .dl1_ulpsactivenot       (                  ),    // output                           
+                .dl1_txulpsesc           ('0                ),    // input                            
+                .dl1_txtriggeresc        ('0                ),    // input    [3:0]                   
+                .dl1_txdataesc           ('0                ),    // input    [7:0]                   
+                .dl1_txvalidesc          ('0                ),    // input                            
+                .dl1_txreadyesc          (                  ),    // output                           
 
-
+                .clk_hs_txp              (mipi_clk_hs_p     ),    // output                           
+                .clk_hs_txn              (mipi_clk_hs_n     ),    // output                           
+                .data_hs_txp             (mipi_data_hs_p    ),    // output    [C_DPHY_LANES -1:0]    
+                .data_hs_txn             (mipi_data_hs_n    ),    // output    [C_DPHY_LANES -1:0]    
+                .clk_lp_txp              (mipi_clk_lp_p     ),    // output                           
+                .clk_lp_txn              (mipi_clk_lp_n     ),    // output                           
+                .data_lp_txp             (mipi_data_lp_p    ),    // output    [C_DPHY_LANES -1:0]    
+                .data_lp_txn             (mipi_data_lp_n    )     // output    [C_DPHY_LANES -1:0]    
+            );
 
     // MIPI
     logic mipi_scl_i;
