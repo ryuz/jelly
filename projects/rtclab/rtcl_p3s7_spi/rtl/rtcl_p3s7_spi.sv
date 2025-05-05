@@ -45,6 +45,9 @@ module rtcl_p3s7_spi
             input   var logic           python_sync_n           
         );
     
+    logic clk72;
+    assign clk72 = in_clk72;
+
     // 初期リセット生成
     logic   [7:0]   reset_counter = '0;
     logic           reset = 1'b1;
@@ -57,7 +60,6 @@ module rtcl_p3s7_spi
         end
     end
 
-
     logic   clk50   ;
     logic   clk100  ;
     logic   clk200  ;
@@ -69,10 +71,6 @@ module rtcl_p3s7_spi
                 .clk_out2   (clk100     ),
                 .clk_out3   (clk200     )
             );
-
-    logic clk72;
-    assign clk72 = in_clk72;
-
 
     // MIPI
     logic mipi_scl_i;
@@ -230,10 +228,49 @@ module rtcl_p3s7_spi
             );
     */
 
+
     // -------------------------
     //  I2C to SPI
     // -------------------------
 
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS  (14         ),
+                .DATA_BITS  (16         )
+            )
+        axi4l
+            (
+                .aresetn    (~reset     ),
+                .aclk       (clk72      ),
+                .aclken     (1'b1       )
+            );
+
+    i2c_to_spi
+        u_i2c_to_spi
+            (
+                .reset          (reset          ),
+                .clk            (clk72          ),
+
+                .i2c_wr_start   (i2c_wr_start   ),
+                .i2c_wr_en      (i2c_wr_en      ),
+                .i2c_wr_data    (i2c_wr_data    ),
+                .i2c_rd_start   (i2c_rd_start   ),
+                .i2c_rd_req     (i2c_rd_req     ),
+                .i2c_rd_en      (i2c_rd_en      ),
+                .i2c_rd_data    (i2c_rd_data    ),
+
+                .spi_addr       (spi_addr       ),
+                .spi_we         (spi_we         ),
+                .spi_wdata      (spi_wdata      ),
+                .spi_valid      (spi_valid      ),
+                .spi_ready      (spi_ready      ),
+                .spi_rdata      (spi_rdata      ),
+                .spi_rvalid     (spi_rvalid     ),
+
+                .m_axi4l        (axi4l          )
+            );
+    
+    /*
     logic   [1:0]    cmd_wcnt    ;
     logic   [31:0]   cmd_wdata   ;
     logic   [15:0]   cmd_rdata   ;
@@ -271,6 +308,8 @@ module rtcl_p3s7_spi
 
     assign i2c_rd_en   = i2c_rd_req;
     assign i2c_rd_data = cmd_rdata[7:0];
+    */
+
 
 
 

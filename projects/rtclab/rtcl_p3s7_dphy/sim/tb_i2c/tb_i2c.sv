@@ -2,11 +2,11 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module tb_top();
+module tb_i2c();
     
     initial begin
-        $dumpfile("tb_top.vcd");
-        $dumpvars(0, tb_top);
+        $dumpfile("tb_i2c.vcd");
+        $dumpvars(0, tb_i2c);
         
     #100_000_000
         $finish;
@@ -59,12 +59,11 @@ module tb_top();
     pullup(mipi_scl);
     pullup(mipi_sda);
 
-
-    rtcl_p3s7_spi
+    rtcl_p3s7_dphy
         u_top
             (
-                .in_clk50               (clk50  ),
-                .in_clk72               (clk72  ),
+                .clk50                  ,
+                .clk72                  ,
 
                 .led                    ,
                 .pmod                   ,
@@ -173,7 +172,7 @@ module tb_top();
         #(I2C_RATE) scl = 1'b1;
         #(I2C_RATE) scl = 1'b0; sda = 1'b1;
         #(I2C_RATE) scl = 1'b1;
-        #(I2C_RATE) scl = 1'b0; sda = 1'b0; // read
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
         #(I2C_RATE) scl = 1'b1;
         #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
         #(I2C_RATE) scl = 1'b1;

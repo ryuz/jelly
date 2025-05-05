@@ -93,6 +93,10 @@ module rtcl_p3s7_dphy
 
 
 
+    // -------------------------------------
+    //  MIPI DPHY
+    // -------------------------------------
+
     logic   dphy_core_reset          ;
     logic   dphy_core_clk            ;
     logic   dphy_system_reset        ;
@@ -287,7 +291,11 @@ module rtcl_p3s7_dphy
         end
     end
 
-    // MIPI
+
+    // -------------------------------------
+    //  MIPI I2C
+    // -------------------------------------
+
     logic mipi_scl_i;
     logic mipi_scl_t;
     logic mipi_sda_i;
@@ -311,15 +319,14 @@ module rtcl_p3s7_dphy
             );
 
     assign mipi_scl_t = 1'b1;
-//  assign mipi_sda_t = 1'b1;
 
-    (* MARK_DEBUG = "true" *)   logic           i2c_wr_start;
-    (* MARK_DEBUG = "true" *)   logic           i2c_wr_en   ;
-    (* MARK_DEBUG = "true" *)   logic   [7:0]   i2c_wr_data ;
-    (* MARK_DEBUG = "true" *)   logic           i2c_rd_start;
-    (* MARK_DEBUG = "true" *)   logic           i2c_rd_req  ;
-    (* MARK_DEBUG = "true" *)   logic           i2c_rd_en   ;
-    (* MARK_DEBUG = "true" *)   logic   [7:0]   i2c_rd_data ;
+    logic           i2c_wr_start;
+    logic           i2c_wr_en   ;
+    logic   [7:0]   i2c_wr_data ;
+    logic           i2c_rd_start;
+    logic           i2c_rd_req  ;
+    logic           i2c_rd_en   ;
+    logic   [7:0]   i2c_rd_data ;
 
     jelly2_i2c_slave_core
             #(
@@ -357,26 +364,14 @@ module rtcl_p3s7_dphy
         end
     end
 
-    /*
-    // 時限タイマ
-    logic [31:0] timer_counter  ;
-    logic        timer_enable   ;
-    always_ff @(posedge clk72) begin
-        if ( reset ) begin
-            timer_counter <= '0;
-            timer_enable  <= 1'b0;
-        end
-        else begin
-            if ( timer_counter != '1 ) begin
-                timer_counter <= timer_counter + 1;
-            end
-            timer_enable <= timer_counter < 72_000_000 * 10;
-        end
-    end
-    */
     logic enable;
     assign enable = mipi_enable; // && timer_enable;
 
+
+
+    // -------------------------------------
+    //  PYTHON300 Sensor
+    // -------------------------------------
 
     // Sensor Power Management
     logic sensor_ready;
@@ -397,15 +392,13 @@ module rtcl_p3s7_dphy
                 .python_clk_pll          (python_clk_pll        )
             );
 
-
-    (* MARK_DEBUG = "true" *)   logic   [8:0]   spi_addr    ;
-    (* MARK_DEBUG = "true" *)   logic           spi_we      ;
-    (* MARK_DEBUG = "true" *)   logic   [15:0]  spi_wdata   ;
-    (* MARK_DEBUG = "true" *)   logic           spi_valid   ;
-    (* MARK_DEBUG = "true" *)   logic           spi_ready   ;
-    (* MARK_DEBUG = "true" *)   logic   [15:0]  spi_rdata   ;
-    (* MARK_DEBUG = "true" *)   logic           spi_rvalid  ;
-
+    logic   [8:0]   spi_addr    ;
+    logic           spi_we      ;
+    logic   [15:0]  spi_wdata   ;
+    logic           spi_valid   ;
+    logic           spi_ready   ;
+    logic   [15:0]  spi_rdata   ;
+    logic           spi_rvalid  ;
     python_spi
         u_python_spi
             (
@@ -426,27 +419,49 @@ module rtcl_p3s7_dphy
                 .spi_miso       (python_miso    )
             );
 
-    /*
-    spi_cmd
-        u_spi_cmd
-            (
-                .reset          (reset          ),
-                .clk            (clk72          ),
-
-                .enable         (sensor_ready   ),
-
-                .m_spi_addr     (spi_addr       ),
-                .m_spi_we       (spi_we         ),
-                .m_spi_wdata    (spi_wdata      ),
-                .m_spi_valid    (spi_valid      ),
-                .m_spi_ready    (spi_ready      )
-            );
-    */
 
     // -------------------------
     //  I2C to SPI
     // -------------------------
 
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS  (14         ),
+                .DATA_BITS  (16         )
+            )
+        axi4l
+            (
+                .aresetn    (~reset     ),
+                .aclk       (clk72      ),
+                .aclken     (1'b1       )
+            );
+
+    i2c_to_spi
+        u_i2c_to_spi
+            (
+                .reset          (reset          ),
+                .clk            (clk72          ),
+
+                .i2c_wr_start   (i2c_wr_start   ),
+                .i2c_wr_en      (i2c_wr_en      ),
+                .i2c_wr_data    (i2c_wr_data    ),
+                .i2c_rd_start   (i2c_rd_start   ),
+                .i2c_rd_req     (i2c_rd_req     ),
+                .i2c_rd_en      (i2c_rd_en      ),
+                .i2c_rd_data    (i2c_rd_data    ),
+
+                .spi_addr       (spi_addr       ),
+                .spi_we         (spi_we         ),
+                .spi_wdata      (spi_wdata      ),
+                .spi_valid      (spi_valid      ),
+                .spi_ready      (spi_ready      ),
+                .spi_rdata      (spi_rdata      ),
+                .spi_rvalid     (spi_rvalid     ),
+
+                .m_axi4l        (axi4l          )
+            );
+
+    /*
     logic   [1:0]    cmd_wcnt    ;
     logic   [31:0]   cmd_wdata   ;
     logic   [15:0]   cmd_rdata   ;
@@ -478,54 +493,14 @@ module rtcl_p3s7_dphy
         end
     end
 
-    assign spi_we    = cmd_wdata[31];
-    assign spi_addr  = cmd_wdata[16 +:  9];
+    assign spi_we    = cmd_wdata[16];
+    assign spi_addr  = cmd_wdata[17 +:  9];
     assign spi_wdata = cmd_wdata[ 0 +: 16];
 
     assign i2c_rd_en   = i2c_rd_req;
     assign i2c_rd_data = cmd_rdata[7:0];
-
-
-
-//    assign sensor_pwr_en_vdd18 = 1'b0;
-//    assign sensor_pwr_en_vdd33 = 1'b0;
-//    assign sensor_pwr_en_pix   = 1'b0;
-//    assign python_reset_n      = 1'b0;
-//    assign python_clk_pll      = 1'b0;
-//    assign python_ss_n         = 1'b0;
-//    assign python_mosi         = 1'b0;
-//    assign python_sck          = 1'b0;
-
-    /*
-    logic           python_clk  ;
-    logic   [3:0]   python_data ;
-    IBUFDS
-        u_ibufds_python_clk
-            (
-                .I      (python_clk_p   ),
-                .IB     (python_clk_n   ),
-                .O      (python_clk     ) 
-            );
-    
-    for ( genvar i = 0; i < 4; i++ ) begin
-        IBUFDS
-            u_ibufds_python_data
-                (
-                    .I      (python_data_p[i])   ,
-                    .IB     (python_data_n[i])   ,
-                    .O      (python_data[i])     
-                );
-    end
-    
-    logic           python_sync ;
-    IBUFDS
-        u_ibufds_python_sync
-            (
-                .I      (python_sync_p)       ,
-                .IB     (python_sync_n)       ,
-                .O      (python_sync)     
-            );
     */
+
 
     logic            io_reset           ;
     logic            python_clk         ;
