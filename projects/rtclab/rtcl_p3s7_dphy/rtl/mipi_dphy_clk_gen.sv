@@ -11,6 +11,7 @@ module mipi_dphy_clk_gen
         output  var logic   core_reset          ,
         output  var logic   core_clk            ,
         output  var logic   system_reset        ,
+        output  var logic   txbyteclkhs_reset   ,
         output  var logic   txbyteclkhs         ,   // BUFR  (div4 from oserdes_clk90)
         output  var logic   txclkesc            ,   // BUFG
         output  var logic   oserdes_clkdiv      ,   // BUFR  (div4 from oserdes_clk)
@@ -126,5 +127,18 @@ module mipi_dphy_clk_gen
                 .out_reset      (system_reset                           )
             );
 
+    jelly_reset
+        u_reset_txbyteclkhs
+            (
+                .clk            (txbyteclkhs                ),
+                .in_reset       (system_reset               ),
+                .out_reset      (txbyteclkhs_reset          )
+            );
+
 endmodule
 
+
+`default_nettype wire
+
+
+// end of file

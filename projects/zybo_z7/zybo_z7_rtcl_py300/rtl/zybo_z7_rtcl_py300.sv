@@ -376,61 +376,55 @@ module zybo_z7_rtcl_py300
     //  MIPI D-PHY RX
     // ----------------------------------------
     
-    wire                rxbyteclkhs;
-    wire                system_rst_out;
-    wire                init_done;
+                            wire                rxbyteclkhs;
+                            wire                system_rst_out;
+    (* mark_debug="true" *) wire                init_done;
     
-    wire                cl_rxclkactivehs;
-    wire                cl_stopstate;
-    wire                cl_enable         = 1;
-    wire                cl_rxulpsclknot;
-    wire                cl_ulpsactivenot;
+                            wire                cl_rxclkactivehs;
+                            wire                cl_stopstate;
+                            wire                cl_enable         = 1;
+                            wire                cl_rxulpsclknot;
+                            wire                cl_ulpsactivenot;
     
-    (* mark_debug="true" *)  wire    [7:0]       dl0_rxdatahs;
-    (* mark_debug="true" *)  wire                dl0_rxvalidhs;
-    (* mark_debug="true" *)  wire                dl0_rxactivehs;
-    (* mark_debug="true" *)  wire                dl0_rxsynchs;
+    (* mark_debug="true" *) wire    [7:0]       dl0_rxdatahs;
+    (* mark_debug="true" *) wire                dl0_rxvalidhs;
+    (* mark_debug="true" *) wire                dl0_rxactivehs;
+    (* mark_debug="true" *) wire                dl0_rxsynchs;
+                            wire                dl0_forcerxmode   = 0;
+                            wire                dl0_stopstate;
+                            wire                dl0_enable        = 1;
+                            wire                dl0_ulpsactivenot;
+                            wire                dl0_rxclkesc;
+                            wire                dl0_rxlpdtesc;
+                            wire                dl0_rxulpsesc;
+                            wire    [3:0]       dl0_rxtriggeresc;
+                            wire    [7:0]       dl0_rxdataesc;
+                            wire                dl0_rxvalidesc;
+                            wire                dl0_errsoths;
+                            wire                dl0_errsotsynchs;
+                            wire                dl0_erresc;
+                            wire                dl0_errsyncesc;
+                            wire                dl0_errcontrol;
     
-    wire                dl0_forcerxmode   = 0;
-    wire                dl0_stopstate;
-    wire                dl0_enable        = 1;
-    wire                dl0_ulpsactivenot;
-    
-    wire                dl0_rxclkesc;
-    wire                dl0_rxlpdtesc;
-    wire                dl0_rxulpsesc;
-    wire    [3:0]       dl0_rxtriggeresc;
-    wire    [7:0]       dl0_rxdataesc;
-    wire                dl0_rxvalidesc;
-    
-    wire                dl0_errsoths;
-    wire                dl0_errsotsynchs;
-    wire                dl0_erresc;
-    wire                dl0_errsyncesc;
-    wire                dl0_errcontrol;
-    
-    (* mark_debug="true" *)  wire    [7:0]       dl1_rxdatahs;
-    (* mark_debug="true" *)  wire                dl1_rxvalidhs;
-    (* mark_debug="true" *)  wire                dl1_rxactivehs;
-    (* mark_debug="true" *)  wire                dl1_rxsynchs;
-    
-    wire                dl1_forcerxmode   = 0;
-    wire                dl1_stopstate;
-    wire                dl1_enable        = 1;
-    wire                dl1_ulpsactivenot;
-    
-    wire                dl1_rxclkesc;
-    wire                dl1_rxlpdtesc;
-    wire                dl1_rxulpsesc;
-    wire    [3:0]       dl1_rxtriggeresc;
-    wire    [7:0]       dl1_rxdataesc;
-    wire                dl1_rxvalidesc;
-    
-    wire                dl1_errsoths;
-    wire                dl1_errsotsynchs;
-    wire                dl1_erresc;
-    wire                dl1_errsyncesc;
-    wire                dl1_errcontrol;
+    (* mark_debug="true" *) wire    [7:0]       dl1_rxdatahs;
+    (* mark_debug="true" *) wire                dl1_rxvalidhs;
+    (* mark_debug="true" *) wire                dl1_rxactivehs;
+    (* mark_debug="true" *) wire                dl1_rxsynchs;
+                            wire                dl1_forcerxmode   = 0;
+                            wire                dl1_stopstate;
+                            wire                dl1_enable        = 1;
+                            wire                dl1_ulpsactivenot;
+                            wire                dl1_rxclkesc;
+                            wire                dl1_rxlpdtesc;
+                            wire                dl1_rxulpsesc;
+                            wire    [3:0]       dl1_rxtriggeresc;
+                            wire    [7:0]       dl1_rxdataesc;
+                            wire                dl1_rxvalidesc;
+                            wire                dl1_errsoths;
+                            wire                dl1_errsotsynchs;
+                            wire                dl1_erresc;
+                            wire                dl1_errsyncesc;
+                            wire                dl1_errcontrol;
     
     mipi_dphy_cam
         i_mipi_dphy_cam
@@ -438,7 +432,7 @@ module zybo_z7_rtcl_py300
                 .core_clk           (sys_clk200),
                 .core_rst           (sys_reset),
                 .rxbyteclkhs        (rxbyteclkhs),
-                .system_rst_out     (system_rst_out),
+                .system_rst_out     (system_rst_out | reg_sw_reset),
                 .init_done          (init_done),
                 
                 .cl_rxclkactivehs   (cl_rxclkactivehs),
