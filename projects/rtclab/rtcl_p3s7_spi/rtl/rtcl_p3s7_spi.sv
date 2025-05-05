@@ -45,6 +45,22 @@ module rtcl_p3s7_spi
             input   var logic           python_sync_n           
         );
     
+    // ---------------------------------
+    //  Clock and Reset
+    // ---------------------------------
+
+    logic   clk50   ;
+    logic   clk100  ;
+    logic   clk200  ;
+    clk_wiz_0
+        u_clk_wiz_0
+             (
+                .clk_in1    (in_clk50   ),
+                .clk_out1   (clk50      ),
+                .clk_out2   (clk100     ),
+                .clk_out3   (clk200     )
+            );
+
     logic clk72;
     assign clk72 = in_clk72;
 
@@ -60,19 +76,11 @@ module rtcl_p3s7_spi
         end
     end
 
-    logic   clk50   ;
-    logic   clk100  ;
-    logic   clk200  ;
-    clk_wiz_0
-        u_clk_wiz_0
-             (
-                .clk_in1    (in_clk50   ),
-                .clk_out1   (clk50      ),
-                .clk_out2   (clk100     ),
-                .clk_out3   (clk200     )
-            );
 
-    // MIPI
+    // ---------------------------------
+    //  MIPI
+    // ---------------------------------
+
     logic mipi_scl_i;
     logic mipi_scl_t;
     logic mipi_sda_i;
@@ -211,23 +219,6 @@ module rtcl_p3s7_spi
                 .spi_miso       (python_miso    )
             );
 
-    /*
-    spi_cmd
-        u_spi_cmd
-            (
-                .reset          (reset          ),
-                .clk            (clk72          ),
-
-                .enable         (sensor_ready   ),
-
-                .m_spi_addr     (spi_addr       ),
-                .m_spi_we       (spi_we         ),
-                .m_spi_wdata    (spi_wdata      ),
-                .m_spi_valid    (spi_valid      ),
-                .m_spi_ready    (spi_ready      )
-            );
-    */
-
 
     // -------------------------
     //  I2C to SPI
@@ -270,89 +261,10 @@ module rtcl_p3s7_spi
                 .m_axi4l        (axi4l          )
             );
     
-    /*
-    logic   [1:0]    cmd_wcnt    ;
-    logic   [31:0]   cmd_wdata   ;
-    logic   [15:0]   cmd_rdata   ;
-    always_ff @(posedge clk72) begin
-        if ( reset ) begin
-            cmd_wcnt  <= '0;
-            cmd_wdata <= 'x;
-            cmd_rdata <= 'x;
-            spi_valid <= 1'b0;
-        end
-        else begin
-            if ( spi_ready ) begin
-                spi_valid <= 1'b0;
-            end
-            if ( i2c_wr_start ) begin
-                cmd_wcnt <= '0;
-            end
-            if ( i2c_wr_en ) begin
-                cmd_wcnt  <= cmd_wcnt + 1;
-                cmd_wdata <= {cmd_wdata[23:0], i2c_wr_data};
-                spi_valid <= (cmd_wcnt == 2'd3);
-            end
-            if ( i2c_rd_req ) begin
-                cmd_rdata <= (cmd_rdata >> 8);
-            end
-            if ( spi_rvalid ) begin
-                cmd_rdata <= spi_rdata;
-            end
-        end
-    end
 
-    assign spi_we    = cmd_wdata[31];
-    assign spi_addr  = cmd_wdata[16 +:  9];
-    assign spi_wdata = cmd_wdata[ 0 +: 16];
-
-    assign i2c_rd_en   = i2c_rd_req;
-    assign i2c_rd_data = cmd_rdata[7:0];
-    */
-
-
-
-
-//    assign sensor_pwr_en_vdd18 = 1'b0;
-//    assign sensor_pwr_en_vdd33 = 1'b0;
-//    assign sensor_pwr_en_pix   = 1'b0;
-//    assign python_reset_n      = 1'b0;
-//    assign python_clk_pll      = 1'b0;
-//    assign python_ss_n         = 1'b0;
-//    assign python_mosi         = 1'b0;
-//    assign python_sck          = 1'b0;
-
-    /*
-    logic           python_clk  ;
-    logic   [3:0]   python_data ;
-    IBUFDS
-        u_ibufds_python_clk
-            (
-                .I      (python_clk_p   ),
-                .IB     (python_clk_n   ),
-                .O      (python_clk     ) 
-            );
-    
-    for ( genvar i = 0; i < 4; i++ ) begin
-        IBUFDS
-            u_ibufds_python_data
-                (
-                    .I      (python_data_p[i])   ,
-                    .IB     (python_data_n[i])   ,
-                    .O      (python_data[i])     
-                );
-    end
-    */
-    /*
-    logic           python_sync ;
-    IBUFDS
-        u_ibufds_python_sync
-            (
-                .I      (python_sync_p)       ,
-                .IB     (python_sync_n)       ,
-                .O      (python_sync)     
-            );
-    */
+    // -------------------------
+    //  PYTHON300 LVDS
+    // -------------------------
 
     logic            io_reset           ;
     logic            python_clk         ;
@@ -397,17 +309,17 @@ module rtcl_p3s7_spi
     end
 
     // Blinking LED
-    logic   [24:0]     clk50_counter; // リセットがないので初期値を設定
+    logic   [24:0]     clk50_counter;
     always_ff @(posedge clk50) begin
         clk50_counter <= clk50_counter + 1;
     end
 
-    logic   [24:0]     clk72_counter; // リセットがないので初期値を設定
+    logic   [24:0]     clk72_counter;
     always_ff @(posedge clk72) begin
         clk72_counter <= clk72_counter + 1;
     end
 
-    logic   [24:0]     python_clk_counter; // リセットがないので初期値を設定
+    logic   [24:0]     python_clk_counter;
     always_ff @(posedge python_clk) begin
         python_clk_counter <= python_clk_counter + 1;
     end
