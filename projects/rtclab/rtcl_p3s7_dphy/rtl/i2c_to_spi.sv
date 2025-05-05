@@ -40,7 +40,7 @@ module i2c_to_spi
     always_ff @(posedge clk) begin
         if ( reset ) begin
             cmd_wcnt  <= '0;
-            cmd_wdata <= 'x;
+            cmd_data  <= 'x;
             cmd_rdata <= 'x;
             spi_valid <= 1'b0;
             m_axi4l.awvalid <= 1'b0;
@@ -70,7 +70,7 @@ module i2c_to_spi
                 cmd_wcnt  <= cmd_wcnt + 1;
                 cmd_data  <= next_data;
                 if ( cmd_wcnt == 2'd3 ) begin
-                    if ( cmd_addr[14] == 1'b1 ) begin
+                    if ( next_addr[14] == 1'b1 ) begin
                         // SPI write
                         spi_valid <= 1'b1;
                     end
@@ -104,9 +104,12 @@ module i2c_to_spi
     assign spi_wdata = cmd_wdata        ;
 
     assign m_axi4l.awaddr = cmd_addr    ;
+    assign m_axi4l.awprot = '0          ;
     assign m_axi4l.wdata  = cmd_wdata   ;
     assign m_axi4l.wstrb  = 2'b11       ;
     assign m_axi4l.bready = 1'b1        ;
+    assign m_axi4l.araddr = cmd_addr    ;
+    assign m_axi4l.arprot = '0          ;
     assign m_axi4l.rready = 1'b1        ;
 
     assign i2c_rd_en   = i2c_rd_req     ;
