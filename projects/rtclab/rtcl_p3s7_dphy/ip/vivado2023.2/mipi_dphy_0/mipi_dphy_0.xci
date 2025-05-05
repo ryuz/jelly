@@ -4,7 +4,7 @@
     "xci_name": "mipi_dphy_0",
     "component_reference": "xilinx.com:ip:mipi_dphy:4.3",
     "ip_revision": "8",
-    "gen_directory": "rtcl_p3s7_dphy.gen/sources_1/ip/mipi_dphy_0",
+    "gen_directory": "../../../../rtcl_p3s7_dphy.gen/sources_1/ip/mipi_dphy_0",
     "parameters": {
       "component_parameters": {
         "C_S50_LOGIC": [ { "value": "0", "resolve_type": "user", "usage": "all" } ],
@@ -93,7 +93,7 @@
         "DATA_LANE2_TXIF4_IO_LOC": [ { "value": "None", "resolve_type": "user", "usage": "all" } ],
         "DATA_LANE3_TXIF4_IO_LOC": [ { "value": "None", "resolve_type": "user", "usage": "all" } ],
         "DATA_LANE0_BYTE": [ { "value": "Same_Byte", "resolve_type": "user", "enabled": false, "usage": "all" } ],
-        "DATA_LANE1_BYTE": [ { "value": "Same_Byte", "resolve_type": "user", "enabled": false, "usage": "all" } ],
+        "DATA_LANE1_BYTE": [ { "value": "Same_Byte", "resolve_type": "user", "usage": "all" } ],
         "DATA_LANE2_BYTE": [ { "value": "Same_Byte", "resolve_type": "user", "enabled": false, "usage": "all" } ],
         "DATA_LANE3_BYTE": [ { "value": "Same_Byte", "resolve_type": "user", "enabled": false, "usage": "all" } ],
         "DATA_LANE4_BYTE": [ { "value": "Same_Byte", "resolve_type": "user", "enabled": false, "usage": "all" } ],

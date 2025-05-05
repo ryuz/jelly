@@ -7,8 +7,10 @@ create_clock -period 13.888 -name in_clk72 -waveform {0.000  6.944} [get_ports i
 # 720Mbps (360MHz)
 create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports python_clk_p]
 
-set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks clk_out1_clk_mipi_core] 10.000
+# 1250Mbps : 312.5MHz 3.2ns
 
+set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks clk_out1_clk_mipi_core] 10.000
+set_max_delay -datapath_only -from [get_clocks clk_out1_clk_mipi_core] -to [get_clocks dphy_txbyteclkhs]        3.200
 
 # clock
 set_property PACKAGE_PIN H4 [get_ports in_clk50]

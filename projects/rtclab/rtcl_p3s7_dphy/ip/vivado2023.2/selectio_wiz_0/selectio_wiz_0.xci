@@ -4,7 +4,7 @@
     "xci_name": "selectio_wiz_0",
     "component_reference": "xilinx.com:ip:selectio_wiz:5.1",
     "ip_revision": "17",
-    "gen_directory": "rtcl_p3s7_spi.gen/sources_1/ip/selectio_wiz_0",
+    "gen_directory": "../../../../rtcl_p3s7_spi.gen/sources_1/ip/selectio_wiz_0",
     "parameters": {
       "component_parameters": {
         "Component_Name": [ { "value": "selectio_wiz_0", "resolve_type": "user", "usage": "all" } ],

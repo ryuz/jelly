@@ -4,7 +4,7 @@
     "xci_name": "clk_mipi_serial",
     "component_reference": "xilinx.com:ip:clk_wiz:6.0",
     "ip_revision": "13",
-    "gen_directory": "rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_serial",
+    "gen_directory": "../../../../rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_serial",
     "parameters": {
       "component_parameters": {
         "Component_Name": [ { "value": "clk_mipi_serial", "resolve_type": "user", "usage": "all" } ],
