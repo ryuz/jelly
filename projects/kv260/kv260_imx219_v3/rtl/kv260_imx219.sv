@@ -434,6 +434,64 @@ module kv260_imx219
     wire        dphy_reset = system_rst_out;
     
 
+    (* mark_debug=DEBUG *)  logic   [7:0]       dbg_dl0_rxdatahs;
+    (* mark_debug=DEBUG *)  logic               dbg_dl0_rxvalidhs;
+    (* mark_debug=DEBUG *)  logic               dbg_dl0_rxactivehs;
+    (* mark_debug=DEBUG *)  logic               dbg_dl0_rxsynchs;
+    (* mark_debug=DEBUG *)  logic   [7:0]       dbg_dl1_rxdatahs;
+    (* mark_debug=DEBUG *)  logic               dbg_dl1_rxvalidhs;
+    (* mark_debug=DEBUG *)  logic               dbg_dl1_rxactivehs;
+    (* mark_debug=DEBUG *)  logic               dbg_dl1_rxsynchs;
+    (* mark_debug=DEBUG *)  logic               dbg_valid;
+    jelly2_fifo_generic_fwtf
+                #(
+                    .ASYNC          (1          ),
+                    .DATA_WIDTH     (8+3+8+3    ),
+                    .PTR_WIDTH      (8          ),
+                    .DOUT_REGS      (1          ),
+                    .RAM_TYPE       ("block"    ),
+                    .LOW_DEALY      (0          ),
+                    .S_REGS         (1          ),
+                    .M_REGS         (1          )
+                )
+            u_fifo_generic_fwtf_dbg
+                (
+                    .s_reset        (dphy_reset ),
+                    .s_clk          (dphy_clk   ),
+                    .s_cke          (1'b1       ),
+                    .s_data         ({
+                                        dl0_rxdatahs    ,
+                                        dl0_rxvalidhs   ,
+                                        dl0_rxactivehs  ,
+                                        dl0_rxsynchs    ,
+                                        dl1_rxdatahs    ,
+                                        dl1_rxvalidhs   ,
+                                        dl1_rxactivehs  ,
+                                        dl1_rxsynchs    
+                                    }),
+                    .s_valid        (1'b1       ),
+                    .s_ready        (           ),
+                    .s_free_count   (           ),
+
+                    .m_reset        (sys_reset  ),
+                    .m_clk          (sys_clk200 ),
+                    .m_cke          (1'b1       ),
+                    .m_data         ({
+                                        dbg_dl0_rxdatahs    ,
+                                        dbg_dl0_rxvalidhs   ,
+                                        dbg_dl0_rxactivehs  ,
+                                        dbg_dl0_rxsynchs    ,
+                                        dbg_dl1_rxdatahs    ,
+                                        dbg_dl1_rxvalidhs   ,
+                                        dbg_dl1_rxactivehs  ,
+                                        dbg_dl1_rxsynchs    
+                                    }),
+                    .m_valid        (dbg_valid  ),
+                    .m_ready        (1'b1       ),
+                    .m_data_count   (           )
+                );
+
+
     
     // ----------------------------------------
     //  CSI-2

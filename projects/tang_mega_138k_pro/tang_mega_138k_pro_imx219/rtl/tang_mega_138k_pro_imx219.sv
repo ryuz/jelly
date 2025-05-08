@@ -8,8 +8,8 @@ module tang_mega_138k_pro_imx219
             parameter JFIVE_TCM_READMEM_FIlE = "mem.hex"    
         )
         (
-            input   var logic           reset       ,
-            input   var logic           clk         ,   // 50MHz
+            input   var logic           in_reset    ,
+            input   var logic           in_clk50    ,   // 50MHz
 
             input   var logic           uart_rx     ,
             output  var logic           uart_tx     ,
@@ -30,6 +30,25 @@ module tang_mega_138k_pro_imx219
 
             output  var logic   [5:0]   led_n
         );
+
+    logic   lock    ;
+    logic   clk50   ;
+    logic   clk250  ;
+    Gowin_PLL
+        u_Gowin_PLL
+            (
+                .lock       (lock       ), //output lock
+                .clkout0    (clk50      ), //output clkout0
+                .clkout1    (clk250     ), //output clkout1
+                .clkin      (in_clk50   ) //input clkin
+            );
+
+    logic   clk;
+    assign clk = clk50;
+
+    logic   reset;
+    assign reset = in_reset || !lock;
+
 
     logic           csi0_rx_clk             ;
     logic           csi0_drst_n             ;
@@ -269,7 +288,7 @@ module tang_mega_138k_pro_imx219
             (
                 .I_RSTN         (~reset         ), //input I_RSTN
                 .I_BYTE_CLK     (csi0_rx_clk    ), //input I_BYTE_CLK
-                .I_REF_DT       (8'h2b          ), //input [5:0] I_REF_DT  RAW10
+                .I_REF_DT       (6'h2b          ), //input [5:0] I_REF_DT  RAW10
                 .I_READY        (csi0_byte_ready), //input I_READY
                 .I_DATA0        (csi0_byte_d0   ), //input [7:0] I_DATA0
                 .I_DATA1        (csi0_byte_d1   ), //input [7:0] I_DATA1
@@ -283,6 +302,26 @@ module tang_mega_138k_pro_imx219
                 .O_DT           (csi_rx_dt             ), //output [5:0] O_DT
                 .O_PAYLOAD_DV   (csi_rx_payload_dv     ), //output [1:0] O_PAYLOAD_DV
                 .O_PAYLOAD      (csi_rx_payload        )  //output [15:0] O_PAYLOAD
+            );
+
+    logic       video_fv;
+    logic       video_lv;
+    logic [9:0] video_pixel;
+    MIPI_Byte_to_Pixel_Converter_Top
+        u_MIPI_Byte_to_Pixel_Converter_Top
+            (
+                .I_RSTN         (~reset             ),  //input I_RSTN
+                .I_BYTE_CLK     (csi0_rx_clk        ),  //input I_BYTE_CLK
+                .I_PIXEL_CLK    (clk250             ),  //input I_PIXEL_CLK
+                .I_SP_EN        (csi_rx_sp_en       ),  //input I_SP_EN
+                .I_LP_AV_EN     (csi_rx_lp_av_en    ),  //input I_LP_AV_EN
+                .I_DT           (csi_rx_dt          ),  //input [5:0] I_DT
+                .I_WC           (csi_rx_wc          ),  //input [15:0] I_WC
+                .I_PAYLOAD_DV   (csi_rx_payload_dv  ),  //input [1:0] I_PAYLOAD_DV
+                .I_PAYLOAD      (csi_rx_payload     ),  //input [15:0] I_PAYLOAD
+                .O_FV           (video_fv           ),  //output O_FV
+                .O_LV           (video_lv           ),  //output O_LV
+                .O_PIXEL        (video_pixel        )   //output [9:0] O_PIXEL
             );
 
 
