@@ -619,11 +619,12 @@ module tang_mega_138k_pro_imx219
         end
     end
     
-//    logic   [7:0]   xy;
-//    assign xy  = 8'(syncgen_x + syncgen_y);
-//    logic   [23:0]  syncgen_rgb;
-//    assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
+    logic   [7:0]   xy;
+    assign xy  = 8'(syncgen_x + syncgen_y);
+    logic   [23:0]  syncgen_rgb;
+    assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
 
+    /*
     logic               draw_vsync;
     logic               draw_hsync;
     logic               draw_de;
@@ -652,7 +653,7 @@ module tang_mega_138k_pro_imx219
                 .out_de     (draw_de        ),
                 .out_rgb    (draw_rgb       )
             );
-
+    */
 
     // DVI TX
     dvi_tx
@@ -662,10 +663,10 @@ module tang_mega_138k_pro_imx219
                 .clk            (dvi_clk        ),
                 .clk_x5         (dvi_clk_x5     ),
 
-                .in_vsync       (draw_vsync     ),
-                .in_hsync       (draw_hsync     ),
-                .in_de          (draw_de        ),
-                .in_data        (draw_rgb       ),
+                .in_vsync       (syncgen_vsync  ),
+                .in_hsync       (syncgen_hsync  ),
+                .in_de          (syncgen_de     ),
+                .in_data        (syncgen_rgb    ),
                 .in_ctl         ('0             ),
 
                 .out_clk_p      (dvi_tx_clk_p   ),
