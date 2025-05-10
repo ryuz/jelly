@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 #![no_main]
 #![no_std]
 
@@ -29,6 +30,7 @@ const REG_GPIO: usize = 0x10000104;
 const IMX219_DEVADR: u8 =     0x10;    // 7bit address
 
 #[no_mangle]
+#[allow(improper_ctypes_definitions)]
 pub unsafe extern "C" fn main() -> Result<(), &'static str> {
     println!("start");
 
@@ -87,7 +89,8 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
         println!("end!");
         loop {
         }
-
+    
+    /*
     let mut i = 0;
     loop {
         println!("Hello world (Rust) {}", i);
@@ -101,6 +104,7 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
         println!("model_id: 0x{:02x}{:02x}", model_id[0], model_id[1]);
     }
     Ok(())
+    */
 }
 
 

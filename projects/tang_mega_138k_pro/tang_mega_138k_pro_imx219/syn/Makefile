@@ -20,8 +20,10 @@ CONSTRAIN_DIR = ../constrain
 
 VLOG_SOURCES  = $(RTL_DIR)/tang_mega_138k_pro_imx219.sv
 VLOG_SOURCES += $(RTL_DIR)/jfive_simple_controller.sv
+VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll.v
 VLOG_SOURCES += $(IP_DIR)/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v
 VLOG_SOURCES += $(IP_DIR)/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v
+VLOG_SOURCES += $(IP_DIR)/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_jfive_simple_core.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_register_file.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_register_file_ram.sv
@@ -83,4 +85,5 @@ run: $(FS_FILE)
 	openFPGALoader $(FS_FILE)
 
 run_win: $(FS_FILE)
-	programmer_cli --device GW5AST-138C --run 2 --fsFile '$(shell wslpath -w $(FS_FILE))'
+#   programmer_cli --scan-cable
+	programmer_cli --device GW5AST-138C --run 2 --fsFile '$(shell wslpath -w $(FS_FILE))' --location 11585

@@ -4,7 +4,7 @@
 
 module jfive_tcm
         #(
-            parameter   int                                 ADDR_WIDTH   = 14,
+            parameter   int                                 ADDR_WIDTH   = 13,
             parameter   int                                 DATA_WIDTH   = 32,
             parameter   int                                 WE_WIDTH     = 4,
             parameter   int                                 WORD_WIDTH   = DATA_WIDTH/WE_WIDTH,

@@ -35,15 +35,15 @@ IO_PORT "i2c_sel[1]" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 IO_PORT "i2c_sel[2]" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 
 
-IO_LOC "csi0_rstn" L14;
-IO_PORT "csi0_rstn" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+IO_LOC "mipi0_rstn" L14;
+IO_PORT "mipi0_rstn" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
 
-IO_LOC "csi0_clk_p"     Y3;
-IO_LOC "csi0_clk_n"     AA3;
-IO_LOC "csi0_data_p[0]" V1;
-IO_LOC "csi0_data_n[0]" W1;
-IO_LOC "csi0_data_p[1]" Y2;
-IO_LOC "csi0_data_n[1]" AA2;
+IO_LOC "mipi0_clk_p"     Y3;
+IO_LOC "mipi0_clk_n"     AA3;
+IO_LOC "mipi0_data_p[0]" V1;
+IO_LOC "mipi0_data_n[0]" W1;
+IO_LOC "mipi0_data_p[1]" Y2;
+IO_LOC "mipi0_data_n[1]" AA2;
 
 
 # PMOD
