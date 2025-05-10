@@ -48,3 +48,7 @@ run: $(FS_FILE)
 
 run2:
 	programmer_cli --device GW1NR-9C --run 2 --fsFile $(TARGET).fs --location `programmer_cli --scan-cable | grep -oP 'USB location:\K\d+'`
+
+run_win: $(FS_FILE)
+#   programmer_cli --scan-cable
+	programmer_cli --device GW5AST-138C --run 2 --fsFile '$(shell wslpath -w $(FS_FILE))' --location 11585

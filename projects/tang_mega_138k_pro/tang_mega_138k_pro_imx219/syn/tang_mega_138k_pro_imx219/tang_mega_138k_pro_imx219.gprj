@@ -11,6 +11,7 @@
         <File path="../../ip/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v" type="file.verilog" enable="1"/>
         <File path="../../rtl/jfive_simple_controller.sv" type="file.verilog" enable="1"/>
         <File path="../../rtl/tang_mega_138k_pro_imx219.sv" type="file.verilog" enable="1"/>
+        <File path="../../../../../rtl/v1/library/jelly_reset.v" type="file.verilog" enable="1"/>
         <File path="../../../../../rtl/v1/library/jelly_pipeline_control.v" type="file.verilog" enable="1"/>
         <File path="../../../../../rtl/v1/library/jelly_pipeline_insert_ff.v" type="file.verilog" enable="1"/>
         <File path="../../../../../rtl/v1/peripheral/jelly_i2c.v" type="file.verilog" enable="1"/>

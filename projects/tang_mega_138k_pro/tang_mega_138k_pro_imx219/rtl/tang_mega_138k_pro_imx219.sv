@@ -8,27 +8,33 @@ module tang_mega_138k_pro_imx219
             parameter JFIVE_TCM_READMEM_FIlE = "mem.hex"    
         )
         (
-            input   var logic           in_reset    ,
-            input   var logic           in_clk50    ,   // 50MHz
+            input   var logic           in_reset        ,
+            input   var logic           in_clk50        ,   // 50MHz
 
-            input   var logic           uart_rx     ,
-            output  var logic           uart_tx     ,
+            input   var logic           uart_rx         ,
+            output  var logic           uart_tx         ,
 
             inout   tri logic           mipi0_clk_p  ,  // 912MHz
-            inout   tri logic           mipi0_clk_n  ,
-            inout   tri logic   [1:0]   mipi0_data_p ,
-            inout   tri logic   [1:0]   mipi0_data_n ,
+            inout   tri logic           mipi0_clk_n     ,
+            inout   tri logic   [1:0]   mipi0_data_p    ,
+            inout   tri logic   [1:0]   mipi0_data_n    ,
+            output  var logic           mipi0_rstn      ,
+            inout   tri logic           i2c_scl         ,
+            inout   tri logic           i2c_sda         ,
+            output  var logic   [2:0]   i2c_sel         ,
 
-            output  var logic           mipi0_rstn   ,
-            inout   tri logic           i2c_scl     ,
-            inout   tri logic           i2c_sda     ,
-            output  var logic   [2:0]   i2c_sel     ,
+            output  var logic           dvi_tx_clk_p    ,
+            output  var logic           dvi_tx_clk_n    ,
+            output  var logic   [2:0]   dvi_tx_data_p   ,
+            output  var logic   [2:0]   dvi_tx_data_n   ,
 
-//          output  var logic   [7:0]   pmod0       ,
-            output  var logic   [7:0]   pmod1       ,
-            output  var logic   [7:0]   pmod2       ,
 
-            output  var logic   [5:0]   led_n
+//          output  var logic   [7:0]   pmod0           ,
+            output  var logic   [7:0]   pmod1           ,
+            output  var logic   [7:0]   pmod2           ,
+
+            input   var logic   [3:0]   push_sw_n       ,
+            output  var logic   [5:0]   led_n           
         );
 
     // ---------------------------------
@@ -50,6 +56,7 @@ module tang_mega_138k_pro_imx219
     logic   clk;
     assign clk = clk50;
 
+    /*
     logic   async_reset;
     assign async_reset = in_reset || !lock;
 
@@ -68,6 +75,51 @@ module tang_mega_138k_pro_imx219
             reset  <= reset1;
         end
     end
+    */
+    logic   reset;
+    jelly_reset
+            #(
+                .IN_LOW_ACTIVE      (1                  ),
+                .OUT_LOW_ACTIVE     (0                  ),
+                .INPUT_REGS         (2                  )
+            )
+        u_reset
+            (
+                .clk                (clk                ),
+                .in_reset           (~in_reset & lock   ),   // asyncrnous reset
+                .out_reset          (reset              )    // syncrnous reset
+            );
+
+
+    // PLL
+    logic   dvi_clk     ;
+    logic   dvi_clk_x5  ;
+    logic   dvi_lock    ;
+    Gowin_PLL_dvi
+        u_pll
+            (
+                .clkin      (in_clk50   ),
+                .clkout0    (dvi_clk    ),
+                .clkout1    (dvi_clk_x5 ),
+                .lock       (dvi_lock   )
+            );
+
+
+    // reset sync
+    logic   dvi_reset;
+    jelly_reset
+            #(
+                .IN_LOW_ACTIVE      (1                      ),
+                .OUT_LOW_ACTIVE     (0                      ),
+                .INPUT_REGS         (2                      )
+            )
+        u_reset_dvi
+            (
+                .clk                (dvi_clk                ),
+                .in_reset           (~in_reset & dvi_lock   ),   // asyncrnous reset
+                .out_reset          (dvi_reset              )    // syncrnous reset
+            );
+
 
 
     // ---------------------------------
@@ -505,7 +557,124 @@ module tang_mega_138k_pro_imx219
                            wb_mcu_stb_o;
 
 
+
+    // ---------------------------------
+    //  DVI output
+    // ---------------------------------
+
+    // generate video sync
+    logic                           syncgen_vsync;
+    logic                           syncgen_hsync;
+    logic                           syncgen_de;
+    jelly_vsync_generator_core
+            #(
+                .V_COUNTER_WIDTH    (10 ),
+                .H_COUNTER_WIDTH    (10 )
+            )
+        u_vsync_generator_core
+            (
+                .reset              (dvi_reset  ),
+                .clk                (dvi_clk    ),
+                
+                .ctl_enable         (1'b1       ),
+                .ctl_busy           (           ),
+                
+                .param_htotal       (10'(96 + 16 + 640 + 48 )),
+                .param_hdisp_start  (10'(96 + 16            )),
+                .param_hdisp_end    (10'(96 + 16 + 640      )),
+                .param_hsync_start  (10'(0                  )),
+                .param_hsync_end    (10'(96                 )),
+                .param_hsync_pol    (1'b0                    ), // 0:n 1:p
+                .param_vtotal       (10'(2 + 10 + 480 + 33  )),
+                .param_vdisp_start  (10'(2 + 10             )),
+                .param_vdisp_end    (10'(2 + 10 + 480       )),
+                .param_vsync_start  (10'(0                  )),
+                .param_vsync_end    (10'(2                  )),
+                .param_vsync_pol    (1'b0                    ), // 0:n 1:p
+                
+                .out_vsync          (syncgen_vsync  ),
+                .out_hsync          (syncgen_hsync  ),
+                .out_de             (syncgen_de     )
+        );
+
+
+    // 適当にパターンを作る
+    logic           prev_de;
+    logic   [10:0]  syncgen_x;
+    logic   [10:0]  syncgen_y;
+    always_ff @(posedge dvi_clk) begin
+        prev_de <= syncgen_de;
+        if ( syncgen_vsync == 1'b0 ) begin
+            syncgen_y <= 0;
+        end
+        else if ( {prev_de, syncgen_de} == 2'b10 ) begin
+            syncgen_y <= syncgen_y + 1;
+        end
+
+        if ( syncgen_hsync == 1'b0 ) begin
+            syncgen_x <= 0;
+        end
+        else if ( syncgen_de ) begin
+            syncgen_x <= syncgen_x + 1;
+        end
+    end
     
+//    logic   [7:0]   xy;
+//    assign xy  = 8'(syncgen_x + syncgen_y);
+//    logic   [23:0]  syncgen_rgb;
+//    assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
+
+    logic               draw_vsync;
+    logic               draw_hsync;
+    logic               draw_de;
+    logic   [2:0][7:0]  draw_rgb;
+
+    draw_video
+            #(
+                .X_WIDTH    (11),
+                .Y_WIDTH    (11)
+            )
+        u_draw_video
+            (
+                .reset      (dvi_reset      ),
+                .clk        (dvi_clk        ),
+
+                .push_sw    (~{push_sw_n[3], push_sw_n[0]}),
+
+                .in_vsync   (syncgen_vsync  ),
+                .in_hsync   (syncgen_hsync  ),
+                .in_de      (syncgen_de     ),
+                .in_x       (syncgen_x      ),
+                .in_y       (syncgen_y      ),
+
+                .out_vsync  (draw_vsync     ),
+                .out_hsync  (draw_hsync     ),
+                .out_de     (draw_de        ),
+                .out_rgb    (draw_rgb       )
+            );
+
+
+    // DVI TX
+    dvi_tx
+        u_dvi_tx
+            (
+                .reset          (dvi_reset      ),
+                .clk            (dvi_clk        ),
+                .clk_x5         (dvi_clk_x5     ),
+
+                .in_vsync       (draw_vsync     ),
+                .in_hsync       (draw_hsync     ),
+                .in_de          (draw_de        ),
+                .in_data        (draw_rgb       ),
+                .in_ctl         ('0             ),
+
+                .out_clk_p      (dvi_tx_clk_p   ),
+                .out_clk_n      (dvi_tx_clk_n   ),
+                .out_data_p     (dvi_tx_data_p  ),
+                .out_data_n     (dvi_tx_data_n  )
+            );
+    
+
     // ---------------------------------
     //  Health check
     // ---------------------------------
