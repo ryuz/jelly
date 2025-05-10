@@ -64,11 +64,11 @@ fn main() {
         // udma領域アクセス
         println!("\n<test udmabuf access>");
         let buf: [u32; 4] = [0x10101010, 0x20202020, 0x30303030, 0x40404040];
-        udmabuf_acc.copy_from(&buf, 0, 1);
-        println!("udmabuf[0] : 0x{:x}", udmabuf_acc.read_mem32(0x00));
-        println!("udmabuf[1] : 0x{:x}", udmabuf_acc.read_mem32(0x04));
-        println!("udmabuf[2] : 0x{:x}", udmabuf_acc.read_mem32(0x08));
-        println!("udmabuf[3] : 0x{:x}", udmabuf_acc.read_mem32(0x0c));
+        udmabuf_acc.copy_from_(&buf, 0, 1);
+        println!("udmabuf[0] : 0x{:x}", udmabuf_acc.read_mem_u32(0x00));
+        println!("udmabuf[1] : 0x{:x}", udmabuf_acc.read_mem_u32(0x04));
+        println!("udmabuf[2] : 0x{:x}", udmabuf_acc.read_mem_u32(0x08));
+        println!("udmabuf[3] : 0x{:x}", udmabuf_acc.read_mem_u32(0x0c));
 
         // DMA0でread
         println!("\n<DMA0 read test>");
