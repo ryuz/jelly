@@ -313,9 +313,9 @@ module tang_mega_138k_pro_imx219
             );
 
     // MIPI Byte_to_Pixel
-    logic       video_fv;
-    logic       video_lv;
-    logic [9:0] video_pixel;
+    logic           cam0_fv;
+    logic           cam0_lv;
+    logic [9:0]     cam0_pixel;
     MIPI_Byte_to_Pixel_Converter_Top
         u_MIPI_Byte_to_Pixel_Converter_Top
             (
@@ -328,11 +328,94 @@ module tang_mega_138k_pro_imx219
                 .I_WC           (mipi0_csi_rx_wc        ),  //input [15:0] I_WC
                 .I_PAYLOAD_DV   (mipi0_csi_rx_payload_dv),  //input [1:0] I_PAYLOAD_DV
                 .I_PAYLOAD      (mipi0_csi_rx_payload   ),  //input [15:0] I_PAYLOAD
-                .O_FV           (video_fv               ),  //output O_FV
-                .O_LV           (video_lv               ),  //output O_LV
-                .O_PIXEL        (video_pixel            )   //output [9:0] O_PIXEL
+                .O_FV           (cam0_fv                ),  //output O_FV
+                .O_LV           (cam0_lv                ),  //output O_LV
+                .O_PIXEL        (cam0_pixel             )   //output [9:0] O_PIXEL
             );
 
+
+    // ---------------------------------
+    //  RAM
+    // ---------------------------------
+
+    logic               mem0_clk    ;
+    logic               mem0_en     ;
+    logic               mem0_regcke ;
+    logic               mem0_we     ;
+    logic   [15:0]      mem0_addr   ;
+    logic   [7:0]       mem0_din    ;
+    logic   [7:0]       mem0_dout   ;
+
+    logic               mem1_clk    ;
+    logic               mem1_en     ;
+    logic               mem1_regcke ;
+    logic               mem1_we     ;
+    logic   [15:0]      mem1_addr   ;
+    logic   [7:0]       mem1_din    ;
+    logic   [7:0]       mem1_dout   ;
+
+    jelly2_ram_dualport
+            #(
+                .ADDR_WIDTH     (16             ),
+                .DATA_WIDTH     (8              ),
+                .WE_WIDTH       (1              ),
+                .DOUT_REGS0     (0              ),
+                .DOUT_REGS1     (0              ),
+                .MODE0          ("NORMAL"       ),
+                .MODE1          ("NORMAL"       )
+            )
+        u_ram_dualport
+            (
+                .port0_clk      (mem0_clk       ),
+                .port0_en       (mem0_en        ),
+                .port0_regcke   (mem0_regcke    ),
+                .port0_we       (mem0_we        ),
+                .port0_addr     (mem0_addr      ),
+                .port0_din      (mem0_din       ),
+                .port0_dout     (mem0_dout      ),
+
+                .port1_clk      (mem1_clk       ),
+                .port1_en       (mem1_en        ),
+                .port1_regcke   (mem1_regcke    ),
+                .port1_we       (mem1_we        ),
+                .port1_addr     (mem1_addr      ),
+                .port1_din      (mem1_din       ),
+                .port1_dout     (mem1_dout      )
+            );
+
+    
+
+    logic           cam0_fv;
+    logic           cam0_lv;
+
+    logic           cam0_lv0;
+    logic   [13:0]  cam0_x;
+    logic   [13:0]  cam0_y;
+    always_ff @(posedge clk180) begin
+        cam0_lv0 <= cam0_lv;
+        if ( cam0_fv == 1'b0 ) begin
+            cam0_x   <= '0;
+            cam0_y   <= '0;
+        end
+        else begin
+            if ( cam0_lv ) begin
+                cam0_x <= cam0_x + 1;
+            end
+            else begin
+                cam0_x <= '0;
+            end
+        end
+        if ( {cam0_lv0, cam0_lv} == 2'b10 ) begin
+            cam0_y <= cam0_y + 1;
+        end
+    end
+
+    assign mem0_clk    = clk180                             ;
+    assign mem0_en     = 1'b1                               ;
+    assign mem0_regcke = 1'b1                               ;
+    assign mem0_we     = (cam0_x < 256) && (cam0_y < 256)   ;
+    assign mem0_addr   = {cam0_y[7:0], cam0_x[7:0]}         ;
+    assign mem0_din    = cam0_pixel[9:2]                    ;
 
 
     // ---------------------------------
@@ -624,6 +707,15 @@ module tang_mega_138k_pro_imx219
     logic   [23:0]  syncgen_rgb;
     assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
 
+
+    assign mem1_clk    = dvi_clk                            ;
+    assign mem1_en     = 1'b1                               ;
+    assign mem1_regcke = 1'b1                               ;
+    assign mem1_we     = 1'b0                               ;
+    assign mem1_addr   = {syncgen_x[7:0], syncgen_y[7:0]}   ;
+    assign mem1_din    = '0                                 ;
+
+
     /*
     logic               draw_vsync;
     logic               draw_hsync;
@@ -666,7 +758,8 @@ module tang_mega_138k_pro_imx219
                 .in_vsync       (syncgen_vsync  ),
                 .in_hsync       (syncgen_hsync  ),
                 .in_de          (syncgen_de     ),
-                .in_data        (syncgen_rgb    ),
+//              .in_data        (syncgen_rgb    ),
+                .in_data        ({3{mem1_dout}} ),
                 .in_ctl         ('0             ),
 
                 .out_clk_p      (dvi_tx_clk_p   ),
