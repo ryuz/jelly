@@ -11,6 +11,7 @@ create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports
 
 set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks clk_out1_clk_mipi_core] 10.000
 set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks python_clk]             10.000
+set_max_delay -datapath_only -from [get_clocks python_clk]             -to [get_clocks in_clk72]               10.000
 set_max_delay -datapath_only -from [get_clocks clk_out1_clk_mipi_core] -to [get_clocks dphy_txbyteclkhs]        3.200
 
 # clock

@@ -111,6 +111,11 @@ module tb_i2c();
 
     initial begin
         python_sync_p = 0;
+
+        @(python_clk_p)  python_data_p = '1;
+        @(python_clk_p)  python_data_p = '1;
+        @(python_clk_p)  python_data_p = '1;
+
         forever begin
             @(python_clk_p)  python_data_p = '1;
             @(python_clk_p)  python_data_p = '1;
@@ -415,9 +420,9 @@ module tb_i2c();
 
         // end
         #(I2C_RATE) scl = 1'b1; sda = 1'b1;
-
         
-    end
+        #(I2C_RATE*10)  $finish();
+    end;
 
 
 endmodule

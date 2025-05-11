@@ -529,25 +529,31 @@ module rtcl_p3s7_dphy
         end
     end
 
-    logic aligner_bitslip;
-    pttern_align_10bit
-        u_pttern_align_10bit
-            (
-                .reset          (io_reset           ),
-                .clk            (python_clk         ),
-                .force_align    (1'b0               ),
-                .pattern        (10'h3a6            ),
-                .detected       (                   ),
-                .bitslip        (aligner_bitslip    ),
-                .s_data         (python_data[0]     ),
-                .s_valid        (1'b1               ),
-                .m_data         (                   ),
-                .m_valid        (                   )
-            );
-
+    (* MARK_DEBUG = "true" *)   logic   [4:0]       align_bitslip   ;
+    (* MARK_DEBUG = "true" *)   logic   [4:0][9:0]  align_data      ;
+    (* MARK_DEBUG = "true" *)   logic   [4:0]       align_valid     ;
+    for ( genvar i = 0; i < 5; i++ ) begin : align_10bit
+        pttern_align_10bit
+            u_pttern_align_10bit
+                (
+                    .reset          (io_reset           ),
+                    .clk            (python_clk         ),
+                    
+                    .force_align    (1'b0               ),
+                    .pattern        (10'h3a6            ),
+                    .detected       (                   ),
+                    .bitslip        (align_bitslip[i]   ),
+                    
+                    .s_data         (python_data  [i]   ),
+                    .s_valid        (1'b1               ),
+                    
+                    .m_data         (align_data   [i]   ),
+                    .m_valid        (align_valid  [i]   )
+                );
+    end
 
     always_ff @(posedge python_clk) begin
-        python_bitslip <= {5{aligner_bitslip}} | (async_valid ? async_bitslip : '0);
+        python_bitslip <= {5{align_bitslip[0]}} | (async_valid ? async_bitslip : '0);
     end
 
 
