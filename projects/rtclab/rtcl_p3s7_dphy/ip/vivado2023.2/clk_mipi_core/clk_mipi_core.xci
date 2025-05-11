@@ -4,7 +4,7 @@
     "xci_name": "clk_mipi_core",
     "component_reference": "xilinx.com:ip:clk_wiz:6.0",
     "ip_revision": "13",
-    "gen_directory": "../../../../rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core",
+    "gen_directory": "rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core",
     "parameters": {
       "component_parameters": {
         "Component_Name": [ { "value": "clk_mipi_core", "resolve_type": "user", "usage": "all" } ],
@@ -599,7 +599,7 @@
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "13" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core" } ],
+        "OUTPUTDIR": [ { "value": "rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2023.2" } ],
