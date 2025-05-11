@@ -172,7 +172,7 @@ module rtcl_p3s7_dphy
     
     jelly3_axi4l_if
             #(
-                .ADDR_BITS  (14         ),
+                .ADDR_BITS  (15         ),
                 .DATA_BITS  (16         )
             )
         axi4l
@@ -210,6 +210,17 @@ module rtcl_p3s7_dphy
     assign axi4l.awready = 1'b1;
     assign axi4l.wready  = 1'b1;
     assign axi4l.arready = 1'b1;
+
+    logic   [4:0]   ctl_bitslip;
+    py300_control
+        u_py300_control
+            (
+                .s_axi4l        (axi4l          ),
+
+                .out_bitslip    (ctl_bitslip    )
+            );
+    
+
 
     // -------------------------------------
     //  MIPI DPHY
@@ -454,9 +465,10 @@ module rtcl_p3s7_dphy
                 .spi_miso       (python_miso    )
             );
 
-    logic            io_reset           ;
-    logic            python_clk         ;
-    logic   [19:0]   python_data_tmp    ;
+    logic               io_reset        ;
+    logic               python_clk      ;
+    logic   [19:0]      python_data_tmp ;
+    logic   [4:0]       python_bitslip  ;
     selectio_wiz_0
         u_selectio_wiz_0
             (
@@ -472,8 +484,33 @@ module rtcl_p3s7_dphy
 
                 .clk_div_out            (python_clk     ),
                 .data_in_to_device      (python_data_tmp),
-                .bitslip                ('0             )
+                .bitslip                (python_bitslip )
             );
+
+    logic   [4:0]       async_bitslip   ;
+    logic               async_valid     ;
+    jelly2_data_async
+            #(
+                .ASYNC          (1      ),
+                .DATA_WIDTH     (5      )
+            )
+        u_data_async
+            (
+                .s_reset        (~axi4l.aresetn ),
+                .s_clk          (axi4l.aclk     ),
+                .s_data         (ctl_bitslip    ),
+                .s_valid        (|ctl_bitslip   ),
+                .s_ready        (               ),
+
+                .m_reset        (io_reset       ),
+                .m_clk          (python_clk     ),
+                .m_data         (async_bitslip  ),
+                .m_valid        (async_valid    ),
+                .m_ready        (1'b1           )
+        );
+    always_ff @(posedge python_clk) begin
+        python_bitslip <= async_valid ? async_bitslip : '0;
+    end
 
     logic   [7:0]   io_reset_cnt;
     always_ff @(posedge python_clk or posedge reset) begin

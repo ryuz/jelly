@@ -16,8 +16,12 @@ module tb_i2c();
     //  reset and clock
     // ---------------------------------
 
-    localparam RATE50 = 1000.0/50.00;
-    localparam RATE72 = 1000.0/72.00;
+    localparam RATE50  = 1000.0/50.00;
+    localparam RATE72  = 1000.0/72.00;
+//  localparam RATE720 = 1000.0/720.00;
+    localparam RATE360 = 1000.0/360.00;
+    localparam RATE180 = 1000.0/180.00;
+
 
     logic       clk50 = 1'b1;
     initial forever #(RATE50/2.0) clk50 = ~clk50;
@@ -25,7 +29,13 @@ module tb_i2c();
     logic       clk72 = 1'b1;
     initial forever #(RATE72/2.0) clk72 = ~clk72;
 
-    
+    logic       clk360 = 1'b1;
+    initial forever #(RATE360/2.0) clk360 = ~clk360;
+
+    logic       clk180 = 1'b1;
+    initial forever #(RATE180/2.0) clk180 = ~clk180;
+
+
     // ---------------------------------
     //  DUT
     // ---------------------------------
@@ -94,6 +104,12 @@ module tb_i2c();
     
     assign python_miso = ~python_mosi;
 
+    assign python_clk_p = clk360;
+    assign python_clk_n = ~python_clk_p;
+
+    initial begin
+        force u_top.python_clk = clk180;
+    end
 
     // ---------------------------------
     //  Testbench
@@ -179,9 +195,20 @@ module tb_i2c();
         cmd_send({addr, 1'b0}, 16'd0);
     endtask
 
+
+
+    localparam  REGADR_CORE_ID       = 15'h0000;
+    localparam  REGADR_CORE_VERSION  = 15'h0001;
+    localparam  REGADR_CTL_BITSLIP   = 15'h0020;
+
     initial begin
         logic [15:0] rdata;
+
         #(I2C_RATE*10);
+        cmd_write(REGADR_CTL_BITSLIP, 16'haa55);
+
+
+        #(I2C_RATE*2);
         cmd_write(15'h4000, 16'habcd);
         #(I2C_RATE);
         cmd_read (15'h4000, rdata);

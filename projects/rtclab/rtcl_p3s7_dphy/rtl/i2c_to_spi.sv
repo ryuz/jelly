@@ -99,21 +99,21 @@ module i2c_to_spi
         end
     end
 
-    assign spi_we    = cmd_wr           ;
-    assign spi_addr  = cmd_addr[8:0]    ;
-    assign spi_wdata = cmd_wdata        ;
+    assign spi_we    = cmd_wr                       ;
+    assign spi_addr  = cmd_addr[8:0]                ;
+    assign spi_wdata = cmd_wdata                    ;
 
-    assign m_axi4l.awaddr = cmd_addr    ;
-    assign m_axi4l.awprot = '0          ;
-    assign m_axi4l.wdata  = cmd_wdata   ;
-    assign m_axi4l.wstrb  = 2'b11       ;
-    assign m_axi4l.bready = 1'b1        ;
-    assign m_axi4l.araddr = cmd_addr    ;
-    assign m_axi4l.arprot = '0          ;
-    assign m_axi4l.rready = 1'b1        ;
+    assign m_axi4l.awaddr = {cmd_addr[13:0], 1'b0}  ;
+    assign m_axi4l.awprot = '0                      ;
+    assign m_axi4l.wdata  = cmd_wdata               ;
+    assign m_axi4l.wstrb  = 2'b11                   ;
+    assign m_axi4l.bready = 1'b1                    ;
+    assign m_axi4l.araddr = cmd_addr                ;
+    assign m_axi4l.arprot = '0                      ;
+    assign m_axi4l.rready = 1'b1                    ;
 
-    assign i2c_rd_en   = i2c_rd_req     ;
-    assign i2c_rd_data = cmd_rdata[7:0] ;
+    assign i2c_rd_en   = i2c_rd_req                 ;
+    assign i2c_rd_data = cmd_rdata[7:0]             ;
 
 endmodule
 

@@ -426,6 +426,23 @@ module zybo_z7_rtcl_py300
                             wire                dl1_errsyncesc;
                             wire                dl1_errcontrol;
     
+    (* mark_debug="true" *) logic   [7:0]       dl0_rxdatahs_exp;
+    (* mark_debug="true" *) logic               dl0_check_ng;
+    (* mark_debug="true" *) logic   [7:0]       dl1_rxdatahs_exp;
+    (* mark_debug="true" *) logic               dl1_check_ng;
+    always_ff @(posedge rxbyteclkhs) begin
+        if ( dl0_rxvalidhs ) begin
+            dl0_rxdatahs_exp <= dl0_rxdatahs + 1;
+            dl0_check_ng <= (dl0_rxdatahs != dl0_rxdatahs_exp);
+        end
+    end
+    always_ff @(posedge rxbyteclkhs) begin
+        if ( dl1_rxvalidhs ) begin
+            dl1_rxdatahs_exp <= dl1_rxdatahs - 1;
+            dl1_check_ng <= (dl1_rxdatahs != dl1_rxdatahs_exp);
+        end
+    end
+
     mipi_dphy_cam
         i_mipi_dphy_cam
             (
