@@ -398,7 +398,6 @@ module rtcl_p3s7_dphy
             dphy_dl1_txdatahs    <= '0;
 
             mipi_test_count      <= '0;
-
         end
         else begin
             dphy_cl_txrequesths <= 1'b1;
@@ -465,7 +464,7 @@ module rtcl_p3s7_dphy
                 .spi_miso       (python_miso    )
             );
 
-    logic               io_reset        ;
+    logic               io_reset        = 1'b1;
     logic               python_clk      ;
     logic   [19:0]      python_data_tmp ;
     logic   [4:0]       python_bitslip  ;
@@ -508,11 +507,8 @@ module rtcl_p3s7_dphy
                 .m_valid        (async_valid    ),
                 .m_ready        (1'b1           )
         );
-    always_ff @(posedge python_clk) begin
-        python_bitslip <= async_valid ? async_bitslip : '0;
-    end
 
-    logic   [7:0]   io_reset_cnt;
+    logic   [7:0]   io_reset_cnt = '1;
     always_ff @(posedge python_clk or posedge reset) begin
         if ( reset ) begin
             io_reset_cnt <= '1;
@@ -529,9 +525,32 @@ module rtcl_p3s7_dphy
     logic   [4:0][3:0]   python_data    ;
     for ( genvar i = 0; i < 5; i++ ) begin
         for ( genvar j = 0; j < 4; j++ ) begin
-            assign python_data[i][j] = python_data_tmp[j*5 + i];
+            assign python_data[i][3-j] = python_data_tmp[j*5 + i];
         end
     end
+
+    logic aligner_bitslip;
+    pttern_align_10bit
+        u_pttern_align_10bit
+            (
+                .reset          (io_reset           ),
+                .clk            (python_clk         ),
+                .force_align    (1'b0               ),
+                .pattern        (10'h3a6            ),
+                .detected       (                   ),
+                .bitslip        (aligner_bitslip    ),
+                .s_data         (python_data[0]     ),
+                .s_valid        (1'b1               ),
+                .m_data         (                   ),
+                .m_valid        (                   )
+            );
+
+
+    always_ff @(posedge python_clk) begin
+        python_bitslip <= {5{aligner_bitslip}} | (async_valid ? async_bitslip : '0);
+    end
+
+
 
 
     // Blinking LED

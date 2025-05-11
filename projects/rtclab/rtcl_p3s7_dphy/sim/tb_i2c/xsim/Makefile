@@ -14,7 +14,6 @@ JELLY_TOP_DIR = ../../../../../..
 
 XILINX_VIVADO ?= /tools/Xilinx/Vivado/$(VIVADO_VERSION)
 
-SIM_LIB_DIRS += ../../stub
 
 VLOGFLAGS  = -sv
 VLOGFLAGS += --sourcelibext .v
@@ -30,6 +29,12 @@ ELABFLAGS  = -debug wave
 SRCS  = ../$(TOP_MODULE).sv
 SRCS += ../../../rtl/rtcl_p3s7_dphy.sv
 SRCS += $(XILINX_VIVADO)/data/verilog/src/glbl.v
+
+SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/rtcl_p3s7_dphy.gen/sources_1/ip/selectio_wiz_0/selectio_wiz_0.v
+SIM_LIB_DIRS += ../../../ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/rtcl_p3s7_dphy.gen/sources_1/ip/selectio_wiz_0
+
+SIM_LIB_DIRS += ../../stub
+
 
 # rules
 .PHONY: all

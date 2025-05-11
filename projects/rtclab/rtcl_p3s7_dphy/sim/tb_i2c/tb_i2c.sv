@@ -104,12 +104,35 @@ module tb_i2c();
     
     assign python_miso = ~python_mosi;
 
-    assign python_clk_p = clk360;
-    assign python_clk_n = ~python_clk_p;
+    assign python_clk_p  = clk360;
+    assign python_clk_n  = ~python_clk_p;
+    assign python_data_n = ~python_data_p;
+    assign python_sync_n = ~python_sync_p;
 
     initial begin
-        force u_top.python_clk = clk180;
+        python_sync_p = 0;
+        forever begin
+            @(python_clk_p)  python_data_p = '1;
+            @(python_clk_p)  python_data_p = '1;
+            
+            @(python_clk_p)  python_data_p = '1;
+            @(python_clk_p)  python_data_p = '0;
+            
+            @(python_clk_p)  python_data_p = '1;
+            @(python_clk_p)  python_data_p = '0;
+            
+            @(python_clk_p)  python_data_p = '0;
+            @(python_clk_p)  python_data_p = '1;
+
+            @(python_clk_p)  python_data_p = '1;
+            @(python_clk_p)  python_data_p = '0;
+        end
     end
+
+
+//  initial begin
+//      force u_top.python_clk = clk180;
+//  end
 
     // ---------------------------------
     //  Testbench
@@ -126,7 +149,7 @@ module tb_i2c();
     end
     
 
-    localparam I2C_RATE = 100000;
+    localparam I2C_RATE = 1000;
     logic  scl = 1'b1;
     logic  sda = 1'b1;
 
