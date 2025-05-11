@@ -586,6 +586,7 @@ JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/network/jelly2_necolink_synctimer_ma
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/network/jelly2_necolink_synctimer_slave.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/network/jelly2_packet_position.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/network/jelly2_packet_position_step.sv
+JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/peripheral/jelly2_i2c_slave_core.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/peripheral/jelly2_uart.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/peripheral/jelly2_uart_core.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v2/peripheral/jelly2_uart_rx.sv
