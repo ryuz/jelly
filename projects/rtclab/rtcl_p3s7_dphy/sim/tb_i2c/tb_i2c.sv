@@ -62,8 +62,8 @@ module tb_i2c();
     rtcl_p3s7_dphy
         u_top
             (
-                .clk50                  ,
-                .clk72                  ,
+                .in_clk50               (clk50      ),
+                .in_clk72               (clk72      ),
 
                 .led                    ,
                 .pmod                   ,
@@ -94,6 +94,7 @@ module tb_i2c();
     
     assign python_miso = ~python_mosi;
 
+
     // ---------------------------------
     //  Testbench
     // ---------------------------------
@@ -112,9 +113,81 @@ module tb_i2c();
     localparam I2C_RATE = 100000;
     logic  scl = 1'b1;
     logic  sda = 1'b1;
+
+    assign mipi_scl = scl ? 1'bz : 1'b0;
+    assign mipi_sda = sda ? 1'bz : 1'b0;
+
+    task i2c_send(input logic [7:0] data);
+        for ( int i = 0; i < 8; i++ ) begin
+            #(I2C_RATE) scl = 1'b0; sda = data[7-i];
+            #(I2C_RATE) scl = 1'b1;
+        end
+    endtask
+
+    task cmd_send(input logic [15:0] addr, input logic [15:0] data);
+        #(I2C_RATE) scl = 1'b1; sda = 1'b0; // start
+        
+        i2c_send({7'h10, 1'b0});            // devadr
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        i2c_send(addr[15:8]);               // addr(hi)
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        i2c_send(addr[7:0]);                // addr(lo)
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        i2c_send(data[15:8]);               // data(hi)
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        i2c_send(data[7:0]);                // data(lo)
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        #(I2C_RATE) scl = 1'b0; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1; sda = 1'b0;
+        #(I2C_RATE) scl = 1'b1; sda = 1'b1; // stop
+    endtask
+
+    task cmd_recv(input logic [15:0] addr, output logic [15:0] data);
+        #(I2C_RATE) scl = 1'b1; sda = 1'b0; // start
+        
+        i2c_send({7'h10, 1'b1});            // devadr
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        i2c_send(8'hff);
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        i2c_send(8'hff);
+        #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
+        #(I2C_RATE) scl = 1'b1;
+
+        #(I2C_RATE) scl = 1'b1; sda = 1'b1;
+    endtask
+
+
+    task cmd_write(input logic [14:0] addr, input logic [15:0] data);
+        cmd_send({addr, 1'b1}, data);
+    endtask
+
+    task cmd_read(input logic [14:0] addr, output [15:0] data);
+        cmd_send({addr, 1'b0}, 16'd0);
+    endtask
+
     initial begin
+        logic [15:0] rdata;
         #(I2C_RATE*10);
-       
+        cmd_write(15'h4000, 16'habcd);
+        #(I2C_RATE);
+        cmd_read (15'h4000, rdata);
+        #(I2C_RATE);
+
+        /*
         #(I2C_RATE) scl = 1'b1; sda = 1'b0; // start
 
         // devadr
@@ -134,6 +207,7 @@ module tb_i2c();
         #(I2C_RATE) scl = 1'b1;
         #(I2C_RATE) scl = 1'b0; sda = 1'b0; // R/W
         #(I2C_RATE) scl = 1'b1;
+
         #(I2C_RATE) scl = 1'b0; sda = 1'b1; // ACK
         #(I2C_RATE) scl = 1'b1;
 
@@ -283,7 +357,7 @@ module tb_i2c();
         #(I2C_RATE) scl = 1'b1;
         #(I2C_RATE) scl = 1'b0; sda = 1'b0; // ACK
         #(I2C_RATE) scl = 1'b1;
-
+        */
 
 //      #(I2C_RATE) scl = 1'b0; sda = 1'b0;
 //      #(I2C_RATE) scl = 1'b1; sda = 1'b0;
@@ -295,8 +369,6 @@ module tb_i2c();
         
     end
 
-    assign mipi_scl = scl ? 1'bz : 1'b0;
-    assign mipi_sda = sda ? 1'bz : 1'b0;
 
 endmodule
 

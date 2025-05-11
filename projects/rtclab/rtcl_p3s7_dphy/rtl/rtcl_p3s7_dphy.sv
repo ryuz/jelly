@@ -44,36 +44,10 @@ module rtcl_p3s7_dphy
             input   var logic           python_sync_p           ,
             input   var logic           python_sync_n           
         );
-    
-    // 初期リセット生成
-    logic   [7:0]   reset_counter = '0;
-    logic           reset = 1'b1;
-    always_ff @(posedge clk72) begin
-        if ( reset_counter == '1 ) begin
-            reset <= 1'b0;
-        end
-        else begin
-            reset_counter <= reset_counter + 1;
-        end
-    end
 
-    /*
-    logic   clk50   ;
-    logic   clk100  ;
-    logic   clk200  ;
-    clk_wiz_0
-        u_clk_wiz_0
-             (
-                .clk_in1    (in_clk50   ),
-                .clk_out1   (clk50      ),
-                .clk_out2   (clk100     ),
-                .clk_out3   (clk200     )
-            );
-    */
-
-//    logic clk50;
-//    assign clk50 = in_clk50;
-
+    // ---------------------------------
+    //  Clock and Reset
+    // ---------------------------------
 
     logic clk50;
     BUFG
@@ -92,6 +66,150 @@ module rtcl_p3s7_dphy
             );
 
 
+    // 初期リセット生成
+    logic   [7:0]   reset_counter = '0;
+    logic           reset = 1'b1;
+    always_ff @(posedge clk72) begin
+        if ( reset_counter == '1 ) begin
+            reset <= 1'b0;
+        end
+        else begin
+            reset_counter <= reset_counter + 1;
+        end
+    end
+
+
+    // -------------------------------------
+    //  MIPI GPIO
+    // -------------------------------------
+
+    logic  mipi_enable;
+    always_ff @(posedge clk72 or negedge mipi_reset_n) begin
+        if ( !mipi_reset_n ) begin
+            mipi_enable <= 1'b0;
+        end
+        else begin
+            mipi_enable <= 1'b1;
+        end
+    end
+
+    logic sensor_pwr_enable;
+    assign sensor_pwr_enable = mipi_enable;
+
+
+    // -------------------------------------
+    //  MIPI I2C
+    // -------------------------------------
+
+    logic mipi_scl_i;
+    logic mipi_scl_t;
+    logic mipi_sda_i;
+    logic mipi_sda_t;
+    IOBUF
+        u_iobuf_mipi_scl
+            (
+                .IO     (mipi_scl   ),
+                .I      (1'b0       ),
+                .O      (mipi_scl_i ),
+                .T      (mipi_scl_t )
+            );
+
+    IOBUF
+        u_iobuf_mipi_sda
+            (
+                .IO     (mipi_sda   ),
+                .I      (1'b0       ),
+                .O      (mipi_sda_i ),
+                .T      (mipi_sda_t )
+            );
+
+    assign mipi_scl_t = 1'b1;
+
+    logic           i2c_wr_start;
+    logic           i2c_wr_en   ;
+    logic   [7:0]   i2c_wr_data ;
+    logic           i2c_rd_start;
+    logic           i2c_rd_req  ;
+    logic           i2c_rd_en   ;
+    logic   [7:0]   i2c_rd_data ;
+
+    jelly2_i2c_slave_core
+            #(
+                .DIVIDER_WIDTH  (8)
+            )
+        u_i2c_slave_core
+            (
+                .reset      (reset          ),
+                .clk        (clk72          ),
+
+                .i2c_scl    (mipi_scl_i     ),
+                .i2c_sda    (mipi_sda_i     ),
+                .i2c_sda_t  (mipi_sda_t     ),
+
+                .divider    (8              ),
+                .dev        (7'h10          ),
+
+                .wr_start   (i2c_wr_start   ),
+                .wr_en      (i2c_wr_en      ),
+                .wr_data    (i2c_wr_data    ),
+                .rd_start   (i2c_rd_start   ),
+                .rd_req     (i2c_rd_req     ),
+                .rd_en      (i2c_rd_en      ),
+                .rd_data    (i2c_rd_data    )
+            );
+
+    // -------------------------
+    //  I2C to SPI
+    // -------------------------
+
+    logic   [8:0]   spi_addr    ;
+    logic           spi_we      ;
+    logic   [15:0]  spi_wdata   ;
+    logic           spi_valid   ;
+    logic           spi_ready   ;
+    logic   [15:0]  spi_rdata   ;
+    logic           spi_rvalid  ;
+    
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS  (14         ),
+                .DATA_BITS  (16         )
+            )
+        axi4l
+            (
+                .aresetn    (~reset     ),
+                .aclk       (clk72      ),
+                .aclken     (1'b1       )
+            );
+
+    i2c_to_spi
+        u_i2c_to_spi
+            (
+                .reset          (reset          ),
+                .clk            (clk72          ),
+
+                .i2c_wr_start   (i2c_wr_start   ),
+                .i2c_wr_en      (i2c_wr_en      ),
+                .i2c_wr_data    (i2c_wr_data    ),
+                .i2c_rd_start   (i2c_rd_start   ),
+                .i2c_rd_req     (i2c_rd_req     ),
+                .i2c_rd_en      (i2c_rd_en      ),
+                .i2c_rd_data    (i2c_rd_data    ),
+
+                .spi_addr       (spi_addr       ),
+                .spi_we         (spi_we         ),
+                .spi_wdata      (spi_wdata      ),
+                .spi_valid      (spi_valid      ),
+                .spi_ready      (spi_ready      ),
+                .spi_rdata      (spi_rdata      ),
+                .spi_rvalid     (spi_rvalid     ),
+
+                .m_axi4l        (axi4l          )
+            );
+
+    assign axi4l.awready = 1'b1;
+    assign axi4l.wready  = 1'b1;
+    assign axi4l.arready = 1'b1;
 
     // -------------------------------------
     //  MIPI DPHY
@@ -292,82 +410,6 @@ module rtcl_p3s7_dphy
     end
 
 
-    // -------------------------------------
-    //  MIPI I2C
-    // -------------------------------------
-
-    logic mipi_scl_i;
-    logic mipi_scl_t;
-    logic mipi_sda_i;
-    logic mipi_sda_t;
-    IOBUF
-        u_iobuf_mipi_scl
-            (
-                .IO     (mipi_scl   ),
-                .I      (1'b0       ),
-                .O      (mipi_scl_i ),
-                .T      (mipi_scl_t )
-            );
-
-    IOBUF
-        u_iobuf_mipi_sda
-            (
-                .IO     (mipi_sda   ),
-                .I      (1'b0       ),
-                .O      (mipi_sda_i ),
-                .T      (mipi_sda_t )
-            );
-
-    assign mipi_scl_t = 1'b1;
-
-    logic           i2c_wr_start;
-    logic           i2c_wr_en   ;
-    logic   [7:0]   i2c_wr_data ;
-    logic           i2c_rd_start;
-    logic           i2c_rd_req  ;
-    logic           i2c_rd_en   ;
-    logic   [7:0]   i2c_rd_data ;
-
-    jelly2_i2c_slave_core
-            #(
-                .DIVIDER_WIDTH  (8)
-            )
-        u_i2c_slave_core
-            (
-                .reset      (reset          ),
-                .clk        (clk72          ),
-
-                .i2c_scl    (mipi_scl_i     ),
-                .i2c_sda    (mipi_sda_i     ),
-                .i2c_sda_t  (mipi_sda_t     ),
-
-                .divider    (8              ),
-                .dev        (7'h10          ),
-
-                .wr_start   (i2c_wr_start   ),
-                .wr_en      (i2c_wr_en      ),
-                .wr_data    (i2c_wr_data    ),
-                .rd_start   (i2c_rd_start   ),
-                .rd_req     (i2c_rd_req     ),
-                .rd_en      (i2c_rd_en      ),
-                .rd_data    (i2c_rd_data    )
-            );
-
-
-    logic  mipi_enable;
-    always_ff @(posedge clk72 or negedge mipi_reset_n) begin
-        if ( !mipi_reset_n ) begin
-            mipi_enable <= 1'b0;
-        end
-        else begin
-            mipi_enable <= 1'b1;
-        end
-    end
-
-    logic enable;
-    assign enable = mipi_enable; // && timer_enable;
-
-
 
     // -------------------------------------
     //  PYTHON300 Sensor
@@ -381,7 +423,7 @@ module rtcl_p3s7_dphy
                 .reset                   (reset                 ),
                 .clk72                   (clk72                 ),
                 
-                .enable                  (enable                ),
+                .enable                  (sensor_pwr_enable     ),
                 .ready                   (sensor_ready          ),
 
                 .sensor_pwr_en_vdd18     (sensor_pwr_en_vdd18   ),
@@ -392,13 +434,6 @@ module rtcl_p3s7_dphy
                 .python_clk_pll          (python_clk_pll        )
             );
 
-    logic   [8:0]   spi_addr    ;
-    logic           spi_we      ;
-    logic   [15:0]  spi_wdata   ;
-    logic           spi_valid   ;
-    logic           spi_ready   ;
-    logic   [15:0]  spi_rdata   ;
-    logic           spi_rvalid  ;
     python_spi
         u_python_spi
             (
@@ -418,89 +453,6 @@ module rtcl_p3s7_dphy
                 .spi_mosi       (python_mosi    ),
                 .spi_miso       (python_miso    )
             );
-
-
-    // -------------------------
-    //  I2C to SPI
-    // -------------------------
-
-    jelly3_axi4l_if
-            #(
-                .ADDR_BITS  (14         ),
-                .DATA_BITS  (16         )
-            )
-        axi4l
-            (
-                .aresetn    (~reset     ),
-                .aclk       (clk72      ),
-                .aclken     (1'b1       )
-            );
-
-    i2c_to_spi
-        u_i2c_to_spi
-            (
-                .reset          (reset          ),
-                .clk            (clk72          ),
-
-                .i2c_wr_start   (i2c_wr_start   ),
-                .i2c_wr_en      (i2c_wr_en      ),
-                .i2c_wr_data    (i2c_wr_data    ),
-                .i2c_rd_start   (i2c_rd_start   ),
-                .i2c_rd_req     (i2c_rd_req     ),
-                .i2c_rd_en      (i2c_rd_en      ),
-                .i2c_rd_data    (i2c_rd_data    ),
-
-                .spi_addr       (spi_addr       ),
-                .spi_we         (spi_we         ),
-                .spi_wdata      (spi_wdata      ),
-                .spi_valid      (spi_valid      ),
-                .spi_ready      (spi_ready      ),
-                .spi_rdata      (spi_rdata      ),
-                .spi_rvalid     (spi_rvalid     ),
-
-                .m_axi4l        (axi4l          )
-            );
-
-    /*
-    logic   [1:0]    cmd_wcnt    ;
-    logic   [31:0]   cmd_wdata   ;
-    logic   [15:0]   cmd_rdata   ;
-    always_ff @(posedge clk72) begin
-        if ( reset ) begin
-            cmd_wcnt  <= '0;
-            cmd_wdata <= 'x;
-            cmd_rdata <= 'x;
-            spi_valid <= 1'b0;
-        end
-        else begin
-            if ( spi_ready ) begin
-                spi_valid <= 1'b0;
-            end
-            if ( i2c_wr_start ) begin
-                cmd_wcnt <= '0;
-            end
-            if ( i2c_wr_en ) begin
-                cmd_wcnt  <= cmd_wcnt + 1;
-                cmd_wdata <= {cmd_wdata[23:0], i2c_wr_data};
-                spi_valid <= (cmd_wcnt == 2'd3);
-            end
-            if ( i2c_rd_req ) begin
-                cmd_rdata <= (cmd_rdata >> 8);
-            end
-            if ( spi_rvalid ) begin
-                cmd_rdata <= spi_rdata;
-            end
-        end
-    end
-
-    assign spi_we    = cmd_wdata[16];
-    assign spi_addr  = cmd_wdata[17 +:  9];
-    assign spi_wdata = cmd_wdata[ 0 +: 16];
-
-    assign i2c_rd_en   = i2c_rd_req;
-    assign i2c_rd_data = cmd_rdata[7:0];
-    */
-
 
     logic            io_reset           ;
     logic            python_clk         ;
@@ -537,14 +489,13 @@ module rtcl_p3s7_dphy
         end
     end
 
-    /*
     logic   [4:0][3:0]   python_data    ;
     for ( genvar i = 0; i < 5; i++ ) begin
         for ( genvar j = 0; j < 4; j++ ) begin
             assign python_data[i][j] = python_data_tmp[j*5 + i];
         end
     end
-    */
+
 
     // Blinking LED
     logic   [24:0]     clk50_counter; // リセットがないので初期値を設定
@@ -565,7 +516,7 @@ module rtcl_p3s7_dphy
 
 //  assign led[0] = clk50_counter[24];
 //  assign led[1] = clk72_counter[24];
-    assign led[0] = enable;
+    assign led[0] = sensor_pwr_enable;
 //  assign led[1] = mipi_enable;
 //  assign led[1] = sensor_pgood;
     assign led[1] = python_clk_counter[24];
@@ -606,6 +557,7 @@ module rtcl_p3s7_dphy
         dbg_spi_mosi <= python_mosi ;
         dbg_spi_miso <= python_miso ;
     end
+    */
 
     (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_data0;
     (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_data1;
@@ -619,7 +571,6 @@ module rtcl_p3s7_dphy
         dbg_python_data3 <= python_data[3];
         dbg_python_sync  <= python_data[4];
     end
-    */
 
 endmodule
 
