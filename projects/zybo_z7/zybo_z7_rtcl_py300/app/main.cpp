@@ -10,8 +10,7 @@
 //#include "jelly/UdmabufAccessor.h"
 //#include "jelly/JellyRegs.h"
 
-void spi_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
-    addr |= (1 << 14);
+void cmd_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
     addr <<= 1;
     addr |= 1;
     unsigned char buf[4] = {0x00, 0x00, 0x00, 0x00};
@@ -22,8 +21,7 @@ void spi_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) 
     i2c.Write(buf, 4);
 }
 
-std::uint16_t spi_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
-    addr |= (1 << 14);
+std::uint16_t cmd_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
     addr <<= 1;
     unsigned char buf[4] = {0x00, 0x00, 0x00, 0x00};
     buf[0] = ((addr >> 8) & 0xff);
@@ -31,6 +29,16 @@ std::uint16_t spi_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
     i2c.Write(buf, 4);
     i2c.Read(buf, 2);
     return (std::uint16_t)buf[0] | (std::uint16_t)(buf[1] << 8);
+}
+
+void spi_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
+    addr |= (1 << 14);
+    cmd_write(i2c, addr, data);
+}
+
+std::uint16_t spi_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
+    addr |= (1 << 14);
+    return cmd_read(i2c, addr);
 }
 
 void spi_change(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
@@ -88,9 +96,13 @@ int main(int argc, char *argv[])
     spi_change(i2c, 72, 0x2227);
     spi_change(i2c, 112, 0x7);
 //    spi_change(i2c, 129, (1 << 13) | 1); // 8bit mode
-    spi_change(i2c, 192, 0x1);
-//  spi_change(i2c, 116, 0xa5 << 2); // trainingpattern
-    spi_change(i2c, 116, 0x1); // trainingpattern
+
+//  spi_change(i2c, 192, 0x1);  // 動作開始
+
+    //  spi_change(i2c, 116, 0xa5 << 2); // trainingpattern
+    spi_change(i2c, 116, 0x200); // trainingpattern
+
+//  spi_change(i2c, 116, 0x1);
 
 //    spi_change(i2c, 10, 0x900); // soft_reset_analog
 //    spi_change(i2c, 10, 0x000); // soft_reset_analog
@@ -126,8 +138,17 @@ int main(int argc, char *argv[])
     reg_sys.WriteReg(1, 0);
 
 //  usleep(10000000);
-    printf("press anykey\n");
-    getchar();
+    while (1) {
+        printf("$ ");
+        int c = getchar();
+        if ( c == 'q' ) {
+            break;
+        } else if ( c == 'b' ) {
+            printf("bitslip\n");
+            cmd_write(i2c, 0x0020, 0x1f);
+        }
+    }
+
     std::cout << "OFF" << std::endl;
     reg_sys.WriteReg(2, 0);
 
