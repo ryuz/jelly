@@ -211,13 +211,20 @@ module rtcl_p3s7_dphy
     assign axi4l.wready  = 1'b1;
     assign axi4l.arready = 1'b1;
 
-    logic   [4:0]   ctl_bitslip;
+
+    logic           ctl_iserdes_reset   ;
+    logic   [4:0]   ctl_iserdes_bitslip ;
+    logic           ctl_align_reset     ;
+    logic   [9:0]   ctl_align_pattern   ;
     py300_control
         u_py300_control
             (
-                .s_axi4l        (axi4l          ),
+                .s_axi4l                (axi4l                  ),
 
-                .out_bitslip    (ctl_bitslip    )
+                .out_iserdes_reset      (ctl_iserdes_reset      ),
+                .out_iserdes_bitslip    (ctl_iserdes_bitslip    ),
+                .out_align_reset        (ctl_align_reset        ),
+                .out_align_pattern      (ctl_align_pattern      )
             );
     
 
@@ -464,7 +471,7 @@ module rtcl_p3s7_dphy
                 .spi_miso       (python_miso    )
             );
 
-    logic               io_reset        = 1'b1;
+    logic               io_reset        ;
     logic               python_clk      ;
     logic   [19:0]      python_data_tmp ;
     logic   [4:0]       python_bitslip  ;
@@ -490,24 +497,25 @@ module rtcl_p3s7_dphy
     logic               async_valid     ;
     jelly2_data_async
             #(
-                .ASYNC          (1      ),
-                .DATA_WIDTH     (5      )
+                .ASYNC          (1                      ),
+                .DATA_WIDTH     (5                      )
             )
         u_data_async
             (
-                .s_reset        (~axi4l.aresetn ),
-                .s_clk          (axi4l.aclk     ),
-                .s_data         (ctl_bitslip    ),
-                .s_valid        (|ctl_bitslip   ),
-                .s_ready        (               ),
+                .s_reset        (~axi4l.aresetn         ),
+                .s_clk          (axi4l.aclk             ),
+                .s_data         (ctl_iserdes_bitslip    ),
+                .s_valid        (|ctl_iserdes_bitslip   ),
+                .s_ready        (                       ),
 
-                .m_reset        (io_reset       ),
-                .m_clk          (python_clk     ),
-                .m_data         (async_bitslip  ),
-                .m_valid        (async_valid    ),
-                .m_ready        (1'b1           )
+                .m_reset        (io_reset               ),
+                .m_clk          (python_clk             ),
+                .m_data         (async_bitslip          ),
+                .m_valid        (async_valid            ),
+                .m_ready        (1'b1                   )
         );
 
+    /*
     logic   [7:0]   io_reset_cnt = '1;
     always_ff @(posedge python_clk or posedge reset) begin
         if ( reset ) begin
@@ -521,6 +529,17 @@ module rtcl_p3s7_dphy
             io_reset <= (io_reset_cnt != 0);
         end
     end
+    */
+    jelly_reset
+            #(
+                .COUNTER_WIDTH  (4                          )
+            )
+        u_reset
+            (
+                .clk            (python_clk                 ),
+                .in_reset       (reset | ctl_iserdes_reset  ),
+                .out_reset      (io_reset                   )
+            );
 
     logic   [4:0][3:0]   python_data    ;
     for ( genvar i = 0; i < 5; i++ ) begin
@@ -539,14 +558,14 @@ module rtcl_p3s7_dphy
                     .reset          (io_reset           ),
                     .clk            (python_clk         ),
                     
-                    .force_align    (1'b0               ),
-                    .pattern        (10'h3a6            ),
+                    .force_align    (ctl_align_reset    ),
+                    .pattern        (ctl_align_pattern  ),
                     .detected       (                   ),
                     .bitslip        (align_bitslip[i]   ),
                     
                     .s_data         (python_data  [i]   ),
                     .s_valid        (1'b1               ),
-                    
+
                     .m_data         (align_data   [i]   ),
                     .m_valid        (align_valid  [i]   )
                 );

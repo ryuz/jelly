@@ -32,9 +32,9 @@ module pttern_align_10bit
     assign det = s_valid && (det_pattern == pattern);
 
 
-    logic           running , next_running  ;
-    logic   [3:0]   num     , next_num      ;
-    logic   [11:0]  buffer  , next_buffer   ;
+    (* MARK_DEBUG = "true" *)   logic           running , next_running  ;
+    (* MARK_DEBUG = "true" *)   logic   [3:0]   num     , next_num      ;
+    (* MARK_DEBUG = "true" *)   logic   [11:0]  buffer  , next_buffer   ;
     always_comb begin
         next_running = running;
         next_num     = num   ;

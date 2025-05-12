@@ -227,7 +227,7 @@ module tb_i2c();
 
     localparam  REGADR_CORE_ID       = 15'h0000;
     localparam  REGADR_CORE_VERSION  = 15'h0001;
-    localparam  REGADR_CTL_BITSLIP   = 15'h0020;
+    localparam  REGADR_CTL_BITSLIP   = 15'h0012;
 
     initial begin
         logic [15:0] rdata;
