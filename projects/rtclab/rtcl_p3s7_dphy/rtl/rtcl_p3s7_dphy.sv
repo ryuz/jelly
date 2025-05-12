@@ -216,6 +216,9 @@ module rtcl_p3s7_dphy
     logic   [4:0]   ctl_iserdes_bitslip ;
     logic           ctl_align_reset     ;
     logic   [9:0]   ctl_align_pattern   ;
+    logic           ctl_calib_done      ;
+    logic           ctl_calib_error     ;
+
     py300_control
         u_py300_control
             (
@@ -224,7 +227,9 @@ module rtcl_p3s7_dphy
                 .out_iserdes_reset      (ctl_iserdes_reset      ),
                 .out_iserdes_bitslip    (ctl_iserdes_bitslip    ),
                 .out_align_reset        (ctl_align_reset        ),
-                .out_align_pattern      (ctl_align_pattern      )
+                .out_align_pattern      (ctl_align_pattern      ),
+                .in_calib_done          (ctl_calib_done         ),
+                .in_calib_error         (ctl_calib_error        )
             );
     
 
@@ -549,8 +554,10 @@ module rtcl_p3s7_dphy
     end
 
     (* MARK_DEBUG = "true" *)   logic   [4:0]       align_bitslip   ;
-    (* MARK_DEBUG = "true" *)   logic   [4:0][9:0]  align_data      ;
-    (* MARK_DEBUG = "true" *)   logic   [4:0]       align_valid     ;
+    (* MARK_DEBUG = "true" *)   logic   [3:0][9:0]  align_data      ;
+    (* MARK_DEBUG = "true" *)   logic        [9:0]  align_sync      ;
+    (* MARK_DEBUG = "true" *)   logic               align_valid     ;
+    /*
     for ( genvar i = 0; i < 5; i++ ) begin : align_10bit
         pttern_align_10bit
             u_pttern_align_10bit
@@ -570,6 +577,29 @@ module rtcl_p3s7_dphy
                     .m_valid        (align_valid  [i]   )
                 );
     end
+    */
+
+    py300_align_10bit
+        u_py300_align_10bit
+            (
+                .reset          (io_reset           ),
+                .clk            (python_clk         ),
+                
+                .sw_reset       (ctl_align_reset    ),
+                .pattern        (ctl_align_pattern  ),
+                .bitslip        (align_bitslip      ),
+                .calib_done     (ctl_calib_done     ),
+                .calib_error    (ctl_calib_error    ),
+                
+                .s_data         (python_data[3:0]   ),
+                .s_sync         (python_data[4]     ),
+                .s_valid        (1'b1               ),
+
+                .m_data         (align_data         ),
+                .m_sync         (align_sync         ),
+                .m_valid        (align_valid        )
+            );
+
 
     always_ff @(posedge python_clk) begin
         python_bitslip <= {5{align_bitslip[0]}} | (async_valid ? async_bitslip : '0);

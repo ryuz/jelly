@@ -27,7 +27,9 @@ module py300_control
             output  var logic           out_iserdes_reset   ,
             output  var logic   [4:0]   out_iserdes_bitslip ,
             output  var logic           out_align_reset     ,
-            output  var logic   [9:0]   out_align_pattern   
+            output  var logic   [9:0]   out_align_pattern   ,
+            input   var logic           in_calib_done       ,
+            input   var logic           in_calib_error      
         );
     
     
@@ -47,13 +49,18 @@ module py300_control
     localparam  regadr_t REGADR_ISERDES_BITSLIP     = regadr_t'('h12);
     localparam  regadr_t REGADR_ALIGN_RESET         = regadr_t'('h20);
     localparam  regadr_t REGADR_ALIGN_PATTERN       = regadr_t'('h22);
+    localparam  regadr_t REGADR_CALIB_STATUS        = regadr_t'('h28);
     
     // registers
     logic           reg_iserdes_reset   ;
     logic   [4:0]   reg_iserdes_bitslip ;
     logic           reg_align_reset     ;
     logic   [9:0]   reg_align_pattern   ;
+    logic   [1:0]   reg_calib_status    ;
 
+    always_ff @(posedge s_axi4l.aclk) begin
+        reg_calib_status <= {in_calib_error, in_calib_done};
+    end
 
     function [s_axi4l.DATA_BITS-1:0] write_mask(
                                         input [s_axi4l.DATA_BITS-1:0] org,
@@ -72,10 +79,10 @@ module py300_control
 
     always_ff @(posedge s_axi4l.aclk) begin
         if ( ~s_axi4l.aresetn ) begin
-            reg_iserdes_reset   <= INIT_ISERDES_RESET    ;
-            reg_iserdes_bitslip <= INIT_ISERDES_BITSLIP  ;
-            reg_align_reset     <= INIT_ALIGN_RESET      ;
-            reg_align_pattern   <= INIT_ALIGN_PATTERN    ;
+            reg_iserdes_reset   <= INIT_ISERDES_RESET   ;
+            reg_iserdes_bitslip <= INIT_ISERDES_BITSLIP ;
+            reg_align_reset     <= INIT_ALIGN_RESET     ;
+            reg_align_pattern   <= INIT_ALIGN_PATTERN   ;
         end
         else begin
             // auto clear
@@ -123,6 +130,7 @@ module py300_control
             REGADR_ISERDES_BITSLIP  :   s_axi4l.rdata <= axi4l_data_t'(reg_iserdes_bitslip );
             REGADR_ALIGN_RESET      :   s_axi4l.rdata <= axi4l_data_t'(reg_align_reset     );
             REGADR_ALIGN_PATTERN    :   s_axi4l.rdata <= axi4l_data_t'(reg_align_pattern   );
+            REGADR_CALIB_STATUS     :   s_axi4l.rdata <= axi4l_data_t'(reg_calib_status    );
             default                 :   s_axi4l.rdata <= '0;
             endcase
         end
