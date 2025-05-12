@@ -118,16 +118,16 @@ int main(int argc, char *argv[])
 
     
     // mmap udmabuf
-    jelly::UdmabufAccessor udmabuf_acc("udmabuf0");
+    jelly::UdmabufAccessor udmabuf_acc("udmabuf-jelly-buffer");
     if ( !udmabuf_acc.IsMapped() ) {
-        std::cout << "udmabuf0 mmap error" << std::endl;
+        std::cout << "udmabuf-jelly-buffer mmap error" << std::endl;
         return 1;
     }
 
     auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
     auto dmabuf_mem_size = udmabuf_acc.GetSize();
-//  std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
-//  std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
+//  std::cout << "udmabuf-jelly-buffer phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
+//  std::cout << "udmabuf-jelly-buffer size      : " << std::dec << dmabuf_mem_size << std::endl;
 
 
     // IMX219 I2C control
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
         case 'd':   // image dump
             {
                 cv::Mat imgRgb;
-                cv::cvtColor(img, imgRgb, CV_BGRA2BGR);
+                cv::cvtColor(img, imgRgb, cv::COLOR_BGRA2BGR);
                 cv::imwrite("img_dump.png", imgRgb);
             }
             break;
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
                 udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
                 offset += width * height * 4;
                 cv::Mat imgRgb;
-                cv::cvtColor(imgRec, imgRgb, CV_BGRA2BGR);
+                cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
                 cv::imwrite(fname, imgRgb);
             }
             break;
