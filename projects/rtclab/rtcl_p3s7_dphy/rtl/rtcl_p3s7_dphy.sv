@@ -599,6 +599,8 @@ module rtcl_p3s7_dphy
                 .aclken     (1'b1       )
             );
 
+
+    /*
     logic python_align_last;
     logic python_align_busy;
     always_ff @(posedge axi4s_python.aclk) begin
@@ -633,6 +635,30 @@ module rtcl_p3s7_dphy
             end
         end
     end
+    */
+
+    python_to_axi4s
+        u_python_to_axi4s
+            (
+                .s_data     (python_align_data  ),
+                .s_sync     (python_align_sync  ),
+                .s_valid    (python_align_valid ),
+                .m_axi4s    (axi4s_python       )
+            );
+    
+    /*
+    logic               axi4s_python_tuser ;
+    logic               axi4s_python_tlast ;
+    logic   [4*10-1:0]  axi4s_python_tdata ;
+    logic               axi4s_python_tvalid;
+    assign axi4s_python.tuser  = axi4s_python_tuser ;
+    assign axi4s_python.tlast  = axi4s_python_tlast ;
+    assign axi4s_python.tdata  = axi4s_python_tdata ;
+    assign axi4s_python.tvalid = axi4s_python_tvalid;
+    */
+    
+    assign axi4s_python.tready = 1'b1;
+
 
 
     // Blinking LED
