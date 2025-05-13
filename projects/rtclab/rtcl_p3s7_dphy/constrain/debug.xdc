@@ -1,3 +1,4 @@
+
 create_debug_core u_ila_0 ila
 set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_0]
 set_property ALL_PROBE_SAME_MU_CNT 2 [get_debug_cores u_ila_0]
@@ -15,35 +16,27 @@ connect_debug_port u_ila_0/probe0 [get_nets [list {python_align_sync[0]} {python
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe1]
 set_property port_width 10 [get_debug_ports u_ila_0/probe1]
-connect_debug_port u_ila_0/probe1 [get_nets [list {python_align_data[3][0]} {python_align_data[3][1]} {python_align_data[3][2]} {python_align_data[3][3]} {python_align_data[3][4]} {python_align_data[3][5]} {python_align_data[3][6]} {python_align_data[3][7]} {python_align_data[3][8]} {python_align_data[3][9]}]]
+connect_debug_port u_ila_0/probe1 [get_nets [list {python_align_data[0][0]} {python_align_data[0][1]} {python_align_data[0][2]} {python_align_data[0][3]} {python_align_data[0][4]} {python_align_data[0][5]} {python_align_data[0][6]} {python_align_data[0][7]} {python_align_data[0][8]} {python_align_data[0][9]}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe2]
 set_property port_width 10 [get_debug_ports u_ila_0/probe2]
-connect_debug_port u_ila_0/probe2 [get_nets [list {python_align_data[2][0]} {python_align_data[2][1]} {python_align_data[2][2]} {python_align_data[2][3]} {python_align_data[2][4]} {python_align_data[2][5]} {python_align_data[2][6]} {python_align_data[2][7]} {python_align_data[2][8]} {python_align_data[2][9]}]]
+connect_debug_port u_ila_0/probe2 [get_nets [list {axi4s_python\\.tdata[0]} {axi4s_python\\.tdata[1]} {axi4s_python\\.tdata[2]} {axi4s_python\\.tdata[3]} {axi4s_python\\.tdata[4]} {axi4s_python\\.tdata[5]} {axi4s_python\\.tdata[6]} {axi4s_python\\.tdata[7]} {axi4s_python\\.tdata[8]} {axi4s_python\\.tdata[9]}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe3]
-set_property port_width 10 [get_debug_ports u_ila_0/probe3]
-connect_debug_port u_ila_0/probe3 [get_nets [list {python_align_data[1][0]} {python_align_data[1][1]} {python_align_data[1][2]} {python_align_data[1][3]} {python_align_data[1][4]} {python_align_data[1][5]} {python_align_data[1][6]} {python_align_data[1][7]} {python_align_data[1][8]} {python_align_data[1][9]}]]
+set_property port_width 1 [get_debug_ports u_ila_0/probe3]
+connect_debug_port u_ila_0/probe3 [get_nets [list {axi4s_python\\.tlast}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe4]
-set_property port_width 10 [get_debug_ports u_ila_0/probe4]
-connect_debug_port u_ila_0/probe4 [get_nets [list {python_align_data[0][0]} {python_align_data[0][1]} {python_align_data[0][2]} {python_align_data[0][3]} {python_align_data[0][4]} {python_align_data[0][5]} {python_align_data[0][6]} {python_align_data[0][7]} {python_align_data[0][8]} {python_align_data[0][9]}]]
+set_property port_width 1 [get_debug_ports u_ila_0/probe4]
+connect_debug_port u_ila_0/probe4 [get_nets [list {axi4s_python\\.tuser}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe5]
-set_property port_width 5 [get_debug_ports u_ila_0/probe5]
-connect_debug_port u_ila_0/probe5 [get_nets [list {python_align_bitslip[0]} {python_align_bitslip[1]} {python_align_bitslip[2]} {python_align_bitslip[3]} {python_align_bitslip[4]}]]
+set_property port_width 1 [get_debug_ports u_ila_0/probe5]
+connect_debug_port u_ila_0/probe5 [get_nets [list {axi4s_python\\.tvalid}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe6]
 set_property port_width 1 [get_debug_ports u_ila_0/probe6]
 connect_debug_port u_ila_0/probe6 [get_nets [list python_align_valid]]
-create_debug_port u_ila_0 probe
-set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe7]
-set_property port_width 1 [get_debug_ports u_ila_0/probe7]
-connect_debug_port u_ila_0/probe7 [get_nets [list ctl_calib_done]]
-create_debug_port u_ila_0 probe
-set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe8]
-set_property port_width 1 [get_debug_ports u_ila_0/probe8]
-connect_debug_port u_ila_0/probe8 [get_nets [list ctl_calib_error]]
 set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
 set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
 set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]

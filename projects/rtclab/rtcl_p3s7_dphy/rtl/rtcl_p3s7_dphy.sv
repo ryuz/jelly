@@ -610,17 +610,16 @@ module rtcl_p3s7_dphy
             axi4s_python.tvalid <= 1'b0;
         end
         else begin
-            axi4s_python.tdata  <= python_align_data    ;
-
+            axi4s_python.tvalid <= 1'b0;
             if ( axi4s_python.tvalid && axi4s_python.tlast ) begin
                 python_align_busy <= 1'b0;
             end
-
             if ( python_align_valid ) begin
                 python_align_last   <= (python_align_sync == 10'h12a) || (python_align_sync == 10'h32a);
-                axi4s_python.tuser  <= 1'b0;
 
+                axi4s_python.tuser  <= 1'b0;
                 axi4s_python.tlast  <= python_align_last    ;
+                axi4s_python.tdata  <= python_align_data    ;
                 axi4s_python.tvalid <= python_align_busy    ;
                 if ( python_align_sync == 10'h2aa ) begin   // FS
                     python_align_busy   <= 1'b1;
