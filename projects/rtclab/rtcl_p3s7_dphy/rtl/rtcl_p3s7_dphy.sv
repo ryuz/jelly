@@ -553,59 +553,87 @@ module rtcl_p3s7_dphy
         end
     end
 
-    (* MARK_DEBUG = "true" *)   logic   [4:0]       align_bitslip   ;
-    (* MARK_DEBUG = "true" *)   logic   [3:0][9:0]  align_data      ;
-    (* MARK_DEBUG = "true" *)   logic        [9:0]  align_sync      ;
-    (* MARK_DEBUG = "true" *)   logic               align_valid     ;
-    /*
-    for ( genvar i = 0; i < 5; i++ ) begin : align_10bit
-        pttern_align_10bit
-            u_pttern_align_10bit
-                (
-                    .reset          (io_reset           ),
-                    .clk            (python_clk         ),
-                    
-                    .force_align    (ctl_align_reset    ),
-                    .pattern        (ctl_align_pattern  ),
-                    .detected       (                   ),
-                    .bitslip        (align_bitslip[i]   ),
-                    
-                    .s_data         (python_data  [i]   ),
-                    .s_valid        (1'b1               ),
-
-                    .m_data         (align_data   [i]   ),
-                    .m_valid        (align_valid  [i]   )
-                );
-    end
-    */
+    (* MARK_DEBUG = "true" *)   logic   [4:0]       python_align_bitslip   ;
+    (* MARK_DEBUG = "true" *)   logic   [3:0][9:0]  python_align_data      ;
+    (* MARK_DEBUG = "true" *)   logic        [9:0]  python_align_sync      ;
+    (* MARK_DEBUG = "true" *)   logic               python_align_valid     ;
 
     py300_align_10bit
         u_py300_align_10bit
             (
-                .reset          (io_reset           ),
-                .clk            (python_clk         ),
+                .reset          (io_reset               ),
+                .clk            (python_clk             ),
                 
-                .sw_reset       (ctl_align_reset    ),
-                .pattern        (ctl_align_pattern  ),
-                .bitslip        (align_bitslip      ),
-                .calib_done     (ctl_calib_done     ),
-                .calib_error    (ctl_calib_error    ),
+                .sw_reset       (ctl_align_reset        ),
+                .pattern        (ctl_align_pattern      ),
+                .bitslip        (python_align_bitslip   ),
+                .calib_done     (ctl_calib_done         ),
+                .calib_error    (ctl_calib_error        ),
                 
-                .s_data         (python_data[3:0]   ),
-                .s_sync         (python_data[4]     ),
-                .s_valid        (1'b1               ),
+                .s_data         (python_data[3:0]       ),
+                .s_sync         (python_data[4]         ),
+                .s_valid        (1'b1                   ),
 
-                .m_data         (align_data         ),
-                .m_sync         (align_sync         ),
-                .m_valid        (align_valid        )
+                .m_data         (python_align_data      ),
+                .m_sync         (python_align_sync      ),
+                .m_valid        (python_align_valid     )
             );
 
-
     always_ff @(posedge python_clk) begin
-        python_bitslip <= {5{align_bitslip[0]}} | (async_valid ? async_bitslip : '0);
+        python_bitslip <= python_align_bitslip | (async_valid ? async_bitslip : '0);
     end
 
+    // to stream
+    jelly3_axi4s_if
+            #(
+                .USE_LAST   (1          ),
+                .USE_USER   (1          ),
+                .DATA_BITS  (4*10       ),
+                .USER_BITS  (1          ),
+                .DEBUG      ("true"     )
+            )
+        axi4s_python
+            (
+                .aresetn    (~io_reset  ),
+                .aclk       (python_clk ),
+                .aclken     (1'b1       )
+            );
 
+    logic python_align_last;
+    logic python_align_busy;
+    always_ff @(posedge axi4s_python.aclk) begin
+        if ( ~axi4s_python.aresetn ) begin
+            python_align_last   <= 'x;
+            axi4s_python.tuser  <= 'x;
+            axi4s_python.tlast  <= 1'bx;
+            axi4s_python.tdata  <= 'x;
+            axi4s_python.tvalid <= 1'b0;
+        end
+        else begin
+            axi4s_python.tdata  <= python_align_data    ;
+
+            if ( axi4s_python.tvalid && axi4s_python.tlast ) begin
+                python_align_busy <= 1'b0;
+            end
+
+            if ( python_align_valid ) begin
+                python_align_last   <= (python_align_sync == 10'h12a) || (python_align_sync == 10'h32a);
+                axi4s_python.tuser  <= 1'b0;
+
+                axi4s_python.tlast  <= python_align_last    ;
+                axi4s_python.tvalid <= python_align_busy    ;
+                if ( python_align_sync == 10'h2aa ) begin   // FS
+                    python_align_busy   <= 1'b1;
+                    axi4s_python.tuser  <= 1'b1;
+                    axi4s_python.tvalid <= 1'b1;
+                end
+                if ( python_align_sync == 10'h0aa ) begin   // LS
+                    python_align_busy   <= 1'b1;
+                    axi4s_python.tvalid <= 1'b1;
+                end
+            end
+        end
+    end
 
 
     // Blinking LED
