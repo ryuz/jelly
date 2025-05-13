@@ -207,17 +207,17 @@ module rtcl_p3s7_dphy
                 .m_axi4l        (axi4l          )
             );
 
-    assign axi4l.awready = 1'b1;
-    assign axi4l.wready  = 1'b1;
-    assign axi4l.arready = 1'b1;
+//    assign axi4l.awready = 1'b1;
+//    assign axi4l.wready  = 1'b1;
+//    assign axi4l.arready = 1'b1;
 
 
-    logic           ctl_iserdes_reset   ;
-    logic   [4:0]   ctl_iserdes_bitslip ;
-    logic           ctl_align_reset     ;
-    logic   [9:0]   ctl_align_pattern   ;
-    logic           ctl_calib_done      ;
-    logic           ctl_calib_error     ;
+                                logic           ctl_iserdes_reset   ;
+                                logic   [4:0]   ctl_iserdes_bitslip ;
+                                logic           ctl_align_reset     ;
+                                logic   [9:0]   ctl_align_pattern   ;
+    (* MARK_DEBUG = "true" *)   logic           ctl_calib_done      ;
+    (* MARK_DEBUG = "true" *)   logic           ctl_calib_error     ;
 
     py300_control
         u_py300_control
