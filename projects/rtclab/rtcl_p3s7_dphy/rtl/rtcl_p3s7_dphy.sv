@@ -664,7 +664,36 @@ module rtcl_p3s7_dphy
                 .m_data_count   (fifo_data_count    )
             );
         
-    assign axi4s_dphy_video.tready = 1'b1;
+//  assign axi4s_dphy_video.tready = 1'b1;
+
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST   (1                      ),
+                .USE_USER   (1                      ),
+                .DATA_BITS  (2*10                   ),
+                .USER_BITS  (1                      ),
+                .DEBUG      ("true"                 )
+            )
+        axi4s_dphy_csi
+            (
+                .aresetn    (~dphy_txbyteclkhs_reset),
+                .aclk       (dphy_txbyteclkhs       ),
+                .aclken     (1'b1                   )
+            );
+    
+    video_to_mipi
+        u_video_to_mipi
+            (
+                .frame_start    (),
+                .frame_end      (),
+                .data_type      (),
+                .wc             (),
+
+                .s_axi4s_video  (axi4s_dphy_video   ),
+                .m_axi4s_mipi   ()
+            );
+    
 
 
 
