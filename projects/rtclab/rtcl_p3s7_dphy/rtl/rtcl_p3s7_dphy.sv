@@ -9,25 +9,10 @@ module rtcl_p3s7_dphy
             output  var logic   [1:0]   led                     ,
             output  var logic   [7:0]   pmod                    ,
 
-
-
             output  var logic           sensor_pwr_en_vdd18     ,
             output  var logic           sensor_pwr_en_vdd33     ,
             output  var logic           sensor_pwr_en_pix       ,
             input   var logic           sensor_pgood            ,
-
-            output  var logic           mipi_clk_lp_p           ,
-            output  var logic           mipi_clk_lp_n           ,
-            output  var logic           mipi_clk_hs_p           ,
-            output  var logic           mipi_clk_hs_n           ,
-            output  var logic   [1:0]   mipi_data_lp_p          ,
-            output  var logic   [1:0]   mipi_data_lp_n          ,
-            output  var logic   [1:0]   mipi_data_hs_p          ,
-            output  var logic   [1:0]   mipi_data_hs_n          ,
-            input   var logic           mipi_reset_n            ,
-            input   var logic           mipi_clk                ,
-            inout   tri logic           mipi_scl                ,
-            inout   tri logic           mipi_sda                ,
 
             output  var logic           python_reset_n          ,
             output  var logic           python_clk_pll          ,
@@ -42,7 +27,20 @@ module rtcl_p3s7_dphy
             input   var logic   [3:0]   python_data_p           ,
             input   var logic   [3:0]   python_data_n           ,
             input   var logic           python_sync_p           ,
-            input   var logic           python_sync_n           
+            input   var logic           python_sync_n           ,
+
+            input   var logic           mipi_reset_n            ,
+            input   var logic           mipi_clk                ,
+            inout   tri logic           mipi_scl                ,
+            inout   tri logic           mipi_sda                ,
+            output  var logic           mipi_clk_lp_p           ,
+            output  var logic           mipi_clk_lp_n           ,
+            output  var logic           mipi_clk_hs_p           ,
+            output  var logic           mipi_clk_hs_n           ,
+            output  var logic   [1:0]   mipi_data_lp_p          ,
+            output  var logic   [1:0]   mipi_data_lp_n          ,
+            output  var logic   [1:0]   mipi_data_hs_p          ,
+            output  var logic   [1:0]   mipi_data_hs_n          
         );
 
     // ---------------------------------
@@ -592,50 +590,12 @@ module rtcl_p3s7_dphy
                 .USER_BITS  (1          ),
                 .DEBUG      ("true"     )
             )
-        axi4s_python
+        axi4s_python_4lane
             (
                 .aresetn    (~io_reset  ),
                 .aclk       (python_clk ),
                 .aclken     (1'b1       )
             );
-
-
-    /*
-    logic python_align_last;
-    logic python_align_busy;
-    always_ff @(posedge axi4s_python.aclk) begin
-        if ( ~axi4s_python.aresetn ) begin
-            python_align_last   <= 'x;
-            axi4s_python.tuser  <= 'x;
-            axi4s_python.tlast  <= 1'bx;
-            axi4s_python.tdata  <= 'x;
-            axi4s_python.tvalid <= 1'b0;
-        end
-        else begin
-            axi4s_python.tvalid <= 1'b0;
-            if ( axi4s_python.tvalid && axi4s_python.tlast ) begin
-                python_align_busy <= 1'b0;
-            end
-            if ( python_align_valid ) begin
-                python_align_last   <= (python_align_sync == 10'h12a) || (python_align_sync == 10'h32a);
-
-                axi4s_python.tuser  <= 1'b0;
-                axi4s_python.tlast  <= python_align_last    ;
-                axi4s_python.tdata  <= python_align_data    ;
-                axi4s_python.tvalid <= python_align_busy    ;
-                if ( python_align_sync == 10'h2aa ) begin   // FS
-                    python_align_busy   <= 1'b1;
-                    axi4s_python.tuser  <= 1'b1;
-                    axi4s_python.tvalid <= 1'b1;
-                end
-                if ( python_align_sync == 10'h0aa ) begin   // LS
-                    python_align_busy   <= 1'b1;
-                    axi4s_python.tvalid <= 1'b1;
-                end
-            end
-        end
-    end
-    */
 
     python_to_axi4s
         u_python_to_axi4s
@@ -643,21 +603,68 @@ module rtcl_p3s7_dphy
                 .s_data     (python_align_data  ),
                 .s_sync     (python_align_sync  ),
                 .s_valid    (python_align_valid ),
-                .m_axi4s    (axi4s_python       )
+                .m_axi4s    (axi4s_python_4lane )
+            );
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST   (1          ),
+                .USE_USER   (1          ),
+                .DATA_BITS  (2*10       ),
+                .USER_BITS  (1          ),
+                .DEBUG      ("true"     )
+            )
+        axi4s_python_2lane
+            (
+                .aresetn    (~io_reset  ),
+                .aclk       (python_clk ),
+                .aclken     (1'b1       )
             );
     
-    /*
-    logic               axi4s_python_tuser ;
-    logic               axi4s_python_tlast ;
-    logic   [4*10-1:0]  axi4s_python_tdata ;
-    logic               axi4s_python_tvalid;
-    assign axi4s_python.tuser  = axi4s_python_tuser ;
-    assign axi4s_python.tlast  = axi4s_python_tlast ;
-    assign axi4s_python.tdata  = axi4s_python_tdata ;
-    assign axi4s_python.tvalid = axi4s_python_tvalid;
-    */
+    lane_conv_4to2
+        u_lane_conv_4to2
+            (
+                .s_axi4s    (axi4s_python_4lane ),
+                .m_axi4s    (axi4s_python_2lane )
+            );
+
+//  assign axi4s_python_2lane.tready = 1'b1;
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST   (1                      ),
+                .USE_USER   (1                      ),
+                .DATA_BITS  (2*10                   ),
+                .USER_BITS  (1                      ),
+                .DEBUG      ("true"                 )
+            )
+        axi4s_dphy_video
+            (
+                .aresetn    (~dphy_txbyteclkhs_reset),
+                .aclk       (dphy_txbyteclkhs       ),
+                .aclken     (1'b1                   )
+            );
     
-    assign axi4s_python.tready = 1'b1;
+    logic   [9:0]   fifo_data_count;
+    jelly3_axi4s_fifo
+            #(
+                .ASYNC          (1                  ),
+                .PTR_BITS       (9                  ),
+                .RAM_TYPE       ("block"            ),
+                .LOW_DEALY      (0                  ),
+                .DOUT_REGS      (1                  ),
+                .S_REGS         (1                  ),
+                .M_REGS         (1                  )
+            )
+        u_axi4s_fifo
+            (
+                .s_axi4s        (axi4s_python_2lane ),
+                .m_axi4s        (axi4s_dphy_video   ),
+                .s_free_count   (),
+                .m_data_count   (fifo_data_count    )
+            );
+        
+    assign axi4s_dphy_video.tready = 1'b1;
 
 
 

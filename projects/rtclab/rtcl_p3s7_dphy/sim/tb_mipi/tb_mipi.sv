@@ -21,6 +21,7 @@ module tb_mipi();
 //  localparam RATE720 = 1000.0/720.00;
     localparam RATE360 = 1000.0/360.00;
     localparam RATE180 = 1000.0/180.00;
+    localparam RATE250 = 1000.0/250.00;
 
 
     logic       clk50 = 1'b1;
@@ -35,6 +36,9 @@ module tb_mipi();
     logic       clk180 = 1'b1;
     initial forever #(RATE180/2.0) clk180 = ~clk180;
 
+    logic       clk250 = 1'b1;
+    initial forever #(RATE250/2.0) clk250 = ~clk250;
+
 
     // ---------------------------------
     //  DUT
@@ -42,10 +46,6 @@ module tb_mipi();
 
     logic   [1:0]   led                 ;
     logic   [7:0]   pmod                ;
-
-    logic           mipi_reset_n        ;
-    wire            mipi_scl            ;
-    wire            mipi_sda            ;
 
     logic           sensor_pwr_en_vdd18 ;
     logic           sensor_pwr_en_vdd33 ;
@@ -65,6 +65,19 @@ module tb_mipi();
     logic   [3:0]   python_data_n       ;
     logic           python_sync_p       ;
     logic           python_sync_n       ;
+    
+    logic           mipi_reset_n        ;
+    logic           mipi_clk            ;
+    wire            mipi_scl            ;
+    wire            mipi_sda            ;
+    logic           mipi_clk_lp_p       ;
+    logic           mipi_clk_lp_n       ;
+    logic           mipi_clk_hs_p       ;
+    logic           mipi_clk_hs_n       ;
+    logic   [1:0]   mipi_data_lp_p      ;
+    logic   [1:0]   mipi_data_lp_n      ;
+    logic   [1:0]   mipi_data_hs_p      ;
+    logic   [1:0]   mipi_data_hs_n      ;
 
     pullup(mipi_scl);
     pullup(mipi_sda);
@@ -77,10 +90,6 @@ module tb_mipi();
 
                 .led                    ,
                 .pmod                   ,
-
-                .mipi_reset_n           ,
-                .mipi_scl               ,
-                .mipi_sda               ,
 
                 .sensor_pwr_en_vdd18    ,
                 .sensor_pwr_en_vdd33    ,
@@ -99,7 +108,20 @@ module tb_mipi();
                 .python_data_p          ,
                 .python_data_n          ,
                 .python_sync_p          ,
-                .python_sync_n          
+                .python_sync_n          ,
+
+                .mipi_reset_n           ,
+                .mipi_clk               ,
+                .mipi_scl               ,
+                .mipi_sda               ,
+                .mipi_clk_lp_p          ,
+                .mipi_clk_lp_n          ,
+                .mipi_clk_hs_p          ,
+                .mipi_clk_hs_n          ,
+                .mipi_data_lp_p         ,
+                .mipi_data_lp_n         ,
+                .mipi_data_hs_p         ,
+                .mipi_data_hs_n         
             );
     
     assign python_miso = ~python_mosi;

@@ -12,6 +12,13 @@ module python_to_axi4s
             jelly3_axi4s_if.m               m_axi4s
         );
 
+    logic enable;
+    initial begin
+        enable = 0;
+        #1000
+        enable = 1;
+    end
+
     jelly3_model_axi4s_m
             #(
                 .COMPONENTS     (4      ),
@@ -27,7 +34,7 @@ module python_to_axi4s
             )
         u_model_axi4s_m
             (
-                .enable         (1'b1   ),
+                .enable         (enable ),
                 .busy           (       ),
                 .m_axi4s        (m_axi4s),
                 .out_x          (       ),
