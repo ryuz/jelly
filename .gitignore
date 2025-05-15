@@ -60,6 +60,7 @@ Untitled.*
 *.hier
 *.gtkw
 *.gtkwave
+*.ila
 
 # data file
 *.hex
