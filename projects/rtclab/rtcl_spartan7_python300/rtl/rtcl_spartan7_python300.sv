@@ -545,167 +545,58 @@ module rtcl_spartan7_python300
                 .s_valid        (python_align_valid ),
                 .m_axi4s        (axi4s_python_4lane )
             );
-
-    assign axi4s_python_4lane.tready = 1'b1;
-
-    /*
-    selectio_wiz_0_selectio_wiz
-        u_selectio_wiz_0_selectio_wiz
-            (
-                .data_in_from_pins_p    ({python_sync_p, python_data_p}),
-                .data_in_from_pins_n    ({python_sync_n, python_data_n}),
-                .data_in_to_device      (),
-                .clk_in_p               (python_clk_p),
-                .clk_in_n               (python_clk_n),
-                .clk_out                (python_clk),
-                .io_reset               (io_reset)
-            );
-    */
-
-    /*
-    logic   [19:0]      python_data_tmp ;
-    logic   [4:0]       python_bitslip  ;
-    selectio_wiz_0
-        u_selectio_wiz_0
-            (
-                .clk_reset              (reset          ),
-                .io_reset               (io_reset       ),
-//              .ref_clock              (clk200         ),
-//              .delay_locked           (               ),
-
-                .clk_in_p               (python_clk_p   ),
-                .clk_in_n               (python_clk_n   ),
-                .data_in_from_pins_p    ({python_sync_p, python_data_p}),
-                .data_in_from_pins_n    ({python_sync_n, python_data_n}),
-
-                .clk_div_out            (python_clk     ),
-                .data_in_to_device      (python_data_tmp),
-                .bitslip                (python_bitslip )
-            );
-
-    logic   [4:0]       async_bitslip   ;
-    logic               async_valid     ;
-    jelly2_data_async
-            #(
-                .ASYNC          (1                      ),
-                .DATA_WIDTH     (5                      )
-            )
-        u_data_async
-            (
-                .s_reset        (~axi4l.aresetn         ),
-                .s_clk          (axi4l.aclk             ),
-                .s_data         (ctl_iserdes_bitslip    ),
-                .s_valid        (|ctl_iserdes_bitslip   ),
-                .s_ready        (                       ),
-
-                .m_reset        (io_reset               ),
-                .m_clk          (python_clk             ),
-                .m_data         (async_bitslip          ),
-                .m_valid        (async_valid            ),
-                .m_ready        (1'b1                   )
-        );
-    */
-
-    /*
-    jelly_reset
-            #(
-                .COUNTER_WIDTH  (4                          )
-            )
-        u_reset
-            (
-                .clk            (python_clk                 ),
-                .in_reset       (reset | ctl_iserdes_reset  ),
-                .out_reset      (io_reset                   )
-            );
-    
-    logic   [4:0][3:0]   python_data    ;
-    for ( genvar i = 0; i < 5; i++ ) begin
-        for ( genvar j = 0; j < 4; j++ ) begin
-            assign python_data[i][3-j] = python_data_tmp[j*5 + i];
-        end
-    end
-    */
-
-    /*
-    (* MARK_DEBUG = "true" *)   logic   [4:0]       python_align_bitslip   ;
-    (* MARK_DEBUG = "true" *)   logic   [3:0][9:0]  python_align_data      ;
-    (* MARK_DEBUG = "true" *)   logic        [9:0]  python_align_sync      ;
-    (* MARK_DEBUG = "true" *)   logic               python_align_valid     ;
-
-    py300_align_10bit
-        u_py300_align_10bit
-            (
-                .reset          (io_reset               ),
-                .clk            (python_clk             ),
-                
-                .sw_reset       (ctl_align_reset        ),
-                .pattern        (ctl_align_pattern      ),
-                .bitslip        (python_align_bitslip   ),
-                .calib_done     (ctl_calib_done         ),
-                .calib_error    (ctl_calib_error        ),
-                
-                .s_data         (python_data[3:0]       ),
-                .s_sync         (python_data[4]         ),
-                .s_valid        (1'b1                   ),
-
-                .m_data         (python_align_data      ),
-                .m_sync         (python_align_sync      ),
-                .m_valid        (python_align_valid     )
-            );
-
-    always_ff @(posedge python_clk) begin
-        python_bitslip <= python_align_bitslip | (async_valid ? async_bitslip : '0);
-    end
-
-    // to stream
-    jelly3_axi4s_if
-            #(
-                .USE_LAST   (1          ),
-                .USE_USER   (1          ),
-                .DATA_BITS  (4*10       ),
-                .USER_BITS  (1          ),
-                .DEBUG      ("true"     )
-            )
-        axi4s_python_4lane
-            (
-                .aresetn    (~io_reset  ),
-                .aclk       (python_clk ),
-                .aclken     (1'b1       )
-            );
-
-    python_to_axi4s
-        u_python_to_axi4s
-            (
-                .s_data     (python_align_data  ),
-                .s_sync     (python_align_sync  ),
-                .s_valid    (python_align_valid ),
-                .m_axi4s    (axi4s_python_4lane )
-            );
+//  assign axi4s_python_4lane.tready = 1'b1;
 
     jelly3_axi4s_if
             #(
-                .USE_LAST   (1          ),
-                .USE_USER   (1          ),
-                .DATA_BITS  (2*10       ),
-                .USER_BITS  (1          ),
-                .DEBUG      ("true"     )
+                .USE_LAST       (1                  ),
+                .USE_USER       (1                  ),
+                .DATA_BITS      (1*10               ),
+                .USER_BITS      (1                  ),
+                .DEBUG          ("true"             )
             )
-        axi4s_python_2lane
+        axi4s_python_1lane
             (
-                .aresetn    (~io_reset  ),
-                .aclk       (python_clk ),
-                .aclken     (1'b1       )
+                .aresetn        (~python_reset      ),
+                .aclk           (python_clk         ),
+                .aclken         (1'b1               )
             );
     
-    lane_conv_4to2
-        u_lane_conv_4to2
+    lane_conv_4to1
+        u_lane_conv_4to1
             (
                 .s_axi4s    (axi4s_python_4lane ),
-                .m_axi4s    (axi4s_python_2lane )
+                .m_axi4s    (axi4s_python_1lane )
             );
 
-//  assign axi4s_python_2lane.tready = 1'b1;
+//  assign axi4s_python_1lane.tready = 1'b1;
 
+    jelly3_axi4s_if
+            #(
+                .USE_LAST       (1                  ),
+                .USE_USER       (1                  ),
+                .DATA_BITS      (2*8                ),
+                .USER_BITS      (1                  ),
+                .DEBUG          ("true"             )
+            )
+        axi4s_csi_raw10
+            (
+                .aresetn        (~python_reset      ),
+                .aclk           (python_clk         ),
+                .aclken         (1'b1               )
+            );
+
+    pack_csi_raw10
+        u_pack_csi_raw10
+            (
+                .s_axi4s        (axi4s_python_1lane ),
+                .m_axi4s        (axi4s_csi_raw10    )
+            );
+
+    assign axi4s_csi_raw10.tready = 1'b1;
+    
+
+    /*
     jelly3_axi4s_if
             #(
                 .USE_LAST   (1                      ),
@@ -741,8 +632,9 @@ module rtcl_spartan7_python300
             );
         
 //  assign axi4s_dphy_video.tready = 1'b1;
+    */
 
-
+    /*
     jelly3_axi4s_if
             #(
                 .USE_LAST   (1                      ),

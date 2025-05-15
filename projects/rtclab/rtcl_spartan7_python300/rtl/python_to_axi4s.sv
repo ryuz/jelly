@@ -23,7 +23,9 @@ module python_to_axi4s
             m_axi4s.tvalid <= 1'b0;
         end
         else begin
-            m_axi4s.tvalid <= 1'b0;
+            if ( m_axi4s.tready ) begin
+                m_axi4s.tvalid <= 1'b0;
+            end
             if ( m_axi4s.tvalid && m_axi4s.tlast ) begin
                 busy <= 1'b0;
             end
