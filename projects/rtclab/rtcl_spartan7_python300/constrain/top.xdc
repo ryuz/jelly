@@ -2,18 +2,31 @@
 
 # Clock
 create_clock -period 20.000 -name in_clk50 -waveform {0.000 10.000} [get_ports in_clk50]
-create_clock -period 13.888 -name in_clk72 -waveform {0.000 6.944} [get_ports in_clk72]
+create_clock -period 13.888 -name in_clk72 -waveform {0.000  6.944} [get_ports in_clk72]
 
 # 720Mbps (360MHz)
 create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports python_clk_p]
 
 # 1250Mbps : 312.5MHz 3.2ns
 
-set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks clk_out1_clk_mipi_core] 10.000
-set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks python_clk] 10.000
-set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks python_clk_p] 10.000
-set_max_delay -datapath_only -from [get_clocks python_clk] -to [get_clocks in_clk72] 10.000
-set_max_delay -datapath_only -from [get_clocks clk_out1_clk_mipi_core] -to [get_clocks dphy_txbyteclkhs] 3.200
+# in_clk72               :  72MHz 13.888ns
+# python_clk_p           : 360MHz  2.777ns
+# clk_out1_clk_mipi_core : 200MHz  5.000ns
+# dphy_txbyteclkhs       : 125Mhz  8.000ns
+
+
+#set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks clk_out1_clk_mipi_core] 10.000
+#set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks python_clk] 10.000
+#set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks python_clk_p] 10.000
+#set_max_delay -datapath_only -from [get_clocks python_clk] -to [get_clocks in_clk72] 10.000
+
+set_max_delay -datapath_only -from [get_clocks clk_out1_clk_mipi_core] -to [get_clocks dphy_txbyteclkhs]       5.200
+set_max_delay -datapath_only -from [get_clocks dphy_txbyteclkhs]       -to [get_clocks python_clk_p]           2.777
+set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks clk_out1_clk_mipi_core] 5.000
+set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks python_clk_p]           2.777
+set_max_delay -datapath_only -from [get_clocks python_clk_p]           -to [get_clocks dphy_txbyteclkhs]       2.777
+set_max_delay -datapath_only -from [get_clocks python_clk_p]           -to [get_clocks in_clk72]               2.777
+
 
 # clock
 set_property PACKAGE_PIN H4 [get_ports in_clk50]

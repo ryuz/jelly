@@ -53,7 +53,7 @@ module pack_csi_raw10
         end
     end
 
-    assign s_axi4s.tready = !s_axi4s.tvalid || s_axi4s.tready;
+    assign s_axi4s.tready = !m_axi4s.tvalid || m_axi4s.tready;
 
     assign m_axi4s.tuser  = tuser   ;
     assign m_axi4s.tlast  = tlast   ;

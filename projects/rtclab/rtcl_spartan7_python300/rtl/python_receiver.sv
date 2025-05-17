@@ -24,7 +24,7 @@ module python_receiver
             output  var logic   [CHANNELS-1:0][1:0] out_data    ,
             output  var logic                 [1:0] out_sync    
         );
-    
+
     logic   in_clk;
     IBUFDS
             #(
@@ -63,7 +63,8 @@ module python_receiver
                 .out_reset      (out_reset  )
             );
 
-    logic   [CHANNELS-1:0]  in_data;
+    logic   [CHANNELS-1:0]      in_data;
+    logic   [CHANNELS-1:0][1:0] iddr_data   ;
     for ( genvar i = 0; i < CHANNELS; i++ ) begin : datas
         IBUFDS
                 #(
@@ -86,8 +87,8 @@ module python_receiver
                 )
             u_iddr_data
                 (
-                    .Q1             (out_data[i][1] ),
-                    .Q2             (out_data[i][0] ),
+                    .Q1             (iddr_data[i][1]),
+                    .Q2             (iddr_data[i][0]),
                     .C              (out_clk        ),
                     .CE             (1'b1           ),
                     .D              (in_data [i]    ),
@@ -96,7 +97,8 @@ module python_receiver
                 );
     end
 
-    logic       in_sync;
+    logic                       in_sync     ;
+    logic                 [1:0] iddr_sync   ;
     IBUFDS
             #(
                 .DIFF_TERM      (DIFF_TERM      ),
@@ -118,14 +120,25 @@ module python_receiver
             )
         u_iddr_sync
             (
-                .Q1             (out_sync[1]    ),
-                .Q2             (out_sync[0]    ),
+                .Q1             (iddr_sync[1]  ),
+                .Q2             (iddr_sync[0]  ),
                 .C              (out_clk        ),
                 .CE             (1'b1           ),
                 .D              (in_sync        ),
                 .R              (in_reset       ),
                 .S              (1'b0           )
             );
+
+
+    // insert FF
+    logic   [CHANNELS-1:0][1:0] ff_data    ;
+    logic                 [1:0] ff_sync    ;
+    always_ff @(posedge out_clk) begin
+        ff_data  <= iddr_data;
+        ff_sync  <= iddr_sync;
+        out_data <= ff_data;
+        out_sync <= ff_sync;
+    end
 
 endmodule
 

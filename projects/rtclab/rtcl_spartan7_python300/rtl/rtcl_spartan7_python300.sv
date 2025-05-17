@@ -211,7 +211,7 @@ module rtcl_spartan7_python300
 
 
                                 logic           ctl_iserdes_reset   ;
-                                logic   [4:0]   ctl_iserdes_bitslip ;
+//                              logic   [4:0]   ctl_iserdes_bitslip ;
                                 logic           ctl_align_reset     ;
                                 logic   [9:0]   ctl_align_pattern   ;
     (* MARK_DEBUG = "true" *)   logic           ctl_calib_done      ;
@@ -223,7 +223,7 @@ module rtcl_spartan7_python300
                 .s_axi4l                (axi4l                  ),
 
                 .out_iserdes_reset      (ctl_iserdes_reset      ),
-                .out_iserdes_bitslip    (ctl_iserdes_bitslip    ),
+//              .out_iserdes_bitslip    (ctl_iserdes_bitslip    ),
                 .out_align_reset        (ctl_align_reset        ),
                 .out_align_pattern      (ctl_align_pattern      ),
                 .in_calib_done          (ctl_calib_done         ),
@@ -570,8 +570,8 @@ module rtcl_spartan7_python300
                 .m_axi4s    (axi4s_python_1lane )
             );
 
-//  assign axi4s_python_1lane.tready = 1'b1;
 
+    // RAW10
     jelly3_axi4s_if
             #(
                 .USE_LAST       (1                  ),
@@ -594,9 +594,8 @@ module rtcl_spartan7_python300
                 .m_axi4s        (axi4s_csi_raw10    )
             );
 
-//  assign axi4s_csi_raw10.tready = 1'b1;
 
-
+    // FIFO
     jelly3_axi4s_if
             #(
                 .USE_LAST       (1                      ),
@@ -614,6 +613,7 @@ module rtcl_spartan7_python300
     
     //
     logic   [9:0]   fifo_data_count;
+    /*
     jelly3_axi4s_fifo
             #(
                 .ASYNC          (1                  ),
@@ -631,8 +631,45 @@ module rtcl_spartan7_python300
                 .s_free_count   (),
                 .m_data_count   (fifo_data_count    )
             );
+    */
 
-//  assign axi4s_csi_fifo.tready = 1;
+    jelly2_fifo_async_fwtf
+            #(
+                .DATA_WIDTH     (2+16                       ),
+                .PTR_WIDTH      (9                          ),
+                .DOUT_REGS      (0                          ),
+                .RAM_TYPE       ("block"                    ),
+                .S_REGS         (0                          ),
+                .M_REGS         (1                          )
+            )
+        u_fifo_async_fwtf
+            (
+                .s_reset        (~axi4s_csi_raw10.aresetn   ),
+                .s_clk          (axi4s_csi_raw10.aclk       ),
+                .s_cke          (axi4s_csi_raw10.aclken     ),
+                .s_data         ({
+                                    axi4s_csi_raw10.tuser,
+                                    axi4s_csi_raw10.tlast,
+                                    axi4s_csi_raw10.tdata
+                                }),
+                .s_valid        (axi4s_csi_raw10.tvalid     ),
+                .s_ready        (axi4s_csi_raw10.tready     ),
+                .s_free_count   (                           ),
+                
+                .m_reset        (~axi4s_csi_fifo.aresetn    ),
+                .m_clk          (axi4s_csi_fifo.aclk        ),
+                .m_cke          (axi4s_csi_fifo.aclken      ),
+                .m_data         ({
+                                    axi4s_csi_fifo.tuser,
+                                    axi4s_csi_fifo.tlast,
+                                    axi4s_csi_fifo.tdata
+                                }),
+                .m_valid        (axi4s_csi_fifo.tvalid      ),
+                .m_ready        (axi4s_csi_fifo.tready      ),
+                .m_data_count   (fifo_data_count            )
+            );
+    
+
     
     // dphy
     jelly3_axi4s_if
@@ -653,16 +690,15 @@ module rtcl_spartan7_python300
     generate_csi_packet
         u_generate_csi_packet
             (
-                .frame_start    (1'b0   ),
-                .frame_end      (1'b0   ),
-                .data_type      (8'h2b  ),
-                .wc             (640*5/4),
+                .frame_start    (1'b0               ),
+                .frame_end      (1'b0               ),
+                .data_type      (8'h2b              ),
+                .wc             (640*5/4            ),
 
-                .s_axi4s_video  (axi4s_csi_fifo    ),
-                .m_axi4s_mipi   (axi4s_csi_dphy    )
+                .s_axi4s        (axi4s_csi_fifo     ),
+                .m_axi4s        (axi4s_csi_dphy     )
             );
     
-//  assign axi4s_csi_dphy.tready = 1'b1;
 
     // DPHY
     (* ASYNC_REG="true" *) logic  ff0_init_done, ff1_init_done;

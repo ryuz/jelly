@@ -18,14 +18,14 @@ module py300_control
             parameter                   CORE_VERSION         = 32'h0100                 ,
             parameter   bit             INIT_ALIGN_RESET     = 1'b0                     ,
             parameter   bit [9:0]       INIT_ALIGN_PATTERN   = 10'h3a6                  ,
-            parameter   bit             INIT_ISERDES_RESET   = 1'b0                     ,
-            parameter   bit [4:0]       INIT_ISERDES_BITSLIP = 5'b00000                 
+            parameter   bit             INIT_ISERDES_RESET   = 1'b0                     
+//          parameter   bit [4:0]       INIT_ISERDES_BITSLIP = 5'b00000                 
         )
         (
             jelly3_axi4l_if.s           s_axi4l             ,
 
             output  var logic           out_iserdes_reset   ,
-            output  var logic   [4:0]   out_iserdes_bitslip ,
+//          output  var logic   [4:0]   out_iserdes_bitslip ,
             output  var logic           out_align_reset     ,
             output  var logic   [9:0]   out_align_pattern   ,
             input   var logic           in_calib_done       ,
@@ -46,14 +46,14 @@ module py300_control
     localparam  regadr_t REGADR_CORE_ID             = regadr_t'('h00);
     localparam  regadr_t REGADR_CORE_VERSION        = regadr_t'('h01);
     localparam  regadr_t REGADR_ISERDES_RESET       = regadr_t'('h10);
-    localparam  regadr_t REGADR_ISERDES_BITSLIP     = regadr_t'('h12);
+//  localparam  regadr_t REGADR_ISERDES_BITSLIP     = regadr_t'('h12);
     localparam  regadr_t REGADR_ALIGN_RESET         = regadr_t'('h20);
     localparam  regadr_t REGADR_ALIGN_PATTERN       = regadr_t'('h22);
     localparam  regadr_t REGADR_CALIB_STATUS        = regadr_t'('h28);
     
     // registers
     logic           reg_iserdes_reset   ;
-    logic   [4:0]   reg_iserdes_bitslip ;
+//  logic   [4:0]   reg_iserdes_bitslip ;
     logic           reg_align_reset     ;
     logic   [9:0]   reg_align_pattern   ;
     logic   [1:0]   reg_calib_status    ;
@@ -80,19 +80,19 @@ module py300_control
     always_ff @(posedge s_axi4l.aclk) begin
         if ( ~s_axi4l.aresetn ) begin
             reg_iserdes_reset   <= INIT_ISERDES_RESET   ;
-            reg_iserdes_bitslip <= INIT_ISERDES_BITSLIP ;
+//          reg_iserdes_bitslip <= INIT_ISERDES_BITSLIP ;
             reg_align_reset     <= INIT_ALIGN_RESET     ;
             reg_align_pattern   <= INIT_ALIGN_PATTERN   ;
         end
         else begin
             // auto clear
-            reg_iserdes_bitslip <= '0;
+//          reg_iserdes_bitslip <= '0;
 
             // write
             if ( s_axi4l.awvalid && s_axi4l.awready && s_axi4l.wvalid && s_axi4l.wready ) begin
                 case ( regadr_write )
                 REGADR_ISERDES_RESET      :   reg_iserdes_reset   <=  1'(write_mask(axi4l_data_t'(reg_iserdes_reset  ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_ISERDES_BITSLIP    :   reg_iserdes_bitslip <=  5'(write_mask(axi4l_data_t'(reg_iserdes_bitslip), s_axi4l.wdata, s_axi4l.wstrb));
+//              REGADR_ISERDES_BITSLIP    :   reg_iserdes_bitslip <=  5'(write_mask(axi4l_data_t'(reg_iserdes_bitslip), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_ALIGN_RESET        :   reg_align_reset     <=  1'(write_mask(axi4l_data_t'(reg_align_reset    ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_ALIGN_PATTERN      :   reg_align_pattern   <= 10'(write_mask(axi4l_data_t'(reg_align_pattern  ), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
@@ -127,7 +127,7 @@ module py300_control
             REGADR_CORE_ID          :   s_axi4l.rdata <= axi4l_data_t'(CORE_ID             );
             REGADR_CORE_VERSION     :   s_axi4l.rdata <= axi4l_data_t'(CORE_VERSION        );
             REGADR_ISERDES_RESET    :   s_axi4l.rdata <= axi4l_data_t'(reg_iserdes_reset   );
-            REGADR_ISERDES_BITSLIP  :   s_axi4l.rdata <= axi4l_data_t'(reg_iserdes_bitslip );
+//          REGADR_ISERDES_BITSLIP  :   s_axi4l.rdata <= axi4l_data_t'(reg_iserdes_bitslip );
             REGADR_ALIGN_RESET      :   s_axi4l.rdata <= axi4l_data_t'(reg_align_reset     );
             REGADR_ALIGN_PATTERN    :   s_axi4l.rdata <= axi4l_data_t'(reg_align_pattern   );
             REGADR_CALIB_STATUS     :   s_axi4l.rdata <= axi4l_data_t'(reg_calib_status    );
@@ -157,7 +157,7 @@ module py300_control
 
     // output
     assign  out_iserdes_reset   = reg_iserdes_reset  ;
-    assign  out_iserdes_bitslip = reg_iserdes_bitslip;
+//  assign  out_iserdes_bitslip = reg_iserdes_bitslip;
     assign  out_align_reset     = reg_align_reset    ;
     assign  out_align_pattern   = reg_align_pattern  ;
 

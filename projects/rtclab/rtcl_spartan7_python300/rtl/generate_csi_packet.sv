@@ -17,8 +17,8 @@ module generate_csi_packet
             input   var logic   [7:0]   data_type       ,
             input   var logic   [15:0]  wc              ,
 
-            jelly3_axi4s_if.s           s_axi4s_video   ,
-            jelly3_axi4s_if.m           m_axi4s_mipi    
+            jelly3_axi4s_if.s           s_axi4s         ,
+            jelly3_axi4s_if.m           m_axi4s         
         );
     
     logic   [5:0]   ecc_tbl [0:23] = '{
@@ -45,19 +45,19 @@ module generate_csi_packet
     state_t         state   ;
     logic   [7:0]   reg_id  ;
     logic   [15:0]  reg_wc  ;
-    always_ff @(posedge s_axi4s_video.aclk) begin
-        if ( ~s_axi4s_video.aresetn ) begin
+    always_ff @(posedge s_axi4s.aclk) begin
+        if ( ~s_axi4s.aresetn ) begin
             state  <= IDLE  ;
             reg_id <= 'x    ;
             reg_wc <= 'x    ;
-            m_axi4s_mipi.tuser  <= 1'bx  ;
-            m_axi4s_mipi.tlast  <= 1'bx  ;
-            m_axi4s_mipi.tdata  <= 'x    ;
-            m_axi4s_mipi.tvalid <= 1'b0  ;
+            m_axi4s.tuser  <= 1'bx  ;
+            m_axi4s.tlast  <= 1'bx  ;
+            m_axi4s.tdata  <= 'x    ;
+            m_axi4s.tvalid <= 1'b0  ;
         end
-        else if ( s_axi4s_video.aclken ) begin
-            if ( !m_axi4s_mipi.tvalid || m_axi4s_mipi.tready ) begin
-                m_axi4s_mipi.tvalid <= 1'b0;
+        else if ( s_axi4s.aclken ) begin
+            if ( !m_axi4s.tvalid || m_axi4s.tready ) begin
+                m_axi4s.tvalid <= 1'b0;
                 case ( state )
                 IDLE:
                     begin
@@ -71,7 +71,7 @@ module generate_csi_packet
                             reg_wc <= '0;
                             state  <= HEADER0;
                         end
-                        else if ( s_axi4s_video.tvalid ) begin
+                        else if ( s_axi4s.tvalid ) begin
                             reg_id <= data_type;
                             reg_wc <= wc;
                             state  <= HEADER0;
@@ -80,19 +80,19 @@ module generate_csi_packet
 
                 HEADER0:
                     begin
-                        m_axi4s_mipi.tuser  <= 1'b1;
-                        m_axi4s_mipi.tlast  <= 1'b0;
-                        m_axi4s_mipi.tdata  <= { reg_wc[7:0], reg_id };
-                        m_axi4s_mipi.tvalid <= 1'b1;
+                        m_axi4s.tuser  <= 1'b1;
+                        m_axi4s.tlast  <= 1'b0;
+                        m_axi4s.tdata  <= { reg_wc[7:0], reg_id };
+                        m_axi4s.tvalid <= 1'b1;
                         state <= HEADER1;
                     end
                 
                 HEADER1:
                     begin
-                        m_axi4s_mipi.tuser  <= 1'b1;
-                        m_axi4s_mipi.tlast  <= 1'b0;
-                        m_axi4s_mipi.tdata  <= { 2'd0, calc_ecc({reg_wc, reg_id}) , reg_wc[15:8] };
-                        m_axi4s_mipi.tvalid <= 1'b1;
+                        m_axi4s.tuser  <= 1'b1;
+                        m_axi4s.tlast  <= 1'b0;
+                        m_axi4s.tdata  <= { 2'd0, calc_ecc({reg_wc, reg_id}) , reg_wc[15:8] };
+                        m_axi4s.tvalid <= 1'b1;
                         if ( reg_wc == 16'h00 ) begin
                             state <= IDLE;
                         end
@@ -103,11 +103,11 @@ module generate_csi_packet
                 
                 DATA:
                     begin
-                        m_axi4s_mipi.tuser  <= s_axi4s_video.tuser  ;
-                        m_axi4s_mipi.tlast  <= s_axi4s_video.tlast  ;
-                        m_axi4s_mipi.tdata  <= s_axi4s_video.tdata  ;
-                        m_axi4s_mipi.tvalid <= s_axi4s_video.tvalid ;
-                        if ( s_axi4s_video.tlast ) begin
+                        m_axi4s.tuser  <= s_axi4s.tuser  ;
+                        m_axi4s.tlast  <= s_axi4s.tlast  ;
+                        m_axi4s.tdata  <= s_axi4s.tdata  ;
+                        m_axi4s.tvalid <= s_axi4s.tvalid ;
+                        if ( s_axi4s.tlast ) begin
                             state <= IDLE;
                         end
                     end
@@ -116,7 +116,7 @@ module generate_csi_packet
         end
     end
 
-    assign s_axi4s_video.tready = (!m_axi4s_mipi.tvalid || m_axi4s_mipi.tready) && (state == DATA);
+    assign s_axi4s.tready = (!m_axi4s.tvalid || m_axi4s.tready) && (state == DATA);
 
 endmodule
 

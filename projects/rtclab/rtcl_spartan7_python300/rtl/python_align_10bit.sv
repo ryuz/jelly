@@ -29,13 +29,17 @@ module python_align_10bit
         ff1_sw_reset <= ff0_sw_reset;
     end
 
+    logic   [9:0]   ff0_pattern;
+    always_ff @(posedge clk) begin
+        ff0_pattern <= pattern;
+    end
+
     // pattern detect
     logic   [3:0]       phase      ;
     always_ff @(posedge clk) begin
         if ( reset || ff1_sw_reset ) begin
             phase       <= 'x   ;
             calib_done  <= 1'b0 ;
-            calib_error <= 1'b0 ;
             m_data      <= 'x   ;
             m_sync      <= 'x   ;
             m_valid     <= 1'b0 ;
@@ -51,7 +55,7 @@ module python_align_10bit
                 
                 phase <= phase + 1;
                 if ( !calib_done ) begin
-                    if ( {m_data[0][7:0], s_data[0]} == pattern && !calib_error ) begin
+                    if ( {m_data[0][7:0], s_data[0]} == ff0_pattern && !calib_error ) begin
                         phase      <= '0;
                         calib_done <= 1'b1;
                     end
