@@ -110,7 +110,6 @@ module generate_csi_packet
                         if ( s_axi4s_video.tlast ) begin
                             state <= IDLE;
                         end
-                        state <= DATA;
                     end
                 endcase
             end

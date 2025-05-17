@@ -73,6 +73,7 @@ module python_to_axi4s
     assign m_axi4s.tuser  = tvalid ? tuser : 'x;
     assign m_axi4s.tlast  = tvalid ? tlast : 'x;
     assign m_axi4s.tdata  = tvalid ? tdata : 'x;
+//  assign m_axi4s.tdata  = tvalid ? '1    : 'x;
     assign m_axi4s.tvalid = tvalid;
 
     /*

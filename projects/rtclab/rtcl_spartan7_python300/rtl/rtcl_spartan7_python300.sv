@@ -649,7 +649,7 @@ module rtcl_spartan7_python300
                 .aclk       (dphy_txbyteclkhs       ),
                 .aclken     (1'b1                   )
             );
-  
+    
     generate_csi_packet
         u_generate_csi_packet
             (
@@ -693,11 +693,26 @@ module rtcl_spartan7_python300
     end
     */
 
-    assign dphy_dl0_txrequesths  = axi4s_csi_dphy.tvalid;
-    assign dphy_dl1_txrequesths  = axi4s_csi_dphy.tvalid;
-    assign dphy_dl0_txdatahs     = axi4s_csi_dphy.tdata[7:0]   ;
-    assign dphy_dl1_txdatahs     = axi4s_csi_dphy.tdata[15:8]  ;
-    assign axi4s_csi_dphy.tready = ff1_init_done && dphy_dl0_txreadyhs;
+    always_ff @(posedge dphy_txbyteclkhs) begin
+        if ( dphy_txbyteclkhs_reset || !ff1_init_done ) begin
+            dphy_dl0_txrequesths <= 1'b0;
+            dphy_dl1_txrequesths <= 1'b0;
+        end
+        else begin
+            if ( axi4s_csi_dphy.tlast && axi4s_csi_dphy.tvalid && axi4s_csi_dphy.tready ) begin
+                dphy_dl0_txrequesths <= 1'b0;
+                dphy_dl1_txrequesths <= 1'b0;
+            end
+            else begin
+                dphy_dl0_txrequesths <= axi4s_csi_dphy.tvalid;
+                dphy_dl1_txrequesths <= axi4s_csi_dphy.tvalid;
+            end
+        end
+    end
+
+    assign dphy_dl0_txdatahs     = axi4s_csi_dphy.tvalid && axi4s_csi_dphy.tready ? axi4s_csi_dphy.tdata[7:0]  : '0;
+    assign dphy_dl1_txdatahs     = axi4s_csi_dphy.tvalid && axi4s_csi_dphy.tready ? axi4s_csi_dphy.tdata[15:8] : '0;
+    assign axi4s_csi_dphy.tready = dphy_dl0_txrequesths && dphy_dl0_txreadyhs;
 
 
     // Blinking LED
