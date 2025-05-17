@@ -9,7 +9,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module video_to_mipi
+module generate_csi_packet
         (
             input   var logic           frame_start     ,
             input   var logic           frame_end       ,

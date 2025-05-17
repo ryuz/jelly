@@ -593,8 +593,77 @@ module rtcl_spartan7_python300
                 .m_axi4s        (axi4s_csi_raw10    )
             );
 
-    assign axi4s_csi_raw10.tready = 1'b1;
+//  assign axi4s_csi_raw10.tready = 1'b1;
+
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST       (1                      ),
+                .USE_USER       (1                      ),
+                .DATA_BITS      (2*8                    ),
+                .USER_BITS      (1                      ),
+                .DEBUG          ("true"                 )
+            )
+        axi4s_csi_fifo
+            (
+                .aresetn        (~dphy_txbyteclkhs_reset),
+                .aclk           (dphy_txbyteclkhs       ),
+                .aclken         (1'b1                   )
+            );
     
+    //
+    logic   [9:0]   fifo_data_count;
+    jelly3_axi4s_fifo
+            #(
+                .ASYNC          (1                  ),
+                .PTR_BITS       (9                  ),
+                .RAM_TYPE       ("block"            ),
+                .LOW_DEALY      (0                  ),
+                .DOUT_REGS      (1                  ),
+                .S_REGS         (1                  ),
+                .M_REGS         (1                  )
+            )
+        u_axi4s_fifo
+            (
+                .s_axi4s        (axi4s_csi_raw10    ),
+                .m_axi4s        (axi4s_csi_fifo     ),
+                .s_free_count   (),
+                .m_data_count   (fifo_data_count    )
+            );
+
+    assign axi4s_csi_fifo.tready = 1;
+    
+    /*
+    // dphy
+    jelly3_axi4s_if
+            #(
+                .USE_LAST   (1                      ),
+                .USE_USER   (1                      ),
+                .DATA_BITS  (2*10                   ),
+                .USER_BITS  (1                      ),
+                .DEBUG      ("true"                 )
+            )
+        axi4s_csi_dphy
+            (
+                .aresetn    (~dphy_txbyteclkhs_reset),
+                .aclk       (dphy_txbyteclkhs       ),
+                .aclken     (1'b1                   )
+            );
+  
+    generate_csi_packet
+        u_generate_csi_packet
+            (
+                .frame_start    (1'b0   ),
+                .frame_end      (1'b0   ),
+                .data_type      (8'h2b  ),
+                .wc             (640*5/4),
+
+                .s_axi4s_video  (axi4s_csi_fifo    ),
+                .m_axi4s_mipi   (axi4s_csi_dphy    )
+            );
+    
+    assign axi4s_csi_dphy.tready = 1'b1;
+    */
 
     /*
     jelly3_axi4s_if

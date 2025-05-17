@@ -19,11 +19,9 @@ module python_to_axi4s
         enable = 1;
     end
 
-    localparam EPSILON = 0.01;
     localparam LANES   = 4  ;
     localparam WIDTH   = 640;
     localparam HEIGHT  = 480;
-
 
     logic                   tuser   ;
     logic                   tlast   ;
@@ -39,7 +37,7 @@ module python_to_axi4s
         forever begin
             for ( int y = 0; y < HEIGHT; y++ ) begin
                 for ( int x = 0; x < WIDTH/LANES; x++ ) begin
-                    @(posedge m_axi4s.aclk) #EPSILON;
+                    @(posedge m_axi4s.aclk) #0;
                     tuser  = (y == 0 && x == 0);
                     tlast  = (x >= WIDTH/LANES - 1);
                     for ( int i = 0; i < LANES; i++ ) begin
@@ -47,34 +45,34 @@ module python_to_axi4s
                     end
                     tvalid = 1'b1;
 
-                    @(posedge m_axi4s.aclk) #EPSILON;
+                    @(posedge m_axi4s.aclk) #0;
                     tvalid = 1'b0;
-                    @(posedge m_axi4s.aclk) #EPSILON;
+                    @(posedge m_axi4s.aclk) #0;
                     tvalid = 1'b0;
-                    @(posedge m_axi4s.aclk) #EPSILON;
+                    @(posedge m_axi4s.aclk) #0;
                     tvalid = 1'b0;
-                    @(posedge m_axi4s.aclk) #EPSILON;
+                    @(posedge m_axi4s.aclk) #0;
                     tvalid = 1'b0;
                 end
 
-                @(posedge m_axi4s.aclk) #EPSILON;
+                @(posedge m_axi4s.aclk) #0;
                 tuser  = '0;
                 tlast  = '0;
 //              tdata  = '0;
                 tvalid = 1'b0;
-                for ( int i = 0; i < 10; i++ ) begin
-                    @(posedge m_axi4s.aclk) #EPSILON;
+                for ( int i = 0; i < 600; i++ ) begin
+                    @(posedge m_axi4s.aclk) #0;
                 end
             end
             for ( int i = 0; i < 256; i++ ) begin
-                @(posedge m_axi4s.aclk) #EPSILON;
+                @(posedge m_axi4s.aclk) #0;
             end
         end
     end
 
-    assign m_axi4s.tuser  = tuser ;
-    assign m_axi4s.tlast  = tlast ;
-    assign m_axi4s.tdata  = tdata ;
+    assign m_axi4s.tuser  = tvalid ? tuser : 'x;
+    assign m_axi4s.tlast  = tvalid ? tlast : 'x;
+    assign m_axi4s.tdata  = tvalid ? tdata : 'x;
     assign m_axi4s.tvalid = tvalid;
 
     /*
