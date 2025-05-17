@@ -640,116 +640,6 @@ module zybo_z7_rtcl_py300
             );
     
     
-    // parameter update(繝輔Ξ繝ｼ繝?蜊倅ｽ阪〒荳?諡ｬ繝代Λ繝｡繝ｼ繧ｿ譖ｴ譁ｰ縺ｧ縺阪ｋ繧医≧縺ｫ)
-    wire                            parameter_update_req;
-    
-    wire    [WB_DAT_WIDTH-1:0]      wb_prmup_dat_o;
-    wire                            wb_prmup_stb_i;
-    wire                            wb_prmup_ack_o;
-    
-    jelly_video_parameter_update
-            #(
-                .WB_ADR_WIDTH       (8),
-                .WB_DAT_SIZE        (WB_DAT_SIZE),
-                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
-                
-                .TUSER_WIDTH        (1),
-                .TDATA_WIDTH        (10),
-                
-                .INDEX_WIDTH        (1),
-                .FRAME_WIDTH        (32),
-                
-                .INIT_CONTROL       (2'b11),
-                
-                .DELAY              (1)
-            )
-        i_video_parameter_update
-            (
-                .aresetn            (axi4s_cam_aresetn),
-                .aclk               (axi4s_cam_aclk),
-                .aclken             (1'b1),
-                
-                .out_update_req     (parameter_update_req),
-                
-                .s_wb_rst_i         (wb_peri_rst_i),
-                .s_wb_clk_i         (wb_peri_clk_i),
-                .s_wb_adr_i         (wb_peri_adr_i[7:0]),
-                .s_wb_dat_i         (wb_peri_dat_i),
-                .s_wb_dat_o         (wb_prmup_dat_o),
-                .s_wb_we_i          (wb_peri_we_i),
-                .s_wb_sel_i         (wb_peri_sel_i),
-                .s_wb_stb_i         (wb_prmup_stb_i),
-                .s_wb_ack_o         (wb_prmup_ack_o),
-                
-                .s_axi4s_tdata      (axi4s_fmtr_tdata),
-                .s_axi4s_tlast      (axi4s_fmtr_tlast),
-                .s_axi4s_tuser      (axi4s_fmtr_tuser),
-                .s_axi4s_tvalid     (axi4s_fmtr_tvalid),
-                .s_axi4s_tready     (),
-                
-                .m_axi4s_tuser      (),
-                .m_axi4s_tlast      (),
-                .m_axi4s_tdata      (),
-                .m_axi4s_tvalid     (),
-                .m_axi4s_tready     (1'b1)
-                
-            );
-    
-    
-    
-    // 迴ｾ蜒?
-    wire    [0:0]               axi4s_rgb_tuser;
-    wire                        axi4s_rgb_tlast;
-    wire    [39:0]              axi4s_rgb_tdata;
-    wire                        axi4s_rgb_tvalid;
-    wire                        axi4s_rgb_tready;
-    
-    wire    [WB_DAT_WIDTH-1:0]  wb_rgb_dat_o;
-    wire                        wb_rgb_stb_i;
-    wire                        wb_rgb_ack_o;
-    
-    video_raw_to_rgb
-            #(
-                .WB_ADR_WIDTH       (10),
-                .WB_DAT_WIDTH       (WB_DAT_WIDTH),
-                
-                .DATA_WIDTH         (10),
-                
-                .IMG_Y_NUM          (480),
-                .IMG_Y_WIDTH        (12),
-                
-                .TUSER_WIDTH        (1)
-            )
-        i_video_raw_to_rgb
-            (
-                .aresetn            (axi4s_cam_aresetn),
-                .aclk               (axi4s_cam_aclk),
-                
-                .in_update_req      (parameter_update_req),
-                
-                .s_wb_rst_i         (wb_peri_rst_i),
-                .s_wb_clk_i         (wb_peri_clk_i),
-                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
-                .s_wb_dat_o         (wb_rgb_dat_o),
-                .s_wb_dat_i         (wb_peri_dat_i),
-                .s_wb_we_i          (wb_peri_we_i),
-                .s_wb_sel_i         (wb_peri_sel_i),
-                .s_wb_stb_i         (wb_rgb_stb_i),
-                .s_wb_ack_o         (wb_rgb_ack_o),
-                
-                .s_axi4s_tuser      (axi4s_fmtr_tuser),
-                .s_axi4s_tlast      (axi4s_fmtr_tlast),
-                .s_axi4s_tdata      (axi4s_fmtr_tdata),
-                .s_axi4s_tvalid     (axi4s_fmtr_tvalid),
-                .s_axi4s_tready     (axi4s_fmtr_tready),
-                
-                .m_axi4s_tuser      (axi4s_rgb_tuser),
-                .m_axi4s_tlast      (axi4s_rgb_tlast),
-                .m_axi4s_tdata      (axi4s_rgb_tdata),
-                .m_axi4s_tvalid     (axi4s_rgb_tvalid),
-                .m_axi4s_tready     (axi4s_rgb_tready)
-            );
-    
     
     // DMA write
     wire    [WB_DAT_WIDTH-1:0]  wb_vdmaw_dat_o;
@@ -811,16 +701,11 @@ module zybo_z7_rtcl_py300
                 
                 .s_axi4s_aresetn    (axi4s_cam_aresetn),
                 .s_axi4s_aclk       (axi4s_cam_aclk),
-                .s_axi4s_tuser      (axi4s_rgb_tuser),
-                .s_axi4s_tlast      (axi4s_rgb_tlast),
-                .s_axi4s_tdata      ({
-                                        axi4s_rgb_tdata[39:32],
-                                        axi4s_rgb_tdata[29:22],
-                                        axi4s_rgb_tdata[19:12],
-                                        axi4s_rgb_tdata[ 9: 2]
-                                    }),
-                .s_axi4s_tvalid     (axi4s_rgb_tvalid),
-                .s_axi4s_tready     (axi4s_rgb_tready),
+                .s_axi4s_tuser      (axi4s_fmtr_tuser),
+                .s_axi4s_tlast      (axi4s_fmtr_tlast),
+                .s_axi4s_tdata      (axi4s_fmtr_tdata),
+                .s_axi4s_tvalid     (axi4s_fmtr_tvalid),
+                .s_axi4s_tready     (axi4s_fmtr_tready),
                 
                 .s_wb_rst_i         (wb_peri_rst_i),
                 .s_wb_clk_i         (wb_peri_clk_i),
@@ -856,20 +741,20 @@ module zybo_z7_rtcl_py300
     
     assign wb_sys_stb_i    = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4000_0);   // 0x40000000-0x40000fff
     assign wb_fmtr_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_0);   // 0x40010000-0x40010fff
-    assign wb_prmup_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_1);   // 0x40011000-0x40011fff
-    assign wb_rgb_stb_i    = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_2);   // 0x40012000-0x40012fff
+//  assign wb_prmup_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_1);   // 0x40011000-0x40011fff
+//  assign wb_rgb_stb_i    = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4001_2);   // 0x40012000-0x40012fff
     assign wb_vdmaw_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[29:10] == 20'h4002_1);   // 0x40021000-0x40021fff
     
     assign wb_peri_dat_o  = wb_sys_stb_i   ? wb_sys_dat_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_dat_o :
                             wb_fmtr_stb_i  ? wb_fmtr_dat_o  :
-                            wb_rgb_stb_i   ? wb_rgb_dat_o   :
+//                          wb_rgb_stb_i   ? wb_rgb_dat_o   :
                             32'h0000_0000;
     
     assign wb_peri_ack_o  = wb_sys_stb_i   ? wb_sys_ack_o   :
                             wb_vdmaw_stb_i ? wb_vdmaw_ack_o :
                             wb_fmtr_stb_i  ? wb_fmtr_ack_o  :
-                            wb_rgb_stb_i   ? wb_rgb_ack_o   :
+//                          wb_rgb_stb_i   ? wb_rgb_ack_o   :
                             wb_peri_stb_i;
     
     

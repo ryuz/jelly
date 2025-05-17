@@ -653,7 +653,7 @@ module rtcl_spartan7_python300
                                     axi4s_csi_raw10.tdata
                                 }),
                 .s_valid        (axi4s_csi_raw10.tvalid     ),
-                .s_ready        (axi4s_csi_raw10.tready     ),
+                .s_ready        (),//(axi4s_csi_raw10.tready     ),
                 .s_free_count   (                           ),
                 
                 .m_reset        (~axi4s_csi_fifo.aresetn    ),
@@ -668,7 +668,7 @@ module rtcl_spartan7_python300
                 .m_ready        (axi4s_csi_fifo.tready      ),
                 .m_data_count   (fifo_data_count            )
             );
-    
+    assign axi4s_csi_raw10.tready = 1'b1;
     
     // dphy
     jelly3_axi4s_if
@@ -692,7 +692,7 @@ module rtcl_spartan7_python300
                 .frame_start    (1'b0               ),
                 .frame_end      (1'b0               ),
                 .data_type      (8'h2b              ),
-                .wc             (640*5/4            ),
+                .wc             (256*5/4            ),
 
                 .s_axi4s        (axi4s_csi_fifo     ),
                 .m_axi4s        (axi4s_csi_dphy     )
@@ -730,17 +730,23 @@ module rtcl_spartan7_python300
 
     always_ff @(posedge dphy_txbyteclkhs) begin
         if ( dphy_txbyteclkhs_reset || !ff1_init_done ) begin
+            dphy_cl_txrequesths  <= 1'b0;
             dphy_dl0_txrequesths <= 1'b0;
             dphy_dl1_txrequesths <= 1'b0;
         end
         else begin
+            dphy_cl_txrequesths  <= 1'b1;
             if ( axi4s_csi_dphy.tlast && axi4s_csi_dphy.tvalid && axi4s_csi_dphy.tready ) begin
                 dphy_dl0_txrequesths <= 1'b0;
                 dphy_dl1_txrequesths <= 1'b0;
             end
             else begin
-                dphy_dl0_txrequesths <= axi4s_csi_dphy.tvalid;
-                dphy_dl1_txrequesths <= axi4s_csi_dphy.tvalid;
+                if ( !dphy_dl0_txrequesths && !dphy_dl0_txreadyhs
+                        && !dphy_dl1_txrequesths && !dphy_dl1_txreadyhs
+                        && axi4s_csi_dphy.tvalid ) begin
+                    dphy_dl0_txrequesths <= 1'b1;
+                    dphy_dl1_txrequesths <= 1'b1;
+                end
             end
         end
     end
