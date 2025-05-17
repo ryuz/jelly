@@ -391,6 +391,7 @@ module rtcl_spartan7_python300
     assign dphy_dl1_txdataesc       = '0    ;
     assign dphy_dl1_txvalidesc      = '0    ;
 
+    /*
     (* ASYNC_REG="true" *) logic  ff0_init_done, ff1_init_done;
     always_ff @(posedge dphy_txbyteclkhs) begin
         ff0_init_done <= dphy_init_done;
@@ -428,7 +429,7 @@ module rtcl_spartan7_python300
             end
         end
     end
-
+    */
 
 
     // -------------------------------------
@@ -631,9 +632,8 @@ module rtcl_spartan7_python300
                 .m_data_count   (fifo_data_count    )
             );
 
-    assign axi4s_csi_fifo.tready = 1;
+//  assign axi4s_csi_fifo.tready = 1;
     
-    /*
     // dphy
     jelly3_axi4s_if
             #(
@@ -662,76 +662,42 @@ module rtcl_spartan7_python300
                 .m_axi4s_mipi   (axi4s_csi_dphy    )
             );
     
-    assign axi4s_csi_dphy.tready = 1'b1;
-    */
+//  assign axi4s_csi_dphy.tready = 1'b1;
+
+    // DPHY
+    (* ASYNC_REG="true" *) logic  ff0_init_done, ff1_init_done;
+    always_ff @(posedge dphy_txbyteclkhs) begin
+        ff0_init_done <= dphy_init_done;
+        ff1_init_done <= ff0_init_done;
+    end
 
     /*
-    jelly3_axi4s_if
-            #(
-                .USE_LAST   (1                      ),
-                .USE_USER   (1                      ),
-                .DATA_BITS  (2*10                   ),
-                .USER_BITS  (1                      ),
-                .DEBUG      ("true"                 )
-            )
-        axi4s_dphy_video
-            (
-                .aresetn    (~dphy_txbyteclkhs_reset),
-                .aclk       (dphy_txbyteclkhs       ),
-                .aclken     (1'b1                   )
-            );
-    
-    logic   [9:0]   fifo_data_count;
-    jelly3_axi4s_fifo
-            #(
-                .ASYNC          (1                  ),
-                .PTR_BITS       (9                  ),
-                .RAM_TYPE       ("block"            ),
-                .LOW_DEALY      (0                  ),
-                .DOUT_REGS      (1                  ),
-                .S_REGS         (1                  ),
-                .M_REGS         (1                  )
-            )
-        u_axi4s_fifo
-            (
-                .s_axi4s        (axi4s_python_2lane ),
-                .m_axi4s        (axi4s_dphy_video   ),
-                .s_free_count   (),
-                .m_data_count   (fifo_data_count    )
-            );
-        
-//  assign axi4s_dphy_video.tready = 1'b1;
+    always_ff @(posedge dphy_txbyteclkhs) begin
+        if ( dphy_txbyteclkhs_reset || !ff1_init_done ) begin
+            dphy_cl_txrequesths  <= 1'b0;
+            dphy_dl0_txrequesths <= 1'b0;
+            dphy_dl1_txrequesths <= 1'b0;
+//          dphy_dl0_txdatahs    <= '0;
+//          dphy_dl1_txdatahs    <= '0;
+        end
+        else begin
+            dphy_cl_txrequesths <= 1'b1;
+
+            if ( dphy_dl0_txreadyhs ) begin
+                dphy_dl0_txdatahs <= dphy_dl0_txdatahs + 1;
+            end
+            if ( dphy_dl1_txreadyhs ) begin
+                dphy_dl1_txdatahs <= dphy_dl1_txdatahs - 1;
+            end
+        end
+    end
     */
 
-    /*
-    jelly3_axi4s_if
-            #(
-                .USE_LAST   (1                      ),
-                .USE_USER   (1                      ),
-                .DATA_BITS  (2*10                   ),
-                .USER_BITS  (1                      ),
-                .DEBUG      ("true"                 )
-            )
-        axi4s_dphy_csi
-            (
-                .aresetn    (~dphy_txbyteclkhs_reset),
-                .aclk       (dphy_txbyteclkhs       ),
-                .aclken     (1'b1                   )
-            );
-    
-    video_to_mipi
-        u_video_to_mipi
-            (
-                .frame_start    (),
-                .frame_end      (),
-                .data_type      (),
-                .wc             (),
-
-                .s_axi4s_video  (axi4s_dphy_video   ),
-                .m_axi4s_mipi   ()
-            );
-    */
-
+    assign dphy_dl0_txrequesths  = axi4s_csi_dphy.tvalid;
+    assign dphy_dl1_txrequesths  = axi4s_csi_dphy.tvalid;
+    assign dphy_dl0_txdatahs     = axi4s_csi_dphy.tdata[7:0]   ;
+    assign dphy_dl1_txdatahs     = axi4s_csi_dphy.tdata[15:8]  ;
+    assign axi4s_csi_dphy.tready = ff1_init_done && dphy_dl0_txreadyhs;
 
 
     // Blinking LED
@@ -796,6 +762,7 @@ module rtcl_spartan7_python300
     end
     */
 
+    /*
     (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_data0;
     (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_data1;
     (* MARK_DEBUG = "true" *)   logic   [3:0]   dbg_python_data2;
@@ -808,6 +775,7 @@ module rtcl_spartan7_python300
         dbg_python_data3 <= python_data[3];
         dbg_python_sync  <= python_data[4];
     end
+    */
 
 endmodule
 

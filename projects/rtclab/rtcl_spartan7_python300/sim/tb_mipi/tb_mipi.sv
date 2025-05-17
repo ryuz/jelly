@@ -22,7 +22,10 @@ module tb_mipi();
     localparam RATE360 = 1000.0/360.00;
     localparam RATE180 = 1000.0/180.00;
     localparam RATE250 = 1000.0/250.00;
+    localparam RATE500 = 1000.0/500.00;
 
+    logic       reset = 1'b1;
+    initial #8000 reset = 1'b0;
 
     logic       clk50 = 1'b1;
     initial forever #(RATE50/2.0) clk50 = ~clk50;
@@ -39,6 +42,8 @@ module tb_mipi();
     logic       clk250 = 1'b1;
     initial forever #(RATE250/2.0) clk250 = ~clk250;
 
+    logic       clk500 = 1'b1;
+    initial forever #(RATE500/2.0) clk500 = ~clk500;
 
     // ---------------------------------
     //  DUT
@@ -162,6 +167,82 @@ module tb_mipi();
 //  initial begin
 //      force u_top.python_clk = clk180;
 //  end
+
+
+    logic               rxreseths   ;
+    logic               rxbyteclkhs ;
+    logic   [1:0][7:0]  rxdatahs    ;
+    logic   [1:0]       rxvalidhs   ;
+    logic   [1:0]       rxactivehs  ;
+    logic   [1:0]       rxsynchs    ;
+
+    assign  rxreseths   = u_top.dphy_txbyteclkhs_reset ;
+    assign  rxbyteclkhs = u_top.dphy_txbyteclkhs       ;
+    always_ff @(posedge rxbyteclkhs) begin
+        if ( rxreseths ) begin
+            rxdatahs    <= '0;
+            rxvalidhs   <= '0;
+        end
+        else begin
+            rxdatahs    <= {u_top.dphy_dl1_txdatahs,  u_top.dphy_dl0_txdatahs  };
+            rxvalidhs   <= {u_top.dphy_dl1_txreadyhs, u_top.dphy_dl0_txreadyhs };
+        end
+    end
+
+    assign  rxsynchs   = ~rxvalidhs & {u_top.dphy_dl1_txreadyhs, u_top.dphy_dl0_txreadyhs };
+    assign  rxactivehs = rxsynchs | rxvalidhs;
+
+    logic               mipi_ecc_corrected;
+    logic               mipi_ecc_error;
+    logic               mipi_ecc_valid;
+    logic               mipi_crc_error;
+    logic               mipi_crc_valid;
+    logic               mipi_packet_lost;
+    logic               mipi_fifo_overflow;
+
+    logic               axi4s_csi2_tuser ;
+    logic               axi4s_csi2_tlast ;
+    logic   [7:0]       axi4s_csi2_tdata ;
+    logic               axi4s_csi2_tvalid;
+
+    jelly2_mipi_csi2_rx
+            #(
+                .LANES              (2),
+                .DATA_WIDTH         (10),
+                .M_FIFO_ASYNC       (1),
+                .M_FIFO_PTR_WIDTH   (10)
+            )
+        u_mipi_csi2_rx
+            (
+                .aresetn            (~reset             ),
+                .aclk               (clk500             ),
+
+                .param_data_type    (8'h2b              ),
+
+                .ecc_corrected      (mipi_ecc_corrected ),
+                .ecc_error          (mipi_ecc_error     ),
+                .ecc_valid          (mipi_ecc_valid     ),
+                .crc_error          (mipi_crc_error     ),
+                .crc_valid          (mipi_crc_valid     ),
+                .packet_lost        (mipi_packet_lost   ),
+                .fifo_overflow      (mipi_fifo_overflow ),
+                
+                .rxreseths          ,
+                .rxbyteclkhs        ,
+                .rxdatahs           ,
+                .rxvalidhs          ,
+                .rxactivehs         ,
+                .rxsynchs           ,
+                
+                .m_axi4s_aresetn    (~reset             ),
+                .m_axi4s_aclk       (clk500             ),
+                .m_axi4s_tuser      (axi4s_csi2_tuser   ),
+                .m_axi4s_tlast      (axi4s_csi2_tlast   ),
+                .m_axi4s_tdata      (axi4s_csi2_tdata   ),
+                .m_axi4s_tvalid     (axi4s_csi2_tvalid  ),
+                .m_axi4s_tready     (1'b1               )  // (axi4s_csi2_tready)
+            );
+    
 
     // ---------------------------------
     //  Testbench
