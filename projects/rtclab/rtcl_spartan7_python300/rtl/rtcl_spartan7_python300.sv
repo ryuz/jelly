@@ -632,7 +632,7 @@ module rtcl_spartan7_python300
                 .m_data_count   (fifo_data_count    )
             );
     */
-
+    
     jelly2_fifo_async_fwtf
             #(
                 .DATA_WIDTH     (2+16                       ),
@@ -669,14 +669,13 @@ module rtcl_spartan7_python300
                 .m_data_count   (fifo_data_count            )
             );
     
-
     
     // dphy
     jelly3_axi4s_if
             #(
                 .USE_LAST   (1                      ),
                 .USE_USER   (1                      ),
-                .DATA_BITS  (2*10                   ),
+                .DATA_BITS  (2*8                    ),
                 .USER_BITS  (1                      ),
                 .DEBUG      ("true"                 )
             )

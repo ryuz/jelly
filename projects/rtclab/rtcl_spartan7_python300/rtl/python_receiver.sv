@@ -131,13 +131,9 @@ module python_receiver
 
 
     // insert FF
-    logic   [CHANNELS-1:0][1:0] ff_data    ;
-    logic                 [1:0] ff_sync    ;
     always_ff @(posedge out_clk) begin
-        ff_data  <= iddr_data;
-        ff_sync  <= iddr_sync;
-        out_data <= ff_data;
-        out_sync <= ff_sync;
+        out_data  <= iddr_data;
+        out_sync  <= iddr_sync;
     end
 
 endmodule
