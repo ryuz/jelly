@@ -522,6 +522,17 @@ module rtcl_spartan7_python300
                 .m_valid        (python_align_valid )
             );
 
+    logic   python_frame_start;
+    always_ff @(posedge python_clk) begin
+        if ( python_reset ) begin
+            python_frame_start <= 1'b0;
+        end
+        else begin
+            python_frame_start <= (python_align_valid && python_align_sync == 10'h22a);
+        end
+    end
+
+
     // to stream
     jelly3_axi4s_if
             #(
@@ -570,6 +581,36 @@ module rtcl_spartan7_python300
                 .m_axi4s    (axi4s_python_1lane )
             );
 
+    localparam IMG_WIDTH = 256;
+
+    logic   [11:0]  trim_len = IMG_WIDTH-1;
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST       (1                  ),
+                .USE_USER       (1                  ),
+                .DATA_BITS      (1*10               ),
+                .USER_BITS      (1                  ),
+                .DEBUG          ("true"             )
+            )
+        axi4s_python_trim
+            (
+                .aresetn        (~python_reset      ),
+                .aclk           (python_clk         ),
+                .aclken         (1'b1               )
+            );
+
+    line_trimming
+            #(
+                .LEN_BITS       (12                 )
+
+            )
+        u_line_trimming
+            (
+                .len            (trim_len           ),
+                .s_axi4s        (axi4s_python_1lane ),
+                .m_axi4s        (axi4s_python_trim  )
+            );
 
     // RAW10
     jelly3_axi4s_if
@@ -590,7 +631,8 @@ module rtcl_spartan7_python300
     pack_csi_raw10
         u_pack_csi_raw10
             (
-                .s_axi4s        (axi4s_python_1lane ),
+//              .s_axi4s        (axi4s_python_1lane ),
+                .s_axi4s        (axi4s_python_trim  ),
                 .m_axi4s        (axi4s_csi_raw10    )
             );
 
@@ -671,6 +713,23 @@ module rtcl_spartan7_python300
     assign axi4s_csi_raw10.tready = 1'b1;
     
     // dphy
+    logic   dphy_frame_start;
+    jelly_pulse_async
+            #(
+                .ASYNC      (1                      )
+            )
+        u_pulse_async
+            (
+                .s_reset    (python_reset           ),
+                .s_clk      (python_clk             ),
+                .s_pulse    (python_frame_start     ),
+
+                .m_reset    (dphy_txbyteclkhs_reset ),
+                .m_clk      (dphy_txbyteclkhs       ),
+                .m_pulse    (dphy_frame_start       )
+            );
+    
+
     jelly3_axi4s_if
             #(
                 .USE_LAST   (1                      ),
@@ -689,10 +748,10 @@ module rtcl_spartan7_python300
     generate_csi_packet
         u_generate_csi_packet
             (
-                .frame_start    (1'b0               ),
+                .frame_start    (dphy_frame_start   ),
                 .frame_end      (1'b0               ),
                 .data_type      (8'h2b              ),
-                .wc             (256*5/4            ),
+                .wc             (IMG_WIDTH*5/4      ),
 
                 .s_axi4s        (axi4s_csi_fifo     ),
                 .m_axi4s        (axi4s_csi_dphy     )

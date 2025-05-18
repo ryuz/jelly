@@ -543,11 +543,11 @@ module zybo_z7_rtcl_py300
     wire            axi4s_cam_aresetn = ~sys_reset;
     wire            axi4s_cam_aclk    = sys_clk200;
     
-    wire    [0:0]   axi4s_csi2_tuser;
-    wire            axi4s_csi2_tlast;
-    wire    [9:0]   axi4s_csi2_tdata;
-    wire            axi4s_csi2_tvalid;
-    wire            axi4s_csi2_tready;
+    (* mark_debug="true" *) wire    [0:0]   axi4s_csi2_tuser;
+    (* mark_debug="true" *) wire            axi4s_csi2_tlast;
+    (* mark_debug="true" *) wire    [9:0]   axi4s_csi2_tdata;
+    (* mark_debug="true" *) wire            axi4s_csi2_tvalid;
+    (* mark_debug="true" *) wire            axi4s_csi2_tready;
     
     jelly_mipi_csi2_rx
             #(
@@ -578,11 +578,11 @@ module zybo_z7_rtcl_py300
     
     
     // normalize
-    wire    [0:0]               axi4s_fmtr_tuser;
-    wire                        axi4s_fmtr_tlast;
-    wire    [9:0]               axi4s_fmtr_tdata;
-    wire                        axi4s_fmtr_tvalid;
-    wire                        axi4s_fmtr_tready;
+    (* mark_debug="true" *) wire    [0:0]               axi4s_fmtr_tuser;
+    (* mark_debug="true" *) wire                        axi4s_fmtr_tlast;
+    (* mark_debug="true" *) wire    [9:0]               axi4s_fmtr_tdata;
+    (* mark_debug="true" *) wire                        axi4s_fmtr_tvalid;
+    (* mark_debug="true" *) wire                        axi4s_fmtr_tready;
     
     wire    [WB_DAT_WIDTH-1:0]  wb_fmtr_dat_o;
     wire                        wb_fmtr_stb_i;

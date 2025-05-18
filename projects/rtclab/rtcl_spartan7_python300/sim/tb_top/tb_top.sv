@@ -192,145 +192,32 @@ module tb_top();
 
     initial begin
         int width, height;
-        logic   [9:0] data0;
-        logic   [9:0] data1;
-        logic   [9:0] data2;
-        logic   [9:0] data3;
-
-        @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
-        @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
-        @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
-
-        width  = 256;
+        width  = 640;//256;
         height = 64;
 
+        @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
+        @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
+        @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
+
+
         // trainng pattern
-//        for ( int i = 0; i < 2000; i++ ) begin
-//            send_python_10bit(10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6);
-//        end
         send_python_train(2000);
 
+        // frame
         forever begin
-            data0 = 0;
-            data1 = 1;
-            data2 = 2;
-            data3 = 3;
-
             send_python_train(256);     // balank
             send_python_line(10'h22a, 10'h12a, 10'h015, 10'h000, 1280); // OPB
-            send_python_line(10'h2aa, 10'h12a, 10'h035, 10'h000, 256);  // 1st line
-            for ( int l = 0; l < 64-2; l++ ) begin
-                send_python_line(10'h0aa, 10'h12a, 10'h035, 10'h000, 256);  // 1st line
+            send_python_line(10'h2aa, 10'h12a, 10'h035, 10'h000, width);  // 1st line
+            for ( int l = 0; l < height-2; l++ ) begin
+                send_python_line(10'h0aa, 10'h12a, 10'h035, 10'h000, width);  // 1st line
             end
-            send_python_line(10'h0aa, 10'h3aa, 10'h035, 10'h000, 256);  // 1st line
-
-            // balank
-            /*
-            for ( int i = 0; i < 256; i++ ) begin
-                send_python_10bit(10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6);
-            end
-
-            // optical black
-            send_python_10bit(10'h011, 10'h012, 10'h013, 10'h014, 10'h22a); // start
-            send_python_10bit(10'h011, 10'h012, 10'h013, 10'h014, 10'h000);
-            for ( int i = 0; i < 320-4; i++ ) begin
-                send_python_10bit(10'h011, 10'h012, 10'h013, 10'h014, 10'h015);
-            end
-            send_python_10bit(10'h011, 10'h012, 10'h013, 10'h014, 10'h12a); // end
-            send_python_10bit(10'h011, 10'h012, 10'h013, 10'h014, 10'h000);
-            send_python_10bit(10'h3ff, 10'h3ff, 10'h3ff, 10'h3ff, 10'h059); // CRC
-
-            // balank
-            for ( int i = 0; i < 67; i++ ) begin
-                send_python_10bit(10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6);
-            end
-
-            data0 = 0;
-            data1 = 1;
-            data2 = 2;
-            data3 = 3;
-
-            // line (1st)
-            send_python_10bit(data0, data1, data2, data3, 10'h2aa); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            send_python_10bit(data0, data1, data2, data3, 10'h000); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            for ( int i = 0; i < 256/4-4; i++ ) begin
-                send_python_10bit(data0, data1, data2, data3, 10'h035); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            end
-            send_python_10bit(data0, data1, data2, data3, 10'h12a); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            send_python_10bit(data0, data1, data2, data3, 10'h000); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            send_python_10bit(10'h3ff, 10'h3ff, 10'h3ff, 10'h3ff, 10'h059); // CRC
-
-            // balank
-            for ( int i = 0; i < 67; i++ ) begin
-                send_python_10bit(10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6);
-            end
-
-            for ( int l = 0; l < 64-2; l++ ) begin
-                // line
-                send_python_10bit(data0, data1, data2, data3, 10'h0aa); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-                send_python_10bit(data0, data1, data2, data3, 10'h000); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-                for ( int i = 0; i < 256/4-4; i++ ) begin
-                    send_python_10bit(data0, data1, data2, data3, 10'h035); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-                end
-                send_python_10bit(data0, data1, data2, data3, 10'h12a); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-                send_python_10bit(data0, data1, data2, data3, 10'h000); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-                send_python_10bit(10'h3ff, 10'h3ff, 10'h3ff, 10'h3ff, 10'h059); // CRC
-
-                // balank
-                for ( int i = 0; i < 67; i++ ) begin
-                    send_python_10bit(10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6);
-                end
-            end
-
-            // line (last)
-            send_python_10bit(data0, data1, data2, data3, 10'h0aa); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            send_python_10bit(data0, data1, data2, data3, 10'h000); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            for ( int i = 0; i < 256/4-4; i++ ) begin
-                send_python_10bit(data0, data1, data2, data3, 10'h035); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            end
-            send_python_10bit(data0, data1, data2, data3, 10'h3aa); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            send_python_10bit(data0, data1, data2, data3, 10'h000); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-            send_python_10bit(10'h3ff, 10'h3ff, 10'h3ff, 10'h3ff, 10'h059); // CRC
-
-            // balank
-            for ( int i = 0; i < 67; i++ ) begin
-                send_python_10bit(10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6);
-            end
-            */
-
+            send_python_line(10'h0aa, 10'h3aa, 10'h035, 10'h000, width);  // 1st line
         end
-
-        ////////////
-        forever begin
-            send_python_10bit(10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6, 10'h3a6);
-        end
-        
-        /*
-        forever begin
-            @(python_clk_p)  python_data_p = '1;
-            @(python_clk_p)  python_data_p = '1;
-            
-            @(python_clk_p)  python_data_p = '1;
-            @(python_clk_p)  python_data_p = '0;
-            
-            @(python_clk_p)  python_data_p = '1;
-            @(python_clk_p)  python_data_p = '0;
-            
-            @(python_clk_p)  python_data_p = '0;
-            @(python_clk_p)  python_data_p = '1;
-
-            @(python_clk_p)  python_data_p = '1;
-            @(python_clk_p)  python_data_p = '0;
-        end
-        */
     end
 
 
-//  initial begin
-//      force u_top.python_clk = clk180;
-//  end
 
-
+    // MIPI RX
     logic               rxreseths   ;
     logic               rxbyteclkhs ;
     logic   [1:0][7:0]  rxdatahs    ;
