@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     spi_change(i2c, 72, 0x2227);
     spi_change(i2c, 112, 0x7);
 
-    spi_change(i2c, 199, 0x255);    // exposure
+    spi_change(i2c, 199, 0x255*16*8);    // exposure
 
     //    spi_change(i2c, 129, (1 << 13) | 1); // 8bit mode
 
@@ -198,7 +198,53 @@ int main(int argc, char *argv[])
         spi_change(i2c, 192, 0x1);  // 動作開始
     }
 
+    // normalizer start
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,  100000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,      width);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,     height);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,       0x000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,    0x100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,      0x03);
+    usleep(100000);
 
+    int exposure = 0x255;
+    cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
+    cv::createTrackbar("exposure",    "img", nullptr, 65535);
+    cv::setTrackbarMin("exposure",    "img", 16);
+    cv::setTrackbarPos("exposure",    "img", exposure);
+
+    int key;
+    while ( (key = (cv::waitKey(100) & 0xff)) != 0x1b ) {
+        vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
+        cv::Mat img(height, width, CV_32S);
+        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
+        cv::Mat img_u16;
+        img.convertTo(img_u16, CV_16U, 65535.0/1023.0);
+        // 最大値に合わせて正規化
+        cv::Mat img_view;
+        cv::normalize(img_u16, img_view, 0, 65535, cv::NORM_MINMAX);
+        cv::imshow("img", img_view);
+        cv::imshow("img_u16", img_u16);
+
+        // トラックバー値取得
+        exposure = cv::getTrackbarPos("exposure", "img");
+        // 設定
+        spi_change(i2c, 199, exposure);  // 動作開始
+
+
+        switch ( key ) {
+        case 'd':
+            printf("dump\n");
+            cv::imwrite("img_u16.png", img_u16);
+            cv::imwrite("img.png", img_view);
+            break;
+        }
+    }
+
+
+
+#if 0
 //  usleep(10000000);
     while (1) {
         printf("$ ");
@@ -263,6 +309,8 @@ int main(int argc, char *argv[])
             cv::Mat img(height, width, CV_32S);
             udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
             cv::Mat img_u16;
+            img.convertTo(img_u16, CV_16U);
+            cv::imwrite("img_u16.png", img_u16);
             img.convertTo(img_u16, CV_16U, 65535.0/1023.0);
             cv::imwrite("img.png", img_u16);
 
@@ -294,7 +342,7 @@ int main(int argc, char *argv[])
         }
     }
     reg_dump(i2c, "reg_end.log");
-
+#endif
 
     std::cout << "OFF" << std::endl;
     reg_sys.WriteReg(2, 0);
