@@ -9,25 +9,10 @@ module rtcl_p3s7_dphy
             output  var logic   [1:0]   led                     ,
             output  var logic   [7:0]   pmod                    ,
 
-
-
             output  var logic           sensor_pwr_en_vdd18     ,
             output  var logic           sensor_pwr_en_vdd33     ,
             output  var logic           sensor_pwr_en_pix       ,
             input   var logic           sensor_pgood            ,
-
-            output  var logic           mipi_clk_lp_p           ,
-            output  var logic           mipi_clk_lp_n           ,
-            output  var logic           mipi_clk_hs_p           ,
-            output  var logic           mipi_clk_hs_n           ,
-            output  var logic   [1:0]   mipi_data_lp_p          ,
-            output  var logic   [1:0]   mipi_data_lp_n          ,
-            output  var logic   [1:0]   mipi_data_hs_p          ,
-            output  var logic   [1:0]   mipi_data_hs_n          ,
-            input   var logic           mipi_reset_n            ,
-            input   var logic           mipi_clk                ,
-            inout   tri logic           mipi_scl                ,
-            inout   tri logic           mipi_sda                ,
 
             output  var logic           python_reset_n          ,
             output  var logic           python_clk_pll          ,
@@ -42,7 +27,20 @@ module rtcl_p3s7_dphy
             input   var logic   [3:0]   python_data_p           ,
             input   var logic   [3:0]   python_data_n           ,
             input   var logic           python_sync_p           ,
-            input   var logic           python_sync_n           
+            input   var logic           python_sync_n           ,
+
+            input   var logic           mipi_reset_n            ,
+            input   var logic           mipi_clk                ,
+            inout   tri logic           mipi_scl                ,
+            inout   tri logic           mipi_sda                ,
+            output  var logic           mipi_clk_lp_p           ,
+            output  var logic           mipi_clk_lp_n           ,
+            output  var logic           mipi_clk_hs_p           ,
+            output  var logic           mipi_clk_hs_n           ,
+            output  var logic   [1:0]   mipi_data_lp_p          ,
+            output  var logic   [1:0]   mipi_data_lp_n          ,
+            output  var logic   [1:0]   mipi_data_hs_p          ,
+            output  var logic   [1:0]   mipi_data_hs_n          
         );
 
     // ---------------------------------
@@ -207,17 +205,29 @@ module rtcl_p3s7_dphy
                 .m_axi4l        (axi4l          )
             );
 
-    assign axi4l.awready = 1'b1;
-    assign axi4l.wready  = 1'b1;
-    assign axi4l.arready = 1'b1;
+//    assign axi4l.awready = 1'b1;
+//    assign axi4l.wready  = 1'b1;
+//    assign axi4l.arready = 1'b1;
 
-    logic   [4:0]   ctl_bitslip;
+
+                                logic           ctl_iserdes_reset   ;
+                                logic   [4:0]   ctl_iserdes_bitslip ;
+                                logic           ctl_align_reset     ;
+                                logic   [9:0]   ctl_align_pattern   ;
+    (* MARK_DEBUG = "true" *)   logic           ctl_calib_done      ;
+    (* MARK_DEBUG = "true" *)   logic           ctl_calib_error     ;
+
     py300_control
         u_py300_control
             (
-                .s_axi4l        (axi4l          ),
+                .s_axi4l                (axi4l                  ),
 
-                .out_bitslip    (ctl_bitslip    )
+                .out_iserdes_reset      (ctl_iserdes_reset      ),
+                .out_iserdes_bitslip    (ctl_iserdes_bitslip    ),
+                .out_align_reset        (ctl_align_reset        ),
+                .out_align_pattern      (ctl_align_pattern      ),
+                .in_calib_done          (ctl_calib_done         ),
+                .in_calib_error         (ctl_calib_error        )
             );
     
 
@@ -398,7 +408,6 @@ module rtcl_p3s7_dphy
             dphy_dl1_txdatahs    <= '0;
 
             mipi_test_count      <= '0;
-
         end
         else begin
             dphy_cl_txrequesths <= 1'b1;
@@ -491,28 +500,26 @@ module rtcl_p3s7_dphy
     logic               async_valid     ;
     jelly2_data_async
             #(
-                .ASYNC          (1      ),
-                .DATA_WIDTH     (5      )
+                .ASYNC          (1                      ),
+                .DATA_WIDTH     (5                      )
             )
         u_data_async
             (
-                .s_reset        (~axi4l.aresetn ),
-                .s_clk          (axi4l.aclk     ),
-                .s_data         (ctl_bitslip    ),
-                .s_valid        (|ctl_bitslip   ),
-                .s_ready        (               ),
+                .s_reset        (~axi4l.aresetn         ),
+                .s_clk          (axi4l.aclk             ),
+                .s_data         (ctl_iserdes_bitslip    ),
+                .s_valid        (|ctl_iserdes_bitslip   ),
+                .s_ready        (                       ),
 
-                .m_reset        (io_reset       ),
-                .m_clk          (python_clk     ),
-                .m_data         (async_bitslip  ),
-                .m_valid        (async_valid    ),
-                .m_ready        (1'b1           )
+                .m_reset        (io_reset               ),
+                .m_clk          (python_clk             ),
+                .m_data         (async_bitslip          ),
+                .m_valid        (async_valid            ),
+                .m_ready        (1'b1                   )
         );
-    always_ff @(posedge python_clk) begin
-        python_bitslip <= async_valid ? async_bitslip : '0;
-    end
 
-    logic   [7:0]   io_reset_cnt;
+    /*
+    logic   [7:0]   io_reset_cnt = '1;
     always_ff @(posedge python_clk or posedge reset) begin
         if ( reset ) begin
             io_reset_cnt <= '1;
@@ -525,13 +532,169 @@ module rtcl_p3s7_dphy
             io_reset <= (io_reset_cnt != 0);
         end
     end
+    */
+    jelly_reset
+            #(
+                .COUNTER_WIDTH  (4                          )
+            )
+        u_reset
+            (
+                .clk            (python_clk                 ),
+                .in_reset       (reset | ctl_iserdes_reset  ),
+                .out_reset      (io_reset                   )
+            );
 
     logic   [4:0][3:0]   python_data    ;
     for ( genvar i = 0; i < 5; i++ ) begin
         for ( genvar j = 0; j < 4; j++ ) begin
-            assign python_data[i][j] = python_data_tmp[j*5 + i];
+            assign python_data[i][3-j] = python_data_tmp[j*5 + i];
         end
     end
+
+    (* MARK_DEBUG = "true" *)   logic   [4:0]       python_align_bitslip   ;
+    (* MARK_DEBUG = "true" *)   logic   [3:0][9:0]  python_align_data      ;
+    (* MARK_DEBUG = "true" *)   logic        [9:0]  python_align_sync      ;
+    (* MARK_DEBUG = "true" *)   logic               python_align_valid     ;
+
+    py300_align_10bit
+        u_py300_align_10bit
+            (
+                .reset          (io_reset               ),
+                .clk            (python_clk             ),
+                
+                .sw_reset       (ctl_align_reset        ),
+                .pattern        (ctl_align_pattern      ),
+                .bitslip        (python_align_bitslip   ),
+                .calib_done     (ctl_calib_done         ),
+                .calib_error    (ctl_calib_error        ),
+                
+                .s_data         (python_data[3:0]       ),
+                .s_sync         (python_data[4]         ),
+                .s_valid        (1'b1                   ),
+
+                .m_data         (python_align_data      ),
+                .m_sync         (python_align_sync      ),
+                .m_valid        (python_align_valid     )
+            );
+
+    always_ff @(posedge python_clk) begin
+        python_bitslip <= python_align_bitslip | (async_valid ? async_bitslip : '0);
+    end
+
+    // to stream
+    jelly3_axi4s_if
+            #(
+                .USE_LAST   (1          ),
+                .USE_USER   (1          ),
+                .DATA_BITS  (4*10       ),
+                .USER_BITS  (1          ),
+                .DEBUG      ("true"     )
+            )
+        axi4s_python_4lane
+            (
+                .aresetn    (~io_reset  ),
+                .aclk       (python_clk ),
+                .aclken     (1'b1       )
+            );
+
+    python_to_axi4s
+        u_python_to_axi4s
+            (
+                .s_data     (python_align_data  ),
+                .s_sync     (python_align_sync  ),
+                .s_valid    (python_align_valid ),
+                .m_axi4s    (axi4s_python_4lane )
+            );
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST   (1          ),
+                .USE_USER   (1          ),
+                .DATA_BITS  (2*10       ),
+                .USER_BITS  (1          ),
+                .DEBUG      ("true"     )
+            )
+        axi4s_python_2lane
+            (
+                .aresetn    (~io_reset  ),
+                .aclk       (python_clk ),
+                .aclken     (1'b1       )
+            );
+    
+    lane_conv_4to2
+        u_lane_conv_4to2
+            (
+                .s_axi4s    (axi4s_python_4lane ),
+                .m_axi4s    (axi4s_python_2lane )
+            );
+
+//  assign axi4s_python_2lane.tready = 1'b1;
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST   (1                      ),
+                .USE_USER   (1                      ),
+                .DATA_BITS  (2*10                   ),
+                .USER_BITS  (1                      ),
+                .DEBUG      ("true"                 )
+            )
+        axi4s_dphy_video
+            (
+                .aresetn    (~dphy_txbyteclkhs_reset),
+                .aclk       (dphy_txbyteclkhs       ),
+                .aclken     (1'b1                   )
+            );
+    
+    logic   [9:0]   fifo_data_count;
+    jelly3_axi4s_fifo
+            #(
+                .ASYNC          (1                  ),
+                .PTR_BITS       (9                  ),
+                .RAM_TYPE       ("block"            ),
+                .LOW_DEALY      (0                  ),
+                .DOUT_REGS      (1                  ),
+                .S_REGS         (1                  ),
+                .M_REGS         (1                  )
+            )
+        u_axi4s_fifo
+            (
+                .s_axi4s        (axi4s_python_2lane ),
+                .m_axi4s        (axi4s_dphy_video   ),
+                .s_free_count   (),
+                .m_data_count   (fifo_data_count    )
+            );
+        
+//  assign axi4s_dphy_video.tready = 1'b1;
+
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST   (1                      ),
+                .USE_USER   (1                      ),
+                .DATA_BITS  (2*10                   ),
+                .USER_BITS  (1                      ),
+                .DEBUG      ("true"                 )
+            )
+        axi4s_dphy_csi
+            (
+                .aresetn    (~dphy_txbyteclkhs_reset),
+                .aclk       (dphy_txbyteclkhs       ),
+                .aclken     (1'b1                   )
+            );
+    
+    video_to_mipi
+        u_video_to_mipi
+            (
+                .frame_start    (),
+                .frame_end      (),
+                .data_type      (),
+                .wc             (),
+
+                .s_axi4s_video  (axi4s_dphy_video   ),
+                .m_axi4s_mipi   ()
+            );
+    
+
 
 
     // Blinking LED

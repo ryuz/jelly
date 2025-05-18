@@ -4,7 +4,7 @@
     "xci_name": "mipi_dphy_0",
     "component_reference": "xilinx.com:ip:mipi_dphy:4.3",
     "ip_revision": "8",
-    "gen_directory": "../../../../rtcl_p3s7_dphy.gen/sources_1/ip/mipi_dphy_0",
+    "gen_directory": "rtcl_p3s7_dphy.gen/sources_1/ip/mipi_dphy_0",
     "parameters": {
       "component_parameters": {
         "C_S50_LOGIC": [ { "value": "0", "resolve_type": "user", "usage": "all" } ],
@@ -309,7 +309,7 @@
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "8" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../rtcl_p3s7_dphy.gen/sources_1/ip/mipi_dphy_0" } ],
+        "OUTPUTDIR": [ { "value": "rtcl_p3s7_dphy.gen/sources_1/ip/mipi_dphy_0" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2023.2" } ],
