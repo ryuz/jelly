@@ -59,6 +59,29 @@ void reg_dump(jelly::I2cAccessor &i2c, const char *fname) {
     fclose(fp);
 }
 
+void load_setting(jelly::I2cAccessor &i2c) {
+    FILE* fp = fopen("reg_list.txt", "r");
+    if ( fp == nullptr ) {
+        std::cout << "reg_list.txt open error" << std::endl;
+        return;
+    }
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        char *p = line;
+        // skip leading whitespace
+        while (*p == ' ' || *p == '\t') ++p;
+        if (*p == '\0' || *p == '#') continue; // skip empty/comment
+        unsigned int addr, data;
+        int n = sscanf(p, "%i %i", &addr, &data);
+        if (n == 2) {
+            spi_change(i2c, (std::uint16_t)addr, (std::uint16_t)data);
+        } else {
+            std::cout << "parse error: " << line;
+        }
+    }
+    fclose(fp);
+}
+
 #define REGADR_CORE_ID          0x0000
 #define REGADR_CORE_VERSION     0x0001
 #define REGADR_ISERDES_RESET    0x0010
@@ -170,10 +193,21 @@ int main(int argc, char *argv[])
     // 16-1 -> 28  32
     // 20-1 -> 36  40
     // 32-1 -> 60  64
+    int x_start = 128/8 ;
+    int x_end   = 159   ;
+//  int y_start = 0;
+//  int y_end   = 1023;
+    int y_start = 384-8;
+    int y_end   = 639;
+//    spi_change(i2c, 256, (x_end << 8) | x_start);    // y_end
+//    spi_change(i2c, 257, y_start);    // y_end
+//    spi_change(i2c, 258, y_end);      // y_end
 
 
-    int width  = 128;
-    int height = 128;
+
+    int width  = 256;
+//    int height = 480;//128;
+    int height = 1024;//128;
 
     usleep(1000);
     reg_sys.WriteReg(1, 1); // sw rst
@@ -208,36 +242,83 @@ int main(int argc, char *argv[])
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,      0x03);
     usleep(100000);
 
-    int exposure = 0x255;
+    int exposure = 0;
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
     cv::createTrackbar("exposure",    "img", nullptr, 65535);
-    cv::setTrackbarMin("exposure",    "img", 16);
+    cv::setTrackbarMin("exposure",    "img", 1);
     cv::setTrackbarPos("exposure",    "img", exposure);
 
+
     int key;
+    bool swap = true;
     while ( (key = (cv::waitKey(100) & 0xff)) != 0x1b ) {
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
         cv::Mat img(height, width, CV_32S);
         udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
-        cv::Mat img_u16;
-        img.convertTo(img_u16, CV_16U, 65535.0/1023.0);
+        cv::Mat img_u16(height, width, CV_16U);
+        for ( int y = 0; y < height; y++ ) {
+            for ( int x = 0; x < width; x++ ) {
+                int xx = x;
+                xx = (xx & 0x8) ? (xx ^ 0x7) : xx;
+                xx = ((xx & 0xfff8) | ((xx & 0x6) >> 1) | ((xx & 0x1) << 2));
+                if ( !swap ) { xx = x; }
+                img_u16.at<std::uint16_t>(y, x) = img.at<std::int32_t>(y, xx);
+            }
+        }
+//      cv::Mat img_u16;
+//      img.convertTo(img_u16, CV_16U, 65535.0/1023.0);
         // 最大値に合わせて正規化
         cv::Mat img_view;
         cv::normalize(img_u16, img_view, 0, 65535, cv::NORM_MINMAX);
         cv::imshow("img", img_view);
-        cv::imshow("img_u16", img_u16);
+        cv::imshow("img_u16", img_u16 * (65536/1024));
 
         // トラックバー値取得
         exposure = cv::getTrackbarPos("exposure", "img");
+//      x_shift  = cv::getTrackbarPos("x_shift", "img");
         // 設定
-        spi_change(i2c, 199, exposure);  // 動作開始
+//      spi_change(i2c, 199, exposure);
 
 
         switch ( key ) {
+        case 'l':
+            printf("load\n");
+            load_setting(i2c);
+            break;
+
         case 'd':
             printf("dump\n");
             cv::imwrite("img_u16.png", img_u16);
             cv::imwrite("img.png", img_view);
+            break;
+        
+        case 's':
+            swap = !swap;
+            printf("swap %d\n", swap);
+            break;
+
+        case 'c':
+            // calib
+            printf("calib\n");
+            spi_change(i2c, 192, 0x0);  // 動作停止
+            usleep(10000);
+            cmd_write(i2c,  REGADR_ISERDES_RESET, 1);
+            cmd_write(i2c,  REGADR_ALIGN_RESET  , 1);
+            usleep(10000);
+            cmd_write(i2c,  REGADR_ISERDES_RESET, 0);
+            usleep(10000);
+            cmd_write(i2c,  REGADR_ALIGN_RESET  , 0);
+            usleep(10000);
+            std::cout << "REGADR_CALIB_STATUS : " << cmd_read(i2c,  REGADR_CALIB_STATUS) << std::endl;
+            spi_change(i2c, 192, 0x1);  // 動作停止
+            break;
+
+        case 'p':
+            printf("sw rst\n");
+            usleep(1000);
+            reg_sys.WriteReg(1, 1); // sw rst
+            usleep(1000);
+            reg_sys.WriteReg(1, 0);
             break;
         }
     }
@@ -345,7 +426,7 @@ int main(int argc, char *argv[])
 #endif
 
     std::cout << "OFF" << std::endl;
-    reg_sys.WriteReg(2, 0);
+    reg_sys.WriteReg(2, 0); // cam_enable = 0
 
     return 0;
 }
