@@ -216,9 +216,13 @@ module rtcl_spartan7_python300
                                 logic   [9:0]   ctl_align_pattern   ;
     (* MARK_DEBUG = "true" *)   logic           ctl_calib_done      ;
     (* MARK_DEBUG = "true" *)   logic           ctl_calib_error     ;
+                                logic   [10:0]  ctl_trim_x_start    ;
+                                logic   [10:0]  ctl_trim_x_end      ;
+                                logic   [7:0]   ctl_csi_data_type   ;
+                                logic   [15:0]  ctl_csi_wc          ;
 
-    py300_control
-        u_py300_control
+    python_control
+        u_python_control
             (
                 .s_axi4l                (axi4l                  ),
 
@@ -227,7 +231,11 @@ module rtcl_spartan7_python300
                 .out_align_reset        (ctl_align_reset        ),
                 .out_align_pattern      (ctl_align_pattern      ),
                 .in_calib_done          (ctl_calib_done         ),
-                .in_calib_error         (ctl_calib_error        )
+                .in_calib_error         (ctl_calib_error        ),
+                .out_trim_x_start       (ctl_trim_x_start       ),
+                .out_trim_x_end         (ctl_trim_x_end         ),
+                .out_csi_data_type      (ctl_csi_data_type      ),
+                .out_csi_wc             (ctl_csi_wc             )
             );
     
 
@@ -581,10 +589,6 @@ module rtcl_spartan7_python300
                 .m_axi4s    (axi4s_python_1lane )
             );
 
-    localparam IMG_WIDTH = 256;
-
-    logic   [11:0]  trim_len = IMG_WIDTH-1;
-
     jelly3_axi4s_if
             #(
                 .USE_LAST       (1                  ),
@@ -602,12 +606,13 @@ module rtcl_spartan7_python300
 
     line_trimming
             #(
-                .LEN_BITS       (12                 )
+                .X_BITS         (11                 )
 
             )
         u_line_trimming
             (
-                .len            (trim_len           ),
+                .x_start        (ctl_trim_x_start   ),
+                .x_end          (ctl_trim_x_end     ),
                 .s_axi4s        (axi4s_python_1lane ),
                 .m_axi4s        (axi4s_python_trim  )
             );
@@ -681,7 +686,7 @@ module rtcl_spartan7_python300
                 .PTR_WIDTH      (9                          ),
                 .DOUT_REGS      (0                          ),
                 .RAM_TYPE       ("block"                    ),
-                .S_REGS         (0                          ),
+                .S_REGS         (1                          ),
                 .M_REGS         (1                          )
             )
         u_fifo_async_fwtf
@@ -750,8 +755,8 @@ module rtcl_spartan7_python300
             (
                 .frame_start    (dphy_frame_start   ),
                 .frame_end      (1'b0               ),
-                .data_type      (8'h2b              ),
-                .wc             (IMG_WIDTH*5/4      ),
+                .data_type      (ctl_csi_data_type  ),
+                .wc             (ctl_csi_wc         ),
 
                 .s_axi4s        (axi4s_csi_fifo     ),
                 .m_axi4s        (axi4s_csi_dphy     )
@@ -845,6 +850,46 @@ module rtcl_spartan7_python300
     // --------------------------------
     //  Debug
     // --------------------------------
+
+    (* MARK_DEBUG = "true" *)   logic   [3:0][9:0]  dbg_python_align_data   ;
+    (* MARK_DEBUG = "true" *)   logic        [9:0]  dbg_python_align_sync   ;
+    (* MARK_DEBUG = "true" *)   logic               dbg_python_align_valid  ;
+   jelly2_fifo_async_fwtf
+            #(
+                .DATA_WIDTH     (4*10+10                    ),
+                .PTR_WIDTH      (3                          ),
+                .DOUT_REGS      (0                          ),
+                .RAM_TYPE       ("distributed"              ),
+                .S_REGS         (0                          ),
+                .M_REGS         (1                          )
+            )
+        u_fifo_async_fwtf_dbg
+            (
+                .s_reset        (python_reset               ),
+                .s_clk          (python_clk                 ),
+                .s_cke          (1'b1                       ),
+                .s_data         ({
+                                    python_align_data,
+                                    python_align_sync
+                                }),
+                .s_valid        (python_align_valid         ),
+                .s_ready        (                           ),
+                .s_free_count   (                           ),
+                
+                .m_reset        (dphy_txbyteclkhs_reset     ),
+                .m_clk          (dphy_txbyteclkhs           ),
+                .m_cke          (1'b1                       ),
+                .m_data         ({
+                                    dbg_python_align_data,
+                                    dbg_python_align_sync
+                                }),
+                .m_valid        (dbg_python_align_valid     ),
+                .m_ready        (1'b1                       ),
+                .m_data_count   (                           )
+            );
+
+
+
 
     /*
     (* MARK_DEBUG = "true" *)   logic   [7:0]   dbg_clk72_counter;

@@ -20,7 +20,16 @@ module generate_csi_packet
             jelly3_axi4s_if.s           s_axi4s         ,
             jelly3_axi4s_if.m           m_axi4s         
         );
-    
+
+    logic   [7:0]   ff_data_type   ;
+    logic   [15:0]  ff_wc          ;
+    always_ff @(posedge s_axi4s.aclk) begin
+        ff_data_type <= data_type;
+        ff_wc        <= wc;
+    end
+
+
+
     logic   [5:0]   ecc_tbl [0:23] = '{
         6'h07, 6'h0b, 6'h0d, 6'h0e, 6'h13, 6'h15, 6'h16, 6'h19,
         6'h1a, 6'h1c, 6'h23, 6'h25, 6'h26, 6'h29, 6'h2a, 6'h2c,
@@ -62,28 +71,28 @@ module generate_csi_packet
                 IDLE:
                     begin
                         if ( frame_start ) begin
-                            reg_id <= 8'h00;
-                            reg_wc <= '0;
-                            state  <= HEADER0;
+                            reg_id <= 8'h00         ;
+                            reg_wc <= '0            ;
+                            state  <= HEADER0       ;
                         end
                         else if ( frame_end ) begin
-                            reg_id <= 8'h01;
-                            reg_wc <= '0;
-                            state  <= HEADER0;
+                            reg_id <= 8'h01         ;
+                            reg_wc <= '0            ;
+                            state  <= HEADER0       ;
                         end
                         else if ( s_axi4s.tvalid ) begin
-                            reg_id <= data_type;
-                            reg_wc <= wc;
-                            state  <= HEADER0;
+                            reg_id <= ff_data_type  ;
+                            reg_wc <= ff_wc         ;
+                            state  <= HEADER0       ;
                         end
                     end
 
                 HEADER0:
                     begin
-                        m_axi4s.tuser  <= 1'b1;
-                        m_axi4s.tlast  <= 1'b0;
-                        m_axi4s.tdata  <= { reg_wc[7:0], reg_id };
-                        m_axi4s.tvalid <= 1'b1;
+                        m_axi4s.tuser  <= 1'b1                      ;
+                        m_axi4s.tlast  <= 1'b0                      ;
+                        m_axi4s.tdata  <= { reg_wc[7:0], reg_id }   ;
+                        m_axi4s.tvalid <= 1'b1                      ;
                         state <= HEADER1;
                     end
                 
@@ -94,6 +103,7 @@ module generate_csi_packet
                         m_axi4s.tdata  <= { 2'd0, calc_ecc({reg_wc, reg_id}) , reg_wc[15:8] };
                         m_axi4s.tvalid <= 1'b1;
                         if ( reg_wc == 16'h00 ) begin
+                            m_axi4s.tlast <= 1'b1;
                             state <= IDLE;
                         end
                         else begin

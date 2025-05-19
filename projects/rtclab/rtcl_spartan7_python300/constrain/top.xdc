@@ -24,6 +24,7 @@ set_max_delay -datapath_only -from [get_clocks clk_out1_clk_mipi_core] -to [get_
 set_max_delay -datapath_only -from [get_clocks dphy_txbyteclkhs]       -to [get_clocks python_clk_p]           2.777
 set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks clk_out1_clk_mipi_core] 5.000
 set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks python_clk_p]           2.777
+set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks dphy_txbyteclkhs]       8.000
 set_max_delay -datapath_only -from [get_clocks python_clk_p]           -to [get_clocks dphy_txbyteclkhs]       2.777
 set_max_delay -datapath_only -from [get_clocks python_clk_p]           -to [get_clocks in_clk72]               2.777
 

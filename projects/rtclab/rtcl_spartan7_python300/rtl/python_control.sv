@@ -9,7 +9,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module py300_control
+module python_control
         #(
             parameter   int             REGADR_BITS          = 8                        ,
             parameter   type            regadr_t             = logic [REGADR_BITS-1:0]  ,
@@ -18,8 +18,12 @@ module py300_control
             parameter                   CORE_VERSION         = 32'h0100                 ,
             parameter   bit             INIT_ALIGN_RESET     = 1'b0                     ,
             parameter   bit [9:0]       INIT_ALIGN_PATTERN   = 10'h3a6                  ,
-            parameter   bit             INIT_ISERDES_RESET   = 1'b0                     
-//          parameter   bit [4:0]       INIT_ISERDES_BITSLIP = 5'b00000                 
+            parameter   bit             INIT_ISERDES_RESET   = 1'b0                     ,
+//          parameter   bit [4:0]       INIT_ISERDES_BITSLIP = 5'b00000                 ,
+            parameter   bit [10:0]      INIT_TRIM_X_START    = 11'd0                    ,
+            parameter   bit [10:0]      INIT_TRIM_X_END      = 11'd255                  ,
+            parameter   bit [7:0]       INIT_CSI_DATA_TYPE   = 8'h2b                    ,
+            parameter   bit [15:0]      INIT_CSI_WC          = 16'(256*5/4)             
         )
         (
             jelly3_axi4l_if.s           s_axi4l             ,
@@ -29,7 +33,11 @@ module py300_control
             output  var logic           out_align_reset     ,
             output  var logic   [9:0]   out_align_pattern   ,
             input   var logic           in_calib_done       ,
-            input   var logic           in_calib_error      
+            input   var logic           in_calib_error      ,
+            output  var logic   [10:0]  out_trim_x_start    ,
+            output  var logic   [10:0]  out_trim_x_end      ,
+            output  var logic   [7:0]   out_csi_data_type   ,
+            output  var logic   [15:0]  out_csi_wc          
         );
     
     
@@ -50,13 +58,21 @@ module py300_control
     localparam  regadr_t REGADR_ALIGN_RESET         = regadr_t'('h20);
     localparam  regadr_t REGADR_ALIGN_PATTERN       = regadr_t'('h22);
     localparam  regadr_t REGADR_CALIB_STATUS        = regadr_t'('h28);
-    
+    localparam  regadr_t REGADR_TRIM_X_START        = regadr_t'('h30);
+    localparam  regadr_t REGADR_TRIM_X_END          = regadr_t'('h31);
+    localparam  regadr_t REGADR_CSI_DATA_TYPE       = regadr_t'('h50);
+    localparam  regadr_t REGADR_CSI_WC              = regadr_t'('h51);
+
     // registers
     logic           reg_iserdes_reset   ;
 //  logic   [4:0]   reg_iserdes_bitslip ;
     logic           reg_align_reset     ;
     logic   [9:0]   reg_align_pattern   ;
     logic   [1:0]   reg_calib_status    ;
+    logic   [10:0]  reg_trim_x_start    ;
+    logic   [10:0]  reg_trim_x_end      ;
+    logic   [7:0]   reg_csi_data_type   ;
+    logic   [15:0]  reg_csi_wc          ;
 
     always_ff @(posedge s_axi4l.aclk) begin
         reg_calib_status <= {in_calib_error, in_calib_done};
@@ -83,6 +99,10 @@ module py300_control
 //          reg_iserdes_bitslip <= INIT_ISERDES_BITSLIP ;
             reg_align_reset     <= INIT_ALIGN_RESET     ;
             reg_align_pattern   <= INIT_ALIGN_PATTERN   ;
+            reg_trim_x_start    <= INIT_TRIM_X_START    ;
+            reg_trim_x_end      <= INIT_TRIM_X_END      ;
+            reg_csi_data_type   <= INIT_CSI_DATA_TYPE   ;
+            reg_csi_wc          <= INIT_CSI_WC          ;
         end
         else begin
             // auto clear
@@ -95,10 +115,18 @@ module py300_control
 //              REGADR_ISERDES_BITSLIP    :   reg_iserdes_bitslip <=  5'(write_mask(axi4l_data_t'(reg_iserdes_bitslip), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_ALIGN_RESET        :   reg_align_reset     <=  1'(write_mask(axi4l_data_t'(reg_align_reset    ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_ALIGN_PATTERN      :   reg_align_pattern   <= 10'(write_mask(axi4l_data_t'(reg_align_pattern  ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_TRIM_X_START       :   reg_trim_x_start    <= 11'(write_mask(axi4l_data_t'(reg_trim_x_start   ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_TRIM_X_END         :   reg_trim_x_end      <= 11'(write_mask(axi4l_data_t'(reg_trim_x_end     ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_CSI_DATA_TYPE      :   reg_csi_data_type   <=  8'(write_mask(axi4l_data_t'(reg_csi_data_type  ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_CSI_WC             :   reg_csi_wc          <= 16'(write_mask(axi4l_data_t'(reg_csi_wc         ), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
             end
         end
+
+        // 4の倍数に固定
+        reg_trim_x_start[1:0] <= '0;
+        reg_trim_x_end  [1:0] <= '1;
     end
 
     always_ff @(posedge s_axi4l.aclk ) begin
@@ -131,6 +159,10 @@ module py300_control
             REGADR_ALIGN_RESET      :   s_axi4l.rdata <= axi4l_data_t'(reg_align_reset     );
             REGADR_ALIGN_PATTERN    :   s_axi4l.rdata <= axi4l_data_t'(reg_align_pattern   );
             REGADR_CALIB_STATUS     :   s_axi4l.rdata <= axi4l_data_t'(reg_calib_status    );
+            REGADR_TRIM_X_START     :   s_axi4l.rdata <= axi4l_data_t'(reg_trim_x_start    );
+            REGADR_TRIM_X_END       :   s_axi4l.rdata <= axi4l_data_t'(reg_trim_x_end      );
+            REGADR_CSI_DATA_TYPE    :   s_axi4l.rdata <= axi4l_data_t'(reg_csi_data_type   );
+            REGADR_CSI_WC           :   s_axi4l.rdata <= axi4l_data_t'(reg_csi_wc          );
             default                 :   s_axi4l.rdata <= '0;
             endcase
         end
@@ -160,6 +192,10 @@ module py300_control
 //  assign  out_iserdes_bitslip = reg_iserdes_bitslip;
     assign  out_align_reset     = reg_align_reset    ;
     assign  out_align_pattern   = reg_align_pattern  ;
+    assign  out_trim_x_start    = reg_trim_x_start   ;
+    assign  out_trim_x_end      = reg_trim_x_end     ;
+    assign  out_csi_data_type   = reg_csi_data_type  ;
+    assign  out_csi_wc          = reg_csi_wc         ;
 
 endmodule
 

@@ -12,47 +12,73 @@
 
 module line_trimming
         #(
-            parameter   int     LEN_BITS = 12,
-            parameter   type    len_t    = logic [LEN_BITS-1:0]
-
+            parameter   int     X_BITS = 11                 ,
+            parameter   type    x_t    = logic [X_BITS-1:0] 
         )
         (
-            input var len_t     len     ,
+            input var x_t       x_start ,
+            input var x_t       x_end   ,
+
             jelly3_axi4s_if.s   s_axi4s ,
             jelly3_axi4s_if.m   m_axi4s 
         );
 
-    assign s_axi4s.tready = !m_axi4s.tvalid || m_axi4s.tready;
+    x_t       reg_x_start   ;
+    x_t       reg_x_end     ;
+    always_ff @(posedge s_axi4s.aclk) begin
+        reg_x_start <= x_start  ;
+        reg_x_end   <= x_end    ;
+    end
 
-    logic   trimming;
-    len_t   count   ;
+    localparam DATA_BITS = s_axi4s.DATA_BITS;
+    localparam USER_BITS = s_axi4s.USER_BITS;
+
+    x_t                     s_count ;
+
+    logic   [USER_BITS-1:0] st0_tuser ;
+    logic                   st0_tlast ;
+    logic   [DATA_BITS-1:0] st0_tdata ;
+    logic                   st0_tvalid;
+
+    logic   [USER_BITS-1:0] st1_tuser ;
+    logic                   st1_tlast ;
+    logic   [DATA_BITS-1:0] st1_tdata ;
+    logic                   st1_tvalid;
+
     always_ff @(posedge s_axi4s.aclk) begin
         if ( ~s_axi4s.aresetn ) begin
-            trimming        <= 1'b0 ;
-            count           <= '0   ;
-            m_axi4s.tuser   <= 1'bx ;
-            m_axi4s.tlast   <= 1'bx ;
-            m_axi4s.tdata   <= 'x   ;
-            m_axi4s.tvalid  <= 1'b0 ;
+            s_count    <= '0    ;
+
+            st0_tuser  <= 'x    ;
+            st0_tlast  <= 'x    ;
+            st0_tdata  <= 'x    ;
+
+            st0_tvalid <= 1'b0  ;
+            st1_tuser  <= 'x    ;
+            st1_tlast  <= 'x    ;
+            st1_tdata  <= 'x    ;
+            st1_tvalid <= 1'b0  ;
         end
         else if ( s_axi4s.tready ) begin
-            m_axi4s.tuser   <= s_axi4s.tuser ;
-            m_axi4s.tlast   <= s_axi4s.tlast ;
-            m_axi4s.tdata   <= s_axi4s.tdata ;
-            m_axi4s.tvalid  <= s_axi4s.tvalid & !trimming;
             if ( s_axi4s.tvalid ) begin
-                count <= count + 1;
-                if ( count == len ) begin
-                    m_axi4s.tlast <= 1'b1;
-                    trimming      <= 1'b1;
-                end
-                if ( s_axi4s.tlast ) begin
-                    trimming <= 1'b0;
-                    count    <= '0;
-                end
+                s_count <= s_axi4s.tlast ? '0 : s_count + 1;
             end
+
+            st0_tuser  <= s_axi4s.tuser ;
+            st0_tlast  <= s_axi4s.tlast || s_count == reg_x_end;
+            st0_tdata  <= s_axi4s.tdata ;
+            st0_tvalid <= s_axi4s.tvalid
+                            && s_count >= reg_x_start
+                            && s_count <= reg_x_end   ;
         end
     end
+
+    assign s_axi4s.tready = !m_axi4s.tvalid || m_axi4s.tready;
+
+    assign m_axi4s.tuser  = st0_tuser   ;
+    assign m_axi4s.tlast  = st0_tlast   ;
+    assign m_axi4s.tdata  = st0_tdata   ;
+    assign m_axi4s.tvalid = st0_tvalid  ;
 
 endmodule
 
