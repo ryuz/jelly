@@ -341,9 +341,9 @@ module zybo_z7_rtcl_py300
     logic                       wb_sys_stb_i;
     logic                       wb_sys_ack_o;
         
-    logic                       reg_sw_reset;
-    logic                       reg_cam_enable;
-    logic   [7:0]               reg_csi_data_type;
+    (* MARK_DEBUG = "true" *)   logic                       reg_sw_reset;
+    (* MARK_DEBUG = "true" *)   logic                       reg_cam_enable;
+                                logic   [7:0]               reg_csi_data_type;
     always_ff @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
             reg_sw_reset      <= 1'b0;
@@ -377,55 +377,56 @@ module zybo_z7_rtcl_py300
     // ----------------------------------------
     
                             wire                rxbyteclkhs;
-                            wire                system_rst_out;
+    (* mark_debug="true" *) wire                system_rst_out;
     (* mark_debug="true" *) wire                init_done;
     
-                            wire                cl_rxclkactivehs;
-                            wire                cl_stopstate;
-                            wire                cl_enable         = 1;
-                            wire                cl_rxulpsclknot;
-                            wire                cl_ulpsactivenot;
+    (* mark_debug="true" *) wire                cl_rxclkactivehs;
+    (* mark_debug="true" *) wire                cl_stopstate;
+    (* mark_debug="true" *) wire                cl_enable         = 1;
+    (* mark_debug="true" *) wire                cl_rxulpsclknot;
+    (* mark_debug="true" *) wire                cl_ulpsactivenot;
     
     (* mark_debug="true" *) wire    [7:0]       dl0_rxdatahs;
     (* mark_debug="true" *) wire                dl0_rxvalidhs;
     (* mark_debug="true" *) wire                dl0_rxactivehs;
     (* mark_debug="true" *) wire                dl0_rxsynchs;
-                            wire                dl0_forcerxmode   = 0;
-                            wire                dl0_stopstate;
-                            wire                dl0_enable        = 1;
-                            wire                dl0_ulpsactivenot;
-                            wire                dl0_rxclkesc;
-                            wire                dl0_rxlpdtesc;
-                            wire                dl0_rxulpsesc;
-                            wire    [3:0]       dl0_rxtriggeresc;
-                            wire    [7:0]       dl0_rxdataesc;
-                            wire                dl0_rxvalidesc;
-                            wire                dl0_errsoths;
-                            wire                dl0_errsotsynchs;
-                            wire                dl0_erresc;
-                            wire                dl0_errsyncesc;
-                            wire                dl0_errcontrol;
+    (* mark_debug="true" *) wire                dl0_forcerxmode   = 0;
+    (* mark_debug="true" *) wire                dl0_stopstate;
+    (* mark_debug="true" *) wire                dl0_enable        = 1;
+    (* mark_debug="true" *) wire                dl0_ulpsactivenot;
+    (* mark_debug="true" *) wire                dl0_rxclkesc;
+    (* mark_debug="true" *) wire                dl0_rxlpdtesc;
+    (* mark_debug="true" *) wire                dl0_rxulpsesc;
+    (* mark_debug="true" *) wire    [3:0]       dl0_rxtriggeresc;
+    (* mark_debug="true" *) wire    [7:0]       dl0_rxdataesc;
+    (* mark_debug="true" *) wire                dl0_rxvalidesc;
+    (* mark_debug="true" *) wire                dl0_errsoths;
+    (* mark_debug="true" *) wire                dl0_errsotsynchs;
+    (* mark_debug="true" *) wire                dl0_erresc;
+    (* mark_debug="true" *) wire                dl0_errsyncesc;
+    (* mark_debug="true" *) wire                dl0_errcontrol;
     
     (* mark_debug="true" *) wire    [7:0]       dl1_rxdatahs;
     (* mark_debug="true" *) wire                dl1_rxvalidhs;
     (* mark_debug="true" *) wire                dl1_rxactivehs;
     (* mark_debug="true" *) wire                dl1_rxsynchs;
-                            wire                dl1_forcerxmode   = 0;
-                            wire                dl1_stopstate;
-                            wire                dl1_enable        = 1;
-                            wire                dl1_ulpsactivenot;
-                            wire                dl1_rxclkesc;
-                            wire                dl1_rxlpdtesc;
-                            wire                dl1_rxulpsesc;
-                            wire    [3:0]       dl1_rxtriggeresc;
-                            wire    [7:0]       dl1_rxdataesc;
-                            wire                dl1_rxvalidesc;
-                            wire                dl1_errsoths;
-                            wire                dl1_errsotsynchs;
-                            wire                dl1_erresc;
-                            wire                dl1_errsyncesc;
-                            wire                dl1_errcontrol;
+    (* mark_debug="true" *) wire                dl1_forcerxmode   = 0;
+    (* mark_debug="true" *) wire                dl1_stopstate;
+    (* mark_debug="true" *) wire                dl1_enable        = 1;
+    (* mark_debug="true" *) wire                dl1_ulpsactivenot;
+    (* mark_debug="true" *) wire                dl1_rxclkesc;
+    (* mark_debug="true" *) wire                dl1_rxlpdtesc;
+    (* mark_debug="true" *) wire                dl1_rxulpsesc;
+    (* mark_debug="true" *) wire    [3:0]       dl1_rxtriggeresc;
+    (* mark_debug="true" *) wire    [7:0]       dl1_rxdataesc;
+    (* mark_debug="true" *) wire                dl1_rxvalidesc;
+    (* mark_debug="true" *) wire                dl1_errsoths;
+    (* mark_debug="true" *) wire                dl1_errsotsynchs;
+    (* mark_debug="true" *) wire                dl1_erresc;
+    (* mark_debug="true" *) wire                dl1_errsyncesc;
+    (* mark_debug="true" *) wire                dl1_errcontrol;
     
+    /*
     (* mark_debug="true" *) logic   [7:0]       dl0_rxdatahs_exp;
     (* mark_debug="true" *) logic               dl0_check_ng;
     (* mark_debug="true" *) logic   [7:0]       dl1_rxdatahs_exp;
@@ -442,14 +443,15 @@ module zybo_z7_rtcl_py300
             dl1_check_ng <= (dl1_rxdatahs != dl1_rxdatahs_exp);
         end
     end
+    */
 
     mipi_dphy_cam
         i_mipi_dphy_cam
             (
                 .core_clk           (sys_clk200),
-                .core_rst           (sys_reset),
+                .core_rst           (sys_reset | reg_sw_reset),
                 .rxbyteclkhs        (rxbyteclkhs),
-                .system_rst_out     (system_rst_out | reg_sw_reset),
+                .system_rst_out     (system_rst_out),
                 .init_done          (init_done),
                 
                 .cl_rxclkactivehs   (cl_rxclkactivehs),

@@ -23,7 +23,9 @@ module python_control
             parameter   bit [10:0]      INIT_TRIM_X_START    = 11'd0                    ,
             parameter   bit [10:0]      INIT_TRIM_X_END      = 11'd255                  ,
             parameter   bit [7:0]       INIT_CSI_DATA_TYPE   = 8'h2b                    ,
-            parameter   bit [15:0]      INIT_CSI_WC          = 16'(256*5/4)             
+            parameter   bit [15:0]      INIT_CSI_WC          = 16'(256*5/4)             ,
+            parameter   bit             INIT_DPHY_CORE_RESET = 1'b0                     ,
+            parameter   bit             INIT_DPHY_SYS_RESET  = 1'b0                     
         )
         (
             jelly3_axi4l_if.s           s_axi4l             ,
@@ -37,7 +39,9 @@ module python_control
             output  var logic   [10:0]  out_trim_x_start    ,
             output  var logic   [10:0]  out_trim_x_end      ,
             output  var logic   [7:0]   out_csi_data_type   ,
-            output  var logic   [15:0]  out_csi_wc          
+            output  var logic   [15:0]  out_csi_wc          ,
+            output  var logic           out_dphy_core_reset ,
+            output  var logic           out_dphy_sys_reset  
         );
     
     
@@ -62,6 +66,8 @@ module python_control
     localparam  regadr_t REGADR_TRIM_X_END          = regadr_t'('h31);
     localparam  regadr_t REGADR_CSI_DATA_TYPE       = regadr_t'('h50);
     localparam  regadr_t REGADR_CSI_WC              = regadr_t'('h51);
+    localparam  regadr_t REGADR_DPHY_CORE_RESET     = regadr_t'('h80);
+    localparam  regadr_t REGADR_DPHY_SYS_RESET      = regadr_t'('h81);
 
     // registers
     logic           reg_iserdes_reset   ;
@@ -73,6 +79,8 @@ module python_control
     logic   [10:0]  reg_trim_x_end      ;
     logic   [7:0]   reg_csi_data_type   ;
     logic   [15:0]  reg_csi_wc          ;
+    logic           reg_dphy_core_reset ;
+    logic           reg_dphy_sys_reset  ;
 
     always_ff @(posedge s_axi4l.aclk) begin
         reg_calib_status <= {in_calib_error, in_calib_done};
@@ -103,6 +111,8 @@ module python_control
             reg_trim_x_end      <= INIT_TRIM_X_END      ;
             reg_csi_data_type   <= INIT_CSI_DATA_TYPE   ;
             reg_csi_wc          <= INIT_CSI_WC          ;
+            reg_dphy_core_reset <= INIT_DPHY_CORE_RESET ;
+            reg_dphy_sys_reset  <= INIT_DPHY_SYS_RESET  ;
         end
         else begin
             // auto clear
@@ -119,6 +129,8 @@ module python_control
                 REGADR_TRIM_X_END         :   reg_trim_x_end      <= 11'(write_mask(axi4l_data_t'(reg_trim_x_end     ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_CSI_DATA_TYPE      :   reg_csi_data_type   <=  8'(write_mask(axi4l_data_t'(reg_csi_data_type  ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_CSI_WC             :   reg_csi_wc          <= 16'(write_mask(axi4l_data_t'(reg_csi_wc         ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_DPHY_CORE_RESET    :   reg_dphy_core_reset <=  1'(write_mask(axi4l_data_t'(reg_dphy_core_reset), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_DPHY_SYS_RESET     :   reg_dphy_sys_reset  <=  1'(write_mask(axi4l_data_t'(reg_dphy_sys_reset ), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
             end
@@ -163,6 +175,8 @@ module python_control
             REGADR_TRIM_X_END       :   s_axi4l.rdata <= axi4l_data_t'(reg_trim_x_end      );
             REGADR_CSI_DATA_TYPE    :   s_axi4l.rdata <= axi4l_data_t'(reg_csi_data_type   );
             REGADR_CSI_WC           :   s_axi4l.rdata <= axi4l_data_t'(reg_csi_wc          );
+            REGADR_DPHY_CORE_RESET  :   s_axi4l.rdata <= axi4l_data_t'(reg_dphy_core_reset );
+            REGADR_DPHY_SYS_RESET   :   s_axi4l.rdata <= axi4l_data_t'(reg_dphy_sys_reset  );
             default                 :   s_axi4l.rdata <= '0;
             endcase
         end
@@ -196,6 +210,8 @@ module python_control
     assign  out_trim_x_end      = reg_trim_x_end     ;
     assign  out_csi_data_type   = reg_csi_data_type  ;
     assign  out_csi_wc          = reg_csi_wc         ;
+    assign  out_dphy_core_reset = reg_dphy_core_reset;
+    assign  out_dphy_sys_reset  = reg_dphy_sys_reset ;
 
 endmodule
 

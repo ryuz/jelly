@@ -220,6 +220,8 @@ module rtcl_spartan7_python300
                                 logic   [10:0]  ctl_trim_x_end      ;
                                 logic   [7:0]   ctl_csi_data_type   ;
                                 logic   [15:0]  ctl_csi_wc          ;
+                                logic           ctl_dphy_core_reset ;
+                                logic           ctl_dphy_sys_reset  ;
 
     python_control
         u_python_control
@@ -235,7 +237,9 @@ module rtcl_spartan7_python300
                 .out_trim_x_start       (ctl_trim_x_start       ),
                 .out_trim_x_end         (ctl_trim_x_end         ),
                 .out_csi_data_type      (ctl_csi_data_type      ),
-                .out_csi_wc             (ctl_csi_wc             )
+                .out_csi_wc             (ctl_csi_wc             ),
+                .out_dphy_core_reset    (ctl_dphy_core_reset    ),
+                .out_dphy_sys_reset     (ctl_dphy_sys_reset     )
             );
     
 
@@ -272,6 +276,7 @@ module rtcl_spartan7_python300
             );
 
     // MIPI DPHY
+    (* mark_debug="true" *)     logic           dphy_sw_reset               ;
     (* mark_debug="true" *)     logic           dphy_init_done              ;
     (* mark_debug="true" *)     logic           dphy_cl_txclkactivehs       ;
     (* mark_debug="true" *)     logic           dphy_cl_txrequesths         ;
@@ -314,14 +319,14 @@ module rtcl_spartan7_python300
     mipi_dphy_0
         u_mipi_dphy_0
             (
-                .core_clk               (dphy_core_clk              ),   //  input  
+                .core_clk               (dphy_core_clk     || ctl_dphy_core_reset),   //  input  
                 .core_rst               (dphy_core_reset            ),   //  input  
                 .txclkesc_in            (dphy_txclkesc              ),   //  input  
                 .txbyteclkhs_in         (dphy_txbyteclkhs           ),   //  input  
                 .oserdes_clkdiv_in      (dphy_oserdes_clkdiv        ),   //  input  
                 .oserdes_clk_in         (dphy_oserdes_clk           ),   //  input  
                 .oserdes_clk90_in       (dphy_oserdes_clk90         ),   //  input  
-                .system_rst_in          (dphy_system_reset          ),   //  input  
+                .system_rst_in          (dphy_system_reset || ctl_dphy_sys_reset ),   //  input  
 
                 .init_done              (dphy_init_done             ),    // output                           
                 .cl_txclkactivehs       (dphy_cl_txclkactivehs      ),    // output                           
