@@ -11,6 +11,7 @@
 #include "jelly/VideoDmaControl.h"
 #include "jelly/JellyRegs.h"
 
+
 void cmd_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
     addr <<= 1;
     addr |= 1;
@@ -85,10 +86,15 @@ void load_setting(jelly::I2cAccessor &i2c) {
 #define REGADR_CORE_ID          0x0000
 #define REGADR_CORE_VERSION     0x0001
 #define REGADR_ISERDES_RESET    0x0010
-#define REGADR_ISERDES_BITSLIP  0x0012
 #define REGADR_ALIGN_RESET      0x0020
 #define REGADR_ALIGN_PATTERN    0x0022
 #define REGADR_CALIB_STATUS     0x0028
+#define REGADR_TRIM_X_START     0x0030
+#define REGADR_TRIM_X_END       0x0031
+#define REGADR_CSI_DATA_TYPE    0x0050
+#define REGADR_CSI_WC           0x0051
+#define REGADR_DPHY_CORE_RESET  0x0080
+#define REGADR_DPHY_SYS_RESET   0x0081
 
 int main(int argc, char *argv[])
 {
@@ -317,8 +323,12 @@ int main(int argc, char *argv[])
             printf("sw rst\n");
             usleep(1000);
             reg_sys.WriteReg(1, 1); // sw rst
+            cmd_write(i2c, REGADR_DPHY_SYS_RESET, 1);
             usleep(1000);
             reg_sys.WriteReg(1, 0);
+            usleep(1000);
+            cmd_write(i2c, REGADR_DPHY_SYS_RESET, 0);
+            usleep(1000);
             break;
         }
     }
