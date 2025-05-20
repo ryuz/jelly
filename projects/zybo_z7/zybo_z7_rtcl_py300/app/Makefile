@@ -68,7 +68,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo rm /lib/firmware/$(BIN_FILE)
 	sudo chmod 666 /dev/i2c-0
 	sudo chmod 666 /dev/uio0*
-#   sudo chmod 666 /dev/udmabuf0
+	sudo chmod 666 /dev/udmabuf*
 
 .PHONY: unload
 unload:
