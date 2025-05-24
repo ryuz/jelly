@@ -97,22 +97,24 @@ module jelly3_cdc_pulse
                     .dest_out       (dest_toggle    )
                 );
 
+        // destination
         logic   dest_toggle_reg = 1'b0;
         always_ff @( posedge dest_clk ) begin
             if ( RST_USED && dest_rst ) begin
                 dest_toggle_reg <= 1'b0;
-                dest_pulse      <= 1'b0;
+//              dest_pulse      <= 1'b0;
             end
             else begin
-                if ( dest_toggle != dest_toggle_reg ) begin
-                    dest_toggle_reg <= ~dest_toggle;
-                    dest_pulse      <= 1'b1;
-                end
-                else begin
-                    dest_pulse      <= 1'b0;
-                end
+//              if ( dest_toggle != dest_toggle_reg ) begin
+                    dest_toggle_reg <= dest_toggle;
+//                 dest_pulse      <= 1'b1;
+//                end
+//                else begin
+//                  dest_pulse      <= 1'b0;
+//                end
             end
         end
+        assign dest_pulse = (dest_toggle != dest_toggle_reg);
     end
 
 endmodule
