@@ -61,8 +61,8 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
         // camera 設定
         let pixel_clock: f64 = 91000000.0;
         let binning: bool = true;
-        let width: i32 = 1280/2;
-        let height: i32 = 720/2;
+        let width: i32 = 1280 / 2;
+        let height: i32 = 720 / 2;
         let aoi_x: i32 = -1;
         let aoi_y: i32 = -1;
         imx219.set_pixel_clock(pixel_clock)?;
@@ -70,16 +70,16 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
         imx219.start()?;
 
         // 設定
-        let frame_rate: i32 = 60;
-        let exposure: i32 = 20;
-        let a_gain: i32 = 20;
-        let d_gain: i32 = 0;
+        let frame_rate: f64 = 60.0;
+        let exposure: f64 = 0.015;
+        let a_gain: f64 = 20.0;
+        let d_gain: f64 = 0.0;
         let flip_h: bool = false;
         let flip_v: bool = false;
-        imx219.set_frame_rate(frame_rate as f64)?;
-        imx219.set_exposure_time(exposure as f64 / 1000.0)?;
-        imx219.set_gain(a_gain as f64)?;
-        imx219.set_digital_gain(d_gain as f64)?;
+        imx219.set_frame_rate(frame_rate)?;
+        imx219.set_exposure_time(exposure)?;
+        imx219.set_gain(a_gain)?;
+        imx219.set_digital_gain(d_gain)?;
         imx219.set_flip(flip_h, flip_v)?;
 
         let id = imx219.get_model_id()?;

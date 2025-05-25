@@ -14,7 +14,7 @@ module tang_mega_138k_pro_imx219
             input   var logic           uart_rx         ,
             output  var logic           uart_tx         ,
 
-            inout   tri logic           mipi0_clk_p  ,  // 912MHz
+            inout   tri logic           mipi0_clk_p     ,   // 912MHz
             inout   tri logic           mipi0_clk_n     ,
             inout   tri logic   [1:0]   mipi0_data_p    ,
             inout   tri logic   [1:0]   mipi0_data_n    ,
@@ -56,26 +56,6 @@ module tang_mega_138k_pro_imx219
     logic   clk;
     assign clk = clk50;
 
-    /*
-    logic   async_reset;
-    assign async_reset = in_reset || !lock;
-
-    logic   reset0 = 1'b1;
-    logic   reset1 = 1'b1;
-    logic   reset  = 1'b1;
-    always_ff @(posedge clk or posedge async_reset) begin
-        if ( async_reset ) begin
-            reset0 <= 1'b1;
-            reset1 <= 1'b1;
-            reset  <= 1'b1;
-        end
-        else begin
-            reset0 <= 1'b0;
-            reset1 <= reset0;
-            reset  <= reset1;
-        end
-    end
-    */
     logic   reset;
     jelly_reset
             #(
@@ -90,7 +70,6 @@ module tang_mega_138k_pro_imx219
                 .out_reset          (reset              )    // syncrnous reset
             );
 
-
     // PLL
     logic   dvi_clk     ;
     logic   dvi_clk_x5  ;
@@ -103,7 +82,6 @@ module tang_mega_138k_pro_imx219
                 .clkout1    (dvi_clk_x5 ),
                 .lock       (dvi_lock   )
             );
-
 
     // reset sync
     logic   dvi_reset;
@@ -313,9 +291,9 @@ module tang_mega_138k_pro_imx219
             );
 
     // MIPI Byte_to_Pixel
-    logic           cam0_fv;
-    logic           cam0_lv;
-    logic [9:0]     cam0_pixel;
+    logic           cam0_in_fv      ;
+    logic           cam0_in_lv      ;
+    logic [9:0]     cam0_in_pixel   ;
     MIPI_Byte_to_Pixel_Converter_Top
         u_MIPI_Byte_to_Pixel_Converter_Top
             (
@@ -328,9 +306,9 @@ module tang_mega_138k_pro_imx219
                 .I_WC           (mipi0_csi_rx_wc        ),  //input [15:0] I_WC
                 .I_PAYLOAD_DV   (mipi0_csi_rx_payload_dv),  //input [1:0] I_PAYLOAD_DV
                 .I_PAYLOAD      (mipi0_csi_rx_payload   ),  //input [15:0] I_PAYLOAD
-                .O_FV           (cam0_fv                ),  //output O_FV
-                .O_LV           (cam0_lv                ),  //output O_LV
-                .O_PIXEL        (cam0_pixel             )   //output [9:0] O_PIXEL
+                .O_FV           (cam0_in_fv             ),  //output O_FV
+                .O_LV           (cam0_in_lv             ),  //output O_LV
+                .O_PIXEL        (cam0_in_pixel          )   //output [9:0] O_PIXEL
             );
 
 
@@ -360,7 +338,7 @@ module tang_mega_138k_pro_imx219
                 .DATA_WIDTH     (8              ),
                 .WE_WIDTH       (1              ),
                 .DOUT_REGS0     (0              ),
-                .DOUT_REGS1     (0              ),
+                .DOUT_REGS1     (1              ),
                 .MODE0          ("NORMAL"       ),
                 .MODE1          ("NORMAL"       )
             )
@@ -383,39 +361,59 @@ module tang_mega_138k_pro_imx219
                 .port1_dout     (mem1_dout      )
             );
 
-    
 
-    logic           cam0_fv;
-    logic           cam0_lv;
+    // Remove Embedded data line
+    logic           cam0_src_fv     ;
+    logic           cam0_src_lv     ;
+    logic [9:0]     cam0_src_pixel  ;
 
-    logic           cam0_lv0;
-    logic   [13:0]  cam0_x;
-    logic   [13:0]  cam0_y;
+    logic           cam0_in_lv0     ;
+    logic [1:0]     cam0_in_y_count ;
     always_ff @(posedge clk180) begin
-        cam0_lv0 <= cam0_lv;
-        if ( cam0_fv == 1'b0 ) begin
-            cam0_x   <= '0;
-            cam0_y   <= '0;
+        cam0_in_lv0 <= cam0_in_lv;
+        if ( {cam0_in_lv0, cam0_in_lv} == 2'b10 && !cam0_in_y_count[1] ) begin
+            cam0_in_y_count <= cam0_in_y_count + 1;
         end
-        else begin
-            if ( cam0_lv ) begin
-                cam0_x <= cam0_x + 1;
-            end
-            else begin
-                cam0_x <= '0;
-            end
-        end
-        if ( {cam0_lv0, cam0_lv} == 2'b10 ) begin
-            cam0_y <= cam0_y + 1;
+
+        if ( cam0_in_fv == 1'b0 ) begin
+            cam0_in_y_count <= '0;
         end
     end
 
-    assign mem0_clk    = clk180                             ;
-    assign mem0_en     = 1'b1                               ;
-    assign mem0_regcke = 1'b1                               ;
-    assign mem0_we     = (cam0_x < 256) && (cam0_y < 256)   ;
-    assign mem0_addr   = {cam0_y[7:0], cam0_x[7:0]}         ;
-    assign mem0_din    = cam0_pixel[9:2]                    ;
+    assign cam0_src_fv    = cam0_in_fv                          ;
+    assign cam0_src_lv    = cam0_in_lv    && cam0_in_y_count[1] ;
+    assign cam0_src_pixel = cam0_in_pixel                       ;
+
+    
+    logic           cam0_src_lv0;
+    logic   [13:0]  cam0_src_x;
+    logic   [13:0]  cam0_src_y;
+    always_ff @(posedge clk180) begin
+        cam0_src_lv0 <= cam0_src_lv;
+        if ( cam0_src_fv == 1'b0 ) begin
+            cam0_src_x   <= '0;
+            cam0_src_y   <= '0;
+        end
+        else begin
+            if ( cam0_src_lv ) begin
+                cam0_src_x <= cam0_src_x + 1;
+            end
+            else begin
+                cam0_src_x <= '0;
+            end
+        end
+        if ( {cam0_src_lv0, cam0_src_lv} == 2'b10 ) begin
+            cam0_src_y <= cam0_src_y + 1;
+        end
+    end
+
+    assign mem0_clk    = clk180                                     ;
+    assign mem0_en     = 1'b1                                       ;
+    assign mem0_regcke = 1'b1                                       ;
+    assign mem0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
+    assign mem0_addr   = {cam0_src_y[7:0], cam0_src_x[7:0]}         ;
+    assign mem0_din    = cam0_src_pixel[9:2]                        ;
+
 
 
     // ---------------------------------
@@ -712,9 +710,17 @@ module tang_mega_138k_pro_imx219
     assign mem1_en     = 1'b1                               ;
     assign mem1_regcke = 1'b1                               ;
     assign mem1_we     = 1'b0                               ;
-    assign mem1_addr   = {syncgen_x[7:0], syncgen_y[7:0]}   ;
+    assign mem1_addr   = {syncgen_y[7:0], syncgen_x[7:0]}   ;
     assign mem1_din    = '0                                 ;
 
+    logic   [1:0]   syncgen_vsync_ff;
+    logic   [1:0]   syncgen_hsync_ff;
+    logic   [1:0]   syncgen_de_ff   ;
+    always_ff @(posedge dvi_clk) begin
+        syncgen_vsync_ff <= {syncgen_vsync_ff[0:0], syncgen_vsync};
+        syncgen_hsync_ff <= {syncgen_hsync_ff[0:0], syncgen_hsync};
+        syncgen_de_ff    <= {syncgen_de_ff   [0:0], syncgen_de   };
+    end
 
     /*
     logic               draw_vsync;
@@ -755,9 +761,9 @@ module tang_mega_138k_pro_imx219
                 .clk            (dvi_clk        ),
                 .clk_x5         (dvi_clk_x5     ),
 
-                .in_vsync       (syncgen_vsync  ),
-                .in_hsync       (syncgen_hsync  ),
-                .in_de          (syncgen_de     ),
+                .in_vsync       (syncgen_vsync_ff[1]  ),
+                .in_hsync       (syncgen_hsync_ff[1] ),
+                .in_de          (syncgen_de_ff[1]     ),
 //              .in_data        (syncgen_rgb    ),
                 .in_data        ({3{mem1_dout}} ),
                 .in_ctl         ('0             ),
