@@ -16,10 +16,12 @@ module tang_mega_138k_pro_hdmi_720p
             output  var logic   [5:0]   led_n           
         );
 
-    localparam  int     DVI_H_BITS = 11     ;
-    localparam  int     DVI_V_BITS = 10     ;
-    localparam  int     DVI_WIDTH  = 1280   ;
-    localparam  int     DVI_HEIGHT = 720    ;
+    localparam  int     DVI_WIDTH  = 1280                   ;
+    localparam  int     DVI_HEIGHT = 720                    ;
+    localparam  int     DVI_H_BITS = $clog2(DVI_WIDTH )     ;
+    localparam  int     DVI_V_BITS = $clog2(DVI_HEIGHT)     ;
+    localparam  type    dvi_h_t    = logic [DVI_H_BITS-1:0] ;
+    localparam  type    dvi_v_t    = logic [DVI_V_BITS-1:0] ;
 
     // PLL
     logic   clk     ;
