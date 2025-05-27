@@ -17,7 +17,8 @@ target_link_libraries(tb_verilator PUBLIC "-pthread")
 set(RTL_SRCS
     ../tb_main.sv
 #   ../../stub/clkgen_clkdiv.sv
-    ../../stub/clkgen_pll.sv
+#   ../../stub/clkgen_pll.sv
+    ../../stub/gowin_pll.sv
     ../../stub/ELVDS_OBUF.v
     ../../stub/OSER10.v
 )

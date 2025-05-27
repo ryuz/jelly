@@ -41,12 +41,12 @@ int main(int argc, char** argv)
 
     mng->AddNode(jsim::VerilatorNode_Create(top, tfp));
 
-    mng->AddNode(jsim::ResetNode_Create(&top->in_reset_n, 100, false));
-    mng->AddNode(jsim::ClockNode_Create(&top->in_clk,     27.0/100.0));
-    mng->AddNode(jsim::ClockNode_Create(&top->clk,     5*126.0/200.0));
-    mng->AddNode(jsim::ClockNode_Create(&top->clk_x5,    126.0/250.0));
+    mng->AddNode(jsim::ResetNode_Create(&top->in_reset, 100, true));
+    mng->AddNode(jsim::ClockNode_Create(&top->in_clk  , 1000.0/50.0));
+    mng->AddNode(jsim::ClockNode_Create(&top->clk     , 1000.0/75.0));
+    mng->AddNode(jsim::ClockNode_Create(&top->clk_x5  , 1000.0/375.0));
 
-    mng->Run(2000000);
+    mng->Run(100000000);
     
 #if VM_TRACE
     tfp->close();

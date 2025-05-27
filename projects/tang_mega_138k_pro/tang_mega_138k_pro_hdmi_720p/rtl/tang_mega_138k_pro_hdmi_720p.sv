@@ -112,6 +112,8 @@ module tang_mega_138k_pro_hdmi_720p
     logic               draw_hsync;
     logic               draw_de;
     logic   [2:0][7:0]  draw_rgb;
+    logic               draw_fs;
+    logic               draw_le;
 
     draw_video
             #(
@@ -136,7 +138,9 @@ module tang_mega_138k_pro_hdmi_720p
                 .out_vsync  (draw_vsync     ),
                 .out_hsync  (draw_hsync     ),
                 .out_de     (draw_de        ),
-                .out_rgb    (draw_rgb       )
+                .out_rgb    (draw_rgb       ),
+                .out_fs     (draw_fs        ),
+                .out_le     (draw_le        )
             );
 
 
