@@ -99,6 +99,227 @@ module tang_mega_138k_pro_imx219
             );
 
 
+    // ---------------------------------
+    //  Micro controller (RISC-V)
+    // ---------------------------------
+
+    // WISHBONE-BUS
+    localparam  int  WB_ADR_WIDTH   = 16;
+    localparam  int  WB_DAT_WIDTH   = 32;
+    localparam  int  WB_SEL_WIDTH   = (WB_DAT_WIDTH / 8);
+
+    wire logic   [WB_ADR_WIDTH-1:0]      wb_mcu_adr_o;
+    wire logic   [WB_DAT_WIDTH-1:0]      wb_mcu_dat_i;
+    wire logic   [WB_DAT_WIDTH-1:0]      wb_mcu_dat_o;
+    wire logic   [WB_SEL_WIDTH-1:0]      wb_mcu_sel_o;
+    wire logic                           wb_mcu_we_o ;
+    wire logic                           wb_mcu_stb_o;
+    wire logic                           wb_mcu_ack_i;
+    
+    jfive_simple_controller
+            #(
+                .S_WB_ADR_WIDTH     (24                     ),
+                .S_WB_DAT_WIDTH     (32                     ),
+                .S_WB_TCM_ADR       (24'h0001_0000          ),
+
+                .M_WB_DECODE_MASK   (32'hf000_0000          ),
+                .M_WB_DECODE_ADDR   (32'h1000_0000          ),
+                .M_WB_ADR_WIDTH     (16                     ),
+
+                .TCM_DECODE_MASK    (32'hff00_0000          ),
+                .TCM_DECODE_ADDR    (32'h8000_0000          ),
+                .TCM_SIZE           (8192*4                 ),
+                .TCM_RAM_MODE       ("NORMAL"               ),
+                .TCM_READMEMH       (JFIVE_TCM_READMEMH     ),
+                .TCM_READMEM_FIlE   (JFIVE_TCM_READMEM_FIlE ),
+
+                .PC_WIDTH           (32                     ),
+                .INIT_PC_ADDR       (32'h8000_0000          ),
+                .INIT_CTL_RESET     (1'b0                   ),
+
+                .SIMULATION         (1'b0                   ),
+                .LOG_EXE_ENABLE     (1'b0                   ),
+                .LOG_MEM_ENABLE     (1'b0                   )
+            )
+        u_jfive_simple_controller
+            (
+                .reset              (reset                  ),
+                .clk                (clk                    ),
+                .cke                (1'b1                   ),
+
+                .s_wb_adr_i         ('0                     ),
+                .s_wb_dat_o         (                       ),
+                .s_wb_dat_i         ('0                     ),
+                .s_wb_sel_i         ('0                     ),
+                .s_wb_we_i          ('0                     ),
+                .s_wb_stb_i         ('0                     ),
+                .s_wb_ack_o         (                       ),
+
+                .m_wb_adr_o         (wb_mcu_adr_o           ),
+                .m_wb_dat_i         (wb_mcu_dat_i           ),
+                .m_wb_dat_o         (wb_mcu_dat_o           ),
+                .m_wb_sel_o         (wb_mcu_sel_o           ),
+                .m_wb_we_o          (wb_mcu_we_o            ),
+                .m_wb_stb_o         (wb_mcu_stb_o           ),
+                .m_wb_ack_i         (wb_mcu_ack_i           )
+            );
+
+
+    // UART
+    logic   [WB_DAT_WIDTH-1:0]  wb_uart_dat_o;
+    logic                       wb_uart_stb_i;
+    logic                       wb_uart_ack_o;
+
+    jelly2_uart
+            #(
+                .ASYNC              (0                  ),
+                .TX_FIFO_PTR_WIDTH  (2                  ),
+                .RX_FIFO_PTR_WIDTH  (2                  ),
+                .WB_ADR_WIDTH       (2                  ),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH       ),
+                .DIVIDER_WIDTH      (8                  ),
+                .DIVIDER_INIT       (54-1               ),
+                .SIMULATION         (0                  ),
+                .DEBUG              (1                  )
+            )
+        u_uart
+            (
+                .reset              (reset              ),
+                .clk                (clk                ),
+                
+                .uart_reset         (reset              ),
+                .uart_clk           (clk                ),
+                .uart_tx            (uart_tx            ),
+                .uart_rx            (uart_rx            ),
+                
+                .irq_rx             (                   ),
+                .irq_tx             (                   ),
+                
+                .s_wb_adr_i         (wb_mcu_adr_o[1:0]  ),
+                .s_wb_dat_o         (wb_uart_dat_o      ),
+                .s_wb_dat_i         (wb_mcu_dat_o       ),
+                .s_wb_we_i          (wb_mcu_we_o        ),
+                .s_wb_sel_i         (wb_mcu_sel_o       ),
+                .s_wb_stb_i         (wb_uart_stb_i      ),
+                .s_wb_ack_o         (wb_uart_ack_o      )
+            );
+
+
+    // I2C
+    logic   [WB_DAT_WIDTH-1:0]  wb_i2c_dat_o;
+    logic                       wb_i2c_stb_i;
+    logic                       wb_i2c_ack_o;
+
+    logic                       i2c_scl_t;
+    logic                       i2c_scl_i;
+    logic                       i2c_sda_t;
+    logic                       i2c_sda_i;
+
+    jelly_i2c
+            #(
+                .DIVIDER_WIDTH      (16                 ),
+                .DIVIDER_INIT       (1000               ),
+                .WB_ADR_WIDTH       (3                  ),
+                .WB_DAT_WIDTH       (WB_DAT_WIDTH       )
+            )
+        u_i2c
+            (
+                .reset              (reset              ),
+                .clk                (clk                ),
+                
+                .i2c_scl_t          (i2c_scl_t          ),
+                .i2c_scl_i          (i2c_scl_i          ),
+                .i2c_sda_t          (i2c_sda_t          ),
+                .i2c_sda_i          (i2c_sda_i          ),
+
+                .s_wb_adr_i         (wb_mcu_adr_o[2:0]  ),
+                .s_wb_dat_o         (wb_i2c_dat_o       ),
+                .s_wb_dat_i         (wb_mcu_dat_o       ),
+                .s_wb_we_i          (wb_mcu_we_o        ),
+                .s_wb_sel_i         (wb_mcu_sel_o       ),
+                .s_wb_stb_i         (wb_i2c_stb_i       ),
+                .s_wb_ack_o         (wb_i2c_ack_o       ),
+                
+                .irq                (                   )
+            );
+
+    IOBUF
+        u_iobuf_mipi0_dphy_scl
+            (
+                .OEN            (i2c_scl_t ),
+                .I              (1'b0      ),
+                .IO             (i2c_scl   ),
+                .O              (i2c_scl_i )
+            );
+
+    IOBUF
+        u_iobuf_mipi0_dphy_sda
+            (
+                .OEN            (i2c_sda_t ),
+                .I              (1'b0      ),
+                .IO             (i2c_sda   ),
+                .O              (i2c_sda_i )
+            );
+    
+    assign i2c_sel = 3'b110;
+
+
+    // GPIO
+    logic   [WB_DAT_WIDTH-1:0]  wb_gpio_dat_o;
+    logic                       wb_gpio_stb_i;
+    logic                       wb_gpio_ack_o;
+
+    logic   [3:0]               reg_gpio0;
+    logic   [7:0]               reg_gpio1;
+    logic   [7:0]               reg_gpio2;
+    logic   [7:0]               reg_gpio3;
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            reg_gpio0 <= '0;
+            reg_gpio1 <= '0;
+            reg_gpio2 <= '0;
+            reg_gpio3 <= '0;
+        end
+        else begin
+            if ( wb_gpio_stb_i ) begin
+                case ( wb_mcu_adr_o[1:0] )
+                2'd0: reg_gpio0 <= wb_mcu_dat_o[3:0];
+                2'd1: reg_gpio1 <= wb_mcu_dat_o[7:0];
+                2'd2: reg_gpio2 <= wb_mcu_dat_o[7:0];
+                2'd3: reg_gpio3 <= wb_mcu_dat_o[7:0];
+                endcase
+            end
+        end
+    end
+    always_comb begin
+        wb_gpio_dat_o = '0;
+        case ( wb_mcu_adr_o[1:0] )
+            2'd0: wb_gpio_dat_o = 32'(reg_gpio0);
+            2'd1: wb_gpio_dat_o = 32'(reg_gpio1);
+            2'd2: wb_gpio_dat_o = 32'(reg_gpio2);
+            2'd3: wb_gpio_dat_o = 32'(reg_gpio3);
+        endcase
+    end
+    assign wb_gpio_ack_o = wb_gpio_stb_i;
+
+
+    assign mipi0_rstn = reg_gpio1[0];
+
+    // address decode
+    assign wb_uart_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h0);
+    assign wb_gpio_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h1);
+    assign wb_i2c_stb_i  = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h2);
+
+    assign wb_mcu_dat_i  = wb_uart_stb_i ? wb_uart_dat_o :
+                           wb_gpio_stb_i ? wb_gpio_dat_o :
+                           wb_i2c_stb_i  ? wb_i2c_dat_o  :
+                           '0;
+
+    assign wb_mcu_ack_i  = wb_uart_stb_i ? wb_uart_ack_o :
+                           wb_gpio_stb_i ? wb_gpio_ack_o :
+                           wb_i2c_stb_i  ? wb_i2c_ack_o  :
+                           wb_mcu_stb_o;
+
 
     // ---------------------------------
     //  MIPI CSI2 RX
@@ -408,234 +629,29 @@ module tang_mega_138k_pro_imx219
     end
 
     assign mem0_clk    = clk180                                     ;
-    assign mem0_en     = 1'b1                                       ;
+    assign mem0_en     = cam0_src_lv                                ;
     assign mem0_regcke = 1'b1                                       ;
     assign mem0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
     assign mem0_addr   = {cam0_src_y[7:0], cam0_src_x[7:0]}         ;
     assign mem0_din    = cam0_src_pixel[9:2]                        ;
 
 
-
-    // ---------------------------------
-    //  Micro controller (RISC-V)
-    // ---------------------------------
-
-    // WISHBONE-BUS
-    localparam  int  WB_ADR_WIDTH   = 16;
-    localparam  int  WB_DAT_WIDTH   = 32;
-    localparam  int  WB_SEL_WIDTH   = (WB_DAT_WIDTH / 8);
-
-    wire logic   [WB_ADR_WIDTH-1:0]      wb_mcu_adr_o;
-    wire logic   [WB_DAT_WIDTH-1:0]      wb_mcu_dat_i;
-    wire logic   [WB_DAT_WIDTH-1:0]      wb_mcu_dat_o;
-    wire logic   [WB_SEL_WIDTH-1:0]      wb_mcu_sel_o;
-    wire logic                           wb_mcu_we_o ;
-    wire logic                           wb_mcu_stb_o;
-    wire logic                           wb_mcu_ack_i;
-    
-    jfive_simple_controller
-            #(
-                .S_WB_ADR_WIDTH     (24                     ),
-                .S_WB_DAT_WIDTH     (32                     ),
-                .S_WB_TCM_ADR       (24'h0001_0000          ),
-
-                .M_WB_DECODE_MASK   (32'hf000_0000          ),
-                .M_WB_DECODE_ADDR   (32'h1000_0000          ),
-                .M_WB_ADR_WIDTH     (16                     ),
-
-                .TCM_DECODE_MASK    (32'hff00_0000          ),
-                .TCM_DECODE_ADDR    (32'h8000_0000          ),
-                .TCM_SIZE           (8192*4                 ),
-                .TCM_RAM_MODE       ("NORMAL"               ),
-                .TCM_READMEMH       (JFIVE_TCM_READMEMH     ),
-                .TCM_READMEM_FIlE   (JFIVE_TCM_READMEM_FIlE ),
-
-                .PC_WIDTH           (32                     ),
-                .INIT_PC_ADDR       (32'h8000_0000          ),
-                .INIT_CTL_RESET     (1'b0                   ),
-
-                .SIMULATION         (1'b0                   ),
-                .LOG_EXE_ENABLE     (1'b0                   ),
-                .LOG_MEM_ENABLE     (1'b0                   )
-            )
-        u_jfive_simple_controller
-            (
-                .reset              (reset                  ),
-                .clk                (clk                    ),
-                .cke                (1'b1                   ),
-
-                .s_wb_adr_i         ('0                     ),
-                .s_wb_dat_o         (                       ),
-                .s_wb_dat_i         ('0                     ),
-                .s_wb_sel_i         ('0                     ),
-                .s_wb_we_i          ('0                     ),
-                .s_wb_stb_i         ('0                     ),
-                .s_wb_ack_o         (                       ),
-
-                .m_wb_adr_o         (wb_mcu_adr_o           ),
-                .m_wb_dat_i         (wb_mcu_dat_i           ),
-                .m_wb_dat_o         (wb_mcu_dat_o           ),
-                .m_wb_sel_o         (wb_mcu_sel_o           ),
-                .m_wb_we_o          (wb_mcu_we_o            ),
-                .m_wb_stb_o         (wb_mcu_stb_o           ),
-                .m_wb_ack_i         (wb_mcu_ack_i           )
-            );
-
-
-    // UART
-    logic   [WB_DAT_WIDTH-1:0]  wb_uart_dat_o;
-    logic                       wb_uart_stb_i;
-    logic                       wb_uart_ack_o;
-
-    jelly2_uart
-            #(
-                .ASYNC              (0                  ),
-                .TX_FIFO_PTR_WIDTH  (2                  ),
-                .RX_FIFO_PTR_WIDTH  (2                  ),
-                .WB_ADR_WIDTH       (2                  ),
-                .WB_DAT_WIDTH       (WB_DAT_WIDTH       ),
-                .DIVIDER_WIDTH      (8                  ),
-                .DIVIDER_INIT       (54-1               ),
-                .SIMULATION         (0                  ),
-                .DEBUG              (1                  )
-            )
-        u_uart
-            (
-                .reset              (reset              ),
-                .clk                (clk                ),
-                
-                .uart_reset         (reset              ),
-                .uart_clk           (clk                ),
-                .uart_tx            (uart_tx            ),
-                .uart_rx            (uart_rx            ),
-                
-                .irq_rx             (                   ),
-                .irq_tx             (                   ),
-                
-                .s_wb_adr_i         (wb_mcu_adr_o[1:0]  ),
-                .s_wb_dat_o         (wb_uart_dat_o      ),
-                .s_wb_dat_i         (wb_mcu_dat_o       ),
-                .s_wb_we_i          (wb_mcu_we_o        ),
-                .s_wb_sel_i         (wb_mcu_sel_o       ),
-                .s_wb_stb_i         (wb_uart_stb_i      ),
-                .s_wb_ack_o         (wb_uart_ack_o      )
-            );
-
-
-    // I2C
-    logic   [WB_DAT_WIDTH-1:0]  wb_i2c_dat_o;
-    logic                       wb_i2c_stb_i;
-    logic                       wb_i2c_ack_o;
-
-    logic                       i2c_scl_t;
-    logic                       i2c_scl_i;
-    logic                       i2c_sda_t;
-    logic                       i2c_sda_i;
-
-    jelly_i2c
-            #(
-                .DIVIDER_WIDTH      (16                 ),
-                .DIVIDER_INIT       (1000               ),
-                .WB_ADR_WIDTH       (3                  ),
-                .WB_DAT_WIDTH       (WB_DAT_WIDTH       )
-            )
-        u_i2c
-            (
-                .reset              (reset              ),
-                .clk                (clk                ),
-                
-                .i2c_scl_t          (i2c_scl_t          ),
-                .i2c_scl_i          (i2c_scl_i          ),
-                .i2c_sda_t          (i2c_sda_t          ),
-                .i2c_sda_i          (i2c_sda_i          ),
-
-                .s_wb_adr_i         (wb_mcu_adr_o[2:0]  ),
-                .s_wb_dat_o         (wb_i2c_dat_o       ),
-                .s_wb_dat_i         (wb_mcu_dat_o       ),
-                .s_wb_we_i          (wb_mcu_we_o        ),
-                .s_wb_sel_i         (wb_mcu_sel_o       ),
-                .s_wb_stb_i         (wb_i2c_stb_i       ),
-                .s_wb_ack_o         (wb_i2c_ack_o       ),
-                
-                .irq                (                   )
-            );
-
-    IOBUF
-        u_iobuf_mipi0_dphy_scl
-            (
-                .OEN            (i2c_scl_t ),
-                .I              (1'b0      ),
-                .IO             (i2c_scl   ),
-                .O              (i2c_scl_i )
-            );
-
-    IOBUF
-        u_iobuf_mipi0_dphy_sda
-            (
-                .OEN            (i2c_sda_t ),
-                .I              (1'b0      ),
-                .IO             (i2c_sda   ),
-                .O              (i2c_sda_i )
-            );
-    
-    assign i2c_sel = 3'b110;
-
-
-    // GPIO
-    logic   [WB_DAT_WIDTH-1:0]  wb_gpio_dat_o;
-    logic                       wb_gpio_stb_i;
-    logic                       wb_gpio_ack_o;
-
-    logic   [3:0]               reg_gpio0;
-    logic   [7:0]               reg_gpio1;
-    logic   [7:0]               reg_gpio2;
-    logic   [7:0]               reg_gpio3;
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            reg_gpio0 <= '0;
-            reg_gpio1 <= '0;
-            reg_gpio2 <= '0;
-            reg_gpio3 <= '0;
+    logic   [0:0]   axi4s_cam0_tuser    ;
+    logic           axi4s_cam0_tlast    ;
+    logic   [9:0]   axi4s_cam0_tdata    ;
+    logic           axi4s_cam0_tvalid   ;
+    always_ff @(posedge clk180) begin
+        if ( cam0_src_fv == 1'b0 ) begin
+            axi4s_cam0_tuser  <= 1'b1;
         end
-        else begin
-            if ( wb_gpio_stb_i ) begin
-                case ( wb_mcu_adr_o[1:0] )
-                2'd0: reg_gpio0 <= wb_mcu_dat_o[3:0];
-                2'd1: reg_gpio1 <= wb_mcu_dat_o[7:0];
-                2'd2: reg_gpio2 <= wb_mcu_dat_o[7:0];
-                2'd3: reg_gpio3 <= wb_mcu_dat_o[7:0];
-                endcase
-            end
+        else if ( axi4s_cam0_tvalid ) begin
+            axi4s_cam0_tuser <= 1'b0;
         end
+        axi4s_cam0_tdata  <= cam0_src_pixel;
+        axi4s_cam0_tvalid <= cam0_src_lv & cam0_src_fv;
     end
-    always_comb begin
-        wb_gpio_dat_o = '0;
-        case ( wb_mcu_adr_o[1:0] )
-            2'd0: wb_gpio_dat_o = 32'(reg_gpio0);
-            2'd1: wb_gpio_dat_o = 32'(reg_gpio1);
-            2'd2: wb_gpio_dat_o = 32'(reg_gpio2);
-            2'd3: wb_gpio_dat_o = 32'(reg_gpio3);
-        endcase
-    end
-    assign wb_gpio_ack_o = wb_gpio_stb_i;
+    assign axi4s_cam0_tlast = axi4s_cam0_tvalid && !cam0_src_lv;
 
-
-    assign mipi0_rstn = reg_gpio1[0];
-
-    // address decode
-    assign wb_uart_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h0);
-    assign wb_gpio_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h1);
-    assign wb_i2c_stb_i  = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h2);
-
-    assign wb_mcu_dat_i  = wb_uart_stb_i ? wb_uart_dat_o :
-                           wb_gpio_stb_i ? wb_gpio_dat_o :
-                           wb_i2c_stb_i  ? wb_i2c_dat_o  :
-                           '0;
-
-    assign wb_mcu_ack_i  = wb_uart_stb_i ? wb_uart_ack_o :
-                           wb_gpio_stb_i ? wb_gpio_ack_o :
-                           wb_i2c_stb_i  ? wb_i2c_ack_o  :
-                           wb_mcu_stb_o;
 
 
 

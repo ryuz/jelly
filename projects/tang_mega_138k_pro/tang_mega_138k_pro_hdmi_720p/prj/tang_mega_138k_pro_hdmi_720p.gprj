@@ -1,0 +1,18 @@
+<?xml version="1" encoding="UTF-8"?>
+<!DOCTYPE gowin-fpga-project>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW5AST-138B" pn="GW5AST-LV138FPG676AES">gw5ast138b-002</Device>
+    <FileList>
+        <File path="../ip/gowin_pll/gowin_pll.v" type="file.verilog" enable="1"/>
+        <File path="../rtl/draw_video.sv" type="file.verilog" enable="1"/>
+        <File path="../rtl/dvi_tx.sv" type="file.verilog" enable="1"/>
+        <File path="../rtl/tang_mega_138k_pro_hdmi_720p.sv" type="file.verilog" enable="1"/>
+        <File path="../../../../rtl/v1/library/jelly_reset.v" type="file.verilog" enable="1"/>
+        <File path="../../../../rtl/v1/video/jelly_dvi_tx_encode.v" type="file.verilog" enable="1"/>
+        <File path="../../../../rtl/v1/video/jelly_vsync_generator_core.v" type="file.verilog" enable="1"/>
+        <File path="../constrain/tang_mega_138k_pro_hdmi_720p.cst" type="file.cst" enable="1"/>
+        <File path="../constrain/tang_mega_138k_pro_hdmi_720p.sdc" type="file.sdc" enable="1"/>
+    </FileList>
+</Project>

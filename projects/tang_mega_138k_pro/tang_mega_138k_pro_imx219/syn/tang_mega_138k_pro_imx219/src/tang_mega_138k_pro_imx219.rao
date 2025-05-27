@@ -108,118 +108,6 @@
                 <Signal>mipi0_dphy_odt_en[1]</Signal>
                 <Signal>mipi0_dphy_odt_en[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="mipi0_csi_rx_wc[15:0]">
-                <Signal>mipi0_csi_rx_wc[15]</Signal>
-                <Signal>mipi0_csi_rx_wc[14]</Signal>
-                <Signal>mipi0_csi_rx_wc[13]</Signal>
-                <Signal>mipi0_csi_rx_wc[12]</Signal>
-                <Signal>mipi0_csi_rx_wc[11]</Signal>
-                <Signal>mipi0_csi_rx_wc[10]</Signal>
-                <Signal>mipi0_csi_rx_wc[9]</Signal>
-                <Signal>mipi0_csi_rx_wc[8]</Signal>
-                <Signal>mipi0_csi_rx_wc[7]</Signal>
-                <Signal>mipi0_csi_rx_wc[6]</Signal>
-                <Signal>mipi0_csi_rx_wc[5]</Signal>
-                <Signal>mipi0_csi_rx_wc[4]</Signal>
-                <Signal>mipi0_csi_rx_wc[3]</Signal>
-                <Signal>mipi0_csi_rx_wc[2]</Signal>
-                <Signal>mipi0_csi_rx_wc[1]</Signal>
-                <Signal>mipi0_csi_rx_wc[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mipi0_csi_rx_vc[1:0]">
-                <Signal>mipi0_csi_rx_vc[1]</Signal>
-                <Signal>mipi0_csi_rx_vc[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mipi0_csi_rx_dt[5:0]">
-                <Signal>mipi0_csi_rx_dt[5]</Signal>
-                <Signal>mipi0_csi_rx_dt[4]</Signal>
-                <Signal>mipi0_csi_rx_dt[3]</Signal>
-                <Signal>mipi0_csi_rx_dt[2]</Signal>
-                <Signal>mipi0_csi_rx_dt[1]</Signal>
-                <Signal>mipi0_csi_rx_dt[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mipi0_csi_rx_ecc[7:0]">
-                <Signal>mipi0_csi_rx_ecc[7]</Signal>
-                <Signal>mipi0_csi_rx_ecc[6]</Signal>
-                <Signal>mipi0_csi_rx_ecc[5]</Signal>
-                <Signal>mipi0_csi_rx_ecc[4]</Signal>
-                <Signal>mipi0_csi_rx_ecc[3]</Signal>
-                <Signal>mipi0_csi_rx_ecc[2]</Signal>
-                <Signal>mipi0_csi_rx_ecc[1]</Signal>
-                <Signal>mipi0_csi_rx_ecc[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mipi0_csi_rx_payload_dv[1:0]">
-                <Signal>mipi0_csi_rx_payload_dv[1]</Signal>
-                <Signal>mipi0_csi_rx_payload_dv[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mipi0_csi_rx_payload[15:0]">
-                <Signal>mipi0_csi_rx_payload[15]</Signal>
-                <Signal>mipi0_csi_rx_payload[14]</Signal>
-                <Signal>mipi0_csi_rx_payload[13]</Signal>
-                <Signal>mipi0_csi_rx_payload[12]</Signal>
-                <Signal>mipi0_csi_rx_payload[11]</Signal>
-                <Signal>mipi0_csi_rx_payload[10]</Signal>
-                <Signal>mipi0_csi_rx_payload[9]</Signal>
-                <Signal>mipi0_csi_rx_payload[8]</Signal>
-                <Signal>mipi0_csi_rx_payload[7]</Signal>
-                <Signal>mipi0_csi_rx_payload[6]</Signal>
-                <Signal>mipi0_csi_rx_payload[5]</Signal>
-                <Signal>mipi0_csi_rx_payload[4]</Signal>
-                <Signal>mipi0_csi_rx_payload[3]</Signal>
-                <Signal>mipi0_csi_rx_payload[2]</Signal>
-                <Signal>mipi0_csi_rx_payload[1]</Signal>
-                <Signal>mipi0_csi_rx_payload[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="mipi0_dphy_counter[24:0]">
-                <Signal>mipi0_dphy_counter[24]</Signal>
-                <Signal>mipi0_dphy_counter[23]</Signal>
-                <Signal>mipi0_dphy_counter[22]</Signal>
-                <Signal>mipi0_dphy_counter[21]</Signal>
-                <Signal>mipi0_dphy_counter[20]</Signal>
-                <Signal>mipi0_dphy_counter[19]</Signal>
-                <Signal>mipi0_dphy_counter[18]</Signal>
-                <Signal>mipi0_dphy_counter[17]</Signal>
-                <Signal>mipi0_dphy_counter[16]</Signal>
-                <Signal>mipi0_dphy_counter[15]</Signal>
-                <Signal>mipi0_dphy_counter[14]</Signal>
-                <Signal>mipi0_dphy_counter[13]</Signal>
-                <Signal>mipi0_dphy_counter[12]</Signal>
-                <Signal>mipi0_dphy_counter[11]</Signal>
-                <Signal>mipi0_dphy_counter[10]</Signal>
-                <Signal>mipi0_dphy_counter[9]</Signal>
-                <Signal>mipi0_dphy_counter[8]</Signal>
-                <Signal>mipi0_dphy_counter[7]</Signal>
-                <Signal>mipi0_dphy_counter[6]</Signal>
-                <Signal>mipi0_dphy_counter[5]</Signal>
-                <Signal>mipi0_dphy_counter[4]</Signal>
-                <Signal>mipi0_dphy_counter[3]</Signal>
-                <Signal>mipi0_dphy_counter[2]</Signal>
-                <Signal>mipi0_dphy_counter[1]</Signal>
-                <Signal>mipi0_dphy_counter[0]</Signal>
-            </Bus>
-            <Signal capture_enable="true">mipi0_clk_p</Signal>
-            <Signal capture_enable="true">mipi0_clk_n</Signal>
-            <Signal capture_enable="true">mipi0_rstn</Signal>
-            <Signal capture_enable="true">mipi0_dphy_rx_clk</Signal>
-            <Signal capture_enable="true">mipi0_dphy_drst_n</Signal>
-            <Signal capture_enable="true">mipi0_dphy_deskew_error</Signal>
-            <Signal capture_enable="true">mipi0_dphy_d0ln_deskew_done</Signal>
-            <Signal capture_enable="true">mipi0_dphy_d1ln_deskew_done</Signal>
-            <Signal capture_enable="true">mipi0_dphy_byte_ready</Signal>
-            <Signal capture_enable="true">mipi0_dphy_odt_en_msk</Signal>
-            <Signal capture_enable="true">mipi0_dphy_hsrx_en_msk</Signal>
-            <Signal capture_enable="true">mipi0_dphy_reg3to1</Signal>
-            <Signal capture_enable="true">mipi0_dphy_from0to3</Signal>
-            <Signal capture_enable="true">mipi0_dphy_from1to0</Signal>
-            <Signal capture_enable="true">mipi0_dphy_from1to2</Signal>
-            <Signal capture_enable="true">mipi0_dphy_from1to3</Signal>
-            <Signal capture_enable="true">mipi0_dphy_from3to1</Signal>
-            <Signal capture_enable="true">mipi0_dphy_fromXto3</Signal>
-            <Signal capture_enable="true">mipi0_dphy_from1toX</Signal>
-            <Signal capture_enable="true">mipi0_csi_rx_sp_en</Signal>
-            <Signal capture_enable="true">mipi0_csi_rx_lp_en</Signal>
-            <Signal capture_enable="true">mipi0_csi_rx_lp_av_en</Signal>
-            <Signal capture_enable="true">mipi0_csi_rx_ecc_ok</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -267,26 +155,58 @@
     </AoCore>
     <AoCore index="1" sample_clock="clk180" trig_type="0" storage_depth="16384" window_num="1" capture_amount="16384" implementation="0" trigger_pos="16" module_name="tang_mega_138k_pro_imx219" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
         <SignalList>
-            <Bus capture_enable="true" name="video_pixel[9:0]">
-                <Signal>video_pixel[9]</Signal>
-                <Signal>video_pixel[8]</Signal>
-                <Signal>video_pixel[7]</Signal>
-                <Signal>video_pixel[6]</Signal>
-                <Signal>video_pixel[5]</Signal>
-                <Signal>video_pixel[4]</Signal>
-                <Signal>video_pixel[3]</Signal>
-                <Signal>video_pixel[2]</Signal>
-                <Signal>video_pixel[1]</Signal>
-                <Signal>video_pixel[0]</Signal>
+            <Bus capture_enable="true" name="cam0_src_pixel[9:0]">
+                <Signal>cam0_src_pixel[9]</Signal>
+                <Signal>cam0_src_pixel[8]</Signal>
+                <Signal>cam0_src_pixel[7]</Signal>
+                <Signal>cam0_src_pixel[6]</Signal>
+                <Signal>cam0_src_pixel[5]</Signal>
+                <Signal>cam0_src_pixel[4]</Signal>
+                <Signal>cam0_src_pixel[3]</Signal>
+                <Signal>cam0_src_pixel[2]</Signal>
+                <Signal>cam0_src_pixel[1]</Signal>
+                <Signal>cam0_src_pixel[0]</Signal>
             </Bus>
-            <Signal capture_enable="true">video_fv</Signal>
-            <Signal capture_enable="true">video_lv</Signal>
-            <Signal capture_enable="true">mipi0_dphy_byte_ready</Signal>
+            <Bus capture_enable="true" name="cam0_src_x[13:0]">
+                <Signal>cam0_src_x[13]</Signal>
+                <Signal>cam0_src_x[12]</Signal>
+                <Signal>cam0_src_x[11]</Signal>
+                <Signal>cam0_src_x[10]</Signal>
+                <Signal>cam0_src_x[9]</Signal>
+                <Signal>cam0_src_x[8]</Signal>
+                <Signal>cam0_src_x[7]</Signal>
+                <Signal>cam0_src_x[6]</Signal>
+                <Signal>cam0_src_x[5]</Signal>
+                <Signal>cam0_src_x[4]</Signal>
+                <Signal>cam0_src_x[3]</Signal>
+                <Signal>cam0_src_x[2]</Signal>
+                <Signal>cam0_src_x[1]</Signal>
+                <Signal>cam0_src_x[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="cam0_src_y[13:0]">
+                <Signal>cam0_src_y[13]</Signal>
+                <Signal>cam0_src_y[12]</Signal>
+                <Signal>cam0_src_y[11]</Signal>
+                <Signal>cam0_src_y[10]</Signal>
+                <Signal>cam0_src_y[9]</Signal>
+                <Signal>cam0_src_y[8]</Signal>
+                <Signal>cam0_src_y[7]</Signal>
+                <Signal>cam0_src_y[6]</Signal>
+                <Signal>cam0_src_y[5]</Signal>
+                <Signal>cam0_src_y[4]</Signal>
+                <Signal>cam0_src_y[3]</Signal>
+                <Signal>cam0_src_y[2]</Signal>
+                <Signal>cam0_src_y[1]</Signal>
+                <Signal>cam0_src_y[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">cam0_src_fv</Signal>
+            <Signal capture_enable="true">cam0_src_lv</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
-                    <Signal>video_fv</Signal>
+                    <Signal>cam0_src_fv</Signal>
+                    <Signal>cam0_src_lv</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="1"/>
@@ -306,7 +226,7 @@
             <Trigger index="15"/>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="1" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="R" value1="0" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="3" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="XR" value1="00" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -327,5 +247,95 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>0010010100110001</GAO_ID>
+    <AoCore index="2" sample_clock="dvi_clk" trig_type="0" storage_depth="1024" window_num="1" capture_amount="1024" implementation="0" trigger_pos="0" module_name="tang_mega_138k_pro_imx219" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
+        <SignalList>
+            <Bus capture_enable="true" name="syncgen_x[10:0]">
+                <Signal>syncgen_x[10]</Signal>
+                <Signal>syncgen_x[9]</Signal>
+                <Signal>syncgen_x[8]</Signal>
+                <Signal>syncgen_x[7]</Signal>
+                <Signal>syncgen_x[6]</Signal>
+                <Signal>syncgen_x[5]</Signal>
+                <Signal>syncgen_x[4]</Signal>
+                <Signal>syncgen_x[3]</Signal>
+                <Signal>syncgen_x[2]</Signal>
+                <Signal>syncgen_x[1]</Signal>
+                <Signal>syncgen_x[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="syncgen_y[10:0]">
+                <Signal>syncgen_y[10]</Signal>
+                <Signal>syncgen_y[9]</Signal>
+                <Signal>syncgen_y[8]</Signal>
+                <Signal>syncgen_y[7]</Signal>
+                <Signal>syncgen_y[6]</Signal>
+                <Signal>syncgen_y[5]</Signal>
+                <Signal>syncgen_y[4]</Signal>
+                <Signal>syncgen_y[3]</Signal>
+                <Signal>syncgen_y[2]</Signal>
+                <Signal>syncgen_y[1]</Signal>
+                <Signal>syncgen_y[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="syncgen_vsync_ff[1:0]">
+                <Signal>syncgen_vsync_ff[1]</Signal>
+                <Signal>syncgen_vsync_ff[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="syncgen_hsync_ff[1:0]">
+                <Signal>syncgen_hsync_ff[1]</Signal>
+                <Signal>syncgen_hsync_ff[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="syncgen_de_ff[1:0]">
+                <Signal>syncgen_de_ff[1]</Signal>
+                <Signal>syncgen_de_ff[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">syncgen_vsync</Signal>
+            <Signal capture_enable="true">syncgen_hsync</Signal>
+            <Signal capture_enable="true">syncgen_de</Signal>
+        </SignalList>
+        <Triggers>
+            <Trigger index="0">
+                <SignalList>
+                    <Signal>syncgen_vsync</Signal>
+                    <Signal>syncgen_hsync</Signal>
+                    <Signal>syncgen_de</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="1"/>
+            <Trigger index="2"/>
+            <Trigger index="3"/>
+            <Trigger index="4"/>
+            <Trigger index="5"/>
+            <Trigger index="6"/>
+            <Trigger index="7"/>
+            <Trigger index="8"/>
+            <Trigger index="9"/>
+            <Trigger index="10"/>
+            <Trigger index="11"/>
+            <Trigger index="12"/>
+            <Trigger index="13"/>
+            <Trigger index="14"/>
+            <Trigger index="15"/>
+        </Triggers>
+        <MatchUnits>
+            <MatchUnit index="0" enabled="1" match_type="3" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="X11" value1="000" trigger="0"/>
+            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="11" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="12" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+        </MatchUnits>
+        <Expressions type="Static">
+            <Expression>M0</Expression>
+        </Expressions>
+    </AoCore>
+    <GAO_ID>1001111001000011</GAO_ID>
 </GAO_CONFIG>
