@@ -29,7 +29,7 @@ module tb_main
 
     logic   [4:0]   led_n;
 
-    tang_nano_9k_hdmi_sample
+    tang_nano_9k_hdmi_720p
         u_top
             (
                 in_reset_n,
