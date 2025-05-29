@@ -41,5 +41,9 @@ clean:
 run: $(FS_FILE)
 	openFPGALoader $(FS_FILE)
 
+run_win: $(FS_FILE)
+#   programmer_cli --scan-cable
+	programmer_cli --device GW5AST-138C --run 2 --fsFile '$(shell wslpath -w $(FS_FILE))' --location 11585
+
 #run2:
 #	programmer_cli --device GW1NSR-4C --run 2 --fsFile $(TARGET).fs --location `programmer_cli --scan-cable | grep -oP 'USB location:\K\d+'`
