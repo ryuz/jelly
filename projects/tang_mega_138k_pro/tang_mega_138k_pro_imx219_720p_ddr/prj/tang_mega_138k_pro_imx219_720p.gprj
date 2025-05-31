@@ -9,6 +9,7 @@
         <File path="../rtl/jfive_simple_controller.sv" type="file.verilog" enable="1"/>
         <File path="../rtl/dvi_tx.sv" type="file.verilog" enable="1"/>
         <File path="../ip/gowin_pll/gowin_pll.v" type="file.verilog" enable="1"/>
+        <File path="../ip/gowin_pll_mipi/gowin_pll_mipi.v" type="file.verilog" enable="1"/>
         <File path="../ip/gowin_pll_dvi/gowin_pll_dvi.v" type="file.verilog" enable="1"/>
         <File path="../ip/gowin_pll_ddr3/gowin_pll_ddr3.v" type="file.verilog" enable="1"/>
         <File path="../ip/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v" type="file.verilog" enable="1"/>
@@ -42,5 +43,6 @@
         <File path="../syn/jfive_tcm/impl/gwsynthesis/jfive_tcm.vg" type="file.netlist" enable="1"/>
         <File path="../constrain/tang_mega_138k_pro_imx219.cst" type="file.cst" enable="1"/>
         <File path="../constrain/tang_mega_138k_pro_imx219.sdc" type="file.sdc" enable="1"/>
+         <File path="src/tang_mega_138k_pro_imx219_720p.rao" type="file.gao" enable="1"/>
     </FileList>
 </Project>
