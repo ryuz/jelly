@@ -1,31 +1,5 @@
 [
  {
-  "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_mipi/gowin_pll_mipi.v",
-  "InstLine" : 1,
-  "InstName" : "Gowin_PLL_mipi",
-  "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_mipi/gowin_pll_mipi.v",
-  "ModuleLine" : 1,
-  "ModuleName" : "Gowin_PLL_mipi",
-  "SubInsts" : [
-   {
-    "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_mipi/gowin_pll_mipi.v",
-    "InstLine" : 21,
-    "InstName" : "u_pll",
-    "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_mipi/gowin_pll_mipi_mod.v",
-    "ModuleLine" : 10,
-    "ModuleName" : "Gowin_PLL_mipi_MOD"
-   },
-   {
-    "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_mipi/gowin_pll_mipi.v",
-    "InstLine" : 32,
-    "InstName" : "u_pll_init",
-    "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/pll_init.v",
-    "ModuleLine" : 3,
-    "ModuleName" : "PLL_INIT"
-   }
-  ]
- },
- {
   "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
   "InstLine" : 5,
   "InstName" : "tang_mega_138k_pro_imx219_720p",
@@ -38,30 +12,20 @@
     "InstLine" : 83,
     "InstName" : "u_Gowin_PLL",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll/gowin_pll.v",
-    "ModuleLine" : 1,
-    "ModuleName" : "Gowin_PLL",
-    "SubInsts" : [
-     {
-      "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll/gowin_pll.v",
-      "InstLine" : 23,
-      "InstName" : "u_pll",
-      "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll/gowin_pll_mod.v",
-      "ModuleLine" : 10,
-      "ModuleName" : "Gowin_PLL_MOD"
-     },
-     {
-      "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll/gowin_pll.v",
-      "InstLine" : 35,
-      "InstName" : "u_pll_init",
-      "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/pll_init.v",
-      "ModuleLine" : 3,
-      "ModuleName" : "PLL_INIT"
-     }
-    ]
+    "ModuleLine" : 10,
+    "ModuleName" : "Gowin_PLL"
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 110,
+    "InstLine" : 94,
+    "InstName" : "u_Gowin_PLL_mipi",
+    "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_mipi/gowin_pll_mipi.v",
+    "ModuleLine" : 10,
+    "ModuleName" : "Gowin_PLL_mipi"
+   },
+   {
+    "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
+    "InstLine" : 108,
     "InstName" : "u_reset",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v1/library/jelly_reset.v",
     "ModuleLine" : 16,
@@ -69,7 +33,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 122,
+    "InstLine" : 120,
     "InstName" : "u_Gowin_PLL_dvi",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_dvi/gowin_pll_dvi.v",
     "ModuleLine" : 10,
@@ -77,7 +41,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 138,
+    "InstLine" : 136,
     "InstName" : "u_reset_dvi",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v1/library/jelly_reset.v",
     "ModuleLine" : 16,
@@ -85,33 +49,15 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 153,
+    "InstLine" : 151,
     "InstName" : "u_Gowin_PLL_ddr3",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_ddr3/gowin_pll_ddr3.v",
-    "ModuleLine" : 1,
-    "ModuleName" : "Gowin_PLL_ddr3",
-    "SubInsts" : [
-     {
-      "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_ddr3/gowin_pll_ddr3.v",
-      "InstLine" : 23,
-      "InstName" : "u_pll",
-      "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_ddr3/gowin_pll_ddr3_mod.v",
-      "ModuleLine" : 10,
-      "ModuleName" : "Gowin_PLL_ddr3_MOD"
-     },
-     {
-      "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_ddr3/gowin_pll_ddr3.v",
-      "InstLine" : 35,
-      "InstName" : "u_pll_init",
-      "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/pll_init.v",
-      "ModuleLine" : 3,
-      "ModuleName" : "PLL_INIT"
-     }
-    ]
+    "ModuleLine" : 10,
+    "ModuleName" : "Gowin_PLL_ddr3"
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 169,
+    "InstLine" : 167,
     "InstName" : "u_reset_ddr3",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v1/library/jelly_reset.v",
     "ModuleLine" : 16,
@@ -119,7 +65,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 219,
+    "InstLine" : 217,
     "InstName" : "u_jfive_simple_controller",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/jfive_simple_controller.sv",
     "ModuleLine" : 6,
@@ -679,7 +625,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 260,
+    "InstLine" : 258,
     "InstName" : "u_uart",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v2/peripheral/jelly2_uart.sv",
     "ModuleLine" : 15,
@@ -883,7 +829,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 300,
+    "InstLine" : 298,
     "InstName" : "u_i2c",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v1/peripheral/jelly_i2c.v",
     "ModuleLine" : 14,
@@ -901,7 +847,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 420,
+    "InstLine" : 418,
     "InstName" : "u_MIPI_DPHY_RX",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v",
     "ModuleLine" : 10,
@@ -909,7 +855,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 569,
+    "InstLine" : 567,
     "InstName" : "u_MIPI_DSI_CSI2_RX",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v",
     "ModuleLine" : 991,
@@ -927,7 +873,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 594,
+    "InstLine" : 592,
     "InstName" : "u_MIPI_Byte_to_Pixel_Converter_Top",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v",
     "ModuleLine" : 1497,
@@ -945,7 +891,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 625,
+    "InstLine" : 623,
     "InstName" : "u_vsync_generator_core",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v1/video/jelly_vsync_generator_core.v",
     "ModuleLine" : 16,
@@ -953,7 +899,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 687,
+    "InstLine" : 708,
     "InstName" : "u_ddr3",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/ddr3_memory_interface/DDR3_400.v",
     "ModuleLine" : 28353,
@@ -971,7 +917,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 737,
+    "InstLine" : 776,
     "InstName" : "u_Video_Frame_Buffer_Top",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/video_frame_buffer/Video_Frame_Buffer_Top.v",
     "ModuleLine" : 4966,
@@ -989,7 +935,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 804,
+    "InstLine" : 843,
     "InstName" : "u_ram_dualport",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v2/library/jelly2_ram_dualport.sv",
     "ModuleLine" : 15,
@@ -997,7 +943,7 @@
    },
    {
     "InstFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv",
-    "InstLine" : 946,
+    "InstLine" : 964,
     "InstName" : "u_dvi_tx",
     "ModuleFile" : "//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/dvi_tx.sv",
     "ModuleLine" : 8,

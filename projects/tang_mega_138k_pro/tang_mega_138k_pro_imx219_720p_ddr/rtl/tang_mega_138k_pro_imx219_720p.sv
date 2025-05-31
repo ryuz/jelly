@@ -646,6 +646,29 @@ module tang_mega_138k_pro_imx219_720p
                 .out_de             (syncgen_de     )
         );
     
+    // Remove Embedded data line
+    logic           cam0_src_fv     ;
+    logic           cam0_src_lv     ;
+    logic [9:0]     cam0_src_pixel  ;
+
+    logic           cam0_in_lv0     ;
+    logic [1:0]     cam0_in_y_count ;
+    always_ff @(posedge clk180) begin
+        cam0_in_lv0 <= cam0_in_lv;
+        if ( {cam0_in_lv0, cam0_in_lv} == 2'b10 && !cam0_in_y_count[1] ) begin
+            cam0_in_y_count <= cam0_in_y_count + 1;
+        end
+
+        if ( cam0_in_fv == 1'b0 ) begin
+            cam0_in_y_count <= '0;
+        end
+    end
+
+    assign cam0_src_fv    = cam0_in_fv                          ;
+    assign cam0_src_lv    = cam0_in_lv    && cam0_in_y_count[1] ;
+    assign cam0_src_pixel = cam0_in_pixel                       ;
+
+
 
     // ---------------------------------
     //  DDR3
@@ -728,9 +751,28 @@ module tang_mega_138k_pro_imx219_720p
                 .IO_ddr_dqs_n       (ddr_dqs_n          )
             );
 
+    logic   [11:0]  cam0_src_x_count;
+    logic   [11:0]  cam0_src_y_count;
+    logic           cam0_src_lv0;
+    always_ff @(posedge clk180) begin
+        cam0_src_lv0 <= cam0_src_lv;
+        if ( {cam0_src_lv0, cam0_src_lv} == 2'b10 ) begin
+            cam0_src_y_count <= cam0_src_y_count + 1;
+        end
+        if ( !cam0_src_fv ) begin
+            cam0_src_y_count <= 0;
+        end
+
+        cam0_src_x_count <= cam0_src_x_count + cam0_src_lv;
+        if ( !cam0_src_lv ) begin
+            cam0_src_x_count <= 0;
+        end
+    end
+
+    logic               cam0_src_fifo_full;
     logic               video_buf_de;
     logic   [9:0]       video_buf_data;
-
+    logic               video_fifo_empty;
     Video_Frame_Buffer_Top
         u_Video_Frame_Buffer_Top
             ( 
@@ -738,19 +780,19 @@ module tang_mega_138k_pro_imx219_720p
                 .I_dma_clk              (ddr3_clk           ),
 
                 // video data input
-                .I_vin0_clk             (clk180                     ),//(fb_vin_clk         ),
-                .I_vin0_vs_n            (cam0_in_fv                 ),//(~fb_vin_vsync      ),
-                .I_vin0_de              (cam0_in_lv & cam0_in_fv    ),//(fb_vin_de          ),
-                .I_vin0_data            (cam0_in_pixel              ),//(fb_vin_data        ),
-                .O_vin0_fifo_full       (),//(                   ),
+                .I_vin0_clk             (clk180                   ),
+                .I_vin0_vs_n            (cam0_src_fv              ),
+                .I_vin0_de              (cam0_src_lv & cam0_src_fv),
+                .I_vin0_data            (cam0_src_pixel           ),
+                .O_vin0_fifo_full       (cam0_src_fifo_full       ),
 
                 // video data output
-                .I_vout0_clk            (dvi_clk        ),//(video_clk          ),
-                .I_vout0_vs_n           (~syncgen_vsync  ),//(~syn_off0_vs       ),
-                .I_vout0_de             (syncgen_de     ),//(out_de             ),
-                .O_vout0_den            (video_buf_de   ),//(off0_syn_de        ),
-                .O_vout0_data           (video_buf_data ),//(off0_syn_data      ),
-                .O_vout0_fifo_empty     (               ),//(                   ),
+                .I_vout0_clk            (dvi_clk            ),
+                .I_vout0_vs_n           (~syncgen_vsync     ),
+                .I_vout0_de             (syncgen_de         ),
+                .O_vout0_den            (video_buf_de       ),
+                .O_vout0_data           (video_buf_data     ),
+                .O_vout0_fifo_empty     (video_fifo_empty   ),
 
                 // ddr write request
                 .I_cmd_ready            (cmd_ready          ),
@@ -819,27 +861,6 @@ module tang_mega_138k_pro_imx219_720p
             );
 
 
-    // Remove Embedded data line
-    logic           cam0_src_fv     ;
-    logic           cam0_src_lv     ;
-    logic [9:0]     cam0_src_pixel  ;
-
-    logic           cam0_in_lv0     ;
-    logic [1:0]     cam0_in_y_count ;
-    always_ff @(posedge clk180) begin
-        cam0_in_lv0 <= cam0_in_lv;
-        if ( {cam0_in_lv0, cam0_in_lv} == 2'b10 && !cam0_in_y_count[1] ) begin
-            cam0_in_y_count <= cam0_in_y_count + 1;
-        end
-
-        if ( cam0_in_fv == 1'b0 ) begin
-            cam0_in_y_count <= '0;
-        end
-    end
-
-    assign cam0_src_fv    = cam0_in_fv                          ;
-    assign cam0_src_lv    = cam0_in_lv    && cam0_in_y_count[1] ;
-    assign cam0_src_pixel = cam0_in_pixel                       ;
 
     
     logic           cam0_src_lv0;
