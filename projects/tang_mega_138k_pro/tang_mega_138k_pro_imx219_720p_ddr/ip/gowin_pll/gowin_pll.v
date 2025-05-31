@@ -5,7 +5,7 @@
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138
 //Device Version: B
-//Created Time: Wed May 28 20:29:24 2025
+//Created Time: Sat May 31 18:21:40 2025
 
 module Gowin_PLL (lock, clkout0, clkout1, clkin);
 

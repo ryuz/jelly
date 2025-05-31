@@ -1,17 +1,21 @@
 //Copyright (C)2014-2025 Gowin Semiconductor Corporation.
 //All rights reserved.
 //File Title: IP file
-//Tool Version: V1.9.11.01 (64-bit)
+//Tool Version: V1.9.11.02 (64-bit)
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138
 //Device Version: B
-//Created Time: Sat May 31 18:21:57 2025
+//Created Time: Sat May 31 18:16:53 2025
 
-module Gowin_PLL_ddr3 (lock, clkout0, clkin, enclk0);
+module Gowin_PLL_ddr3_MOD (lock, clkout0, clkin, reset, icpsel, lpfres, lpfcap, enclk0);
 
 output lock;
 output clkout0;
 input clkin;
+input reset;
+input [5:0] icpsel;
+input [2:0] lpfres;
+input [1:0] lpfcap;
 input enclk0;
 
 wire clkout1;
@@ -39,7 +43,7 @@ PLL PLL_inst (
     .CLKFBOUT(clkfbout),
     .CLKIN(clkin),
     .CLKFB(gw_gnd),
-    .RESET(gw_gnd),
+    .RESET(reset),
     .PLLPWD(gw_gnd),
     .RESET_I(gw_gnd),
     .RESET_O(gw_gnd),
@@ -59,9 +63,9 @@ PLL PLL_inst (
     .DT1({gw_gnd,gw_gnd,gw_gnd,gw_gnd}),
     .DT2({gw_gnd,gw_gnd,gw_gnd,gw_gnd}),
     .DT3({gw_gnd,gw_gnd,gw_gnd,gw_gnd}),
-    .ICPSEL({gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd}),
-    .LPFRES({gw_gnd,gw_gnd,gw_gnd}),
-    .LPFCAP({gw_gnd,gw_gnd}),
+    .ICPSEL(icpsel),
+    .LPFRES(lpfres),
+    .LPFCAP(lpfcap),
     .PSSEL({gw_gnd,gw_gnd,gw_gnd}),
     .PSDIR(gw_gnd),
     .PSPULSE(gw_gnd),
@@ -170,7 +174,7 @@ defparam PLL_inst.DYN_DT0_SEL = "FALSE";
 defparam PLL_inst.DYN_DT1_SEL = "FALSE";
 defparam PLL_inst.DYN_DT2_SEL = "FALSE";
 defparam PLL_inst.DYN_DT3_SEL = "FALSE";
-defparam PLL_inst.DYN_ICP_SEL = "FALSE";
-defparam PLL_inst.DYN_LPF_SEL = "FALSE";
+defparam PLL_inst.DYN_ICP_SEL = "TRUE";
+defparam PLL_inst.DYN_LPF_SEL = "TRUE";
 
-endmodule //Gowin_PLL_ddr3
+endmodule //Gowin_PLL_ddr3_MOD

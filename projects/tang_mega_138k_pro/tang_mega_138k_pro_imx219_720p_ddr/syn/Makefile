@@ -20,6 +20,7 @@ VLOG_SOURCES  = $(RTL_DIR)/tang_mega_138k_pro_imx219_720p.sv
 VLOG_SOURCES += $(RTL_DIR)/jfive_simple_controller.sv
 VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll.v
+VLOG_SOURCES += $(IP_DIR)/gowin_pll_mipi/gowin_pll_mipi.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi/gowin_pll_dvi.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll_ddr3/gowin_pll_ddr3.v
 VLOG_SOURCES += $(IP_DIR)/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v
