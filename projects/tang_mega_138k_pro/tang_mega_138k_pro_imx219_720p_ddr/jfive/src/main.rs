@@ -22,36 +22,50 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
-
-
 const REG_LED: usize  = 0x10000100;
 const REG_GPIO: usize = 0x10000104;
-
 const IMX219_DEVADR: u8 =     0x10;    // 7bit address
+
+const CMD_MAX_LEN: usize = 64;
+
+
+// カメラ電源ON
+fn camera_power_on() {
+    wrtie_reg(REG_GPIO, 1); // GPIOピンをHIGHに設定
+    cpu_wait();
+}
+
+// カメラ電源OFF
+fn camera_power_off() {
+    wrtie_reg(REG_GPIO, 0); // GPIOピンをLOWに設定
+    cpu_wait();
+}
+
+
 
 #[no_mangle]
 #[allow(improper_ctypes_definitions)]
 pub unsafe extern "C" fn main() -> Result<(), &'static str> {
     println!("start");
 
+    // I2Cアクセサの初期化
     type I2cAccessor = PhysAccessor<u32, 0x10000200, 0x100>;
     let  i2c = JellyI2c::<I2cAccessor>::new(I2cAccessor::new().into(), None);
 
-    cpu_wait();
-    wrtie_reg(REG_GPIO, 0);
-    cpu_wait();
-    wrtie_reg(REG_GPIO, 1);
-    cpu_wait();
+    // カメラリセット
+    camera_power_off();
+    camera_power_on();
 
-    
+    // I2C アクセステスト(IDを読んでみる)
     let mut model_id: [u8; 2] = [0u8; 2];
     i2c.write(IMX219_DEVADR, &[0x00, 0x00]);
     i2c.read(IMX219_DEVADR, &mut model_id);
     println!("model_id: 0x{:02x}{:02x}", model_id[0], model_id[1]);
 
-    ////////////
+    // IMX219 制御生成
     let mut imx219 = Imx219Control::new();
 
+    // リセット
     println!("reset");
     imx219.reset()?;
 
@@ -82,31 +96,60 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
     imx219.set_digital_gain(d_gain)?;
     imx219.set_flip(flip_h, flip_v)?;
 
-    let id = imx219.get_model_id()?;
-    println!("model_id: 0x{:04x}", id);
+//  let id = imx219.get_model_id()?;
+//  println!("model_id: 0x{:04x}", id);
 
+    // カメラ設定完了
     imx219.setup()?;
-    println!("end!");
-    loop {
-        command_prompt();
-    }
-    
-    
-    /*
-    let mut i = 0;
-    loop {
-        println!("Hello world (Rust) {}", i);
-        wrtie_reg(REG_LED, i >> 8);
-        i += 1;
+    println!("camera setup done");
 
-        let mut model_id: [u8; 2] = [0u8; 2];
-        i2c.write(IMX219_DEVADR, &[0x00, 0x00]);
-        cpu_wait();
-        i2c.read(IMX219_DEVADR, &mut model_id);
-        println!("model_id: 0x{:02x}{:02x}", model_id[0], model_id[1]);
+    // コマンドプロンプト
+    loop {
+        // コマンド入力
+        let mut cmd_buf = [0u8; CMD_MAX_LEN];
+        let cmd_len = command_input(&mut cmd_buf);
+        let com_str = core::str::from_utf8(&cmd_buf[0..cmd_len]).unwrap_or("INVALID_UTF8");
+ //     println!("command: {}", com_str);
+ 
+ 
+        let mut tokens: [&str; 3] = ["", "", ""];
+        let mut idx = 0;
+        for part in com_str.trim().split_whitespace() {
+            if idx < 3 {
+                tokens[idx] = part;
+                idx += 1;
+            } else {
+                break;
+            }
+        }
+        if tokens[0].is_empty() {
+            continue;
+        }
+        match tokens[0] {
+            "help" => {
+                println!("Available commands:");
+                println!("  help - Show this help message");
+                println!("  i2cw <addr> <data> - Write 8bit <data> to I2C address <addr>");
+                // 他のコマンドもここに追加
+            },
+            /*
+            "i2cw8" => {
+                if !tokens[1].is_empty() && !tokens[2].is_empty() {
+                    let addr = tokens[1].parse::<u16>().or_else(|_| u16::from_str_radix(tokens[1].trim_start_matches("0x"), 16)).unwrap_or(0);
+                    let data = tokens[2].parse::<u8>().or_else(|_| u8::from_str_radix(tokens[2].trim_start_matches("0x"), 16)).unwrap_or(0);
+                    imx219.i2c_write_u8(addr, data as u8).unwrap_or_else(|e| {
+                        println!("I2C write error: {}", e);
+                    });
+                    println!("I2C write: addr=0x{:02x} data=0x{:02x}", addr, data);
+                } else {
+                    println!("Usage: i2cw <addr> <data>");
+                }
+            },*/
+            _ => {
+                println!("Unknown command: {}", com_str);
+            }
+        }
     }
-    Ok(())
-    */
 }
 
 
@@ -139,10 +182,9 @@ fn read_reg(adr: usize) -> u32 {
 
 
 
-fn command_prompt()
+fn command_input(command_buffer: &mut [u8; CMD_MAX_LEN]) -> usize
 {
     loop {
-        let mut command_buffer = [0u8; 64];
         let mut buffer_idx = 0;
         print!("> ");
         loop {
@@ -152,11 +194,8 @@ fn command_prompt()
                     uart_putc(b'\r');
                     uart_putc(b'\n');
                     if buffer_idx > 0 {
-                        let command_str = core::str::from_utf8(&command_buffer[0..buffer_idx])
-                                            .unwrap_or("INVALID_UTF8");
-                        process_command(command_str);
+                        return buffer_idx;
                     }
-                    buffer_idx = 0;
                     break;
                 },
                 0x7F | 0x08 => { // Backspace (ASCII DEL or BS)
@@ -179,14 +218,46 @@ fn command_prompt()
     }
 }
 
-fn process_command(command: &str) {
+
+/*
+fn process_command(imx219 : &mut Imx219Control, command: &str) {
     // コマンドを処理するロジックをここに実装
-    // 例: "help" コマンドの処理
-    if command.trim() == "help" {
-        println!("Available commands:");
-        println!("  help - Show this help message");
-        // 他のコマンドもここに追加
-    } else {
-        println!("Unknown command: {}", command);
+    // Vecが使えないため、split_whitespaceで最大3個まで手動で分割
+    let mut tokens: [&str; 3] = ["", "", ""];
+    let mut idx = 0;
+    for part in command.trim().split_whitespace() {
+        if idx < 3 {
+            tokens[idx] = part;
+            idx += 1;
+        } else {
+            break;
+        }
+    }
+    if tokens[0].is_empty() {
+        return;
+    }
+    match tokens[0] {
+        "help" => {
+            println!("Available commands:");
+            println!("  help - Show this help message");
+            println!("  i2cw <addr> <data> - Write 8bit <data> to I2C address <addr>");
+            // 他のコマンドもここに追加
+        },
+        "i2cw" => {
+            if !tokens[1].is_empty() && !tokens[2].is_empty() {
+                let addr = tokens[1].parse::<u8>().or_else(|_| u8::from_str_radix(tokens[1].trim_start_matches("0x"), 16)).unwrap_or(0);
+                let data = tokens[2].parse::<u8>().or_else(|_| u8::from_str_radix(tokens[2].trim_start_matches("0x"), 16)).unwrap_or(0);
+                imx219.i2c_write_u8(addr, data).unwrap_or_else(|e| {
+                    println!("I2C write error: {}", e);
+                });
+                println!("I2C write: addr=0x{:02x} data=0x{:02x}", addr, data);
+            } else {
+                println!("Usage: i2cw <addr> <data>");
+            }
+        },
+        _ => {
+            println!("Unknown command: {}", command);
+        }
     }
 }
+*/
