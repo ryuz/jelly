@@ -84,12 +84,13 @@ module tang_mega_138k_pro_imx219_720p
             (
                 .lock       (lock       ),  //output lock
                 .clkout0    (clk50      ),  //output clkout0
-                .clkout1    (           ),  //output clkout1
+                .clkout1    (clk180     ),  //output clkout1
                 .clkin      (in_clk50   )   //input clkin
             );
     logic   clk;
     assign clk = clk50;
 
+    /*
     Gowin_PLL_mipi
         u_Gowin_PLL_mipi
             (
@@ -97,6 +98,7 @@ module tang_mega_138k_pro_imx219_720p
                 .clkout0    (clk180     ),  //output clkout0
                 .clkin      (in_clk50   )   //input clkin
             );
+    */
 
     logic   reset;
     jelly_reset
@@ -777,7 +779,6 @@ module tang_mega_138k_pro_imx219_720p
         u_Video_Frame_Buffer_Top
             ( 
                 .I_rst_n                (init_calib_complete),
-//              .I_rst_n                (~ddr3_reset        ),
                 .I_dma_clk              (clk_x1             ),
 
                 .I_wr_halt              ('0), //input [0:0] I_wr_halt

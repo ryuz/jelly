@@ -43,6 +43,6 @@
         <File path="../syn/jfive_tcm/impl/gwsynthesis/jfive_tcm.vg" type="file.netlist" enable="1"/>
         <File path="../constrain/tang_mega_138k_pro_imx219.cst" type="file.cst" enable="1"/>
         <File path="../constrain/tang_mega_138k_pro_imx219.sdc" type="file.sdc" enable="1"/>
-         <File path="src/tang_mega_138k_pro_imx219_720p.rao" type="file.gao" enable="1"/>
+        <File path="src/tang_mega_138k_pro_imx219_720p.rao" type="file.gao" enable="1"/>
     </FileList>
 </Project>
