@@ -2,6 +2,7 @@ module Gowin_PLL_mipi(
     clkin,
     clkout0,
     init_clk,
+    lock,
     reset
 );
 
@@ -9,8 +10,8 @@ module Gowin_PLL_mipi(
 input clkin;
 input init_clk;
 output clkout0;
+output lock;
 input reset;
-wire lock;
 wire [5:0] icpsel;
 wire [2:0] lpfres;
 wire pll_lock;

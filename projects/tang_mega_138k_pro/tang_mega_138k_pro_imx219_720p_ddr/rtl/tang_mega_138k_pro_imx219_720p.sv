@@ -84,11 +84,19 @@ module tang_mega_138k_pro_imx219_720p
             (
                 .lock       (lock       ),  //output lock
                 .clkout0    (clk50      ),  //output clkout0
-                .clkout1    (clk180     ),  //output clkout1
+                .clkout1    (           ),  //output clkout1
                 .clkin      (in_clk50   )   //input clkin
             );
     logic   clk;
     assign clk = clk50;
+
+    Gowin_PLL_mipi
+        u_Gowin_PLL_mipi
+            (
+                .lock       (           ),  //output lock
+                .clkout0    (clk180     ),  //output clkout0
+                .clkin      (in_clk50   )   //input clkin
+            );
 
     logic   reset;
     jelly_reset
