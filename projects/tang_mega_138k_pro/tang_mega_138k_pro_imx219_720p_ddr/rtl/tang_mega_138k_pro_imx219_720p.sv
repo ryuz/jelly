@@ -777,7 +777,11 @@ module tang_mega_138k_pro_imx219_720p
         u_Video_Frame_Buffer_Top
             ( 
                 .I_rst_n                (init_calib_complete),
-                .I_dma_clk              (ddr3_clk           ),
+//              .I_rst_n                (~ddr3_reset        ),
+                .I_dma_clk              (clk_x1             ),
+
+                .I_wr_halt              ('0), //input [0:0] I_wr_halt
+                .I_rd_halt              ('0), //input [0:0] I_rd_halt
 
                 // video data input
                 .I_vin0_clk             (clk180                   ),
