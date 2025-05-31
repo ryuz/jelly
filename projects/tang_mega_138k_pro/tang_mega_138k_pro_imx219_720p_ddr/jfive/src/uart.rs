@@ -28,6 +28,18 @@ pub fn uart_write(c: i32) {
     wrtie_reg(REG_UART_TX, c as u32)
 }
 
+// 1文字出力
+pub fn uart_putc(c: u8) {
+    uart_write(c as i32);
+}
+
+// 1文字入力
+pub fn uart_getc() -> u8 {
+    while (read_reg(REG_UART_STATUS) & 0x1) == 0 {}
+    read_reg(REG_UART_RX) as u8
+}
+
+
 #[macro_export]
 macro_rules! print {
     ($($arg:tt)*) => ($crate::_print(format_args!($($arg)*)));

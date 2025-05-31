@@ -52,43 +52,45 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
     ////////////
     let mut imx219 = Imx219Control::new();
 
-        println!("reset");
-        imx219.reset()?;
+    println!("reset");
+    imx219.reset()?;
 
-        // カメラID取得
-        println!("sensor model ID:{:04x}", imx219.get_model_id().unwrap());
+    // カメラID取得
+    println!("sensor model ID:{:04x}", imx219.get_model_id().unwrap());
 
-        // camera 設定
-        let pixel_clock: f64 = 91000000.0;
-        let binning: bool = true;
-        let width: i32 = 1280;// / 2;
-        let height: i32 = 720;// / 2;
-        let aoi_x: i32 = -1;
-        let aoi_y: i32 = -1;
-        imx219.set_pixel_clock(pixel_clock)?;
-        imx219.set_aoi(width, height, aoi_x, aoi_y, binning, binning)?;
-        imx219.start()?;
+    // camera 設定
+    let pixel_clock: f64 = 91000000.0;
+    let binning: bool = true;
+    let width: i32 = 1280;// / 2;
+    let height: i32 = 720;// / 2;
+    let aoi_x: i32 = -1;
+    let aoi_y: i32 = -1;
+    imx219.set_pixel_clock(pixel_clock)?;
+    imx219.set_aoi(width, height, aoi_x, aoi_y, binning, binning)?;
+    imx219.start()?;
 
-        // 設定
-        let frame_rate: f64 = 30.0;
-        let exposure: f64 = 0.015;
-        let a_gain: f64 = 20.0;
-        let d_gain: f64 = 0.0;
-        let flip_h: bool = false;
-        let flip_v: bool = false;
-        imx219.set_frame_rate(frame_rate)?;
-        imx219.set_exposure_time(exposure)?;
-        imx219.set_gain(a_gain)?;
-        imx219.set_digital_gain(d_gain)?;
-        imx219.set_flip(flip_h, flip_v)?;
+    // 設定
+    let frame_rate: f64 = 30.0;
+    let exposure: f64 = 0.015;
+    let a_gain: f64 = 20.0;
+    let d_gain: f64 = 0.0;
+    let flip_h: bool = false;
+    let flip_v: bool = false;
+    imx219.set_frame_rate(frame_rate)?;
+    imx219.set_exposure_time(exposure)?;
+    imx219.set_gain(a_gain)?;
+    imx219.set_digital_gain(d_gain)?;
+    imx219.set_flip(flip_h, flip_v)?;
 
-        let id = imx219.get_model_id()?;
-        println!("model_id: 0x{:04x}", id);
+    let id = imx219.get_model_id()?;
+    println!("model_id: 0x{:04x}", id);
 
-        imx219.setup()?;
-        println!("end!");
-        loop {
-        }
+    imx219.setup()?;
+    println!("end!");
+    loop {
+        command_prompt();
+    }
+    
     
     /*
     let mut i = 0;
@@ -133,4 +135,58 @@ fn wrtie_reg(adr: usize, data: u32) {
 fn read_reg(adr: usize) -> u32 {
     let p = adr as *mut u32;
     unsafe { core::ptr::read_volatile(p) }
+}
+
+
+
+fn command_prompt()
+{
+    loop {
+        let mut command_buffer = [0u8; 64];
+        let mut buffer_idx = 0;
+        print!("> ");
+        loop {
+            let c = uart_getc();
+            match c {
+                b'\r' | b'\n' => {
+                    uart_putc(b'\r');
+                    uart_putc(b'\n');
+                    if buffer_idx > 0 {
+                        let command_str = core::str::from_utf8(&command_buffer[0..buffer_idx])
+                                            .unwrap_or("INVALID_UTF8");
+                        process_command(command_str);
+                    }
+                    buffer_idx = 0;
+                    break;
+                },
+                0x7F | 0x08 => { // Backspace (ASCII DEL or BS)
+                    if buffer_idx > 0 {
+                        buffer_idx -= 1;
+                        uart_putc(0x08); // カーソルを戻す
+                        uart_putc(b' '); // 文字を消す
+                        uart_putc(0x08); // カーソルを戻す
+                    }
+                },
+                _ => { // その他の文字はバッファに格納し、エコーバック
+                    if buffer_idx < command_buffer.len() {
+                        command_buffer[buffer_idx] = c;
+                        buffer_idx += 1;
+                        uart_putc(c); // エコーバック
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn process_command(command: &str) {
+    // コマンドを処理するロジックをここに実装
+    // 例: "help" コマンドの処理
+    if command.trim() == "help" {
+        println!("Available commands:");
+        println!("  help - Show this help message");
+        // 他のコマンドもここに追加
+    } else {
+        println!("Unknown command: {}", command);
+    }
 }
