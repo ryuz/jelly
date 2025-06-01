@@ -607,6 +607,157 @@ module tang_mega_138k_pro_imx219_720p
                 .O_PIXEL        (cam0_in_pixel          )   //output [9:0] O_PIXEL
             );
 
+    // Remove Embedded data line
+    logic [1:0]     cam0_src_y_count;
+    logic           cam0_src_fv     ;
+    logic           cam0_src_lv     ;
+    logic [9:0]     cam0_src_pixel  ;
+    logic           cam0_src_fs     ;
+    logic           cam0_src_le     ;
+    always_ff @(posedge clk180) begin
+        if ( cam0_in_fv == 1'b0 ) begin
+            cam0_src_y_count <= '0;
+            cam0_src_fs      <= 1'b1;
+        end
+        else if ( {cam0_src_lv, cam0_in_lv} == 2'b10 && !cam0_src_y_count[1] ) begin
+            cam0_src_y_count <= cam0_src_y_count + 1;
+        end
+        cam0_src_fv    <= cam0_in_fv    ;
+        cam0_src_lv    <= cam0_in_lv && cam0_src_y_count[1];
+        cam0_src_pixel <= cam0_in_pixel ;
+        if ( cam0_src_lv ) begin
+            cam0_src_fs <= 1'b0;
+        end
+    end
+    assign cam0_src_le = cam0_src_lv && !cam0_in_lv;
+
+
+    // to AXI4-Stream
+    logic   [0:0]   axi4s_cma0_tuser    ;
+    logic           axi4s_cma0_tlast    ;
+    logic   [9:0]   axi4s_cam0_tdata    ;
+    logic           axi4s_cam0_tvalid   ;
+    assign axi4s_cma0_tuser  = cam0_src_fs      ;
+    assign axi4s_cma0_tlast  = cam0_src_le      ;
+    assign axi4s_cam0_tdata  = cam0_src_pixel   ;
+    assign axi4s_cam0_tvalid = cam0_src_lv      ;
+
+    /*
+    // RAW2RGB
+    logic   [0:0]       axi4s_rgb_tuser    ;
+    logic               axi4s_rgb_tlast    ;
+    logic   [3:0][9:0]  axi4s_rgb_tdata    ;
+    logic               axi4s_rgb_tvalid   ;
+    video_raw_to_rgb
+            #(
+                .WB_ADR_WIDTH   (10     ),
+                .WB_DAT_WIDTH   (32     ),
+                .DATA_WIDTH     (10     ),
+                .X_WIDTH        (12     ),
+                .Y_WIDTH        (12     ),
+                .TUSER_WIDTH    (1      ),
+                .DEVICE         ("RTL"  )
+            )
+        u_video_raw_to_rgb
+            (
+                .aresetn                (~reset             ),
+                .aclk                   (clk180             ),
+                
+                .in_update_req          (1'b1               ),
+                .param_width            (12'd1280           ),
+                .param_height           (12'd720            ),
+
+                .s_axi4s_tuser          (axi4s_cma0_tuser   ),
+                .s_axi4s_tlast          (axi4s_cma0_tlast   ),
+                .s_axi4s_tdata          (axi4s_cam0_tdata   ),
+                .s_axi4s_tvalid         (axi4s_cam0_tvalid  ),
+                .s_axi4s_tready         (                   ),
+
+                .m_axi4s_tuser          (axi4s_rgb_tuser    ),
+                .m_axi4s_tlast          (axi4s_rgb_tlast    ),
+                .m_axi4s_tdata          (axi4s_rgb_tdata    ),
+                .m_axi4s_tvalid         (axi4s_rgb_tvalid   ),
+                .m_axi4s_tready         (1'b1               ),
+
+                .s_wb_rst_i             (reset              ),
+                .s_wb_clk_i             (clk                ),
+                .s_wb_adr_i             ('0                 ),
+                .s_wb_dat_i             ('0                 ),
+                .s_wb_dat_o             (                   ),
+                .s_wb_we_i              ('0                 ),
+                .s_wb_sel_i             ('0                 ),
+                .s_wb_stb_i             ('0                 ),
+                .s_wb_ack_o             (                   )
+        );
+    */
+
+
+    // 現像
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS  (10         ),
+                .DEBUG      ("false"    )
+            )
+        axi4s_raw
+            (
+                .aresetn    (~reset     ),
+                .aclk       (clk180     ),
+                .aclken     (1'b1       )
+            );
+    assign axi4s_raw.tuser  = axi4s_cma0_tuser ;
+    assign axi4s_raw.tlast  = axi4s_cma0_tlast ;
+    assign axi4s_raw.tdata  = axi4s_cam0_tdata ;
+    assign axi4s_raw.tvalid = axi4s_cam0_tvalid;
+
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS  (4*10       ),
+                .DEBUG      ("false"    )
+            )
+        axi4s_rgb
+            (
+                .aresetn    (~reset     ),
+                .aclk       (clk180     ),
+                .aclken     (1'b1       )
+            );
+    assign axi4s_rgb.tready = 1'b1;
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS      (32     ),
+                .DATA_BITS      (32     )
+            )
+        axi4l_peri
+            (
+                .aresetn        (~reset ),
+                .aclk           (clk    ),
+                .aclken         (1'b1   )
+            );
+    assign axi4l_peri.awvalid = 1'b0;
+    assign axi4l_peri.wvalid  = 1'b0;
+    assign axi4l_peri.bready  = 1'b0;
+    assign axi4l_peri.arvalid = 1'b0;
+    assign axi4l_peri.rready  = 1'b0;
+
+    video_raw_to_rgb
+            #(
+                .WIDTH_BITS     (12         ),
+                .HEIGHT_BITS    (12         ),
+                .DEVICE         ("RTL"      )
+            )
+        u_video_raw_to_rgb
+            (
+                .aclken         (1'b1               ),
+                .in_update_req  (1'b1               ),
+
+                .param_width    (12'd1280           ),
+                .param_height   (12'd720            ),
+
+                .s_axi4s        (axi4s_raw.s        ),
+                .m_axi4s        (axi4s_rgb.m        ),
+
+                .s_axi4l        (axi4l_peri.s       )
+            );
 
 
     // ----------------------------
@@ -648,27 +799,6 @@ module tang_mega_138k_pro_imx219_720p
                 .out_de             (syncgen_de     )
         );
     
-    // Remove Embedded data line
-    logic           cam0_src_fv     ;
-    logic           cam0_src_lv     ;
-    logic [9:0]     cam0_src_pixel  ;
-
-    logic           cam0_in_lv0     ;
-    logic [1:0]     cam0_in_y_count ;
-    always_ff @(posedge clk180) begin
-        cam0_in_lv0 <= cam0_in_lv;
-        if ( {cam0_in_lv0, cam0_in_lv} == 2'b10 && !cam0_in_y_count[1] ) begin
-            cam0_in_y_count <= cam0_in_y_count + 1;
-        end
-
-        if ( cam0_in_fv == 1'b0 ) begin
-            cam0_in_y_count <= '0;
-        end
-    end
-
-    assign cam0_src_fv    = cam0_in_fv                          ;
-    assign cam0_src_lv    = cam0_in_lv    && cam0_in_y_count[1] ;
-    assign cam0_src_pixel = cam0_in_pixel                       ;
 
 
 
@@ -686,10 +816,6 @@ module tang_mega_138k_pro_imx219_720p
     logic               pll_stop;
     logic               ddr_rst;
 
-//    logic               app_sre_req;
-//    logic               app_ref_req;
-//    logic               app_burst;
-
     logic               cmd_ready       ;
     logic   [2:0]       cmd             ;
     logic               cmd_en          ;
@@ -703,9 +829,6 @@ module tang_mega_138k_pro_imx219_720p
     logic               rd_data_valid   ;
     logic               rd_data_end     ;
 
-//    logic               sr_ack;
-//    logic               ref_ack;
-    
     D3_400
         u_ddr3
             (
@@ -753,28 +876,13 @@ module tang_mega_138k_pro_imx219_720p
                 .IO_ddr_dqs_n       (ddr_dqs_n          )
             );
 
-    logic   [11:0]  cam0_src_x_count;
-    logic   [11:0]  cam0_src_y_count;
-    logic           cam0_src_lv0;
-    always_ff @(posedge clk180) begin
-        cam0_src_lv0 <= cam0_src_lv;
-        if ( {cam0_src_lv0, cam0_src_lv} == 2'b10 ) begin
-            cam0_src_y_count <= cam0_src_y_count + 1;
-        end
-        if ( !cam0_src_fv ) begin
-            cam0_src_y_count <= 0;
-        end
+    logic   [2:0][7:0]  video_in_rgb;
+    assign video_in_rgb[0] = axi4s_rgb.tdata[10*0+2 +: 8];
+    assign video_in_rgb[1] = axi4s_rgb.tdata[10*1+2 +: 8];
+    assign video_in_rgb[2] = axi4s_rgb.tdata[10*2+2 +: 8];
 
-        cam0_src_x_count <= cam0_src_x_count + cam0_src_lv;
-        if ( !cam0_src_lv ) begin
-            cam0_src_x_count <= 0;
-        end
-    end
-
-    logic               cam0_src_fifo_full;
-    logic               video_buf_de;
-    logic   [9:0]       video_buf_data;
-    logic               video_fifo_empty;
+    logic               video_buf_de    ;
+    logic   [9:0]       video_buf_data  ;
     Video_Frame_Buffer_Top
         u_Video_Frame_Buffer_Top
             ( 
@@ -785,11 +893,11 @@ module tang_mega_138k_pro_imx219_720p
                 .I_rd_halt              ('0), //input [0:0] I_rd_halt
 
                 // video data input
-                .I_vin0_clk             (clk180                   ),
-                .I_vin0_vs_n            (cam0_src_fv              ),
-                .I_vin0_de              (cam0_src_lv & cam0_src_fv),
-                .I_vin0_data            (cam0_src_pixel           ),
-                .O_vin0_fifo_full       (cam0_src_fifo_full       ),
+                .I_vin0_clk             (clk180             ),
+                .I_vin0_vs_n            (cam0_src_fv        ),
+                .I_vin0_de              (axi4s_rgb.tvalid   ),
+                .I_vin0_data            (video_in_rgb       ),
+                .O_vin0_fifo_full       (                   ),
 
                 // video data output
                 .I_vout0_clk            (dvi_clk            ),
@@ -797,21 +905,21 @@ module tang_mega_138k_pro_imx219_720p
                 .I_vout0_de             (syncgen_de         ),
                 .O_vout0_den            (video_buf_de       ),
                 .O_vout0_data           (video_buf_data     ),
-                .O_vout0_fifo_empty     (video_fifo_empty   ),
+                .O_vout0_fifo_empty     (                   ),
 
                 // ddr write request
                 .I_cmd_ready            (cmd_ready          ),
-                .O_cmd                  (cmd                ),//0:write;  1:read
+                .O_cmd                  (cmd                ),
                 .O_cmd_en               (cmd_en             ),
-                .O_addr                 (addr               ),//[ADDR_WIDTH-1:0]
+                .O_addr                 (addr               ),
                 .I_wr_data_rdy          (wr_data_rdy        ),
-                .O_wr_data_en           (wr_data_en         ),//
-                .O_wr_data_end          (wr_data_end        ),//
-                .O_wr_data              (wr_data            ),//[DATA_WIDTH-1:0]
+                .O_wr_data_en           (wr_data_en         ),
+                .O_wr_data_end          (wr_data_end        ),
+                .O_wr_data              (wr_data            ),
                 .O_wr_data_mask         (wr_data_mask       ),
                 .I_rd_data_valid        (rd_data_valid      ),
-                .I_rd_data_end          (rd_data_end        ),//unused 
-                .I_rd_data              (rd_data            ),//[DATA_WIDTH-1:0]
+                .I_rd_data_end          (rd_data_end        ),
+                .I_rd_data              (rd_data            ),
                 .I_init_calib_complete  (init_calib_complete)
             );
     
