@@ -819,7 +819,7 @@ module tang_mega_138k_pro_imx219_720p
     // ---------------------------------
     //  RAM
     // ---------------------------------
-
+    /*
     logic               mem0_clk    ;
     logic               mem0_en     ;
     logic               mem0_regcke ;
@@ -914,7 +914,7 @@ module tang_mega_138k_pro_imx219_720p
     end
     assign axi4s_cam0_tlast = axi4s_cam0_tvalid && !cam0_src_lv;
 
-
+    */
 
 
     // ---------------------------------
@@ -947,14 +947,15 @@ module tang_mega_138k_pro_imx219_720p
     logic   [23:0]  syncgen_rgb;
     assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
 
-
+    /*
     assign mem1_clk    = dvi_clk                            ;
     assign mem1_en     = 1'b1                               ;
     assign mem1_regcke = 1'b1                               ;
     assign mem1_we     = 1'b0                               ;
     assign mem1_addr   = {syncgen_y[7:0], syncgen_x[7:0]}   ;
     assign mem1_din    = '0                                 ;
-
+    */
+    
     logic   [1:0]   syncgen_vsync_ff;
     logic   [1:0]   syncgen_hsync_ff;
     logic   [1:0]   syncgen_de_ff   ;
