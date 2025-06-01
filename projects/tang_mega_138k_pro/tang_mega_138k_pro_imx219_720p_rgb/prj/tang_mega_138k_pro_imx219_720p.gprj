@@ -8,6 +8,7 @@
         <File path="../rtl/tang_mega_138k_pro_imx219_720p.sv" type="file.verilog" enable="1"/>
         <File path="../rtl/jfive_simple_controller.sv" type="file.verilog" enable="1"/>
         <File path="../rtl/dvi_tx.sv" type="file.verilog" enable="1"/>
+        <File path="../rtl/video_raw_to_rgb.sv" type="file.verilog" enable="1"/>
         <File path="../ip/gowin_pll/gowin_pll.v" type="file.verilog" enable="1"/>
         <File path="../ip/gowin_pll_mipi/gowin_pll_mipi.v" type="file.verilog" enable="1"/>
         <File path="../ip/gowin_pll_dvi/gowin_pll_dvi.v" type="file.verilog" enable="1"/>
