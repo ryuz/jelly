@@ -610,16 +610,18 @@ module tang_mega_138k_pro_imx219_720p
     // Remove Embedded data line
     logic [1:0]     cam0_src_y_count;
     logic           cam0_src_fv     ;
+    logic           cam0_src_lv0    ;
     logic           cam0_src_lv     ;
     logic [9:0]     cam0_src_pixel  ;
     logic           cam0_src_fs     ;
     logic           cam0_src_le     ;
     always_ff @(posedge clk180) begin
+        cam0_src_lv0 <= cam0_in_lv;
         if ( cam0_in_fv == 1'b0 ) begin
             cam0_src_y_count <= '0;
             cam0_src_fs      <= 1'b1;
         end
-        else if ( {cam0_src_lv, cam0_in_lv} == 2'b10 && !cam0_src_y_count[1] ) begin
+        else if ( {cam0_src_lv0, cam0_in_lv} == 2'b10 && !cam0_src_y_count[1] ) begin
             cam0_src_y_count <= cam0_src_y_count + 1;
         end
         cam0_src_fv    <= cam0_in_fv    ;
@@ -637,10 +639,12 @@ module tang_mega_138k_pro_imx219_720p
     logic           axi4s_cma0_tlast    ;
     logic   [9:0]   axi4s_cam0_tdata    ;
     logic           axi4s_cam0_tvalid   ;
-    assign axi4s_cma0_tuser  = cam0_src_fs      ;
-    assign axi4s_cma0_tlast  = cam0_src_le      ;
-    assign axi4s_cam0_tdata  = cam0_src_pixel   ;
-    assign axi4s_cam0_tvalid = cam0_src_lv      ;
+    always_ff @(posedge clk180) begin
+        axi4s_cma0_tuser  <= cam0_src_fs      ;
+        axi4s_cma0_tlast  <= cam0_src_le      ;
+        axi4s_cam0_tdata  <= cam0_src_pixel   ;
+        axi4s_cam0_tvalid <= cam0_src_lv      ;
+    end
 
     /*
     // RAW2RGB
@@ -882,7 +886,7 @@ module tang_mega_138k_pro_imx219_720p
     assign video_in_rgb[2] = axi4s_rgb.tdata[10*2+2 +: 8];
 
     logic               video_buf_de    ;
-    logic   [9:0]       video_buf_data  ;
+    logic   [2:0][7:0]  video_buf_data  ;
     Video_Frame_Buffer_Top
         u_Video_Frame_Buffer_Top
             ( 
@@ -1087,7 +1091,8 @@ module tang_mega_138k_pro_imx219_720p
                 .in_de          (syncgen_de     ),
 //              .in_data        (syncgen_rgb    ),
 //              .in_data        ({3{mem1_dout}} ),
-                .in_data        ({3{video_buf_data[9:2]}} ),
+//              .in_data        ({3{video_buf_data[9:2]}} ),
+                .in_data        (video_buf_data ),
                 .in_ctl         ('0             ),
 
                 .out_clk_p      (dvi_tx_clk_p   ),
