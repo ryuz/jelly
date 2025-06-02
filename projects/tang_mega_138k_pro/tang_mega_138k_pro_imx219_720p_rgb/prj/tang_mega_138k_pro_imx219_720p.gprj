@@ -81,6 +81,11 @@
         <File path="../../../../rtl/v2/image/jelly2_img_to_axi4s.sv" type="file.verilog" enable="1"/>
         <File path="../../../../rtl/v1/library/jelly_param_update_master.v" type="file.verilog" enable="1"/>
         <File path="../../../../rtl/v1/library/jelly_param_update_slave.v" type="file.verilog" enable="1"/>
+        <File path="../../../../rtl//v3/bus/jelly3_axi4s_fifo.sv" type="file.verilog" enable="1"/>
+        <File path="../../../../rtl//v2/bus/jelly2_axi4s_fifo.sv" type="file.verilog" enable="1"/>
+        <File path="../../../../rtl//v2/library/jelly2_fifo_pack.sv" type="file.verilog" enable="1"/>
+        <File path="../../../../rtl//v2/library/jelly2_func_pack.sv" type="file.verilog" enable="1"/>
+        <File path="../../../../rtl//v2/library/jelly2_func_unpack.sv" type="file.verilog" enable="1"/>
         <File path="../syn/jfive_tcm/impl/gwsynthesis/jfive_tcm.vg" type="file.netlist" enable="1"/>
         <File path="../constrain/tang_mega_138k_pro_imx219.cst" type="file.cst" enable="1"/>
         <File path="../constrain/tang_mega_138k_pro_imx219.sdc" type="file.sdc" enable="1"/>

@@ -94,6 +94,13 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_img_to_axi4s.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_param_update_master.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_param_update_slave.v
 
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/bus/jelly3_axi4s_fifo.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/bus/jelly2_axi4s_fifo.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_fifo_pack.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_pack.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_unpack.sv
+
+
 
 
 #VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_axi4s_img.sv

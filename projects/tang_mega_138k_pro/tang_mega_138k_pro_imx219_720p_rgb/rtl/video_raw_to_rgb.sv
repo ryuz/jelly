@@ -134,7 +134,7 @@ module video_raw_to_rgb
             (
                 .param_rows     (param_height       ),
                 .param_cols     (param_width        ),
-                .param_blank    (4'd5               ),
+                .param_blank    (4'd6               ),
                 .s_axi4s        (s_axi4s            ),
                 .m_axi4s        (m_axi4s            ),
 

@@ -696,22 +696,55 @@ module tang_mega_138k_pro_imx219_720p
     */
 
 
-    // 現像
+    // FIFO
     jelly3_axi4s_if
             #(
                 .DATA_BITS  (10         ),
                 .DEBUG      ("false"    )
             )
-        axi4s_raw
+        axi4s_cam0_raw
             (
                 .aresetn    (~reset     ),
                 .aclk       (clk180     ),
                 .aclken     (1'b1       )
             );
-    assign axi4s_raw.tuser  = axi4s_cma0_tuser ;
-    assign axi4s_raw.tlast  = axi4s_cma0_tlast ;
-    assign axi4s_raw.tdata  = axi4s_cam0_tdata ;
-    assign axi4s_raw.tvalid = axi4s_cam0_tvalid;
+    assign axi4s_cam0_raw.tuser  = axi4s_cma0_tuser ;
+    assign axi4s_cam0_raw.tlast  = axi4s_cma0_tlast ;
+    assign axi4s_cam0_raw.tdata  = axi4s_cam0_tdata ;
+    assign axi4s_cam0_raw.tvalid = axi4s_cam0_tvalid;
+    
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS  (10       ),
+                .DEBUG      ("false"    )
+            )
+        axi4s_cam0_fifo
+            (
+                .aresetn    (~reset     ),
+                .aclk       (clk180     ),
+                .aclken     (1'b1       )
+            );
+    
+   jelly3_axi4s_fifo
+            #(
+                .ASYNC          (0          ),
+                .PTR_BITS       (9          ),
+                .RAM_TYPE       ("block"    ),
+                .LOW_DEALY      (0          ),
+                .DOUT_REGS      (1          ),
+                .S_REGS         (1          ),
+                .M_REGS         (1          )
+            )
+       u_axi4s_fifo_cam0
+            (
+                .s_axi4s        (axi4s_cam0_raw  ),
+                .m_axi4s        (axi4s_cam0_fifo ),
+                .s_free_count   (   ),
+                .m_data_count   (   )
+            );
+
+    // 現像
+
 
     jelly3_axi4s_if
             #(
@@ -724,7 +757,7 @@ module tang_mega_138k_pro_imx219_720p
                 .aclk       (clk180     ),
                 .aclken     (1'b1       )
             );
-    assign axi4s_rgb.tready = 1'b1;
+//  assign axi4s_rgb.tready = 1'b1;
 
     jelly3_axi4l_if
             #(
@@ -757,12 +790,60 @@ module tang_mega_138k_pro_imx219_720p
                 .param_width    (12'd1280           ),
                 .param_height   (12'd720            ),
 
-                .s_axi4s        (axi4s_raw.s        ),
+                .s_axi4s        (axi4s_cam0_fifo.s  ),
                 .m_axi4s        (axi4s_rgb.m        ),
 
                 .s_axi4l        (axi4l_peri.s       )
             );
 
+
+    // FIFO
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS  (4*10       ),
+                .DEBUG      ("false"    )
+            )
+        axi4s_fifo
+            (
+                .aresetn    (~reset     ),
+                .aclk       (clk180     ),
+                .aclken     (1'b1       )
+            );
+    
+   jelly3_axi4s_fifo
+            #(
+                .ASYNC          (0          ),
+                .PTR_BITS       (9          ),
+                .RAM_TYPE       ("block"    ),
+                .LOW_DEALY      (0          ),
+                .DOUT_REGS      (1          ),
+                .S_REGS         (1          ),
+                .M_REGS         (1          )
+            )
+       u_axi4s_fifo
+            (
+                .s_axi4s        (axi4s_rgb  ),
+                .m_axi4s        (axi4s_fifo ),
+                .s_free_count   (   ),
+                .m_data_count   (   )
+            );
+    
+    logic [7:0]     blank_count;
+    always_ff @(posedge clk180) begin
+        if ( axi4s_fifo.tvalid && axi4s_fifo.tready && axi4s_fifo.tlast ) begin
+            axi4s_fifo.tready <= 1'b0;
+            blank_count       <= '1;
+        end
+        else begin
+            if ( blank_count > 0 ) begin
+                blank_count <= blank_count - 1;
+                axi4s_fifo.tready <= 1'b0;
+            end
+            else begin
+                axi4s_fifo.tready <= 1'b1;
+            end
+        end
+    end
 
     // ----------------------------
     //  DVI output
@@ -881,9 +962,16 @@ module tang_mega_138k_pro_imx219_720p
             );
 
     logic   [2:0][7:0]  video_in_rgb;
-    assign video_in_rgb[0] = axi4s_rgb.tdata[10*0+2 +: 8];
-    assign video_in_rgb[1] = axi4s_rgb.tdata[10*1+2 +: 8];
-    assign video_in_rgb[2] = axi4s_rgb.tdata[10*2+2 +: 8];
+    assign video_in_rgb[0] = axi4s_fifo.tdata[10*0+2 +: 8];
+    assign video_in_rgb[1] = axi4s_fifo.tdata[10*1+2 +: 8];
+    assign video_in_rgb[2] = axi4s_fifo.tdata[10*2+2 +: 8];
+
+    logic               cam0_src_fv0;
+    logic               video_in_vs_n;
+    always_ff @(posedge clk180) begin
+        cam0_src_fv0  <= cam0_src_fv;
+        video_in_vs_n <= ~({cam0_src_fv0, cam0_src_fv} == 2'b10);
+    end
 
     logic               video_buf_de    ;
     logic   [2:0][7:0]  video_buf_data  ;
@@ -898,8 +986,9 @@ module tang_mega_138k_pro_imx219_720p
 
                 // video data input
                 .I_vin0_clk             (clk180             ),
-                .I_vin0_vs_n            (cam0_src_fv        ),
-                .I_vin0_de              (axi4s_rgb.tvalid   ),
+//              .I_vin0_vs_n            (cam0_src_fv        ),
+                .I_vin0_vs_n            (video_in_vs_n      ),
+                .I_vin0_de              (axi4s_fifo.tvalid && axi4s_fifo.tready),
                 .I_vin0_data            (video_in_rgb       ),
                 .O_vin0_fifo_full       (                   ),
 
