@@ -828,22 +828,7 @@ module tang_mega_138k_pro_imx219_720p
                 .m_data_count   (   )
             );
     
-    logic [7:0]     blank_count;
-    always_ff @(posedge clk180) begin
-        if ( axi4s_fifo.tvalid && axi4s_fifo.tready && axi4s_fifo.tlast ) begin
-            axi4s_fifo.tready <= 1'b0;
-            blank_count       <= '1;
-        end
-        else begin
-            if ( blank_count > 0 ) begin
-                blank_count <= blank_count - 1;
-                axi4s_fifo.tready <= 1'b0;
-            end
-            else begin
-                axi4s_fifo.tready <= 1'b1;
-            end
-        end
-    end
+
 
     // ----------------------------
     //  DVI output
@@ -961,17 +946,63 @@ module tang_mega_138k_pro_imx219_720p
                 .IO_ddr_dqs_n       (ddr_dqs_n          )
             );
 
-    logic   [2:0][7:0]  video_in_rgb;
-    assign video_in_rgb[0] = axi4s_fifo.tdata[10*0+2 +: 8];
-    assign video_in_rgb[1] = axi4s_fifo.tdata[10*1+2 +: 8];
-    assign video_in_rgb[2] = axi4s_fifo.tdata[10*2+2 +: 8];
 
-    logic               cam0_src_fv0;
-    logic               video_in_vs_n;
+
+    logic   [2:0][7:0]  video_st0_rgb;
+    logic               video_st0_de;
+    logic               video_st0_fs;
+    logic   [2:0][7:0]  video_st1_rgb;
+    logic               video_st1_de;
+    logic               video_st1_fs;
+    logic   [2:0][7:0]  video_st2_rgb;
+    logic               video_st2_de;
+    logic               video_st2_fs;
+    logic   [2:0][7:0]  video_st3_rgb;
+    logic               video_st3_de;
+    logic               video_st3_fs;
+    logic   [2:0][7:0]  video_st4_rgb;
+    logic               video_st4_de;
+    logic               video_st4_fs;
+    logic   [2:0][7:0]  video_st5_rgb;
+    logic               video_st5_de;
+    logic               video_st5_fs;
+    logic   [2:0][7:0]  video_st6_rgb;
+    logic               video_st6_de;
+    logic               video_st6_fs;
+
     always_ff @(posedge clk180) begin
-        cam0_src_fv0  <= cam0_src_fv;
-        video_in_vs_n <= ~({cam0_src_fv0, cam0_src_fv} == 2'b10);
+        video_st0_rgb[0] <= axi4s_fifo.tdata[10*0+2 +: 8];
+        video_st0_rgb[1] <= axi4s_fifo.tdata[10*1+2 +: 8];
+        video_st0_rgb[2] <= axi4s_fifo.tdata[10*2+2 +: 8];
+        video_st0_de     <= axi4s_fifo.tvalid && axi4s_fifo.tready;
+        video_st0_fs     <= axi4s_fifo.tvalid && axi4s_fifo.tready && axi4s_fifo.tuser;
+
+        video_st1_rgb    <= video_st0_rgb;
+        video_st1_de     <= video_st0_de ;
+        video_st1_fs     <= video_st0_fs ;
+
+        video_st2_rgb    <= video_st1_rgb;
+        video_st2_de     <= video_st1_de ;
+        video_st2_fs     <= video_st1_fs ;
+
+        video_st3_rgb    <= video_st2_rgb;
+        video_st3_de     <= video_st2_de ;
+        video_st3_fs     <= video_st2_fs ;
+
+        video_st4_rgb    <= video_st3_rgb;
+        video_st4_de     <= video_st3_de ;
+        video_st4_fs     <= video_st3_fs ;
+
+        video_st5_rgb    <= video_st4_rgb;
+        video_st5_de     <= video_st4_de ;
+        video_st5_fs     <= video_st4_fs ;
+
+        video_st6_rgb    <= video_st5_rgb;
+        video_st6_de     <= video_st5_de ;
+        video_st6_fs     <= video_st5_fs ;
     end
+    assign axi4s_fifo.tready = 1'b1;
+
 
     logic               video_buf_de    ;
     logic   [2:0][7:0]  video_buf_data  ;
@@ -987,9 +1018,9 @@ module tang_mega_138k_pro_imx219_720p
                 // video data input
                 .I_vin0_clk             (clk180             ),
 //              .I_vin0_vs_n            (cam0_src_fv        ),
-                .I_vin0_vs_n            (video_in_vs_n      ),
-                .I_vin0_de              (axi4s_fifo.tvalid && axi4s_fifo.tready),
-                .I_vin0_data            (video_in_rgb       ),
+                .I_vin0_vs_n            (~(video_st0_fs | video_st1_fs | video_st2_fs)      ),
+                .I_vin0_de              (video_st6_de       ),
+                .I_vin0_data            (video_st6_rgb      ),
                 .O_vin0_fifo_full       (                   ),
 
                 // video data output

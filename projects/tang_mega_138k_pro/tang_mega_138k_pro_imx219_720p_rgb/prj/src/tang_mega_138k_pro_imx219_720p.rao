@@ -4,48 +4,65 @@
     <Mode>Standard</Mode>
     <AoCore index="0" sample_clock="clk180" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="0" module_name="tang_mega_138k_pro_imx219_720p" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
         <SignalList>
-            <Bus capture_enable="true" name="axi4s_cma0_tuser[0:0]">
-                <Signal>axi4s_cma0_tuser[0]</Signal>
+            <Bus capture_enable="true" name="axi4s_fifo.tdata[39:0]">
+                <Signal>axi4s_fifo.tdata[39]</Signal>
+                <Signal>axi4s_fifo.tdata[38]</Signal>
+                <Signal>axi4s_fifo.tdata[37]</Signal>
+                <Signal>axi4s_fifo.tdata[36]</Signal>
+                <Signal>axi4s_fifo.tdata[35]</Signal>
+                <Signal>axi4s_fifo.tdata[34]</Signal>
+                <Signal>axi4s_fifo.tdata[33]</Signal>
+                <Signal>axi4s_fifo.tdata[32]</Signal>
+                <Signal>axi4s_fifo.tdata[31]</Signal>
+                <Signal>axi4s_fifo.tdata[30]</Signal>
+                <Signal>axi4s_fifo.tdata[29]</Signal>
+                <Signal>axi4s_fifo.tdata[28]</Signal>
+                <Signal>axi4s_fifo.tdata[27]</Signal>
+                <Signal>axi4s_fifo.tdata[26]</Signal>
+                <Signal>axi4s_fifo.tdata[25]</Signal>
+                <Signal>axi4s_fifo.tdata[24]</Signal>
+                <Signal>axi4s_fifo.tdata[23]</Signal>
+                <Signal>axi4s_fifo.tdata[22]</Signal>
+                <Signal>axi4s_fifo.tdata[21]</Signal>
+                <Signal>axi4s_fifo.tdata[20]</Signal>
+                <Signal>axi4s_fifo.tdata[19]</Signal>
+                <Signal>axi4s_fifo.tdata[18]</Signal>
+                <Signal>axi4s_fifo.tdata[17]</Signal>
+                <Signal>axi4s_fifo.tdata[16]</Signal>
+                <Signal>axi4s_fifo.tdata[15]</Signal>
+                <Signal>axi4s_fifo.tdata[14]</Signal>
+                <Signal>axi4s_fifo.tdata[13]</Signal>
+                <Signal>axi4s_fifo.tdata[12]</Signal>
+                <Signal>axi4s_fifo.tdata[11]</Signal>
+                <Signal>axi4s_fifo.tdata[10]</Signal>
+                <Signal>axi4s_fifo.tdata[9]</Signal>
+                <Signal>axi4s_fifo.tdata[8]</Signal>
+                <Signal>axi4s_fifo.tdata[7]</Signal>
+                <Signal>axi4s_fifo.tdata[6]</Signal>
+                <Signal>axi4s_fifo.tdata[5]</Signal>
+                <Signal>axi4s_fifo.tdata[4]</Signal>
+                <Signal>axi4s_fifo.tdata[3]</Signal>
+                <Signal>axi4s_fifo.tdata[2]</Signal>
+                <Signal>axi4s_fifo.tdata[1]</Signal>
+                <Signal>axi4s_fifo.tdata[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="axi4s_cam0_tdata[9:0]">
-                <Signal>axi4s_cam0_tdata[9]</Signal>
-                <Signal>axi4s_cam0_tdata[8]</Signal>
-                <Signal>axi4s_cam0_tdata[7]</Signal>
-                <Signal>axi4s_cam0_tdata[6]</Signal>
-                <Signal>axi4s_cam0_tdata[5]</Signal>
-                <Signal>axi4s_cam0_tdata[4]</Signal>
-                <Signal>axi4s_cam0_tdata[3]</Signal>
-                <Signal>axi4s_cam0_tdata[2]</Signal>
-                <Signal>axi4s_cam0_tdata[1]</Signal>
-                <Signal>axi4s_cam0_tdata[0]</Signal>
+            <Bus capture_enable="true" name="axi4s_fifo.tuser[0:0]">
+                <Signal>axi4s_fifo.tuser[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="axi4s_raw.tdata[9:0]">
-                <Signal>axi4s_raw.tdata[9]</Signal>
-                <Signal>axi4s_raw.tdata[8]</Signal>
-                <Signal>axi4s_raw.tdata[7]</Signal>
-                <Signal>axi4s_raw.tdata[6]</Signal>
-                <Signal>axi4s_raw.tdata[5]</Signal>
-                <Signal>axi4s_raw.tdata[4]</Signal>
-                <Signal>axi4s_raw.tdata[3]</Signal>
-                <Signal>axi4s_raw.tdata[2]</Signal>
-                <Signal>axi4s_raw.tdata[1]</Signal>
-                <Signal>axi4s_raw.tdata[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="axi4s_raw.tuser[0:0]">
-                <Signal>axi4s_raw.tuser[0]</Signal>
-            </Bus>
-            <Signal capture_enable="true">axi4s_raw.tlast</Signal>
-            <Signal capture_enable="true">axi4s_raw.tvalid</Signal>
-            <Signal capture_enable="true">axi4s_raw.tready</Signal>
+            <Signal capture_enable="true">axi4s_fifo.tlast</Signal>
+            <Signal capture_enable="true">axi4s_fifo.tvalid</Signal>
+            <Signal capture_enable="true">axi4s_fifo.tready</Signal>
+            <Signal capture_enable="true">video_in_vs_n</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
-                    <Bus restorename="axi4s_raw.tuser[0:0]">
-                        <Signal>axi4s_raw.tuser[0]</Signal>
+                    <Signal>video_in_vs_n</Signal>
+                    <Bus restorename="axi4s_fifo.tuser[0:0]">
+                        <Signal>axi4s_fifo.tuser[0]</Signal>
                     </Bus>
-                    <Signal>axi4s_raw.tlast</Signal>
-                    <Signal>axi4s_raw.tvalid</Signal>
+                    <Signal>axi4s_fifo.tlast</Signal>
+                    <Signal>axi4s_fifo.tvalid</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="1"/>
@@ -65,7 +82,7 @@
             <Trigger index="15"/>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="3" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="XXX" value1="000" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="3" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="XXXX" value1="0000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -86,5 +103,5 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1110010010010000</GAO_ID>
+    <GAO_ID>1101100100101111</GAO_ID>
 </GAO_CONFIG>
