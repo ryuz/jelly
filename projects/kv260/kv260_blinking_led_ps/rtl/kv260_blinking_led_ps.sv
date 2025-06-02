@@ -40,7 +40,7 @@ module kv260_blinking_led_ps
         u_design1
             (
                 .pl_clk0_0                  (aclk       ),
-                .pl_resetn0_0               (aresetn    ),
+                .interconnect_aresetn_0     (aresetn    ),
 
                 .M_AXI_HPM0_FPD_0_awid      (awid       ),
                 .M_AXI_HPM0_FPD_0_awaddr    (awaddr     ),

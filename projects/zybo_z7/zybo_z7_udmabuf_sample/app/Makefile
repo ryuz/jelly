@@ -66,7 +66,7 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo sh -c "echo 1 > $(DEVTREE_PATH)/overlays/full/status"
 	sleep 1
 	sudo rm /lib/firmware/$(BIN_FILE)
-	sudo chmod 777 /dev/udmabuf4
+	sudo chmod 777 /dev/udmabuf*
 	sudo chmod 777 /dev/uio*
 
 .PHONY: unload

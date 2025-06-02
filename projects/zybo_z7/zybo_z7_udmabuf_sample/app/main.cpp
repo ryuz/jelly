@@ -30,7 +30,7 @@ int main()
 
     // mmap udmabuf
     std::cout << "\nudmabuf4 open" << std::endl;
-    UdmabufAccessor udmabuf_acc("udmabuf4");
+    UdmabufAccessor udmabuf_acc("udmabuf-jelly-sample");
     if ( !udmabuf_acc.IsMapped() ) {
         std::cout << "udmabuf4 mmap error" << std::endl;
         return 1;

@@ -17,7 +17,7 @@ int main()
     
     // メモリをマップ
     auto iomap = mmap(0, 0x10000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0xa0000000);
-    if ( iomap == nullptr ) {
+    if ( iomap == MAP_FAILED ) {
         std::cout << "mmap error" << std::endl;
         close(fd);
         return 1;

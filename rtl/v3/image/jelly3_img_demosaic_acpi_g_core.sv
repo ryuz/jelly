@@ -144,6 +144,7 @@ module jelly3_img_demosaic_acpi_g_core
                 .s_mat_col_last     (img_blk_col_last   ),
                 .s_mat_de           (img_blk_de         ),
                 .s_mat_user         (img_blk_user       ),
+                .s_mat_data         ('x                 ),
                 .s_mat_valid        (img_blk_valid      ),
                 
                 .m_mat_rows         (m_img.rows         ),
@@ -154,6 +155,7 @@ module jelly3_img_demosaic_acpi_g_core
                 .m_mat_col_last     (m_img.col_last     ),
                 .m_mat_de           (m_img.de           ),
                 .m_mat_user         (m_img.user         ),
+                .m_mat_data         (                   ),
                 .m_mat_valid        (m_img.valid        )
             );
     
