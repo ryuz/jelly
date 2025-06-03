@@ -15,10 +15,10 @@
 module jelly3_axi4s_mat
         #(
             parameter   int     ROWS_BITS   = 9                         ,
-            parameter   int     COLS_BITS   = 10                        ,
-            parameter   int     BLANK_BITS  = ROWS_BITS                 ,
             parameter   type    rows_t      = logic [ROWS_BITS-1:0]     ,
+            parameter   int     COLS_BITS   = 10                        ,
             parameter   type    cols_t      = logic [COLS_BITS-1:0]     ,
+            parameter   int     BLANK_BITS  = ROWS_BITS                 ,
             parameter   type    blank_t     = logic [BLANK_BITS-1:0]    ,
             parameter   bit     CKE_BUFG    = 0                         
         )
@@ -30,7 +30,7 @@ module jelly3_axi4s_mat
             jelly3_axi4s_if.s       s_axi4s         ,
             jelly3_axi4s_if.m       m_axi4s         ,
 
-            output  var logic       img_cke         ,
+            output  var logic       out_cke         ,
             jelly3_mat_if.m         m_mat           ,
             jelly3_mat_if.s         s_mat           
         );
@@ -72,7 +72,7 @@ module jelly3_axi4s_mat
                 .m_axi4s_tready         (m_axi4s.tready     ),
 
 
-                .img_cke                (img_cke),
+                .img_cke                (out_cke            ),
 
                 .m_img_src_row_first    (m_mat.row_first    ),
                 .m_img_src_row_last     (m_mat.row_last     ),

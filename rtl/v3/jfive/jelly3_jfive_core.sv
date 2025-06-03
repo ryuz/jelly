@@ -171,8 +171,8 @@ module jelly3_jfive_core
                                     if_pc       ,
                                     if_instr    
                                 })),
-                .S_REGS         (1              ),
-                .M_REGS         (0              ),
+                .S_REG          (1              ),
+                .M_REG          (0              ),
                 .INIT_DATA      ('x             ),
                 .RESET_READY    (1'b1           )
             )

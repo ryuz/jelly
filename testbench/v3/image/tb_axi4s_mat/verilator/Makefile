@@ -1,45 +1,27 @@
 
-
-# setting
-TOP_MODULE = tb_dma_video_write
-
+# jelly
 JELLY_TOP_DIR = ../../../../..
-
 -include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
 
+# setting
+TOP_MODULE = tb_top
+
+SIM_LIB_DIRS += ..
 
 FLAGS  = --binary -j 0
 FLAGS += --assert
 FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
 FLAGS += -D__VERILATOR__ -D__SIMULATION__
 FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
-#FLAGS += -Wall
-#FLAGS += -Wno-WIDTH
-#FLAGS += -Wno-PINCONNECTEMPTY
-#FLAGS += -Wno-UNUSEDPARAM
-#FLAGS += -Wno-UNUSEDSIGNAL
-#FLAGS += -Wno-UNUSEDPARAM
-#FLAGS += -Wno-WIDTHTRUNC
-#FLAGS += -Wno-fatal
+FLAGS += -Wno-SIDEEFFECT
 
-SRCS = ../$(TOP_MODULE).sv
+SRCS  = ../$(TOP_MODULE).sv
 
-
-# rulres
 all: build run
 
 .PHONY : build
-build:
+build: $(SRCS)
 	verilator $(FLAGS) --top $(TOP_MODULE) $(SRCS)
-
-.PHONY : run
-run:
-	./obj_dir/V$(TOP_MODULE)
-
-.PHONY : coverage
-coverage:
-	verilator_coverage --annotate annotated coverage.dat
-
 
 .PHONY : clean
 clean:
@@ -52,3 +34,14 @@ distclean: clean
 	rm -f axi*.txt
 	rm -f coverage.dat
 	rm -fr annotated
+
+
+.PHONY : run
+run:
+	./obj_dir/V$(TOP_MODULE)
+
+.PHONY : coverage
+coverage:
+	verilator_coverage --annotate annotated coverage.dat
+
+
