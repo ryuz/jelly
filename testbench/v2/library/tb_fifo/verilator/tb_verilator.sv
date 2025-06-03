@@ -61,6 +61,8 @@ module tb_verilator(
     parameter           RAM_TYPE   = "distributed"; //"block";
     parameter   bit     LOW_DEALY  = 1;
 
+    logic                       cke = 1'b1;
+
     logic                        wr_en = 1;
     logic    [DATA_WIDTH-1:0]    wr_data = 1;
     logic                        rd_en = 1;
