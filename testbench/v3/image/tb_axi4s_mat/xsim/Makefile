@@ -38,7 +38,10 @@ build:
 
 .PHONY: run
 run:
+	mkdir -p output
 	xsim $(TOP_MODULE) --R
+	diff output/exp_0000.pgm output/img_0000.pgm
+	diff output/exp_0000.pgm output/img_0006.pgm
 
 
 .PHONY: vcd2fst

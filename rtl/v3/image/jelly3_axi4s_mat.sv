@@ -2,10 +2,9 @@
 //  Jelly  -- The platform for real-time computing
 //   image processing
 //
-//                                 Copyright (C) 2008-2024 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2025 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
-
 
 
 `timescale 1ns / 1ps
@@ -20,7 +19,10 @@ module jelly3_axi4s_mat
             parameter   type    cols_t      = logic [COLS_BITS-1:0]     ,
             parameter   int     BLANK_BITS  = ROWS_BITS                 ,
             parameter   type    blank_t     = logic [BLANK_BITS-1:0]    ,
-            parameter   bit     CKE_BUFG    = 0                         
+            parameter   bit     CKE_BUFG    = 0                         ,
+            parameter           DEVICE      = "RTL"                     ,
+            parameter           SIMULATION  = "false"                   ,
+            parameter           DEBUG       = "false"                   
         )
         (
             input   var rows_t      param_rows      ,
@@ -34,67 +36,98 @@ module jelly3_axi4s_mat
             jelly3_mat_if.m         m_mat           ,
             jelly3_mat_if.s         s_mat           
         );
-    
 
-    jelly2_axi4s_img_simple
+    
+    logic   almost_full;
+
+    // axi4s_to_mat
+    jelly3_axi4s_to_mat
             #(
-                .TUSER_WIDTH            (s_axi4s.USER_BITS  ),
-                .S_TDATA_WIDTH          (s_axi4s.DATA_BITS  ),
-                .M_TDATA_WIDTH          (m_axi4s.DATA_BITS  ),
-                .IMG_X_WIDTH            ($bits(cols_t)      ),
-                .IMG_Y_WIDTH            ($bits(rows_t)      ),
-                .BLANK_Y_WIDTH          ($bits(blank_t)     ),
-                .WITH_DE                (m_mat.USE_DE       ),
-                .WITH_VALID             (m_mat.USE_VALID    ),
-                .IMG_CKE_BUFG           (CKE_BUFG           )
+                .ROWS_BITS      (ROWS_BITS          ),
+                .rows_t         (rows_t             ),
+                .COLS_BITS      (COLS_BITS          ),
+                .cols_t         (cols_t             ),
+                .BLANK_BITS     (BLANK_BITS         ),
+                .blank_t        (blank_t            ),
+                .CKE_BUFG       (CKE_BUFG           )
             )
-        u_axi4s_img_simple
+        u_axi4s_to_mat
             (
-                .aresetn                (s_axi4s.aresetn    ),
-                .aclk                   (s_axi4s.aclk       ),
-                .aclken                 (s_axi4s.aclken     ),
+                .param_rows     ,
+                .param_cols     ,
+                .param_blank    ,
+                
+                .almost_full    (almost_full        ),
+                .s_axi4s        (s_axi4s            ),
+                
+                .out_cke        (out_cke            ),
+                .m_mat          (m_mat              )
+            );
 
-                .param_img_width        (param_cols         ),
-                .param_img_height       (param_rows         ),
-                .param_blank_height     (param_blank        ),
+    // mat_to_axi4s
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (m_axi4s.USER_BITS  ),
+                .DATA_BITS      (m_axi4s.DATA_BITS  )
+            )
+        axi4s_dst
+            (
+                .aresetn        (s_axi4s.aresetn    ),
+                .aclk           (s_axi4s.aclk       ),
+                .aclken         (1'b1               )
+            );
+
+    jelly3_mat_to_axi4s
+        u_mat_to_axi4s
+            (
+                .s_mat          (s_mat              ),
+                .m_axi4s        (axi4s_dst.m        )
+            );
 
 
-                .s_axi4s_tuser          (s_axi4s.tuser      ),
-                .s_axi4s_tlast          (s_axi4s.tlast      ),
-                .s_axi4s_tdata          (s_axi4s.tdata      ),
-                .s_axi4s_tvalid         (s_axi4s.tvalid     ),
-                .s_axi4s_tready         (s_axi4s.tready     ),
+    // output buffer
+    logic   [3:0]   buf_free_size;
+    jelly3_stream_fifo_sr
+            #(
+                .PTR_BITS       (3                  ),
+                .DATA_BITS      (m_axi4s.USER_BITS + 1 + m_axi4s.DATA_BITS),
+                .DEVICE         (DEVICE             ),
+                .SIMULATION     (SIMULATION         ),
+                .DEBUG          (DEBUG              )
+            )
+        u_stream_fifo_sr
+            (
+                .reset          (~m_axi4s.aresetn   ),
+                .clk            (m_axi4s.aclk       ),
+                .cke            (1'b1               ),
+                
+                .s_data         ({
+                                    axi4s_dst.tuser,
+                                    axi4s_dst.tlast,
+                                    axi4s_dst.tdata
+                                }),
+                .s_valid        (axi4s_dst.tvalid && axi4s_dst.aclken),
+                .s_ready        (axi4s_dst.tready   ),
+                .s_free_size    (buf_free_size      ),
 
-                .m_axi4s_tuser          (m_axi4s.tuser      ),
-                .m_axi4s_tlast          (m_axi4s.tlast      ),
-                .m_axi4s_tdata          (m_axi4s.tdata      ),
-                .m_axi4s_tvalid         (m_axi4s.tvalid     ),
-                .m_axi4s_tready         (m_axi4s.tready     ),
+                .m_data         ({
+                                    m_axi4s.tuser,
+                                    m_axi4s.tlast,
+                                    m_axi4s.tdata
+                                }),
+                .m_valid        (m_axi4s.tvalid     ),
+                .m_ready        (m_axi4s.tready     ),
+                .m_data_size    (                   )
+            );
 
-
-                .img_cke                (out_cke            ),
-
-                .m_img_src_row_first    (m_mat.row_first    ),
-                .m_img_src_row_last     (m_mat.row_last     ),
-                .m_img_src_col_first    (m_mat.col_first    ),
-                .m_img_src_col_last     (m_mat.col_last     ),
-                .m_img_src_de           (m_mat.de           ),
-                .m_img_src_user         (m_mat.user         ),
-                .m_img_src_data         (m_mat.data         ),
-                .m_img_src_valid        (m_mat.valid        ),
-
-                .s_img_sink_row_first   (s_mat.row_first    ),
-                .s_img_sink_row_last    (s_mat.row_last     ),
-                .s_img_sink_col_first   (s_mat.col_first    ),
-                .s_img_sink_col_last    (s_mat.col_last     ),
-                .s_img_sink_de          (s_mat.de           ),
-                .s_img_sink_user        (s_mat.user         ),
-                .s_img_sink_data        (s_mat.data         ),
-                .s_img_sink_valid       (s_mat.valid        )
-        );
-    
-    assign m_mat.rows = param_rows;
-    assign m_mat.cols = param_cols;
+    always_ff @(posedge s_axi4s.aclk) begin
+        if ( ~s_axi4s.aresetn ) begin
+            almost_full <= 1'b0;
+        end
+        else begin
+            almost_full <= (buf_free_size < 4);
+        end
+    end
     
 endmodule
 
