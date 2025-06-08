@@ -590,7 +590,6 @@ module kv260_imx219
             )
         u_video_format_regularizer
             (
-                .aclken                 (1'b1                   ),
                 .s_axi4s                (axi4s_csi2.s           ),
                 .m_axi4s                (axi4s_fmtr.m           ),
                 .s_axi4l                (axi4l_dec[DEC_FMTR].s  ),
@@ -773,9 +772,9 @@ module kv260_imx219
                 .PTR_BITS       (9          ),
                 .RAM_TYPE       ("block"    ),
                 .LOW_DEALY      (0          ),
-                .DOUT_REGS      (1          ),
-                .S_REGS         (1          ),
-                .M_REGS         (1          )
+                .DOUT_REG       (1          ),
+                .S_REG          (1          ),
+                .M_REG          (1          )
             )
         u_axi4s_fifo
             (

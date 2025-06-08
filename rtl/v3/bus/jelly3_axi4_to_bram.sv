@@ -57,10 +57,10 @@ module jelly3_axi4_to_bram
             2'b01: return ADDR_MASK; // INCR
             2'b10: // WRAP
                 case ( len )
-                axi4_len_t'(1):  return ADDR_UNIT *  2 - 1;  // 2
-                axi4_len_t'(3):  return ADDR_UNIT *  4 - 1;  // 4
-                axi4_len_t'(7):  return ADDR_UNIT *  8 - 1;  // 8
-                axi4_len_t'(15): return ADDR_UNIT * 16 - 1;  // 16
+                axi4_len_t'(1):  return axi4_addr_t'(ADDR_UNIT *  2 - 1);  // 2
+                axi4_len_t'(3):  return axi4_addr_t'(ADDR_UNIT *  4 - 1);  // 4
+                axi4_len_t'(7):  return axi4_addr_t'(ADDR_UNIT *  8 - 1);  // 8
+                axi4_len_t'(15): return axi4_addr_t'(ADDR_UNIT * 16 - 1);  // 16
                 default: return 'x;
                 endcase
             default: return 'x; // reserved

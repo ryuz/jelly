@@ -27,24 +27,22 @@ module jelly3_video_format_regularizer
             parameter   int             REGADR_BITS      = 8                            ,
             parameter   type            regadr_t         = logic [REGADR_BITS-1:0]      ,
 
-            parameter   bit             S_REGS           = 1,
-            parameter   bit             M_REGS           = 1,
+            parameter   bit             S_REG            = 1'b1                         ,
+            parameter   bit             M_REG            = 1'b1                         ,
 
-            parameter                   CORE_ID          = 32'h527a_1220,
-            parameter                   CORE_VERSION     = 32'h0001_0000,
+            parameter                   CORE_ID          = 32'h527a_1220                ,
+            parameter                   CORE_VERSION     = 32'h0001_0000                ,
 
-            parameter   bit     [1:0]   INIT_CTL_CONTROL      = 2'b00,
-            parameter   bit             INIT_CTL_SKIP         = 1,
-            parameter   bit             INIT_CTL_FRM_TIMER_EN = 0,
-            parameter   frame_timer_t   INIT_CTL_FRM_TIMEOUT  = 1000000,
-            parameter   width_t         INIT_PARAM_WIDTH      = 640,
-            parameter   height_t        INIT_PARAM_HEIGHT     = 480,
-            parameter                   INIT_PARAM_FILL       = 0,
-            parameter   timer_t         INIT_PARAM_TIMEOUT    = 0
+            parameter   bit     [1:0]   INIT_CTL_CONTROL      = 2'b00                   ,
+            parameter   bit             INIT_CTL_SKIP         = 1                       ,
+            parameter   bit             INIT_CTL_FRM_TIMER_EN = 0                       ,
+            parameter   frame_timer_t   INIT_CTL_FRM_TIMEOUT  = 1000000                 ,
+            parameter   width_t         INIT_PARAM_WIDTH      = 640                     ,
+            parameter   height_t        INIT_PARAM_HEIGHT     = 480                     ,
+            parameter                   INIT_PARAM_FILL       = 0                       ,
+            parameter   timer_t         INIT_PARAM_TIMEOUT    = 0                       
         )
         (
-            input   var logic                   aclken,
-
             jelly3_axi4s_if.s                   s_axi4s,
             jelly3_axi4s_if.m                   m_axi4s,
 
@@ -256,18 +254,21 @@ module jelly3_video_format_regularizer
     // core
     jelly3_video_format_regularizer_core
             #(
+                .WIDTH_BITS         (WIDTH_BITS             ),
                 .width_t            (width_t                ),
+                .HEIGHT_BITS        (HEIGHT_BITS            ),
                 .height_t           (height_t               ),
+                .INDEX_BITS         (INDEX_BITS             ),
                 .index_t            (index_t                ),
+                .FRAME_TIMER_BITS   (FRAME_TIMER_BITS       ),
                 .frame_timer_t      (frame_timer_t          ),
+                .TIMER_BITS         (TIMER_BITS             ),
                 .timer_t            (timer_t                ),
-                .S_REGS             (S_REGS                 ),
-                .M_REGS             (M_REGS                 )
+                .S_REG              (S_REG                  ),
+                .M_REG              (M_REG                  )
             )
         u_video_format_regularizer_core
             (
-                .aclken,
-
                 .s_axi4s,
                 .m_axi4s,
 

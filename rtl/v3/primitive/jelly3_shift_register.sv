@@ -33,21 +33,28 @@ module jelly3_shift_register
     
     
     if ( DEPTH > 1 && DEPTH <= 32
-            &&( string'(DEVICE) == "SPARTAN6"
-             || string'(DEVICE) == "VIRTEX6"
-             || string'(DEVICE) == "7SERIES"
-             || string'(DEVICE) == "ULTRASCALE"
-             || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
-             || string'(DEVICE) == "ULTRASCALE_PLUS_ES2") ) begin : xilinx
+          && ( string'(DEVICE) == "SPARTAN6"
+            || string'(DEVICE) == "VIRTEX6"
+            || string'(DEVICE) == "7SERIES"
+            || string'(DEVICE) == "ULTRASCALE"
+            || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
+            || string'(DEVICE) == "ULTRASCALE_PLUS_ES2"
+            || string'(DEVICE) == "VERSAL_AI_CORE"
+            || string'(DEVICE) == "VERSAL_AI_CORE_ES1"
+            || string'(DEVICE) == "VERSAL_AI_CORE_ES2"
+            || string'(DEVICE) == "VERSAL_PRIME"
+            || string'(DEVICE) == "VERSAL_PRIME_ES1"
+            || string'(DEVICE) == "VERSAL_PRIME_ES2" ) ) begin : xilinx
         if ( DEPTH <= 16 ) begin : srl16e
-            wire    logic   [3:0]   a = 4'(addr);
-            for ( genvar i = 0; i < $bits(data_t); i++ ) begin : loop
+            logic   [3:0]   a;
+            assign a = 4'(addr);
+            for ( genvar i = 0; i < $bits(data_t); i++ ) begin : srl16e
                 // XILINX
                 SRL16E
                         #(
                             .INIT   (16'h0000       )
                         )
-                    i_srl16e
+                    u_srl16e
                         (
                             .CE     (cke            ),
                             .CLK    (clk            ),
@@ -61,14 +68,15 @@ module jelly3_shift_register
             end
         end
         else begin
-            wire    logic   [4:0]   a = 5'(addr);
-            for ( genvar i = 0; i < $bits(data_t); i++ ) begin : loop_shift
+            logic   [4:0]   a;
+            assign a = 5'(addr);
+            for ( genvar i = 0; i < $bits(data_t); i++ ) begin : srlc32e
                 // XILINX
                 SRLC32E
                         #(
                             .INIT   (32'h00000000   )
                         )
-                    i_srlc32e
+                    u_srlc32e
                         (
                             .Q      (out_data[i]    ),
                             .Q31    (               ),
