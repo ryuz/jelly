@@ -100,7 +100,6 @@ interface jelly3_axi4s_if
         );
 
 `ifdef __SIMULATION__
-if ( SIMULATION ) begin : sva
     property prop_tvalid_stable; @(posedge aclk) disable iff ( ~aresetn ) (tvalid && !tready) |=> $stable(tvalid); endproperty
     ASSERT_TVALID_STABLE : assert property(prop_tvalid_stable );
 
@@ -150,7 +149,6 @@ if ( SIMULATION ) begin : sva
         ASSERT_TUSER_VALID  : assert property(prop_tuser_valid );
         ASSERT_TUSER_STABLE : assert property(prop_tuser_stable );
     end
-end
 `endif
 
 endinterface

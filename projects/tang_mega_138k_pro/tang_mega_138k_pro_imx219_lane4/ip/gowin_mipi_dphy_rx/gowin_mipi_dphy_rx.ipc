@@ -1,0 +1,15 @@
+[General]
+ipc_version=4
+file=gowin_mipi_dphy_rx
+module=Gowin_MIPI_DPHY_RX
+target_device=gw5ast138b-002
+type=mipi_dphy_rx
+version=1.0
+
+[Config]
+LANG=0
+Lane0OnSetting=true
+Lane1OnSetting=true
+Lane2OnSetting=true
+Lane3OnSetting=true
+LaneCKOnSetting=true

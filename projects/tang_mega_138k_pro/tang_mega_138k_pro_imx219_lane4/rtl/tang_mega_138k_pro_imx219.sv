@@ -2,75 +2,40 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module tang_mega_138k_pro_imx219_720p
+module tang_mega_138k_pro_imx219
         #(
             parameter JFIVE_TCM_READMEMH     = 1'b1         ,
             parameter JFIVE_TCM_READMEM_FIlE = "mem.hex"    
         )
         (
-            input   var logic               in_reset        ,
-            input   var logic               in_clk50        ,   // 50MHz
+            input   var logic           in_reset        ,
+            input   var logic           in_clk50        ,   // 50MHz
 
-            input   var logic               uart_rx         ,
-            output  var logic               uart_tx         ,
+            input   var logic           uart_rx         ,
+            output  var logic           uart_tx         ,
 
-            inout   tri logic               mipi0_clk_p     ,   // 912MHz
-            inout   tri logic               mipi0_clk_n     ,
-            inout   tri logic   [1:0]       mipi0_data_p    ,
-            inout   tri logic   [1:0]       mipi0_data_n    ,
-            output  var logic               mipi0_rstn      ,
-            inout   tri logic               i2c_scl         ,
-            inout   tri logic               i2c_sda         ,
-            output  var logic   [2:0]       i2c_sel         ,
+            inout   tri logic           mipi0_clk_p     ,   // 912MHz
+            inout   tri logic           mipi0_clk_n     ,
+            inout   tri logic   [3:0]   mipi0_data_p    ,
+            inout   tri logic   [3:0]   mipi0_data_n    ,
+            output  var logic           mipi0_rstn      ,
+            inout   tri logic           i2c_scl         ,
+            inout   tri logic           i2c_sda         ,
+            output  var logic   [2:0]   i2c_sel         ,
 
-            output  var logic               dvi_tx_clk_p    ,
-            output  var logic               dvi_tx_clk_n    ,
-            output  var logic   [2:0]       dvi_tx_data_p   ,
-            output  var logic   [2:0]       dvi_tx_data_n   ,
+            output  var logic           dvi_tx_clk_p    ,
+            output  var logic           dvi_tx_clk_n    ,
+            output  var logic   [2:0]   dvi_tx_data_p   ,
+            output  var logic   [2:0]   dvi_tx_data_n   ,
 
 
-//          output  var logic   [7:0]       pmod0           ,
-            output  var logic   [7:0]       pmod1           ,
-            output  var logic   [7:0]       pmod2           ,
+//          output  var logic   [7:0]   pmod0           ,
+            output  var logic   [7:0]   pmod1           ,
+            output  var logic   [7:0]   pmod2           ,
 
-            input   var logic   [3:0]       push_sw_n       ,
-            output  var logic   [5:0]       led_n           ,
-
-            output  var logic   [15-1:0]    ddr_addr        ,
-            output  var logic   [3-1:0]     ddr_bank        ,
-            output  var logic               ddr_cs          ,
-            output  var logic               ddr_ras         ,
-            output  var logic               ddr_cas         ,
-            output  var logic               ddr_we          ,
-            output  var logic               ddr_ck          ,
-            output  var logic               ddr_ck_n        ,
-            output  var logic               ddr_cke         ,
-            output  var logic               ddr_odt         ,
-            output  var logic               ddr_reset_n     ,
-            output  var logic   [4-1:0]     ddr_dm          ,
-            inout   tri logic   [32-1:0]    ddr_dq          ,
-            inout   tri logic   [4-1:0]     ddr_dqs         ,
-            inout   tri logic   [4-1:0]     ddr_dqs_n       
+            input   var logic   [3:0]   push_sw_n       ,
+            output  var logic   [5:0]   led_n           
         );
-
-    // ---------------------------------
-    //  parameters
-    // ---------------------------------
-
-    localparam  int     CAM_WIDTH  = 1280                   ;
-    localparam  int     CAM_HEIGHT = 720                    ;
-    localparam  int     CAM_H_BITS = $clog2(CAM_WIDTH )     ;
-    localparam  int     CAM_V_BITS = $clog2(CAM_HEIGHT)     ;
-    localparam  type    cam_h_t    = logic [CAM_H_BITS-1:0] ;
-    localparam  type    cam_v_t    = logic [CAM_V_BITS-1:0] ;
-
-    localparam  int     DVI_WIDTH  = 1280                   ;
-    localparam  int     DVI_HEIGHT = 720                    ;
-    localparam  int     DVI_H_BITS = $clog2(DVI_WIDTH )     ;
-    localparam  int     DVI_V_BITS = $clog2(DVI_HEIGHT)     ;
-    localparam  type    dvi_h_t    = logic [DVI_H_BITS-1:0] ;
-    localparam  type    dvi_v_t    = logic [DVI_V_BITS-1:0] ;
-
 
     // ---------------------------------
     //  Clock and Reset
@@ -87,18 +52,9 @@ module tang_mega_138k_pro_imx219_720p
                 .clkout1    (clk180     ),  //output clkout1
                 .clkin      (in_clk50   )   //input clkin
             );
+
     logic   clk;
     assign clk = clk50;
-
-    /*
-    Gowin_PLL_mipi
-        u_Gowin_PLL_mipi
-            (
-                .lock       (           ),  //output lock
-                .clkout0    (clk180     ),  //output clkout0
-                .clkin      (in_clk50   )   //input clkin
-            );
-    */
 
     logic   reset;
     jelly_reset
@@ -119,7 +75,7 @@ module tang_mega_138k_pro_imx219_720p
     logic   dvi_clk_x5  ;
     logic   dvi_lock    ;
     Gowin_PLL_dvi
-        u_Gowin_PLL_dvi
+        u_pll
             (
                 .clkin      (in_clk50   ),
                 .clkout0    (dvi_clk    ),
@@ -142,37 +98,6 @@ module tang_mega_138k_pro_imx219_720p
                 .out_reset          (dvi_reset              )    // syncrnous reset
             );
 
-
-    
-    // PLL
-    logic   ddr3_clk        ;
-    logic   ddr3_clk_x5     ;
-    logic   ddr3_pll_lock   ;
-    logic   ddr3_pll_stop   ;
-    Gowin_PLL_ddr3
-        u_Gowin_PLL_ddr3
-            (
-                .clkin      (in_clk50       ),
-                .clkout0    (ddr3_clk       ),
-                .lock       (ddr3_pll_lock  ),
-                .enclk0     (ddr3_pll_stop  )
-            );
-
-    // reset sync
-    logic   ddr3_reset;
-    jelly_reset
-            #(
-                .IN_LOW_ACTIVE      (1                          ),
-                .OUT_LOW_ACTIVE     (0                          ),
-                .INPUT_REGS         (2                          )
-            )
-        u_reset_ddr3
-            (
-                .clk                (ddr3_clk                   ),
-                .in_reset           (~in_reset & ddr3_pll_lock  ),   // asyncrnous reset
-                .out_reset          (ddr3_reset                 )    // syncrnous reset
-            );
-    
 
     // ---------------------------------
     //  Micro controller (RISC-V)
@@ -203,7 +128,7 @@ module tang_mega_138k_pro_imx219_720p
 
                 .TCM_DECODE_MASK    (32'hff00_0000          ),
                 .TCM_DECODE_ADDR    (32'h8000_0000          ),
-                .TCM_SIZE           (32'h0001_0000          ),
+                .TCM_SIZE           (8192*4                 ),
                 .TCM_RAM_MODE       ("NORMAL"               ),
                 .TCM_READMEMH       (JFIVE_TCM_READMEMH     ),
                 .TCM_READMEM_FIlE   (JFIVE_TCM_READMEM_FIlE ),
@@ -405,16 +330,22 @@ module tang_mega_138k_pro_imx219_720p
 
     logic   [15:0]  mipi0_dphy_d0ln_hsrxd         ;
     logic   [15:0]  mipi0_dphy_d1ln_hsrxd         ;
-    logic   [1:0]   mipi0_dphy_hsrxd_vld          ;
-    logic   [1:0]   mipi0_dphy_hsrx_odten         ;
+    logic   [15:0]  mipi0_dphy_d2ln_hsrxd         ;
+    logic   [15:0]  mipi0_dphy_d3ln_hsrxd         ;
+    logic   [3:0]   mipi0_dphy_hsrxd_vld          ;
+    logic   [3:0]   mipi0_dphy_hsrx_odten         ;
 
     logic   [1:0]   mipi0_dphy_di_lprxck          ;
     logic   [1:0]   mipi0_dphy_di_lprx0           ;
     logic   [1:0]   mipi0_dphy_di_lprx1           ;
+    logic   [1:0]   mipi0_dphy_di_lprx2           ;
+    logic   [1:0]   mipi0_dphy_di_lprx3           ;
 
     logic           mipi0_dphy_deskew_error       ;
     logic           mipi0_dphy_d0ln_deskew_done   ;
     logic           mipi0_dphy_d1ln_deskew_done   ;
+    logic           mipi0_dphy_d2ln_deskew_done   ;
+    logic           mipi0_dphy_d3ln_deskew_done   ;
 
     Gowin_MIPI_DPHY_RX
         u_MIPI_DPHY_RX
@@ -425,6 +356,10 @@ module tang_mega_138k_pro_imx219_720p
                 .rx0_p              (mipi0_data_p[0]            ),  //inout rx0_p
                 .rx1_n              (mipi0_data_n[1]            ),  //inout rx1_n
                 .rx1_p              (mipi0_data_p[1]            ),  //inout rx1_p
+                .rx2_n              (mipi0_data_n[2]            ),  //inout rx2_n
+                .rx2_p              (mipi0_data_p[2]            ),  //inout rx2_p
+                .rx3_n              (mipi0_data_n[3]            ),  //inout rx3_n
+                .rx3_p              (mipi0_data_p[3]            ),  //inout rx3_p
 
                 .rx_clk_o           (mipi0_dphy_rx_clk          ), //output rx_clk_o
                 .rx_clk_1x          (mipi0_dphy_rx_clk          ), //input rx_clk_1x
@@ -448,33 +383,53 @@ module tang_mega_138k_pro_imx219_720p
                 .hsrx_en_ck         (1'b1                       ), //input hsrx_en_ck
                 .d0ln_hsrx_dren     (1'b1                       ), //input d0ln_hsrx_dren
                 .d1ln_hsrx_dren     (1'b1                       ), //input d1ln_hsrx_dren
+                .d2ln_hsrx_dren     (1'b1                       ), //input d2ln_hsrx_dren
+                .d3ln_hsrx_dren     (1'b1                       ), //input d3ln_hsrx_dren
                 .hsrx_odten_ck      (1'b1                       ), //input hsrx_odten_ck
                 .hsrx_odten_d0      (mipi0_dphy_hsrx_odten[0]   ), //input hsrx_odten_d0
                 .hsrx_odten_d1      (mipi0_dphy_hsrx_odten[1]   ), //input hsrx_odten_d1
+                .hsrx_odten_d2      (mipi0_dphy_hsrx_odten[2]   ), //input hsrx_odten_d2
+                .hsrx_odten_d3      (mipi0_dphy_hsrx_odten[3]   ), //input hsrx_odten_d3
                 .d0ln_hsrxd_vld     (mipi0_dphy_hsrxd_vld[0]    ), //output d0ln_hsrxd_vld
                 .d1ln_hsrxd_vld     (mipi0_dphy_hsrxd_vld[1]    ), //output d1ln_hsrxd_vld
+                .d2ln_hsrxd_vld     (mipi0_dphy_hsrxd_vld[2]    ), //output d2ln_hsrxd_vld
+                .d3ln_hsrxd_vld     (mipi0_dphy_hsrxd_vld[3]    ), //output d3ln_hsrxd_vld
                 .d0ln_hsrxd         (mipi0_dphy_d0ln_hsrxd      ), //output [15:0] d0ln_hsrxd
                 .d1ln_hsrxd         (mipi0_dphy_d1ln_hsrxd      ), //output [15:0] d1ln_hsrxd
+                .d2ln_hsrxd         (mipi0_dphy_d2ln_hsrxd      ), //output [15:0] d2ln_hsrxd
+                .d3ln_hsrxd         (mipi0_dphy_d3ln_hsrxd      ), //output [15:0] d3ln_hsrxd
 
                 .lprx_en_ck         (1'b1                       ), //input lprx_en_ck
                 .lprx_en_d0         (1'b1                       ), //input lprx_en_d0
                 .lprx_en_d1         (1'b1                       ), //input lprx_en_d1
+                .lprx_en_d2         (1'b1                       ), //input lprx_en_d2
+                .lprx_en_d3         (1'b1                       ), //input lprx_en_d3
                 .di_lprxck_n        (mipi0_dphy_di_lprxck[0]    ), //output di_lprxck_n
                 .di_lprxck_p        (mipi0_dphy_di_lprxck[1]    ), //output di_lprxck_p
                 .di_lprx0_n         (mipi0_dphy_di_lprx0[0]     ), //output di_lprx0_n
                 .di_lprx0_p         (mipi0_dphy_di_lprx0[1]     ), //output di_lprx0_p
                 .di_lprx1_n         (mipi0_dphy_di_lprx1[0]     ), //output di_lprx1_n
                 .di_lprx1_p         (mipi0_dphy_di_lprx1[1]     ), //output di_lprx1_p
+                .di_lprx2_n         (mipi0_dphy_di_lprx2[0]     ), //output di_lprx2_n
+                .di_lprx2_p         (mipi0_dphy_di_lprx2[1]     ), //output di_lprx2_p
+                .di_lprx3_n         (mipi0_dphy_di_lprx3[0]     ), //output di_lprx3_n
+                .di_lprx3_p         (mipi0_dphy_di_lprx3[1]     ), //output di_lprx3_p
 
                 .lptx_en_ck         (1'b0                       ), //input lptx_en_ck
                 .lptx_en_d0         (1'b0                       ), //input lptx_en_d0
                 .lptx_en_d1         (1'b0                       ), //input lptx_en_d1
+                .lptx_en_d2         (1'b0                       ), //input lptx_en_d2
+                .lptx_en_d3         (1'b0                       ), //input lptx_en_d3
                 .do_lptxck_n        (1'b0                       ), //input do_lptxck_n
                 .do_lptxck_p        (1'b0                       ), //input do_lptxck_p
                 .do_lptx0_n         (1'b0                       ), //input do_lptx0_n
                 .do_lptx0_p         (1'b0                       ), //input do_lptx0_p
                 .do_lptx1_n         (1'b0                       ), //input do_lptx1_n
                 .do_lptx1_p         (1'b0                       ), //input do_lptx1_p
+                .do_lptx2_n         (1'b0                       ), //input do_lptx2_n
+                .do_lptx2_p         (1'b0                       ), //input do_lptx2_p
+                .do_lptx3_n         (1'b0                       ), //input do_lptx3_n
+                .do_lptx3_p         (1'b0                       ), //input do_lptx3_p
 
                 .deskew_by          (1'b1                       ), //input deskew_by
                 .deskew_en_oedge    (1'b0                       ), //input deskew_en_oedge
@@ -490,27 +445,41 @@ module tang_mega_138k_pro_imx219_720p
                 .deskew_error       (mipi0_dphy_deskew_error    ), //output deskew_error
                 .d0ln_deskew_done   (mipi0_dphy_d0ln_deskew_done), //output d0ln_deskew_done
                 .d1ln_deskew_done   (mipi0_dphy_d1ln_deskew_done), //output d1ln_deskew_done
+                .d2ln_deskew_done   (mipi0_dphy_d2ln_deskew_done), //output d2ln_deskew_done
+                .d3ln_deskew_done   (mipi0_dphy_d3ln_deskew_done), //output d3ln_deskew_done
 
                 .eqcs_ck            (3'b100                     ), //input [2:0] eqcs_ck
                 .eqcs_lane0         (3'b100                     ), //input [2:0] eqcs_lane0
                 .eqcs_lane1         (3'b100                     ), //input [2:0] eqcs_lane1
+                .eqcs_lane2         (3'b100                     ), //input [2:0] eqcs_lane2
+                .eqcs_lane3         (3'b100                     ), //input [2:0] eqcs_lane3
                 .eqrs_ck            (3'b100                     ), //input [2:0] eqrs_ck
                 .eqrs_lane0         (3'b100                     ), //input [2:0] eqrs_lane0
                 .eqrs_lane1         (3'b100                     ), //input [2:0] eqrs_lane1
+                .eqrs_lane2         (3'b100                     ), //input [2:0] eqrs_lane2
+                .eqrs_lane3         (3'b100                     ), //input [2:0] eqrs_lane3
                 .hsrx_dlydir_ck     (1'b0                       ), //input hsrx_dlydir_ck
                 .hsrx_dlydir_lane0  (1'b0                       ), //input hsrx_dlydir_lane0
                 .hsrx_dlydir_lane1  (1'b0                       ), //input hsrx_dlydir_lane1
+                .hsrx_dlydir_lane2  (1'b0                       ), //input hsrx_dlydir_lane2
+                .hsrx_dlydir_lane3  (1'b0                       ), //input hsrx_dlydir_lane3
                 .hsrx_dlyldn_ck     (1'b0                       ), //input hsrx_dlyldn_ck
                 .hsrx_dlyldn_lane0  (1'b0                       ), //input hsrx_dlyldn_lane0
                 .hsrx_dlyldn_lane1  (1'b0                       ), //input hsrx_dlyldn_lane1
+                .hsrx_dlyldn_lane2  (1'b0                       ), //input hsrx_dlyldn_lane2
+                .hsrx_dlyldn_lane3  (1'b0                       ), //input hsrx_dlyldn_lane3
                 .hsrx_dlymv_ck      (1'b0                       ), //input hsrx_dlymv_ck
                 .hsrx_dlymv_lane0   (1'b0                       ), //input hsrx_dlymv_lane0
-                .hsrx_dlymv_lane1   (1'b0                       )  //input hsrx_dlymv_lane1
+                .hsrx_dlymv_lane1   (1'b0                       ), //input hsrx_dlymv_lane1
+                .hsrx_dlymv_lane2   (1'b0                       ), //input hsrx_dlymv_lane2
+                .hsrx_dlymv_lane3   (1'b0                       )  //input hsrx_dlymv_lane3
             );
 
     logic               mipi0_dphy_byte_ready  ;
     logic   [7:0]       mipi0_dphy_byte_d0     ;
     logic   [7:0]       mipi0_dphy_byte_d1     ;
+    logic   [7:0]       mipi0_dphy_byte_d2     ;
+    logic   [7:0]       mipi0_dphy_byte_d3     ;
     logic   [1:0]       mipi0_dphy_lp0_reg_0   = 2'b11;
     logic   [1:0]       mipi0_dphy_lp0_reg_1   = 2'b11;
     logic               mipi0_dphy_odt_en_msk  = '0;
@@ -525,7 +494,7 @@ module tang_mega_138k_pro_imx219_720p
     wire logic          mipi0_dphy_from3to1    = (mipi0_dphy_lp0_reg_1==3)&(mipi0_dphy_lp0_reg_0==1);
     wire logic          mipi0_dphy_fromXto3    = (mipi0_dphy_lp0_reg_1!=3)&(mipi0_dphy_lp0_reg_0==3);
     wire logic          mipi0_dphy_from1toX    = (mipi0_dphy_lp0_reg_1==1)&(mipi0_dphy_lp0_reg_0!=1);
-    wire logic  [ 1:0]  mipi0_dphy_odt_en      = {(mipi0_dphy_di_lprx1==0), (mipi0_dphy_di_lprx0==0)} & {2{mipi0_dphy_odt_en_msk}};
+    wire logic  [ 3:0]  mipi0_dphy_odt_en      = {(mipi0_dphy_di_lprx3==0), (mipi0_dphy_di_lprx2==0), (mipi0_dphy_di_lprx1==0), (mipi0_dphy_di_lprx0==0)} & {4{mipi0_dphy_odt_en_msk}};
 
     always_ff @(posedge mipi0_dphy_rx_clk or posedge reset) begin
         if (reset)                          mipi0_dphy_odt_en_msk <= 'b0;
@@ -549,8 +518,10 @@ module tang_mega_138k_pro_imx219_720p
         mipi0_dphy_byte_ready  <= mipi0_dphy_hsrx_en_msk & mipi0_dphy_hsrxd_vld[0];
         mipi0_dphy_byte_d0     <= mipi0_dphy_d0ln_hsrxd[7:0];
         mipi0_dphy_byte_d1     <= mipi0_dphy_d1ln_hsrxd[7:0];
+        mipi0_dphy_byte_d2     <= mipi0_dphy_d3ln_hsrxd[7:0];
+        mipi0_dphy_byte_d3     <= mipi0_dphy_d2ln_hsrxd[7:0];
     end
-    assign mipi0_dphy_hsrx_odten = {(mipi0_dphy_di_lprx1==0), (mipi0_dphy_di_lprx0==0)} & {2{mipi0_dphy_odt_en_msk}};
+    assign mipi0_dphy_hsrx_odten = {(mipi0_dphy_di_lprx3==0), (mipi0_dphy_di_lprx2==0), (mipi0_dphy_di_lprx1==0), (mipi0_dphy_di_lprx0==0)} & {4{mipi0_dphy_odt_en_msk}};
 
 
     // MIPI CSI RX
@@ -562,8 +533,8 @@ module tang_mega_138k_pro_imx219_720p
     logic   [ 1:0]      mipi0_csi_rx_vc          ;
     logic   [ 5:0]      mipi0_csi_rx_dt          ;
     logic   [ 7:0]      mipi0_csi_rx_ecc         ;
-    logic   [ 1:0]      mipi0_csi_rx_payload_dv  /* synthesis syn_keep = 1 */;
-    logic   [15:0]      mipi0_csi_rx_payload     /* synthesis syn_keep = 1 */;
+    logic   [ 3:0]      mipi0_csi_rx_payload_dv  /* synthesis syn_keep = 1 */;
+    logic   [31:0]      mipi0_csi_rx_payload     /* synthesis syn_keep = 1 */;
 
     MIPI_DSI_CSI2_RX_Top
         u_MIPI_DSI_CSI2_RX
@@ -574,6 +545,8 @@ module tang_mega_138k_pro_imx219_720p
                 .I_READY        (mipi0_dphy_byte_ready  ), //input I_READY
                 .I_DATA0        (mipi0_dphy_byte_d0     ), //input [7:0] I_DATA0
                 .I_DATA1        (mipi0_dphy_byte_d1     ), //input [7:0] I_DATA1
+                .I_DATA2        (mipi0_dphy_byte_d2     ), //input [7:0] I_DATA2
+                .I_DATA3        (mipi0_dphy_byte_d3     ), //input [7:0] I_DATA3
                 .O_SP_EN        (mipi0_csi_rx_sp_en     ), //output O_SP_EN
                 .O_LP_EN        (mipi0_csi_rx_lp_en     ), //output O_LP_EN
                 .O_LP_AV_EN     (mipi0_csi_rx_lp_av_en  ), //output O_LP_AV_EN
@@ -582,14 +555,14 @@ module tang_mega_138k_pro_imx219_720p
                 .O_WC           (mipi0_csi_rx_wc        ), //output [15:0] O_WC
                 .O_VC           (mipi0_csi_rx_vc        ), //output [1:0] O_VC
                 .O_DT           (mipi0_csi_rx_dt        ), //output [5:0] O_DT
-                .O_PAYLOAD_DV   (mipi0_csi_rx_payload_dv), //output [1:0] O_PAYLOAD_DV
-                .O_PAYLOAD      (mipi0_csi_rx_payload   )  //output [15:0] O_PAYLOAD
+                .O_PAYLOAD_DV   (mipi0_csi_rx_payload_dv), //output [3:0] O_PAYLOAD_DV
+                .O_PAYLOAD      (mipi0_csi_rx_payload   )  //output [31:0] O_PAYLOAD
             );
 
     // MIPI Byte_to_Pixel
     logic           cam0_in_fv      ;
     logic           cam0_in_lv      ;
-    logic [9:0]     cam0_in_pixel   ;
+    logic [19:0]    cam0_in_pixel   ;
     MIPI_Byte_to_Pixel_Converter_Top
         u_MIPI_Byte_to_Pixel_Converter_Top
             (
@@ -600,519 +573,18 @@ module tang_mega_138k_pro_imx219_720p
                 .I_LP_AV_EN     (mipi0_csi_rx_lp_av_en  ),  //input I_LP_AV_EN
                 .I_DT           (mipi0_csi_rx_dt        ),  //input [5:0] I_DT
                 .I_WC           (mipi0_csi_rx_wc        ),  //input [15:0] I_WC
-                .I_PAYLOAD_DV   (mipi0_csi_rx_payload_dv),  //input [1:0] I_PAYLOAD_DV
-                .I_PAYLOAD      (mipi0_csi_rx_payload   ),  //input [15:0] I_PAYLOAD
+                .I_PAYLOAD_DV   (mipi0_csi_rx_payload_dv),  //input [3:0] I_PAYLOAD_DV
+                .I_PAYLOAD      (mipi0_csi_rx_payload   ),  //input [31:0] I_PAYLOAD
                 .O_FV           (cam0_in_fv             ),  //output O_FV
                 .O_LV           (cam0_in_lv             ),  //output O_LV
-                .O_PIXEL        (cam0_in_pixel          )   //output [9:0] O_PIXEL
+                .O_PIXEL        (cam0_in_pixel          )   //output [19:0] O_PIXEL
             );
 
-    // Remove Embedded data line
-    logic [1:0]     cam0_src_y_count;
-    logic           cam0_src_fv     ;
-    logic           cam0_src_lv0    ;
-    logic           cam0_src_lv     ;
-    logic [9:0]     cam0_src_pixel  ;
-    logic           cam0_src_fs     ;
-    logic           cam0_src_le     ;
-    always_ff @(posedge clk180) begin
-        cam0_src_lv0 <= cam0_in_lv;
-        if ( cam0_in_fv == 1'b0 ) begin
-            cam0_src_y_count <= '0;
-            cam0_src_fs      <= 1'b1;
-        end
-        else if ( {cam0_src_lv0, cam0_in_lv} == 2'b10 && !cam0_src_y_count[1] ) begin
-            cam0_src_y_count <= cam0_src_y_count + 1;
-        end
-        cam0_src_fv    <= cam0_in_fv    ;
-        cam0_src_lv    <= cam0_in_lv && cam0_src_y_count[1];
-        cam0_src_pixel <= cam0_in_pixel ;
-        if ( cam0_src_lv ) begin
-            cam0_src_fs <= 1'b0;
-        end
-    end
-    assign cam0_src_le = cam0_src_lv && !cam0_in_lv;
-
-
-    // to AXI4-Stream
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (10         ),
-                .DEBUG      ("false"    )
-            )
-        axi4s_cam0_src
-            (
-                .aresetn    (~reset     ),
-                .aclk       (clk180     ),
-                .aclken     (1'b1       )
-            );
-    
-    always_ff @(posedge clk180) begin
-        axi4s_cam0_src.tuser  <= cam0_src_fs      ;
-        axi4s_cam0_src.tlast  <= cam0_src_le      ;
-        axi4s_cam0_src.tdata  <= cam0_src_pixel   ;
-        axi4s_cam0_src.tvalid <= cam0_src_lv      ;
-    end
-
-    /*
-    assign axi4s_cam0_raw.tuser  = axi4s_cma0_tuser ;
-    assign axi4s_cam0_raw.tlast  = axi4s_cma0_tlast ;
-    assign axi4s_cam0_raw.tdata  = axi4s_cam0_tdata ;
-    assign axi4s_cam0_raw.tvalid = axi4s_cam0_tvalid;
-
-    logic   [0:0]   axi4s_cma0_tuser    ;
-    logic           axi4s_cma0_tlast    ;
-    logic   [9:0]   axi4s_cam0_tdata    ;
-    logic           axi4s_cam0_tvalid   ;
-    always_ff @(posedge clk180) begin
-        axi4s_cma0_tuser  <= cam0_src_fs      ;
-        axi4s_cma0_tlast  <= cam0_src_le      ;
-        axi4s_cam0_tdata  <= cam0_src_pixel   ;
-        axi4s_cam0_tvalid <= cam0_src_lv      ;
-    end
-    */
-
-
-    /*
-    // RAW2RGB
-    logic   [0:0]       axi4s_rgb_tuser    ;
-    logic               axi4s_rgb_tlast    ;
-    logic   [3:0][9:0]  axi4s_rgb_tdata    ;
-    logic               axi4s_rgb_tvalid   ;
-    video_raw_to_rgb
-            #(
-                .WB_ADR_WIDTH   (10     ),
-                .WB_DAT_WIDTH   (32     ),
-                .DATA_WIDTH     (10     ),
-                .X_WIDTH        (12     ),
-                .Y_WIDTH        (12     ),
-                .TUSER_WIDTH    (1      ),
-                .DEVICE         ("RTL"  )
-            )
-        u_video_raw_to_rgb
-            (
-                .aresetn                (~reset             ),
-                .aclk                   (clk180             ),
-                
-                .in_update_req          (1'b1               ),
-                .param_width            (12'd1280           ),
-                .param_height           (12'd720            ),
-
-                .s_axi4s_tuser          (axi4s_cma0_tuser   ),
-                .s_axi4s_tlast          (axi4s_cma0_tlast   ),
-                .s_axi4s_tdata          (axi4s_cam0_tdata   ),
-                .s_axi4s_tvalid         (axi4s_cam0_tvalid  ),
-                .s_axi4s_tready         (                   ),
-
-                .m_axi4s_tuser          (axi4s_rgb_tuser    ),
-                .m_axi4s_tlast          (axi4s_rgb_tlast    ),
-                .m_axi4s_tdata          (axi4s_rgb_tdata    ),
-                .m_axi4s_tvalid         (axi4s_rgb_tvalid   ),
-                .m_axi4s_tready         (1'b1               ),
-
-                .s_wb_rst_i             (reset              ),
-                .s_wb_clk_i             (clk                ),
-                .s_wb_adr_i             ('0                 ),
-                .s_wb_dat_i             ('0                 ),
-                .s_wb_dat_o             (                   ),
-                .s_wb_we_i              ('0                 ),
-                .s_wb_sel_i             ('0                 ),
-                .s_wb_stb_i             ('0                 ),
-                .s_wb_ack_o             (                   )
-        );
-    */
-
-
-    // FIFO
-    /*
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (10         ),
-                .DEBUG      ("false"    )
-            )
-        axi4s_cam0_raw
-            (
-                .aresetn    (~reset     ),
-                .aclk       (clk180     ),
-                .aclken     (1'b1       )
-            );
-    assign axi4s_cam0_raw.tuser  = axi4s_cma0_tuser ;
-    assign axi4s_cam0_raw.tlast  = axi4s_cma0_tlast ;
-    assign axi4s_cam0_raw.tdata  = axi4s_cam0_tdata ;
-    assign axi4s_cam0_raw.tvalid = axi4s_cam0_tvalid;
-    */
-
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (10       ),
-                .DEBUG      ("false"    )
-            )
-        axi4s_cam0_fifo
-            (
-                .aresetn    (~reset     ),
-                .aclk       (clk180     ),
-                .aclken     (1'b1       )
-            );
-    
-   jelly3_axi4s_fifo
-            #(
-                .ASYNC          (0          ),
-                .PTR_BITS       (9          ),
-                .RAM_TYPE       ("block"    ),
-                .LOW_DEALY      (0          ),
-                .DOUT_REGS      (1          ),
-                .S_REGS         (1          ),
-                .M_REGS         (1          )
-            )
-       u_axi4s_fifo_cam0
-            (
-                .s_axi4s        (axi4s_cam0_src  ),
-                .m_axi4s        (axi4s_cam0_fifo ),
-                .s_free_count   (   ),
-                .m_data_count   (   )
-            );
-
-    // サイズ正規化
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (10       ),
-                .DEBUG      ("false"    )
-            )
-        axi4s_cam0_fmr
-            (
-                .aresetn    (~reset     ),
-                .aclk       (clk180     ),
-                .aclken     (1'b1       )
-            );
-    
-    jelly3_video_format_regularizer_core
-        u_video_format_regularizer_core
-            (
-                .aclken             (1'b1           ),
-                
-                .s_axi4s            (axi4s_cam0_fifo),
-                .m_axi4s            (axi4s_cam0_fmr ),
-
-                .ctl_enable         (1'b1           ),
-                .ctl_update         (1'b1           ),
-                .ctl_index          (               ),
-                .ctl_busy           (               ),
-                .ctl_skip           (1'b1           ),
-                .ctl_frm_timer_en   (1'b0           ),
-                .ctl_frm_timeout    (1000000        ),
-
-                .param_width        (1280           ),
-                .param_height       (720            ),
-                .param_fill         ('0             ),
-                .param_timeout      ('0             ),
-
-                .current_width      (               ),
-                .current_height     (               )
-            );
-    
-    // 現像
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (4*10       ),
-                .DEBUG      ("false"    )
-            )
-        axi4s_rgb
-            (
-                .aresetn    (~reset     ),
-                .aclk       (clk180     ),
-                .aclken     (1'b1       )
-            );
-//  assign axi4s_rgb.tready = 1'b1;
-
-    jelly3_axi4l_if
-            #(
-                .ADDR_BITS      (32     ),
-                .DATA_BITS      (32     )
-            )
-        axi4l_peri
-            (
-                .aresetn        (~reset ),
-                .aclk           (clk    ),
-                .aclken         (1'b1   )
-            );
-    assign axi4l_peri.awvalid = 1'b0;
-    assign axi4l_peri.wvalid  = 1'b0;
-    assign axi4l_peri.bready  = 1'b0;
-    assign axi4l_peri.arvalid = 1'b0;
-    assign axi4l_peri.rready  = 1'b0;
-
-    video_raw_to_rgb
-            #(
-                .WIDTH_BITS     (12         ),
-                .HEIGHT_BITS    (12         ),
-                .DEVICE         ("RTL"      )
-            )
-        u_video_raw_to_rgb
-            (
-                .aclken         (1'b1               ),
-                .in_update_req  (1'b1               ),
-
-                .param_width    (12'd1280           ),
-                .param_height   (12'd720            ),
-
-                .s_axi4s        (axi4s_cam0_fmr.s   ),
-                .m_axi4s        (axi4s_rgb.m        ),
-
-                .s_axi4l        (axi4l_peri.s       )
-            );
-
-
-    // FIFO
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (4*10       ),
-                .DEBUG      ("false"    )
-            )
-        axi4s_fifo
-            (
-                .aresetn    (~reset     ),
-                .aclk       (clk180     ),
-                .aclken     (1'b1       )
-            );
-    
-   jelly3_axi4s_fifo
-            #(
-                .ASYNC          (0          ),
-                .PTR_BITS       (9          ),
-                .RAM_TYPE       ("block"    ),
-                .LOW_DEALY      (0          ),
-                .DOUT_REGS      (1          ),
-                .S_REGS         (1          ),
-                .M_REGS         (1          )
-            )
-       u_axi4s_fifo
-            (
-                .s_axi4s        (axi4s_rgb  ),
-                .m_axi4s        (axi4s_fifo ),
-                .s_free_count   (   ),
-                .m_data_count   (   )
-            );
-    
-
-
-    // ----------------------------
-    //  DVI output
-    // ----------------------------
-
-    // generate video sync
-    logic                           syncgen_vsync;
-    logic                           syncgen_hsync;
-    logic                           syncgen_de;
-    jelly_vsync_generator_core
-            #(
-                .H_COUNTER_WIDTH    (DVI_H_BITS     ),
-                .V_COUNTER_WIDTH    (DVI_V_BITS     )
-            )
-        u_vsync_generator_core
-            (
-                .reset              (dvi_reset      ),
-                .clk                (dvi_clk        ),
-                
-                .ctl_enable         (1'b1           ),
-                .ctl_busy           (               ),
-                
-                .param_htotal       (11'd1650       ),
-                .param_hdisp_start  (11'd0          ),
-                .param_hdisp_end    (11'd1280       ),
-                .param_hsync_start  (11'd1390       ),
-                .param_hsync_end    (11'd1430       ),
-                .param_hsync_pol    (1'b1           ),
-                .param_vtotal       (10'd750        ),
-                .param_vdisp_start  (10'd0          ),
-                .param_vdisp_end    (10'd720        ),
-                .param_vsync_start  (10'd725        ),
-                .param_vsync_end    (10'd730        ),
-                .param_vsync_pol    (1'b1           ),
-                
-                .out_vsync          (syncgen_vsync  ),
-                .out_hsync          (syncgen_hsync  ),
-                .out_de             (syncgen_de     )
-        );
-    
-
-
-
-    // ---------------------------------
-    //  DDR3
-    // ---------------------------------
-
-    logic clk_x1;
-    logic init_calib_complete;
-
-    logic               pll_stop;
-    logic               ddr_rst;
-
-    logic               cmd_ready       ;
-    logic   [2:0]       cmd             ;
-    logic               cmd_en          ;
-    logic   [29-1:0]    addr            ;
-    logic               wr_data_rdy     ;
-    logic   [256-1:0]   wr_data         ;
-    logic               wr_data_en      ;
-    logic               wr_data_end     ;
-    logic   [32-1:0]    wr_data_mask    ;
-    logic   [256-1:0]   rd_data         ;
-    logic               rd_data_valid   ;
-    logic               rd_data_end     ;
-
-    D3_400
-        u_ddr3
-            (
-                .clk                (clk                ),
-                .memory_clk         (ddr3_clk           ),
-                .pll_stop           (ddr3_pll_stop      ),
-                .pll_lock           (ddr3_pll_lock      ),
-                .rst_n              (~ddr3_reset        ),
-
-                .cmd_ready          (cmd_ready          ),
-                .cmd                (cmd                ),
-                .cmd_en             (cmd_en             ),
-                .addr               (addr               ),
-                .wr_data_rdy        (wr_data_rdy        ),
-                .wr_data            (wr_data            ),
-                .wr_data_en         (wr_data_en         ),
-                .wr_data_end        (wr_data_end        ),
-                .wr_data_mask       (wr_data_mask       ),
-                .rd_data            (rd_data            ),
-                .rd_data_valid      (rd_data_valid      ),
-                .rd_data_end        (rd_data_end        ),
-                .sr_req             (1'b0               ),
-                .ref_req            (1'b0               ),
-                .sr_ack             (                   ),
-                .ref_ack            (                   ),
-                .init_calib_complete(init_calib_complete),
-
-                .clk_out            (clk_x1             ),
-                .burst              (1'b1               ),
-                .ddr_rst            (                   ),
-                .O_ddr_addr         (ddr_addr           ),
-                .O_ddr_ba           (ddr_bank           ),
-                .O_ddr_cs_n         (ddr_cs             ),
-                .O_ddr_ras_n        (ddr_ras            ),
-                .O_ddr_cas_n        (ddr_cas            ),
-                .O_ddr_we_n         (ddr_we             ),
-                .O_ddr_clk          (ddr_ck             ),
-                .O_ddr_clk_n        (ddr_ck_n           ),
-                .O_ddr_cke          (ddr_cke            ),
-                .O_ddr_odt          (ddr_odt            ),
-                .O_ddr_reset_n      (ddr_reset_n        ),
-                .O_ddr_dqm          (ddr_dm             ),
-                .IO_ddr_dq          (ddr_dq             ),
-                .IO_ddr_dqs         (ddr_dqs            ),
-                .IO_ddr_dqs_n       (ddr_dqs_n          )
-            );
-
-
-
-    logic   [2:0][7:0]  video_st0_rgb;
-    logic               video_st0_de;
-    logic               video_st0_fs;
-    logic   [2:0][7:0]  video_st1_rgb;
-    logic               video_st1_de;
-    logic               video_st1_fs;
-    logic   [2:0][7:0]  video_st2_rgb;
-    logic               video_st2_de;
-    logic               video_st2_fs;
-    logic   [2:0][7:0]  video_st3_rgb;
-    logic               video_st3_de;
-    logic               video_st3_fs;
-    logic   [2:0][7:0]  video_st4_rgb;
-    logic               video_st4_de;
-    logic               video_st4_fs;
-    logic   [2:0][7:0]  video_st5_rgb;
-    logic               video_st5_de;
-    logic               video_st5_fs;
-    logic   [2:0][7:0]  video_st6_rgb;
-    logic               video_st6_de;
-    logic               video_st6_fs;
-
-    always_ff @(posedge clk180) begin
-        video_st0_rgb[0] <= axi4s_fifo.tdata[10*0+2 +: 8];
-        video_st0_rgb[1] <= axi4s_fifo.tdata[10*1+2 +: 8];
-        video_st0_rgb[2] <= axi4s_fifo.tdata[10*2+2 +: 8];
-        video_st0_de     <= axi4s_fifo.tvalid && axi4s_fifo.tready;
-        video_st0_fs     <= axi4s_fifo.tvalid && axi4s_fifo.tready && axi4s_fifo.tuser;
-
-        video_st1_rgb    <= video_st0_rgb;
-        video_st1_de     <= video_st0_de ;
-        video_st1_fs     <= video_st0_fs ;
-
-        video_st2_rgb    <= video_st1_rgb;
-        video_st2_de     <= video_st1_de ;
-        video_st2_fs     <= video_st1_fs ;
-
-        video_st3_rgb    <= video_st2_rgb;
-        video_st3_de     <= video_st2_de ;
-        video_st3_fs     <= video_st2_fs ;
-
-        video_st4_rgb    <= video_st3_rgb;
-        video_st4_de     <= video_st3_de ;
-        video_st4_fs     <= video_st3_fs ;
-
-        video_st5_rgb    <= video_st4_rgb;
-        video_st5_de     <= video_st4_de ;
-        video_st5_fs     <= video_st4_fs ;
-
-        video_st6_rgb    <= video_st5_rgb;
-        video_st6_de     <= video_st5_de ;
-        video_st6_fs     <= video_st5_fs ;
-    end
-    assign axi4s_fifo.tready = 1'b1;
-
-
-    logic               video_buf_de    ;
-    logic   [2:0][7:0]  video_buf_data  ;
-    Video_Frame_Buffer_Top
-        u_Video_Frame_Buffer_Top
-            ( 
-                .I_rst_n                (init_calib_complete),
-                .I_dma_clk              (clk_x1             ),
-
-                .I_wr_halt              ('0), //input [0:0] I_wr_halt
-                .I_rd_halt              ('0), //input [0:0] I_rd_halt
-
-                // video data input
-                .I_vin0_clk             (clk180             ),
-//              .I_vin0_vs_n            (cam0_src_fv        ),
-                .I_vin0_vs_n            (~(video_st0_fs | video_st1_fs | video_st2_fs)      ),
-                .I_vin0_de              (video_st6_de       ),
-                .I_vin0_data            (video_st6_rgb      ),
-                .O_vin0_fifo_full       (                   ),
-
-                // video data output
-                .I_vout0_clk            (dvi_clk            ),
-                .I_vout0_vs_n           (~syncgen_vsync     ),
-                .I_vout0_de             (syncgen_de         ),
-                .O_vout0_den            (video_buf_de       ),
-                .O_vout0_data           (video_buf_data     ),
-                .O_vout0_fifo_empty     (                   ),
-
-                // ddr write request
-                .I_cmd_ready            (cmd_ready          ),
-                .O_cmd                  (cmd                ),
-                .O_cmd_en               (cmd_en             ),
-                .O_addr                 (addr               ),
-                .I_wr_data_rdy          (wr_data_rdy        ),
-                .O_wr_data_en           (wr_data_en         ),
-                .O_wr_data_end          (wr_data_end        ),
-                .O_wr_data              (wr_data            ),
-                .O_wr_data_mask         (wr_data_mask       ),
-                .I_rd_data_valid        (rd_data_valid      ),
-                .I_rd_data_end          (rd_data_end        ),
-                .I_rd_data              (rd_data            ),
-                .I_init_calib_complete  (init_calib_complete)
-            );
-    
 
     // ---------------------------------
     //  RAM
     // ---------------------------------
-    /*
+
     logic               mem0_clk    ;
     logic               mem0_en     ;
     logic               mem0_regcke ;
@@ -1159,6 +631,27 @@ module tang_mega_138k_pro_imx219_720p
             );
 
 
+    // Remove Embedded data line
+    logic           cam0_src_fv     ;
+    logic           cam0_src_lv     ;
+    logic [19:0]    cam0_src_pixel  ;
+
+    logic           cam0_in_lv0     ;
+    logic [1:0]     cam0_in_y_count ;
+    always_ff @(posedge clk180) begin
+        cam0_in_lv0 <= cam0_in_lv;
+        if ( {cam0_in_lv0, cam0_in_lv} == 2'b10 && !cam0_in_y_count[1] ) begin
+            cam0_in_y_count <= cam0_in_y_count + 1;
+        end
+
+        if ( cam0_in_fv == 1'b0 ) begin
+            cam0_in_y_count <= '0;
+        end
+    end
+
+    assign cam0_src_fv    = cam0_in_fv                          ;
+    assign cam0_src_lv    = cam0_in_lv    && cam0_in_y_count[1] ;
+    assign cam0_src_pixel = cam0_in_pixel                       ;
 
     
     logic           cam0_src_lv0;
@@ -1188,12 +681,11 @@ module tang_mega_138k_pro_imx219_720p
     assign mem0_regcke = 1'b1                                       ;
     assign mem0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
     assign mem0_addr   = {cam0_src_y[7:0], cam0_src_x[7:0]}         ;
-    assign mem0_din    = cam0_src_pixel[9:2]                        ;
-
+    assign mem0_din    = (cam0_src_y < 128) ? cam0_src_pixel[9:2] : cam0_src_pixel[19:12];
 
     logic   [0:0]   axi4s_cam0_tuser    ;
     logic           axi4s_cam0_tlast    ;
-    logic   [9:0]   axi4s_cam0_tdata    ;
+    logic   [19:0]  axi4s_cam0_tdata    ;
     logic           axi4s_cam0_tvalid   ;
     always_ff @(posedge clk180) begin
         if ( cam0_src_fv == 1'b0 ) begin
@@ -1207,27 +699,63 @@ module tang_mega_138k_pro_imx219_720p
     end
     assign axi4s_cam0_tlast = axi4s_cam0_tvalid && !cam0_src_lv;
 
-    */
+
 
 
     // ---------------------------------
     //  DVI output
     // ---------------------------------
 
+    // generate video sync
+    logic                           syncgen_vsync;
+    logic                           syncgen_hsync;
+    logic                           syncgen_de;
+    jelly_vsync_generator_core
+            #(
+                .V_COUNTER_WIDTH    (10 ),
+                .H_COUNTER_WIDTH    (10 )
+            )
+        u_vsync_generator_core
+            (
+                .reset              (dvi_reset  ),
+                .clk                (dvi_clk    ),
+                
+                .ctl_enable         (1'b1       ),
+                .ctl_busy           (           ),
+                
+                .param_htotal       (10'(96 + 16 + 640 + 48 )),
+                .param_hdisp_start  (10'(96 + 16            )),
+                .param_hdisp_end    (10'(96 + 16 + 640      )),
+                .param_hsync_start  (10'(0                  )),
+                .param_hsync_end    (10'(96                 )),
+                .param_hsync_pol    (1'b0                    ), // 0:n 1:p
+                .param_vtotal       (10'(2 + 10 + 480 + 33  )),
+                .param_vdisp_start  (10'(2 + 10             )),
+                .param_vdisp_end    (10'(2 + 10 + 480       )),
+                .param_vsync_start  (10'(0                  )),
+                .param_vsync_end    (10'(2                  )),
+                .param_vsync_pol    (1'b0                    ), // 0:n 1:p
+                
+                .out_vsync          (syncgen_vsync  ),
+                .out_hsync          (syncgen_hsync  ),
+                .out_de             (syncgen_de     )
+        );
+
+
     // 適当にパターンを作る
-    logic       prev_de     ;
-    dvi_h_t     syncgen_x   ;
-    dvi_v_t     syncgen_y   ;
+    logic           prev_de;
+    logic   [10:0]  syncgen_x;
+    logic   [10:0]  syncgen_y;
     always_ff @(posedge dvi_clk) begin
         prev_de <= syncgen_de;
-        if ( syncgen_vsync == 1'b1 ) begin
+        if ( syncgen_vsync == 1'b0 ) begin
             syncgen_y <= 0;
         end
         else if ( {prev_de, syncgen_de} == 2'b10 ) begin
             syncgen_y <= syncgen_y + 1;
         end
 
-        if ( syncgen_hsync == 1'b1 ) begin
+        if ( syncgen_hsync == 1'b0 ) begin
             syncgen_x <= 0;
         end
         else if ( syncgen_de ) begin
@@ -1240,14 +768,13 @@ module tang_mega_138k_pro_imx219_720p
     logic   [23:0]  syncgen_rgb;
     assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
 
-    /*
+
     assign mem1_clk    = dvi_clk                            ;
     assign mem1_en     = 1'b1                               ;
     assign mem1_regcke = 1'b1                               ;
     assign mem1_we     = 1'b0                               ;
     assign mem1_addr   = {syncgen_y[7:0], syncgen_x[7:0]}   ;
     assign mem1_din    = '0                                 ;
-    */
 
     logic   [1:0]   syncgen_vsync_ff;
     logic   [1:0]   syncgen_hsync_ff;
@@ -1258,6 +785,36 @@ module tang_mega_138k_pro_imx219_720p
         syncgen_de_ff    <= {syncgen_de_ff   [0:0], syncgen_de   };
     end
 
+    /*
+    logic               draw_vsync;
+    logic               draw_hsync;
+    logic               draw_de;
+    logic   [2:0][7:0]  draw_rgb;
+
+    draw_video
+            #(
+                .X_WIDTH    (11),
+                .Y_WIDTH    (11)
+            )
+        u_draw_video
+            (
+                .reset      (dvi_reset      ),
+                .clk        (dvi_clk        ),
+
+                .push_sw    (~{push_sw_n[3], push_sw_n[0]}),
+
+                .in_vsync   (syncgen_vsync  ),
+                .in_hsync   (syncgen_hsync  ),
+                .in_de      (syncgen_de     ),
+                .in_x       (syncgen_x      ),
+                .in_y       (syncgen_y      ),
+
+                .out_vsync  (draw_vsync     ),
+                .out_hsync  (draw_hsync     ),
+                .out_de     (draw_de        ),
+                .out_rgb    (draw_rgb       )
+            );
+    */
 
     // DVI TX
     dvi_tx
@@ -1267,13 +824,11 @@ module tang_mega_138k_pro_imx219_720p
                 .clk            (dvi_clk        ),
                 .clk_x5         (dvi_clk_x5     ),
 
-                .in_vsync       (syncgen_vsync  ),
-                .in_hsync       (syncgen_hsync  ),
-                .in_de          (syncgen_de     ),
+                .in_vsync       (syncgen_vsync_ff[1]  ),
+                .in_hsync       (syncgen_hsync_ff[1] ),
+                .in_de          (syncgen_de_ff[1]     ),
 //              .in_data        (syncgen_rgb    ),
-//              .in_data        ({3{mem1_dout}} ),
-//              .in_data        ({3{video_buf_data[9:2]}} ),
-                .in_data        (video_buf_data ),
+                .in_data        ({3{mem1_dout}} ),
                 .in_ctl         ('0             ),
 
                 .out_clk_p      (dvi_tx_clk_p   ),
@@ -1303,33 +858,27 @@ module tang_mega_138k_pro_imx219_720p
     end
 
 
-    logic   [25:0]  dvi_clk1_counter = '0;
-    logic   [25:0]  dvi_clk5_counter = '0;
-    always_ff @(posedge dvi_clk) begin
-        dvi_clk1_counter <= dvi_clk1_counter + 1;
-    end
-    always_ff @(posedge dvi_clk_x5) begin
-        dvi_clk5_counter <= dvi_clk5_counter + 1;
-    end
-
-    assign led_n[0] = ~dvi_clk1_counter[25];
-    assign led_n[1] = ~dvi_clk5_counter[25];
-    assign led_n[2] = ~dvi_reset;
-    assign led_n[3] = ~init_calib_complete;
-    assign led_n[4] = ~1'b0;
-    assign led_n[5] = ~1'b0;
-
-    /*
+//  assign led_n[3:0] = reg_gpio0[3:0];
     assign led_n[0] = ~i2c_scl_i;
     assign led_n[1] = ~i2c_scl_t;
     assign led_n[2] = ~i2c_sda_i;
     assign led_n[3] = ~mipi0_dphy_counter[24];
     assign led_n[4] = ~counter[24];
     assign led_n[5] = ~reset;
-    */
 
+    /*
+    assign pmod1[0] = i2c_scl_i;
+    assign pmod1[1] = i2c_sda_i;
+//    assign pmod1[2] = mipi0_rstn;
+//    assign pmod1[7:3] = counter[7:3];
+//    assign pmod1[7:2] = mipi0_dphy_d0ln_hsrxd;
+    assign pmod1[7:2] = mipi0_dphy_d1ln_hsrxd;
+    */
     assign pmod1[7:0] = mipi0_dphy_d0ln_hsrxd[7:0];
+
+//    assign pmod1 = counter[15:8];
     assign pmod2 = counter[15:8];
+//  assign pmod2 = reg_gpio3;
 
 
 endmodule
