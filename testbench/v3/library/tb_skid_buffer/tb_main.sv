@@ -14,7 +14,7 @@ module tb_main
     //  DUT
     // ---------------------------------
 
-    parameter   int     BUF_SIZE   = 3                      ;
+    parameter   int     BUF_SIZE   = 1                      ;
     parameter   int     SIZE_BITS  = $clog2(BUF_SIZE + 1)   ;
     parameter   type    size_t     = logic [SIZE_BITS-1:0]  ;
     parameter   int     DATA_BITS  = 8                      ;
