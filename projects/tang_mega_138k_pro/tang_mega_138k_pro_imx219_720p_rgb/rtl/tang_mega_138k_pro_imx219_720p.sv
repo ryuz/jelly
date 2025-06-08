@@ -672,93 +672,6 @@ module tang_mega_138k_pro_imx219_720p
     end
 
     /*
-    assign axi4s_cam0_raw.tuser  = axi4s_cma0_tuser ;
-    assign axi4s_cam0_raw.tlast  = axi4s_cma0_tlast ;
-    assign axi4s_cam0_raw.tdata  = axi4s_cam0_tdata ;
-    assign axi4s_cam0_raw.tvalid = axi4s_cam0_tvalid;
-
-    logic   [0:0]   axi4s_cma0_tuser    ;
-    logic           axi4s_cma0_tlast    ;
-    logic   [9:0]   axi4s_cam0_tdata    ;
-    logic           axi4s_cam0_tvalid   ;
-    always_ff @(posedge clk180) begin
-        axi4s_cma0_tuser  <= cam0_src_fs      ;
-        axi4s_cma0_tlast  <= cam0_src_le      ;
-        axi4s_cam0_tdata  <= cam0_src_pixel   ;
-        axi4s_cam0_tvalid <= cam0_src_lv      ;
-    end
-    */
-
-
-    /*
-    // RAW2RGB
-    logic   [0:0]       axi4s_rgb_tuser    ;
-    logic               axi4s_rgb_tlast    ;
-    logic   [3:0][9:0]  axi4s_rgb_tdata    ;
-    logic               axi4s_rgb_tvalid   ;
-    video_raw_to_rgb
-            #(
-                .WB_ADR_WIDTH   (10     ),
-                .WB_DAT_WIDTH   (32     ),
-                .DATA_WIDTH     (10     ),
-                .X_WIDTH        (12     ),
-                .Y_WIDTH        (12     ),
-                .TUSER_WIDTH    (1      ),
-                .DEVICE         ("RTL"  )
-            )
-        u_video_raw_to_rgb
-            (
-                .aresetn                (~reset             ),
-                .aclk                   (clk180             ),
-                
-                .in_update_req          (1'b1               ),
-                .param_width            (12'd1280           ),
-                .param_height           (12'd720            ),
-
-                .s_axi4s_tuser          (axi4s_cma0_tuser   ),
-                .s_axi4s_tlast          (axi4s_cma0_tlast   ),
-                .s_axi4s_tdata          (axi4s_cam0_tdata   ),
-                .s_axi4s_tvalid         (axi4s_cam0_tvalid  ),
-                .s_axi4s_tready         (                   ),
-
-                .m_axi4s_tuser          (axi4s_rgb_tuser    ),
-                .m_axi4s_tlast          (axi4s_rgb_tlast    ),
-                .m_axi4s_tdata          (axi4s_rgb_tdata    ),
-                .m_axi4s_tvalid         (axi4s_rgb_tvalid   ),
-                .m_axi4s_tready         (1'b1               ),
-
-                .s_wb_rst_i             (reset              ),
-                .s_wb_clk_i             (clk                ),
-                .s_wb_adr_i             ('0                 ),
-                .s_wb_dat_i             ('0                 ),
-                .s_wb_dat_o             (                   ),
-                .s_wb_we_i              ('0                 ),
-                .s_wb_sel_i             ('0                 ),
-                .s_wb_stb_i             ('0                 ),
-                .s_wb_ack_o             (                   )
-        );
-    */
-
-
-    // FIFO
-    /*
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (10         ),
-                .DEBUG      ("false"    )
-            )
-        axi4s_cam0_raw
-            (
-                .aresetn    (~reset     ),
-                .aclk       (clk180     ),
-                .aclken     (1'b1       )
-            );
-    assign axi4s_cam0_raw.tuser  = axi4s_cma0_tuser ;
-    assign axi4s_cam0_raw.tlast  = axi4s_cma0_tlast ;
-    assign axi4s_cam0_raw.tdata  = axi4s_cam0_tdata ;
-    assign axi4s_cam0_raw.tvalid = axi4s_cam0_tvalid;
-    */
-
     jelly3_axi4s_if
             #(
                 .DATA_BITS  (10       ),
@@ -771,7 +684,7 @@ module tang_mega_138k_pro_imx219_720p
                 .aclken     (1'b1       )
             );
     
-   jelly3_axi4s_fifo
+    jelly3_axi4s_fifo
             #(
                 .ASYNC          (0          ),
                 .PTR_BITS       (9          ),
@@ -824,7 +737,8 @@ module tang_mega_138k_pro_imx219_720p
                 .current_width      (               ),
                 .current_height     (               )
             );
-    
+    */
+
     // 現像
     jelly3_axi4s_if
             #(
@@ -837,7 +751,6 @@ module tang_mega_138k_pro_imx219_720p
                 .aclk       (cam_clk    ),
                 .aclken     (1'b1       )
             );
-//  assign axi4s_rgb.tready = 1'b1;
 
     jelly3_axi4l_if
             #(
@@ -870,13 +783,13 @@ module tang_mega_138k_pro_imx219_720p
                 .param_width    (12'd1280           ),
                 .param_height   (12'd720            ),
 
-                .s_axi4s        (axi4s_cam0_fmr.s   ),
+                .s_axi4s        (axi4s_cam0_src.s   ),
                 .m_axi4s        (axi4s_rgb.m        ),
 
                 .s_axi4l        (axi4l_peri.s       )
             );
 
-
+    /*
     // FIFO
     jelly3_axi4s_if
             #(
@@ -921,6 +834,7 @@ module tang_mega_138k_pro_imx219_720p
             (
                 .mon_axi4s      (axi4s_fifo )
             );
+    */
     
     
     // ----------------------------
@@ -1058,6 +972,7 @@ module tang_mega_138k_pro_imx219_720p
     logic               video_st6_de;
     logic               video_st6_fs;
 
+    /*
     logic [7:0]     blank_counter;
     always_ff @(posedge cam_clk ) begin
         if ( cam_reset ) begin
@@ -1079,13 +994,22 @@ module tang_mega_138k_pro_imx219_720p
             end
         end
     end
+    */
+
+    assign axi4s_rgb.tready = 1'b1;
 
     always_ff @(posedge cam_clk) begin
-        video_st0_rgb[0] <= axi4s_fifo.tdata[10*0+2 +: 8];
-        video_st0_rgb[1] <= axi4s_fifo.tdata[10*1+2 +: 8];
-        video_st0_rgb[2] <= axi4s_fifo.tdata[10*2+2 +: 8];
-        video_st0_de     <= axi4s_fifo.tvalid && axi4s_fifo.tready;
-        video_st0_fs     <= axi4s_fifo.tvalid && axi4s_fifo.tready && axi4s_fifo.tuser;
+//        video_st0_rgb[0] <= axi4s_fifo.tdata[10*0+2 +: 8];
+//        video_st0_rgb[1] <= axi4s_fifo.tdata[10*1+2 +: 8];
+//        video_st0_rgb[2] <= axi4s_fifo.tdata[10*2+2 +: 8];
+//        video_st0_de     <= axi4s_fifo.tvalid && axi4s_fifo.tready;
+//        video_st0_fs     <= axi4s_fifo.tvalid && axi4s_fifo.tready && axi4s_fifo.tuser;
+
+        video_st0_rgb[0] <= axi4s_rgb.tdata[10*0+2 +: 8];
+        video_st0_rgb[1] <= axi4s_rgb.tdata[10*1+2 +: 8];
+        video_st0_rgb[2] <= axi4s_rgb.tdata[10*2+2 +: 8];
+        video_st0_de     <= axi4s_rgb.tvalid && axi4s_rgb.tready;
+        video_st0_fs     <= axi4s_rgb.tvalid && axi4s_rgb.tready && axi4s_rgb.tuser;
 
         video_st1_rgb    <= video_st0_rgb;
         video_st1_de     <= video_st0_de ;
@@ -1135,13 +1059,12 @@ module tang_mega_138k_pro_imx219_720p
 
                 // video data input
                 .I_vin0_clk             (cam_clk            ),
-                .I_vin0_vs_n            (cam0_in_fv         ),
-                .I_vin0_de              (cam0_in_lv         ),
-                .I_vin0_data            (cam0_in_pixel >> 2 ),
-
-//                .I_vin0_vs_n            (video_buf_in_vs_n  ),
-//                .I_vin0_de              (video_buf_in_de    ),
-//                .I_vin0_data            (video_buf_in_data  ),
+//              .I_vin0_vs_n            (cam0_in_fv         ),
+//              .I_vin0_de              (cam0_in_lv         ),
+//              .I_vin0_data            (cam0_in_pixel >> 2 ),
+                .I_vin0_vs_n            (video_buf_in_vs_n  ),
+                .I_vin0_de              (video_buf_in_de    ),
+                .I_vin0_data            (video_buf_in_data  ),
                 .O_vin0_fifo_full       (video_buf_in_full  ),
 
                 // video data output
