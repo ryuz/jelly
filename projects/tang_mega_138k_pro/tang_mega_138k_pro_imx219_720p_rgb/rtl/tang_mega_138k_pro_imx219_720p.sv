@@ -968,7 +968,7 @@ module tang_mega_138k_pro_imx219_720p
     //  DDR3
     // ---------------------------------
 
-    logic clk_x1;
+    logic dma_clk;
     logic init_calib_complete;
 
     logic               pll_stop;
@@ -1014,7 +1014,7 @@ module tang_mega_138k_pro_imx219_720p
                 .ref_ack            (                   ),
                 .init_calib_complete(init_calib_complete),
 
-                .clk_out            (clk_x1             ),
+                .clk_out            (dma_clk             ),
                 .burst              (1'b1               ),
                 .ddr_rst            (                   ),
                 .O_ddr_addr         (ddr_addr           ),
@@ -1128,7 +1128,7 @@ module tang_mega_138k_pro_imx219_720p
         u_Video_Frame_Buffer_Top
             (
                 .I_rst_n                (init_calib_complete),
-                .I_dma_clk              (clk_x1             ),
+                .I_dma_clk              (dma_clk             ),
 
                 .I_wr_halt              ('0), //input [0:0] I_wr_halt
                 .I_rd_halt              ('0), //input [0:0] I_rd_halt
