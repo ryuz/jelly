@@ -689,6 +689,7 @@ JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/library/jelly3_histry_buffer_mem_rf.
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/library/jelly3_histry_buffer_mem_sdp.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/library/jelly3_ram_simple_dualport.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/library/jelly3_ram_singleport.sv
+JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/library/jelly3_skid_buffer.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/library/jelly3_stream_delay.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/library/jelly3_stream_ff.sv
 JELLY_SV_SOURCES += $(JELLY_TOP_DIR)/rtl/v3/library/jelly3_stream_fifo_sr.sv

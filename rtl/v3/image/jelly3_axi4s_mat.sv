@@ -19,7 +19,8 @@ module jelly3_axi4s_mat
             parameter   type    cols_t      = logic [COLS_BITS-1:0]     ,
             parameter   int     BLANK_BITS  = ROWS_BITS                 ,
             parameter   type    blank_t     = logic [BLANK_BITS-1:0]    ,
-            parameter   bit     CKE_BUFG    = 0                         ,
+            parameter   bit     M_REG       = 1'b1                      ,
+            parameter   bit     CKE_BUFG    = 1'b0                      ,
             parameter           DEVICE      = "RTL"                     ,
             parameter           SIMULATION  = "false"                   ,
             parameter           DEBUG       = "false"                   
@@ -86,16 +87,17 @@ module jelly3_axi4s_mat
 
 
     // output buffer
-    logic   [3:0]   buf_free_size;
-    jelly3_stream_fifo_sr
+    logic   [2:0]   next_buffered_size;
+    jelly3_skid_buffer
             #(
-                .PTR_BITS       (3                  ),
+                .BUF_SIZE       (4                  ),
                 .DATA_BITS      (m_axi4s.USER_BITS + 1 + m_axi4s.DATA_BITS),
+                .M_REG          (M_REG              ),
                 .DEVICE         (DEVICE             ),
                 .SIMULATION     (SIMULATION         ),
                 .DEBUG          (DEBUG              )
             )
-        u_stream_fifo_sr
+        u_skid_buffer
             (
                 .reset          (~m_axi4s.aresetn   ),
                 .clk            (m_axi4s.aclk       ),
@@ -108,7 +110,6 @@ module jelly3_axi4s_mat
                                 }),
                 .s_valid        (axi4s_dst.tvalid && axi4s_dst.aclken),
                 .s_ready        (axi4s_dst.tready   ),
-                .s_free_size    (buf_free_size      ),
 
                 .m_data         ({
                                     m_axi4s.tuser,
@@ -117,7 +118,9 @@ module jelly3_axi4s_mat
                                 }),
                 .m_valid        (m_axi4s.tvalid     ),
                 .m_ready        (m_axi4s.tready     ),
-                .m_data_size    (                   )
+
+                .current_size   (                   ),
+                .next_size      (next_buffered_size )
             );
 
     always_ff @(posedge s_axi4s.aclk) begin
@@ -125,7 +128,7 @@ module jelly3_axi4s_mat
             almost_full <= 1'b0;
         end
         else begin
-            almost_full <= (buf_free_size < 4);
+            almost_full <= (next_buffered_size >= 2);
         end
     end
     
