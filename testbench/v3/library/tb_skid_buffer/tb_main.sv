@@ -14,14 +14,15 @@ module tb_main
     //  DUT
     // ---------------------------------
 
-    parameter   int     BUF_SIZE   = 1                      ;
-    parameter   int     SIZE_BITS  = $clog2(BUF_SIZE + 1)   ;
-    parameter   type    size_t     = logic [SIZE_BITS-1:0]  ;
-    parameter   int     DATA_BITS  = 8                      ;
-    parameter   type    data_t     = logic [DATA_BITS-1:0]  ;
-    parameter           DEVICE     = "RTL"                  ;
-    parameter           SIMULATION = "false"                ;
-    parameter           DEBUG      = "false"                ;
+    parameter   int     BUF_SIZE   = 2                                          ;
+    parameter   int     SIZE_BITS  = BUF_SIZE > 0 ? $clog2(BUF_SIZE + 1) : 1    ;
+    parameter   type    size_t     = logic [SIZE_BITS-1:0]                      ;
+    parameter   int     DATA_BITS  = 8                                          ;
+    parameter   type    data_t     = logic [DATA_BITS-1:0]                      ;
+    parameter   bit     M_REG      = 1'b1                                       ;
+    parameter           DEVICE     = "RTL"                                      ;
+    parameter           SIMULATION = "false"                                    ;
+    parameter           DEBUG      = "false"                                    ;
 
     logic   cke      = 1'b1 ;
     data_t  s_data          ;
@@ -35,20 +36,32 @@ module tb_main
     
     jelly3_skid_buffer
             #(
-                .BUF_SIZE       (BUF_SIZE   ),
-                .SIZE_BITS      (SIZE_BITS  ),
-                .size_t         (size_t     ),
-                .DATA_BITS      (DATA_BITS  ),
-                .data_t         (data_t     ),
-                .DEVICE         (DEVICE     ),
-                .SIMULATION     (SIMULATION ),
-                .DEBUG          (DEBUG      )
+                .BUF_SIZE       (BUF_SIZE               ),
+                .SIZE_BITS      (SIZE_BITS              ),
+                .size_t         (size_t                 ),
+                .DATA_BITS      (DATA_BITS              ),
+                .data_t         (data_t                 ),
+                .M_REG          (M_REG                  ),
+                .DEVICE         (DEVICE                 ),
+                .SIMULATION     (SIMULATION             ),
+                .DEBUG          (DEBUG                  )
             )
         u_skid_buffer
             (
-                .*
+                .reset          (reset                  ),
+                .clk            (clk                    ),
+                .cke            (cke                    ),
+                .s_data         (s_valid ? s_data : 'x  ),
+                .s_valid        (s_valid                ),
+                .s_ready        (s_ready                ),
+                .m_data         (m_data                 ),
+                .m_valid        (m_valid                ),
+                .m_ready        (m_ready                ),
+                .current_size   (current_size           ),
+                .next_size      (next_size              )
             );
     
+
     // ---------------------------------
     //  Simulation
     // ---------------------------------
