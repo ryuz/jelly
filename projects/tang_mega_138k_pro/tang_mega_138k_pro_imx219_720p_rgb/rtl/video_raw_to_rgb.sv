@@ -138,7 +138,7 @@ module video_raw_to_rgb
                 .s_axi4s        (s_axi4s            ),
                 .m_axi4s        (m_axi4s            ),
 
-                .img_cke        (cke                ),
+                .out_cke        (cke                ),
                 .m_mat          (img_src.m          ),
                 .s_mat          (img_sink.s         )
         );

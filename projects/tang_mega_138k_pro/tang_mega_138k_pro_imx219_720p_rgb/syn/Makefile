@@ -61,7 +61,11 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_histry_buffer_mem_sdp.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_ram_simple_dualport.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_delay.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_data_delay.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_skid_buffer.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/primitive/jelly3_shift_register.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_axi4s_mat.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_axi4s_to_mat.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_to_axi4s.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_black_level_calc.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_black_level_core.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_black_level.sv
@@ -87,6 +91,7 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_buf_row.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_clamp_core.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_delay.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_if.sv
+
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_axi4s_img.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_axi4s_img_simple.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_axi4s_to_img_simple.sv
@@ -101,6 +106,7 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_pack.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_unpack.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_video_format_regularizer_core.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_ff.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/misc/jelly3_axi4s_debug_monitor.sv
 
 
 #VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_axi4s_img.sv
