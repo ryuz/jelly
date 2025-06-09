@@ -649,7 +649,9 @@ module tang_mega_138k_pro_imx219_720p
     assign mem0_clk    = clk180                                     ;
     assign mem0_en     = cam0_src_lv                                ;
     assign mem0_regcke = 1'b1                                       ;
-    assign mem0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
+//  assign mem0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
+    assign mem0_we     =  (cam0_src_x >= 1280-256) && (cam0_src_x < 1280)
+                       && (cam0_src_y >= 720-256) && (cam0_src_y < 720);
     assign mem0_addr   = {cam0_src_y[7:0], cam0_src_x[7:0]}         ;
     assign mem0_din    = cam0_src_pixel[9:2]                        ;
 

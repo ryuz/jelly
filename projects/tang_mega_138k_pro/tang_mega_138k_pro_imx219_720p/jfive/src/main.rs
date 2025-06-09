@@ -61,8 +61,8 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
         // camera 設定
         let pixel_clock: f64 = 91000000.0;
         let binning: bool = true;
-        let width: i32 = 1280 / 2;
-        let height: i32 = 720 / 2;
+        let width: i32 = 1280;
+        let height: i32 = 720;
         let aoi_x: i32 = -1;
         let aoi_y: i32 = -1;
         imx219.set_pixel_clock(pixel_clock)?;
@@ -70,7 +70,7 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
         imx219.start()?;
 
         // 設定
-        let frame_rate: f64 = 60.0;
+        let frame_rate: f64 = 30.0;
         let exposure: f64 = 0.015;
         let a_gain: f64 = 20.0;
         let d_gain: f64 = 0.0;

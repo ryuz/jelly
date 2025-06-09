@@ -1157,7 +1157,7 @@ module tang_mega_138k_pro_imx219_720p
     // ---------------------------------
     //  RAM
     // ---------------------------------
-    /*
+    
     logic               mem0_clk    ;
     logic               mem0_en     ;
     logic               mem0_regcke ;
@@ -1202,15 +1202,12 @@ module tang_mega_138k_pro_imx219_720p
                 .port1_din      (mem1_din       ),
                 .port1_dout     (mem1_dout      )
             );
-
-
-
     
-    logic           cam0_src_lv0;
+    logic           cam0_src_lv_ff;
     logic   [13:0]  cam0_src_x;
     logic   [13:0]  cam0_src_y;
-    always_ff @(posedge clk180) begin
-        cam0_src_lv0 <= cam0_src_lv;
+    always_ff @(posedge cam_clk) begin
+        cam0_src_lv_ff <= cam0_src_lv;
         if ( cam0_src_fv == 1'b0 ) begin
             cam0_src_x   <= '0;
             cam0_src_y   <= '0;
@@ -1223,15 +1220,17 @@ module tang_mega_138k_pro_imx219_720p
                 cam0_src_x <= '0;
             end
         end
-        if ( {cam0_src_lv0, cam0_src_lv} == 2'b10 ) begin
+        if ( {cam0_src_lv_ff, cam0_src_lv} == 2'b10 ) begin
             cam0_src_y <= cam0_src_y + 1;
         end
     end
 
-    assign mem0_clk    = clk180                                     ;
+    assign mem0_clk    = cam_clk                                     ;
     assign mem0_en     = cam0_src_lv                                ;
     assign mem0_regcke = 1'b1                                       ;
-    assign mem0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
+//  assign mem0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
+    assign mem0_we     =  (cam0_src_x >= 1280-256) && (cam0_src_x < 1280)
+                       && (cam0_src_y >= 720-256) && (cam0_src_y < 720);
     assign mem0_addr   = {cam0_src_y[7:0], cam0_src_x[7:0]}         ;
     assign mem0_din    = cam0_src_pixel[9:2]                        ;
 
@@ -1240,7 +1239,7 @@ module tang_mega_138k_pro_imx219_720p
     logic           axi4s_cam0_tlast    ;
     logic   [9:0]   axi4s_cam0_tdata    ;
     logic           axi4s_cam0_tvalid   ;
-    always_ff @(posedge clk180) begin
+    always_ff @(posedge cam_clk) begin
         if ( cam0_src_fv == 1'b0 ) begin
             axi4s_cam0_tuser  <= 1'b1;
         end
@@ -1252,8 +1251,7 @@ module tang_mega_138k_pro_imx219_720p
     end
     assign axi4s_cam0_tlast = axi4s_cam0_tvalid && !cam0_src_lv;
 
-    */
-
+  
 
     // ---------------------------------
     //  DVI output
@@ -1285,14 +1283,14 @@ module tang_mega_138k_pro_imx219_720p
     logic   [23:0]  syncgen_rgb;
     assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
 
-    /*
+    
     assign mem1_clk    = dvi_clk                            ;
     assign mem1_en     = 1'b1                               ;
     assign mem1_regcke = 1'b1                               ;
     assign mem1_we     = 1'b0                               ;
     assign mem1_addr   = {syncgen_y[7:0], syncgen_x[7:0]}   ;
     assign mem1_din    = '0                                 ;
-    */
+    
 
     logic   [1:0]   syncgen_vsync_ff;
     logic   [1:0]   syncgen_hsync_ff;
@@ -1314,12 +1312,12 @@ module tang_mega_138k_pro_imx219_720p
 
                 .in_vsync       (syncgen_vsync  ),
                 .in_hsync       (syncgen_hsync  ),
-//              .in_de          (syncgen_de     ),
+                .in_de          (syncgen_de     ),
 //              .in_data        (syncgen_rgb    ),
-//              .in_data        ({3{mem1_dout}} ),
+                .in_data        ({3{mem1_dout}} ),
 //              .in_data        ({3{video_buf_data[9:2]}} ),
-                .in_de          (video_buf_out_de   ),
-                .in_data        (video_buf_out_data ),
+//              .in_de          (video_buf_out_de   ),
+//              .in_data        (video_buf_out_data ),
                 .in_ctl         ('0             ),
 
                 .out_clk_p      (dvi_tx_clk_p   ),
