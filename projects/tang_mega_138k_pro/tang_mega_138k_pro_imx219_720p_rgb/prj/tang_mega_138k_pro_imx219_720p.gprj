@@ -90,6 +90,7 @@
         <File path="../../../../rtl/v2/library/jelly2_func_pack.sv" type="file.verilog" enable="1"/>
         <File path="../../../../rtl/v2/library/jelly2_func_unpack.sv" type="file.verilog" enable="1"/>
         <File path="../../../../rtl/v3/video/jelly3_video_format_regularizer_core.sv" type="file.verilog" enable="1"/>
+        <File path="../../../../rtl/v3/library/jelly3_skid_buffer.sv" type="file.verilog" enable="1"/>
         <File path="../syn/jfive_tcm/impl/gwsynthesis/jfive_tcm.vg" type="file.netlist" enable="1"/>
         <File path="../constrain/tang_mega_138k_pro_imx219.cst" type="file.cst" enable="1"/>
         <File path="../constrain/tang_mega_138k_pro_imx219.sdc" type="file.sdc" enable="1"/>
