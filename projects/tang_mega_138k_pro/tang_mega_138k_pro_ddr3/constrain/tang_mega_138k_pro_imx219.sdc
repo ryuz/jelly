@@ -15,6 +15,7 @@ create_generated_clock -name ddr3_clk -source [get_ports {in_clk50}] -master_clo
 create_generated_clock -name dma_clk -source [get_pins {u_Gowin_PLL_ddr3/PLL_inst/CLKOUT0}] -master_clock ddr3_clk 
                        -divide_by 4 -multiply_by 1 [get_pins {u_ddr3/gw3_top/u_ddr_phy_top/fclkdiv/CLKOUT}]
 
+set_clock_groups -asynchronous -group [get_clocks {dma_clk}] -group [get_clocks {ddr3_clk}] -group [get_clocks {in_clk50}] -group [get_clocks {sys_clk}] -group [get_clocks {dvi_clk}]
 
 #create_clock -name mipi0_dphy_rx_clk -period 8.771 -waveform {0 4.385} [get_nets {mipi0_dphy_rx_clk}]
 

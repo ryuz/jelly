@@ -2,7 +2,7 @@
 <GAO_CONFIG>
     <Version>3.0</Version>
     <Mode>Standard</Mode>
-    <AoCore index="0" sample_clock="cam_clk" trig_type="0" storage_depth="4096" window_num="1" capture_amount="4096" implementation="0" trigger_pos="16" module_name="tang_mega_138k_pro_imx219_720p" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
+    <AoCore index="0" sample_clock="cam_clk" trig_type="0" storage_depth="1024" window_num="1" capture_amount="1024" implementation="0" trigger_pos="16" module_name="tang_mega_138k_pro_imx219_720p" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
         <SignalList>
             <Bus capture_enable="true" name="video_buf_in_data[2][7:0]">
                 <Signal>video_buf_in_data[2][7]</Signal>
@@ -37,189 +37,32 @@
             <Signal capture_enable="true">video_buf_in_vs_n</Signal>
             <Signal capture_enable="true">video_buf_in_de</Signal>
             <Signal capture_enable="true">video_buf_in_full</Signal>
-            <Bus capture_enable="true" name="axi4s_fifo.tdata[39:0]">
-                <Signal>axi4s_fifo.tdata[39]</Signal>
-                <Signal>axi4s_fifo.tdata[38]</Signal>
-                <Signal>axi4s_fifo.tdata[37]</Signal>
-                <Signal>axi4s_fifo.tdata[36]</Signal>
-                <Signal>axi4s_fifo.tdata[35]</Signal>
-                <Signal>axi4s_fifo.tdata[34]</Signal>
-                <Signal>axi4s_fifo.tdata[33]</Signal>
-                <Signal>axi4s_fifo.tdata[32]</Signal>
-                <Signal>axi4s_fifo.tdata[31]</Signal>
-                <Signal>axi4s_fifo.tdata[30]</Signal>
-                <Signal>axi4s_fifo.tdata[29]</Signal>
-                <Signal>axi4s_fifo.tdata[28]</Signal>
-                <Signal>axi4s_fifo.tdata[27]</Signal>
-                <Signal>axi4s_fifo.tdata[26]</Signal>
-                <Signal>axi4s_fifo.tdata[25]</Signal>
-                <Signal>axi4s_fifo.tdata[24]</Signal>
-                <Signal>axi4s_fifo.tdata[23]</Signal>
-                <Signal>axi4s_fifo.tdata[22]</Signal>
-                <Signal>axi4s_fifo.tdata[21]</Signal>
-                <Signal>axi4s_fifo.tdata[20]</Signal>
-                <Signal>axi4s_fifo.tdata[19]</Signal>
-                <Signal>axi4s_fifo.tdata[18]</Signal>
-                <Signal>axi4s_fifo.tdata[17]</Signal>
-                <Signal>axi4s_fifo.tdata[16]</Signal>
-                <Signal>axi4s_fifo.tdata[15]</Signal>
-                <Signal>axi4s_fifo.tdata[14]</Signal>
-                <Signal>axi4s_fifo.tdata[13]</Signal>
-                <Signal>axi4s_fifo.tdata[12]</Signal>
-                <Signal>axi4s_fifo.tdata[11]</Signal>
-                <Signal>axi4s_fifo.tdata[10]</Signal>
-                <Signal>axi4s_fifo.tdata[9]</Signal>
-                <Signal>axi4s_fifo.tdata[8]</Signal>
-                <Signal>axi4s_fifo.tdata[7]</Signal>
-                <Signal>axi4s_fifo.tdata[6]</Signal>
-                <Signal>axi4s_fifo.tdata[5]</Signal>
-                <Signal>axi4s_fifo.tdata[4]</Signal>
-                <Signal>axi4s_fifo.tdata[3]</Signal>
-                <Signal>axi4s_fifo.tdata[2]</Signal>
-                <Signal>axi4s_fifo.tdata[1]</Signal>
-                <Signal>axi4s_fifo.tdata[0]</Signal>
+            <Bus capture_enable="true" name="video_buf_in_test[23:0]">
+                <Signal>video_buf_in_test[23]</Signal>
+                <Signal>video_buf_in_test[22]</Signal>
+                <Signal>video_buf_in_test[21]</Signal>
+                <Signal>video_buf_in_test[20]</Signal>
+                <Signal>video_buf_in_test[19]</Signal>
+                <Signal>video_buf_in_test[18]</Signal>
+                <Signal>video_buf_in_test[17]</Signal>
+                <Signal>video_buf_in_test[16]</Signal>
+                <Signal>video_buf_in_test[15]</Signal>
+                <Signal>video_buf_in_test[14]</Signal>
+                <Signal>video_buf_in_test[13]</Signal>
+                <Signal>video_buf_in_test[12]</Signal>
+                <Signal>video_buf_in_test[11]</Signal>
+                <Signal>video_buf_in_test[10]</Signal>
+                <Signal>video_buf_in_test[9]</Signal>
+                <Signal>video_buf_in_test[8]</Signal>
+                <Signal>video_buf_in_test[7]</Signal>
+                <Signal>video_buf_in_test[6]</Signal>
+                <Signal>video_buf_in_test[5]</Signal>
+                <Signal>video_buf_in_test[4]</Signal>
+                <Signal>video_buf_in_test[3]</Signal>
+                <Signal>video_buf_in_test[2]</Signal>
+                <Signal>video_buf_in_test[1]</Signal>
+                <Signal>video_buf_in_test[0]</Signal>
             </Bus>
-            <Bus capture_enable="true" name="axi4s_fifo.tuser[0:0]">
-                <Signal>axi4s_fifo.tuser[0]</Signal>
-            </Bus>
-            <Signal capture_enable="true">axi4s_fifo.tlast</Signal>
-            <Signal capture_enable="true">axi4s_fifo.tvalid</Signal>
-            <Signal capture_enable="true">axi4s_fifo.tready</Signal>
-            <Bus capture_enable="true" name="u_axi4s_debug_monitor/dbg_axi4s_tuser[0:0]">
-                <Signal>u_axi4s_debug_monitor/dbg_axi4s_tuser[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="u_axi4s_debug_monitor/dbg_axi4s_tdata[0:0]">
-                <Signal>u_axi4s_debug_monitor/dbg_axi4s_tdata[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="u_axi4s_debug_monitor/dbg_timer[15:0]">
-                <Signal>u_axi4s_debug_monitor/dbg_timer[15]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[14]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[13]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[12]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[11]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[10]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[9]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[8]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[7]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[6]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[5]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[4]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[3]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[2]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[1]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_timer[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="u_axi4s_debug_monitor/dbg_pixel[15:0]">
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[15]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[14]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[13]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[12]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[11]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[10]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[9]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[8]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[7]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[6]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[5]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[4]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[3]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[2]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[1]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_pixel[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="u_axi4s_debug_monitor/dbg_frame[15:0]">
-                <Signal>u_axi4s_debug_monitor/dbg_frame[15]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[14]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[13]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[12]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[11]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[10]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[9]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[8]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[7]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[6]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[5]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[4]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[3]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[2]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[1]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_frame[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="u_axi4s_debug_monitor/dbg_x[15:0]">
-                <Signal>u_axi4s_debug_monitor/dbg_x[15]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[14]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[13]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[12]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[11]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[10]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[9]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[8]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[7]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[6]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[5]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[4]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[3]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[2]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[1]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_x[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="u_axi4s_debug_monitor/dbg_y[15:0]">
-                <Signal>u_axi4s_debug_monitor/dbg_y[15]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[14]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[13]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[12]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[11]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[10]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[9]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[8]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[7]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[6]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[5]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[4]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[3]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[2]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[1]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_y[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="u_axi4s_debug_monitor/dbg_width[15:0]">
-                <Signal>u_axi4s_debug_monitor/dbg_width[15]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[14]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[13]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[12]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[11]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[10]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[9]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[8]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[7]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[6]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[5]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[4]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[3]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[2]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[1]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_width[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="u_axi4s_debug_monitor/dbg_height[15:0]">
-                <Signal>u_axi4s_debug_monitor/dbg_height[15]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[14]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[13]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[12]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[11]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[10]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[9]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[8]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[7]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[6]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[5]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[4]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[3]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[2]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[1]</Signal>
-                <Signal>u_axi4s_debug_monitor/dbg_height[0]</Signal>
-            </Bus>
-            <Signal capture_enable="true">u_axi4s_debug_monitor/dbg_axi4s_tlast</Signal>
-            <Signal capture_enable="true">u_axi4s_debug_monitor/dbg_axi4s_tvalid</Signal>
-            <Signal capture_enable="true">u_axi4s_debug_monitor/dbg_axi4s_tready</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -227,42 +70,6 @@
                     <Signal>video_buf_in_de</Signal>
                     <Signal>video_buf_in_full</Signal>
                     <Signal>video_buf_in_vs_n</Signal>
-                    <Bus restorename="u_axi4s_debug_monitor/dbg_width[15:0]">
-                        <Signal>u_axi4s_debug_monitor/dbg_width[15]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[14]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[13]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[12]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[11]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[10]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[9]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[8]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[7]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[6]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[5]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[4]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[3]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[2]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[1]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_width[0]</Signal>
-                    </Bus>
-                    <Bus restorename="u_axi4s_debug_monitor/dbg_height[15:0]">
-                        <Signal>u_axi4s_debug_monitor/dbg_height[15]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[14]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[13]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[12]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[11]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[10]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[9]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[8]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[7]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[6]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[5]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[4]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[3]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[2]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[1]</Signal>
-                        <Signal>u_axi4s_debug_monitor/dbg_height[0]</Signal>
-                    </Bus>
                 </SignalList>
             </Trigger>
             <Trigger index="1"/>
@@ -282,7 +89,7 @@
             <Trigger index="15"/>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="3" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" value1="00000000000000000000000000000000000" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="3" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="XXX" value1="000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -303,7 +110,7 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <AoCore index="1" sample_clock="dvi_clk" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="6" module_name="tang_mega_138k_pro_imx219_720p" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
+    <AoCore index="1" sample_clock="dvi_clk" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="0" module_name="tang_mega_138k_pro_imx219_720p" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
         <SignalList>
             <Bus capture_enable="true" name="video_buf_out_data[2][7:0]">
                 <Signal>video_buf_out_data[2][7]</Signal>
@@ -335,14 +142,74 @@
                 <Signal>video_buf_out_data[0][1]</Signal>
                 <Signal>video_buf_out_data[0][0]</Signal>
             </Bus>
+            <Bus capture_enable="true" name="video_buf_out_exp[23:0]">
+                <Signal>video_buf_out_exp[23]</Signal>
+                <Signal>video_buf_out_exp[22]</Signal>
+                <Signal>video_buf_out_exp[21]</Signal>
+                <Signal>video_buf_out_exp[20]</Signal>
+                <Signal>video_buf_out_exp[19]</Signal>
+                <Signal>video_buf_out_exp[18]</Signal>
+                <Signal>video_buf_out_exp[17]</Signal>
+                <Signal>video_buf_out_exp[16]</Signal>
+                <Signal>video_buf_out_exp[15]</Signal>
+                <Signal>video_buf_out_exp[14]</Signal>
+                <Signal>video_buf_out_exp[13]</Signal>
+                <Signal>video_buf_out_exp[12]</Signal>
+                <Signal>video_buf_out_exp[11]</Signal>
+                <Signal>video_buf_out_exp[10]</Signal>
+                <Signal>video_buf_out_exp[9]</Signal>
+                <Signal>video_buf_out_exp[8]</Signal>
+                <Signal>video_buf_out_exp[7]</Signal>
+                <Signal>video_buf_out_exp[6]</Signal>
+                <Signal>video_buf_out_exp[5]</Signal>
+                <Signal>video_buf_out_exp[4]</Signal>
+                <Signal>video_buf_out_exp[3]</Signal>
+                <Signal>video_buf_out_exp[2]</Signal>
+                <Signal>video_buf_out_exp[1]</Signal>
+                <Signal>video_buf_out_exp[0]</Signal>
+            </Bus>
             <Signal capture_enable="true">video_buf_out_de</Signal>
             <Signal capture_enable="true">video_buf_out_empty</Signal>
+            <Bus capture_enable="true" name="video_buf_out_x[13:0]">
+                <Signal>video_buf_out_x[13]</Signal>
+                <Signal>video_buf_out_x[12]</Signal>
+                <Signal>video_buf_out_x[11]</Signal>
+                <Signal>video_buf_out_x[10]</Signal>
+                <Signal>video_buf_out_x[9]</Signal>
+                <Signal>video_buf_out_x[8]</Signal>
+                <Signal>video_buf_out_x[7]</Signal>
+                <Signal>video_buf_out_x[6]</Signal>
+                <Signal>video_buf_out_x[5]</Signal>
+                <Signal>video_buf_out_x[4]</Signal>
+                <Signal>video_buf_out_x[3]</Signal>
+                <Signal>video_buf_out_x[2]</Signal>
+                <Signal>video_buf_out_x[1]</Signal>
+                <Signal>video_buf_out_x[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="video_buf_out_y[13:0]">
+                <Signal>video_buf_out_y[13]</Signal>
+                <Signal>video_buf_out_y[12]</Signal>
+                <Signal>video_buf_out_y[11]</Signal>
+                <Signal>video_buf_out_y[10]</Signal>
+                <Signal>video_buf_out_y[9]</Signal>
+                <Signal>video_buf_out_y[8]</Signal>
+                <Signal>video_buf_out_y[7]</Signal>
+                <Signal>video_buf_out_y[6]</Signal>
+                <Signal>video_buf_out_y[5]</Signal>
+                <Signal>video_buf_out_y[4]</Signal>
+                <Signal>video_buf_out_y[3]</Signal>
+                <Signal>video_buf_out_y[2]</Signal>
+                <Signal>video_buf_out_y[1]</Signal>
+                <Signal>video_buf_out_y[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">ddr_err</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
                 <SignalList>
                     <Signal>video_buf_out_de</Signal>
                     <Signal>video_buf_out_empty</Signal>
+                    <Signal>ddr_err</Signal>
                 </SignalList>
             </Trigger>
             <Trigger index="1"/>
@@ -362,7 +229,7 @@
             <Trigger index="15"/>
         </Triggers>
         <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="XX" value1="00" trigger="0"/>
+            <MatchUnit index="0" enabled="1" match_type="1" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="XXX" value1="000" trigger="0"/>
             <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
             <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
@@ -383,67 +250,5 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <AoCore index="2" sample_clock="cam_clk" trig_type="0" storage_depth="2048" window_num="1" capture_amount="2048" implementation="0" trigger_pos="0" module_name="tang_mega_138k_pro_imx219_720p" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
-        <SignalList>
-            <Bus capture_enable="true" name="cam0_in_pixel[9:0]">
-                <Signal>cam0_in_pixel[9]</Signal>
-                <Signal>cam0_in_pixel[8]</Signal>
-                <Signal>cam0_in_pixel[7]</Signal>
-                <Signal>cam0_in_pixel[6]</Signal>
-                <Signal>cam0_in_pixel[5]</Signal>
-                <Signal>cam0_in_pixel[4]</Signal>
-                <Signal>cam0_in_pixel[3]</Signal>
-                <Signal>cam0_in_pixel[2]</Signal>
-                <Signal>cam0_in_pixel[1]</Signal>
-                <Signal>cam0_in_pixel[0]</Signal>
-            </Bus>
-            <Signal capture_enable="true">cam0_in_fv</Signal>
-            <Signal capture_enable="true">cam0_in_lv</Signal>
-        </SignalList>
-        <Triggers>
-            <Trigger index="0">
-                <SignalList>
-                    <Signal>cam0_in_fv</Signal>
-                    <Signal>cam0_in_lv</Signal>
-                </SignalList>
-            </Trigger>
-            <Trigger index="1"/>
-            <Trigger index="2"/>
-            <Trigger index="3"/>
-            <Trigger index="4"/>
-            <Trigger index="5"/>
-            <Trigger index="6"/>
-            <Trigger index="7"/>
-            <Trigger index="8"/>
-            <Trigger index="9"/>
-            <Trigger index="10"/>
-            <Trigger index="11"/>
-            <Trigger index="12"/>
-            <Trigger index="13"/>
-            <Trigger index="14"/>
-            <Trigger index="15"/>
-        </Triggers>
-        <MatchUnits>
-            <MatchUnit index="0" enabled="1" match_type="1" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="XX" value1="00" trigger="0"/>
-            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="11" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="12" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
-        </MatchUnits>
-        <Expressions type="Static">
-            <Expression>M0</Expression>
-        </Expressions>
-    </AoCore>
-    <GAO_ID>1011011111011111</GAO_ID>
+    <GAO_ID>1101010100010101</GAO_ID>
 </GAO_CONFIG>

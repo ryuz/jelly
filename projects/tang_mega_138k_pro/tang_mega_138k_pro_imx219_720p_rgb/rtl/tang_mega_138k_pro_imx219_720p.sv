@@ -87,19 +87,20 @@ module tang_mega_138k_pro_imx219_720p
             (
                 .lock       (lock       ),  //output lock
                 .clkout0    (sys_clk    ),  //output clkout0
-                .clkout1    (cam_clk    ),  //output clkout1
+                .clkout1    (           ),  //output clkout1
                 .clkin      (in_clk50   )   //input clkin
             );
 
-    /*
+    
+    logic   mipi_lock    ;
     Gowin_PLL_mipi
         u_Gowin_PLL_mipi
             (
-                .lock       (           ),  //output lock
-                .clkout0    (clk180     ),  //output clkout0
+                .lock       (mipi_lock  ),  //output lock
+                .clkout0    (cam_clk    ),  //output clkout0
                 .clkin      (in_clk50   )   //input clkin
             );
-    */
+    
 
     logic   sys_reset;
     jelly_reset
@@ -124,9 +125,9 @@ module tang_mega_138k_pro_imx219_720p
             )
         u_reset_cam
             (
-                .clk                (cam_clk            ),
-                .in_reset           (~in_reset & lock   ),   // asyncrnous reset
-                .out_reset          (cam_reset          )    // syncrnous reset
+                .clk                (cam_clk                ),
+                .in_reset           (~in_reset & mipi_lock  ),   // asyncrnous reset
+                .out_reset          (cam_reset              )    // syncrnous reset
             );
 
 
@@ -1041,12 +1042,31 @@ module tang_mega_138k_pro_imx219_720p
     logic               video_buf_in_de    ;
     logic   [2:0][7:0]  video_buf_in_data  ;
     logic               video_buf_in_full  ;
+    
+    logic   [23:0]      video_buf_in_test   ;
+    always_ff @(posedge cam_clk) begin
+        if ( !video_buf_in_vs_n ) begin
+            video_buf_in_test <= '0;
+        end
+        else begin
+            if ( video_buf_in_de ) begin
+                video_buf_in_test <= video_buf_in_test + 1;
+            end
+        end
+    end
+
+    /*
     assign video_buf_in_vs_n = ~(video_st0_fs | video_st1_fs | video_st2_fs);
     assign video_buf_in_de   = video_st6_de;
     assign video_buf_in_data = video_st6_rgb;
+    */
+
+    assign video_buf_in_vs_n = cam0_in_fv;
+    assign video_buf_in_de   = cam0_in_lv;
+    assign video_buf_in_data = {cam0_in_pixel[9:2], video_buf_in_test[15:0]};
 
     logic               video_buf_out_de    ;
-    logic   [2:0][7:0]  video_buf_out_data  ;
+    logic   [23:0]      video_buf_out_data  ;
     logic               video_buf_out_empty ;
     Video_Frame_Buffer_Top
         u_Video_Frame_Buffer_Top
@@ -1065,6 +1085,7 @@ module tang_mega_138k_pro_imx219_720p
                 .I_vin0_vs_n            (video_buf_in_vs_n  ),
                 .I_vin0_de              (video_buf_in_de    ),
                 .I_vin0_data            (video_buf_in_data  ),
+//              .I_vin0_data            (video_buf_in_test  ),
                 .O_vin0_fifo_full       (video_buf_in_full  ),
 
                 // video data output
@@ -1091,6 +1112,47 @@ module tang_mega_138k_pro_imx219_720p
                 .I_init_calib_complete  (init_calib_complete)
             );
     
+    logic   [23:0]      video_buf_out_exp   ;
+    always_ff @(posedge dvi_clk) begin
+        if ( syncgen_vsync ) begin
+            video_buf_out_exp <= '0;
+        end
+        else begin
+            if ( video_buf_out_de ) begin
+                video_buf_out_exp <= video_buf_out_exp + 1;
+            end
+        end
+    end
+
+    logic   ddr_err;
+    always_ff @(posedge dvi_clk) begin
+        if ( video_buf_out_de ) begin
+            ddr_err = (video_buf_out_data[15:0] != video_buf_out_exp[15:0]);
+        end
+    end
+
+    logic           video_buf_out_de_ff;
+    logic   [13:0]  video_buf_out_x;
+    logic   [13:0]  video_buf_out_y;
+    always_ff @(posedge dvi_clk) begin
+        video_buf_out_de_ff <= video_buf_out_de;
+        if ( syncgen_vsync ) begin
+            video_buf_out_y <= 0;
+        end
+        else if ( {video_buf_out_de_ff, video_buf_out_de} == 2'b10 ) begin
+            video_buf_out_y <= video_buf_out_y + 1;
+        end
+
+        if ( !video_buf_out_de ) begin
+            video_buf_out_x <= '0;
+        end
+        else begin
+            video_buf_out_x <= video_buf_out_x + 1;
+        end
+    end
+    
+
+
 
     // ---------------------------------
     //  RAM
@@ -1298,10 +1360,10 @@ module tang_mega_138k_pro_imx219_720p
 
     assign led_n[0] = ~dvi_clk1_counter[25];
     assign led_n[1] = ~dvi_clk5_counter[25];
-    assign led_n[2] = ~dvi_reset;
+    assign led_n[2] = ~ddr_err;
     assign led_n[3] = ~init_calib_complete;
     assign led_n[4] = ~1'b0;
-    assign led_n[5] = ~1'b0;
+    assign led_n[5] = ~dvi_reset;
 
     /*
     assign led_n[0] = ~i2c_scl_i;

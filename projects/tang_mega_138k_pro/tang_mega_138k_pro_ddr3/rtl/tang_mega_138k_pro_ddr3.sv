@@ -830,6 +830,7 @@ module tang_mega_138k_pro_ddr3
                 .IO_ddr_dqs_n       (ddr_dqs_n          )
             );
 
+    
     logic   [2:0][7:0]  video_st0_rgb;
     logic               video_st0_de;
     logic               video_st0_fs;
@@ -1006,7 +1007,7 @@ module tang_mega_138k_pro_ddr3
                 .out_data_n     (dvi_tx_data_n  )
             );
     
-
+    
     // ---------------------------------
     //  Health check
     // ---------------------------------
