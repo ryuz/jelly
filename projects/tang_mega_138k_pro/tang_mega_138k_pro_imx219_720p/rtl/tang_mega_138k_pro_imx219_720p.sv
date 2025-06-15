@@ -60,34 +60,46 @@ module tang_mega_138k_pro_imx219_720p
     //  Clock and Reset
     // ---------------------------------
 
-    logic   lock    ;
-    logic   clk50   ;
-    logic   clk180  ;   // MIPI : 182.4M pixel/sec
+    logic   lock        ;
+    logic   sys_clk     ;
+    logic   cam_clk     ;
     Gowin_PLL
         u_Gowin_PLL
             (
                 .lock       (lock       ),  //output lock
-                .clkout0    (clk50      ),  //output clkout0
-                .clkout1    (clk180     ),  //output clkout1
+                .clkout0    (sys_clk    ),  //output clkout0
+                .clkout1    (cam_clk    ),  //output clkout1
                 .clkin      (in_clk50   )   //input clkin
             );
-    logic   clk;
-    assign clk = clk50;
 
-    logic   reset;
+    logic   sys_reset;
     jelly_reset
             #(
                 .IN_LOW_ACTIVE      (1                  ),
                 .OUT_LOW_ACTIVE     (0                  ),
                 .INPUT_REGS         (2                  )
             )
-        u_reset
+        u_reset_sys
             (
-                .clk                (clk                ),
+                .clk                (sys_clk            ),
                 .in_reset           (~in_reset & lock   ),   // asyncrnous reset
-                .out_reset          (reset              )    // syncrnous reset
+                .out_reset          (sys_reset          )    // syncrnous reset
             );
 
+    logic   cam_reset;
+    jelly_reset
+            #(
+                .IN_LOW_ACTIVE      (1                  ),
+                .OUT_LOW_ACTIVE     (0                  ),
+                .INPUT_REGS         (2                  )
+            )
+        u_reset_cam
+            (
+                .clk                (cam_clk            ),
+                .in_reset           (~in_reset & lock   ),   // asyncrnous reset
+                .out_reset          (cam_reset          )    // syncrnous reset
+            );
+    
     // PLL
     logic   dvi_clk     ;
     logic   dvi_clk_x5  ;
@@ -161,8 +173,8 @@ module tang_mega_138k_pro_imx219_720p
             )
         u_jfive_simple_controller
             (
-                .reset              (reset                  ),
-                .clk                (clk                    ),
+                .reset              (sys_reset              ),
+                .clk                (sys_clk                ),
                 .cke                (1'b1                   ),
 
                 .s_wb_adr_i         ('0                     ),
@@ -202,11 +214,11 @@ module tang_mega_138k_pro_imx219_720p
             )
         u_uart
             (
-                .reset              (reset              ),
-                .clk                (clk                ),
+                .reset              (sys_reset          ),
+                .clk                (sys_clk            ),
                 
-                .uart_reset         (reset              ),
-                .uart_clk           (clk                ),
+                .uart_reset         (sys_reset          ),
+                .uart_clk           (sys_clk            ),
                 .uart_tx            (uart_tx            ),
                 .uart_rx            (uart_rx            ),
                 
@@ -242,8 +254,8 @@ module tang_mega_138k_pro_imx219_720p
             )
         u_i2c
             (
-                .reset              (reset              ),
-                .clk                (clk                ),
+                .reset              (sys_reset          ),
+                .clk                (sys_clk            ),
                 
                 .i2c_scl_t          (i2c_scl_t          ),
                 .i2c_scl_i          (i2c_scl_i          ),
@@ -291,8 +303,8 @@ module tang_mega_138k_pro_imx219_720p
     logic   [7:0]               reg_gpio1;
     logic   [7:0]               reg_gpio2;
     logic   [7:0]               reg_gpio3;
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
+    always_ff @(posedge sys_clk) begin
+        if ( sys_reset ) begin
             reg_gpio0 <= '0;
             reg_gpio1 <= '0;
             reg_gpio2 <= '0;
@@ -374,7 +386,7 @@ module tang_mega_138k_pro_imx219_720p
 
                 .drst_n             (mipi0_dphy_drst_n          ), //input drst_n
                 .pwron              (1'b1                       ), //input pwron
-                .reset              (reset                      ), //input reset
+                .reset              (sys_reset                  ), //input reset
                 .hsrx_stop          (1'b0                       ), //input hsrx_stop
 
                 .hs_8bit_mode       (1'b1                       ), //input hs_8bit_mode
@@ -470,16 +482,16 @@ module tang_mega_138k_pro_imx219_720p
     wire logic          mipi0_dphy_from1toX    = (mipi0_dphy_lp0_reg_1==1)&(mipi0_dphy_lp0_reg_0!=1);
     wire logic  [ 1:0]  mipi0_dphy_odt_en      = {(mipi0_dphy_di_lprx1==0), (mipi0_dphy_di_lprx0==0)} & {2{mipi0_dphy_odt_en_msk}};
 
-    always_ff @(posedge mipi0_dphy_rx_clk or posedge reset) begin
-        if (reset)                          mipi0_dphy_odt_en_msk <= 'b0;
+    always_ff @(posedge mipi0_dphy_rx_clk or posedge sys_reset) begin
+        if (sys_reset)                      mipi0_dphy_odt_en_msk <= 'b0;
         else if (~mipi0_dphy_odt_en_msk)    mipi0_dphy_odt_en_msk <= mipi0_dphy_from3to1;
         else if (1)                         mipi0_dphy_odt_en_msk <= !(mipi0_dphy_from1to2|mipi0_dphy_from1to3|mipi0_dphy_fromXto3);
 
-        if (reset)                          mipi0_dphy_reg3to1 <= 'b0;
+        if (sys_reset)                      mipi0_dphy_reg3to1 <= 'b0;
         else if (~mipi0_dphy_reg3to1)       mipi0_dphy_reg3to1 <= mipi0_dphy_from3to1;
         else if (1)                         mipi0_dphy_reg3to1 <= ~mipi0_dphy_from1toX;
 
-        if (reset)                          mipi0_dphy_hsrx_cnt <= 'b0;
+        if (sys_reset)                      mipi0_dphy_hsrx_cnt <= 'b0;
         else if (|mipi0_dphy_odt_en)        mipi0_dphy_hsrx_cnt <= 6'd10;
         else if (mipi0_dphy_hsrx_cnt>0)     mipi0_dphy_hsrx_cnt <= mipi0_dphy_hsrx_cnt - 6'd1;
     end
@@ -511,7 +523,7 @@ module tang_mega_138k_pro_imx219_720p
     MIPI_DSI_CSI2_RX_Top
         u_MIPI_DSI_CSI2_RX
             (
-                .I_RSTN         (~reset                 ), //input I_RSTN
+                .I_RSTN         (~sys_reset             ), //input I_RSTN
                 .I_BYTE_CLK     (mipi0_dphy_rx_clk      ), //input I_BYTE_CLK
                 .I_REF_DT       (6'h2b                  ), //input [5:0] I_REF_DT  RAW10
                 .I_READY        (mipi0_dphy_byte_ready  ), //input I_READY
@@ -536,9 +548,9 @@ module tang_mega_138k_pro_imx219_720p
     MIPI_Byte_to_Pixel_Converter_Top
         u_MIPI_Byte_to_Pixel_Converter_Top
             (
-                .I_RSTN         (~reset                 ),  //input I_RSTN
+                .I_RSTN         (~cam_reset             ),  //input I_RSTN
                 .I_BYTE_CLK     (mipi0_dphy_rx_clk      ),  //input I_BYTE_CLK
-                .I_PIXEL_CLK    (clk180                 ),  //input I_PIXEL_CLK
+                .I_PIXEL_CLK    (cam_clk                ),  //input I_PIXEL_CLK
                 .I_SP_EN        (mipi0_csi_rx_sp_en     ),  //input I_SP_EN
                 .I_LP_AV_EN     (mipi0_csi_rx_lp_av_en  ),  //input I_LP_AV_EN
                 .I_DT           (mipi0_csi_rx_dt        ),  //input [5:0] I_DT
@@ -608,7 +620,7 @@ module tang_mega_138k_pro_imx219_720p
 
     logic           cam0_in_lv0     ;
     logic [1:0]     cam0_in_y_count ;
-    always_ff @(posedge clk180) begin
+    always_ff @(posedge cam_clk) begin
         cam0_in_lv0 <= cam0_in_lv;
         if ( {cam0_in_lv0, cam0_in_lv} == 2'b10 && !cam0_in_y_count[1] ) begin
             cam0_in_y_count <= cam0_in_y_count + 1;
@@ -627,7 +639,7 @@ module tang_mega_138k_pro_imx219_720p
     logic           cam0_src_lv0;
     logic   [13:0]  cam0_src_x;
     logic   [13:0]  cam0_src_y;
-    always_ff @(posedge clk180) begin
+    always_ff @(posedge cam_clk) begin
         cam0_src_lv0 <= cam0_src_lv;
         if ( cam0_src_fv == 1'b0 ) begin
             cam0_src_x   <= '0;
@@ -646,7 +658,7 @@ module tang_mega_138k_pro_imx219_720p
         end
     end
 
-    assign mem0_clk    = clk180                                     ;
+    assign mem0_clk    = cam_clk                                    ;
     assign mem0_en     = cam0_src_lv                                ;
     assign mem0_regcke = 1'b1                                       ;
 //  assign mem0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
@@ -660,7 +672,7 @@ module tang_mega_138k_pro_imx219_720p
     logic           axi4s_cam0_tlast    ;
     logic   [9:0]   axi4s_cam0_tdata    ;
     logic           axi4s_cam0_tvalid   ;
-    always_ff @(posedge clk180) begin
+    always_ff @(posedge cam_clk) begin
         if ( cam0_src_fv == 1'b0 ) begin
             axi4s_cam0_tuser  <= 1'b1;
         end
@@ -787,8 +799,8 @@ module tang_mega_138k_pro_imx219_720p
     // ---------------------------------
 
     logic   [24:0]  counter = '0;
-    always_ff @(posedge clk or posedge reset) begin
-        if ( reset ) begin
+    always_ff @(posedge sys_clk or posedge sys_reset) begin
+        if ( sys_reset ) begin
             counter <= 0;
         end
         else begin

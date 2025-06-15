@@ -91,6 +91,6 @@ clean:
 run: $(FS_FILE)
 	openFPGALoader $(FS_FILE)
 
-run_win: $(FS_FILE)
+run_wsl: $(FS_FILE)
 #   programmer_cli --scan-cable
 	programmer_cli --device GW5AST-138C --run 2 --fsFile '$(shell wslpath -w $(FS_FILE))' --location 11585
