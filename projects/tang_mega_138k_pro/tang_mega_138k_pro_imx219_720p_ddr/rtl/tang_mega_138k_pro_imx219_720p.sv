@@ -996,9 +996,9 @@ module tang_mega_138k_pro_imx219_720p
                 .in_data        ({
                                     video_buf_data[15:12],
                                     video_buf_data[15:12],
+                                    video_buf_data[7:0],
                                     video_buf_data[11:8],
-                                    video_buf_data[11:8],
-                                    video_buf_data[7:0]
+                                    video_buf_data[11:8]
                                 }),
                 .in_ctl         ('0             ),
 

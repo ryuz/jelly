@@ -90,6 +90,9 @@ clean:
 run: $(FS_FILE)
 	openFPGALoader $(FS_FILE)
 
-run_win: $(FS_FILE)
-#   programmer_cli --scan-cable
+
+# WSL から Windows 版 programmer を使う場合が下記
+# programmer_cli --scan-cable
+# で location を調べて書き換えておくこと
+run_wsl: $(FS_FILE)
 	programmer_cli --device GW5AST-138C --run 2 --fsFile '$(shell wslpath -w $(FS_FILE))' --location 11585
