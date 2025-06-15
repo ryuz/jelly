@@ -992,14 +992,14 @@ module tang_mega_138k_pro_imx219_720p
                 .in_de          (syncgen_de     ),
 //              .in_data        (syncgen_rgb    ),
 //              .in_data        ({3{mem1_dout}} ),
-//              .in_data        ({3{video_buf_data[9:2]}} ),
-                .in_data        ({
+                .in_data        ({3{video_buf_data[9:2]}} ),
+/*                .in_data        ({
                                     video_buf_data[15:12],
                                     video_buf_data[15:12],
                                     video_buf_data[7:0],
                                     video_buf_data[11:8],
                                     video_buf_data[11:8]
-                                }),
+                                }),*/
                 .in_ctl         ('0             ),
 
                 .out_clk_p      (dvi_tx_clk_p   ),

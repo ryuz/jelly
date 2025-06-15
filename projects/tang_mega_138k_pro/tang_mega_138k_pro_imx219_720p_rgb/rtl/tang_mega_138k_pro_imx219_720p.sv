@@ -1055,15 +1055,15 @@ module tang_mega_138k_pro_imx219_720p
         end
     end
 
-    /*
     assign video_buf_in_vs_n = ~(video_st0_fs | video_st1_fs | video_st2_fs);
     assign video_buf_in_de   = video_st6_de;
     assign video_buf_in_data = video_st6_rgb;
-    */
 
+    /*
     assign video_buf_in_vs_n = cam0_in_fv;
     assign video_buf_in_de   = cam0_in_lv;
     assign video_buf_in_data = {cam0_in_pixel[9:2], video_buf_in_test[15:0]};
+    */
 
     logic               video_buf_out_de    ;
     logic   [23:0]      video_buf_out_data  ;
@@ -1312,12 +1312,12 @@ module tang_mega_138k_pro_imx219_720p
 
                 .in_vsync       (syncgen_vsync  ),
                 .in_hsync       (syncgen_hsync  ),
-                .in_de          (syncgen_de     ),
+//              .in_de          (syncgen_de     ),
 //              .in_data        (syncgen_rgb    ),
-                .in_data        ({3{mem1_dout}} ),
+//              .in_data        ({3{mem1_dout}} ),
 //              .in_data        ({3{video_buf_data[9:2]}} ),
-//              .in_de          (video_buf_out_de   ),
-//              .in_data        (video_buf_out_data ),
+                .in_de          (video_buf_out_de   ),
+                .in_data        (video_buf_out_data ),
                 .in_ctl         ('0             ),
 
                 .out_clk_p      (dvi_tx_clk_p   ),
