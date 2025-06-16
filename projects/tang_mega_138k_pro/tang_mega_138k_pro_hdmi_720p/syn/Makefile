@@ -21,7 +21,7 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vsync_generator_core.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll.v
 
 SDC_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_hdmi_720p.sdc
-CST_SOURCES += $(CONSTRAIN_DIR)/tang_mega_138k_pro_hdmi_720p.cst
+CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_hdmi_720p.cst
 
 export USE_CPU_AS_GPIO = 1
 

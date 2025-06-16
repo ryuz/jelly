@@ -46,8 +46,8 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_control.v
 VG_SOURCES    = ./jfive_tcm/impl/gwsynthesis/jfive_tcm.vg
 VLOG_SOURCES += $(VG_SOURCES)
 
-CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.sdc
-CST_SOURCES += $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.cst
+SDC_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.sdc
+CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.cst
 
 export USE_CPU_AS_GPIO = 1
 

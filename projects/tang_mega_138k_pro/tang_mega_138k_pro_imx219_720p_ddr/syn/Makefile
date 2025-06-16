@@ -56,8 +56,8 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_dvi_tx_encode.v
 VG_SOURCES    = ./jfive_tcm/impl/gwsynthesis/jfive_tcm.vg
 VLOG_SOURCES += $(VG_SOURCES)
 
-CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_imx219.sdc
-CST_SOURCES += $(CONSTRAIN_DIR)/tang_mega_138k_pro_imx219.cst
+SDC_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_imx219.sdc
+CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_imx219.cst
 
 export USE_CPU_AS_GPIO = 1
 

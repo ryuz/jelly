@@ -17,8 +17,8 @@ CONSTRAIN_DIR = ../constrain
 
 VLOG_SOURCES = $(RTL_DIR)/tang_mega_138k_pro_blinking_led.sv
 
-CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_blinking_led.sdc
-CST_SOURCES += $(CONSTRAIN_DIR)/tang_mega_138k_pro_blinking_led.cst
+SDC_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_blinking_led.sdc
+CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_blinking_led.cst
 
 # for tcl script
 export DEVICE_NAME
