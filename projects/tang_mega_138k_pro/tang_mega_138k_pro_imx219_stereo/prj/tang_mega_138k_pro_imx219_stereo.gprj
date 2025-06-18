@@ -13,7 +13,8 @@
         <File path="../rtl/clkgen_clkdiv.sv" type="file.verilog" enable="1"/>
         <File path="../rtl/dvi_tx.sv" type="file.verilog" enable="1"/>
         <File path="../rtl/jfive_simple_controller.sv" type="file.verilog" enable="1"/>
-        <File path="../rtl/tang_mega_138k_pro_imx219_720p.sv" type="file.verilog" enable="1"/>
+        <File path="../rtl/imx219_mipi_rx.sv" type="file.verilog" enable="1"/>
+        <File path="../rtl/tang_mega_138k_pro_imx219_stereo.sv" type="file.verilog" enable="1"/>
         <File path="../../../../rtl/v1/library/jelly_pipeline_control.v" type="file.verilog" enable="1"/>
         <File path="../../../../rtl/v1/library/jelly_pipeline_insert_ff.v" type="file.verilog" enable="1"/>
         <File path="../../../../rtl/v1/library/jelly_reset.v" type="file.verilog" enable="1"/>
@@ -38,7 +39,8 @@
         <File path="../../../../rtl/v2/peripheral/jelly2_uart_tx.sv" type="file.verilog" enable="1"/>
         <File path="../../../../rtl/v2/primitive/jelly2_ram32x1d.sv" type="file.verilog" enable="1"/>
         <File path="../syn/jfive_tcm/impl/gwsynthesis/jfive_tcm.vg" type="file.netlist" enable="1"/>
-        <File path="../constrain/tang_mega_138k_pro_imx219.cst" type="file.cst" enable="1"/>
-        <File path="../constrain/tang_mega_138k_pro_imx219.sdc" type="file.sdc" enable="1"/>
+        <File path="../constrain/tang_mega_138k_pro_imx219_stereo.cst" type="file.cst" enable="1"/>
+        <File path="../constrain/tang_mega_138k_pro_imx219_stereo.sdc" type="file.sdc" enable="1"/>
+        <File path="src/tang_mega_138k_pro_imx219_stereo.rao" type="file.gao" enable="1"/>
     </FileList>
 </Project>

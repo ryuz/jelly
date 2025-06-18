@@ -296,8 +296,8 @@ module tang_mega_138k_pro_imx219_stereo
                 .O              (i2c_sda_i )
             );
     
-//  assign i2c_sel = 3'b110;    // mipi0
-    assign i2c_sel = 3'b111;    // mipi1
+    assign i2c_sel = 3'b110;    // mipi0
+//  assign i2c_sel = 3'b111;    // mipi1
 
 
     // GPIO
