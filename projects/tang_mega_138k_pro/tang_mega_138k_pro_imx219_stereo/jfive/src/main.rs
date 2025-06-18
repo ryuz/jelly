@@ -22,8 +22,9 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
-const REG_LED: usize  = 0x10000100;
-const REG_GPIO: usize = 0x10000104;
+const REG_LED:    usize = 0x10000100;
+const REG_CAMPWR: usize = 0x10000104;
+const REG_I2CSEL: usize = 0x10000108;
 const IMX219_DEVADR: u8 =     0x10;    // 7bit address
 
 const CMD_MAX_LEN: usize = 64;
@@ -31,16 +32,25 @@ const CMD_MAX_LEN: usize = 64;
 
 // カメラ電源ON
 fn camera_power_on() {
-    wrtie_reg(REG_GPIO, 1); // GPIOピンをHIGHに設定
+    wrtie_reg(REG_CAMPWR, 3); // GPIOピンをHIGHに設定
     cpu_wait();
 }
 
 // カメラ電源OFF
 fn camera_power_off() {
-    wrtie_reg(REG_GPIO, 0); // GPIOピンをLOWに設定
+    wrtie_reg(REG_CAMPWR, 0); // GPIOピンをLOWに設定
     cpu_wait();
 }
 
+// カメラ選択
+fn camera_select(sel : u32) {
+    match sel {
+        0 => wrtie_reg(REG_I2CSEL, 6), // カメラ0を選択
+        1 => wrtie_reg(REG_I2CSEL, 7), // カメラ1を選択
+        _ => panic!("Invalid camera selection"),
+    }
+    cpu_wait();
+}
 
 
 #[no_mangle]
@@ -57,50 +67,57 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
     camera_power_on();
 
     // I2C アクセステスト(IDを読んでみる)
-    let mut model_id: [u8; 2] = [0u8; 2];
-    i2c.write(IMX219_DEVADR, &[0x00, 0x00]);
-    i2c.read(IMX219_DEVADR, &mut model_id);
-    println!("model_id: 0x{:02x}{:02x}", model_id[0], model_id[1]);
+    for cam in 0..2 {
+        camera_select(cam);
+        let mut model_id: [u8; 2] = [0u8; 2];
+        i2c.write(IMX219_DEVADR, &[0x00, 0x00]);
+        i2c.read(IMX219_DEVADR, &mut model_id);
+        println!("cam{} model_id: 0x{:02x}{:02x}", cam, model_id[0], model_id[1]);
+    }
 
     // IMX219 制御生成
     let mut imx219 = Imx219Control::new();
 
-    // リセット
-    println!("reset");
-    imx219.reset()?;
+    for cam in 0..2 {
+        camera_select(cam);
 
-    // カメラID取得
-    println!("sensor model ID:{:04x}", imx219.get_model_id().unwrap());
+        // リセット
+        println!("reset");
+        imx219.reset()?;
 
-    // camera 設定
-    let pixel_clock: f64 = 91000000.0;
-    let binning: bool = true;
-    let width: i32 = 1280;// / 2;
-    let height: i32 = 720;// / 2;
-    let aoi_x: i32 = -1;
-    let aoi_y: i32 = -1;
-    imx219.set_pixel_clock(pixel_clock)?;
-    imx219.set_aoi(width, height, aoi_x, aoi_y, binning, binning)?;
-    imx219.start()?;
+        // カメラID取得
+        println!("sensor model ID:{:04x}", imx219.get_model_id().unwrap());
 
-    // 設定
-    let frame_rate: f64 = 30.0;
-    let exposure: f64 = 0.015;
-    let a_gain: f64 = 20.0;
-    let d_gain: f64 = 0.0;
-    let flip_h: bool = false;
-    let flip_v: bool = false;
-    imx219.set_frame_rate(frame_rate)?;
-    imx219.set_exposure_time(exposure)?;
-    imx219.set_gain(a_gain)?;
-    imx219.set_digital_gain(d_gain)?;
-    imx219.set_flip(flip_h, flip_v)?;
+        // camera 設定
+        let pixel_clock: f64 = 91000000.0;
+        let binning: bool = true;
+        let width: i32 = 1280;// / 2;
+        let height: i32 = 720;// / 2;
+        let aoi_x: i32 = -1;
+        let aoi_y: i32 = -1;
+        imx219.set_pixel_clock(pixel_clock)?;
+        imx219.set_aoi(width, height, aoi_x, aoi_y, binning, binning)?;
+        imx219.start()?;
 
-//  let id = imx219.get_model_id()?;
-//  println!("model_id: 0x{:04x}", id);
+        // 設定
+        let frame_rate: f64 = 30.0;
+        let exposure: f64 = 0.015;
+        let a_gain: f64 = 20.0;
+        let d_gain: f64 = 0.0;
+        let flip_h: bool = false;
+        let flip_v: bool = false;
+        imx219.set_frame_rate(frame_rate)?;
+        imx219.set_exposure_time(exposure)?;
+        imx219.set_gain(a_gain)?;
+        imx219.set_digital_gain(d_gain)?;
+        imx219.set_flip(flip_h, flip_v)?;
 
-    // カメラ設定完了
-    imx219.setup()?;
+    //  let id = imx219.get_model_id()?;
+    //  println!("model_id: 0x{:04x}", id);
+
+        // カメラ設定完了
+        imx219.setup()?;
+    }
     println!("camera setup done");
 
     // コマンドプロンプト

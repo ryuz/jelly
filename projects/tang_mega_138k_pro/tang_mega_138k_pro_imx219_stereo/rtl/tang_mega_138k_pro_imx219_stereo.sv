@@ -296,25 +296,22 @@ module tang_mega_138k_pro_imx219_stereo
                 .O              (i2c_sda_i )
             );
     
-    assign i2c_sel = 3'b110;    // mipi0
-//  assign i2c_sel = 3'b111;    // mipi1
-
 
     // GPIO
     logic   [WB_DAT_WIDTH-1:0]  wb_gpio_dat_o;
     logic                       wb_gpio_stb_i;
     logic                       wb_gpio_ack_o;
 
-    logic   [3:0]               reg_gpio0;
+    logic   [7:0]               reg_gpio0;
     logic   [7:0]               reg_gpio1;
     logic   [7:0]               reg_gpio2;
     logic   [7:0]               reg_gpio3;
     always_ff @(posedge sys_clk) begin
         if ( sys_reset ) begin
-            reg_gpio0 <= '0;
-            reg_gpio1 <= '0;
-            reg_gpio2 <= '0;
-            reg_gpio3 <= '0;
+            reg_gpio0 <= 8'h0;
+            reg_gpio1 <= 8'h0;
+            reg_gpio2 <= 8'h6;
+            reg_gpio3 <= 8'h0;
         end
         else begin
             if ( wb_gpio_stb_i ) begin
@@ -339,7 +336,13 @@ module tang_mega_138k_pro_imx219_stereo
     assign wb_gpio_ack_o = wb_gpio_stb_i;
 
 
-    assign mipi1_rstn = reg_gpio1[0];
+    assign mipi0_rstn = reg_gpio1[0];
+    assign mipi1_rstn = reg_gpio1[1];
+    assign i2c_sel    = reg_gpio2[2:0];
+
+//  assign i2c_sel = 3'b110;    // mipi0
+//  assign i2c_sel = 3'b111;    // mipi1
+
 
     // address decode
     assign wb_uart_stb_i = wb_mcu_stb_o && (wb_mcu_adr_o[9:6] == 4'h0);
