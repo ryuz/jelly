@@ -411,21 +411,21 @@ module tang_mega_138k_pro_imx219_stereo
     //  RAM
     // ---------------------------------
 
-    logic               mem0_clk    ;
-    logic               mem0_en     ;
-    logic               mem0_regcke ;
-    logic               mem0_we     ;
-    logic   [15:0]      mem0_addr   ;
-    logic   [7:0]       mem0_din    ;
-    logic   [7:0]       mem0_dout   ;
+    logic               mem0_port0_clk    ;
+    logic               mem0_port0_en     ;
+    logic               mem0_port0_regcke ;
+    logic               mem0_port0_we     ;
+    logic   [15:0]      mem0_port0_addr   ;
+    logic   [7:0]       mem0_port0_din    ;
+    logic   [7:0]       mem0_port0_dout   ;
 
-    logic               mem1_clk    ;
-    logic               mem1_en     ;
-    logic               mem1_regcke ;
-    logic               mem1_we     ;
-    logic   [15:0]      mem1_addr   ;
-    logic   [7:0]       mem1_din    ;
-    logic   [7:0]       mem1_dout   ;
+    logic               mem0_port1_clk    ;
+    logic               mem0_port1_en     ;
+    logic               mem0_port1_regcke ;
+    logic               mem0_port1_we     ;
+    logic   [15:0]      mem0_port1_addr   ;
+    logic   [7:0]       mem0_port1_din    ;
+    logic   [7:0]       mem0_port1_dout   ;
 
     jelly2_ram_dualport
             #(
@@ -437,25 +437,24 @@ module tang_mega_138k_pro_imx219_stereo
                 .MODE0          ("NORMAL"       ),
                 .MODE1          ("NORMAL"       )
             )
-        u_ram_dualport
+        u_ram_dualport_cam0
             (
-                .port0_clk      (mem0_clk       ),
-                .port0_en       (mem0_en        ),
-                .port0_regcke   (mem0_regcke    ),
-                .port0_we       (mem0_we        ),
-                .port0_addr     (mem0_addr      ),
-                .port0_din      (mem0_din       ),
-                .port0_dout     (mem0_dout      ),
+                .port0_clk      (mem0_port0_clk       ),
+                .port0_en       (mem0_port0_en        ),
+                .port0_regcke   (mem0_port0_regcke    ),
+                .port0_we       (mem0_port0_we        ),
+                .port0_addr     (mem0_port0_addr      ),
+                .port0_din      (mem0_port0_din       ),
+                .port0_dout     (mem0_port0_dout      ),
 
-                .port1_clk      (mem1_clk       ),
-                .port1_en       (mem1_en        ),
-                .port1_regcke   (mem1_regcke    ),
-                .port1_we       (mem1_we        ),
-                .port1_addr     (mem1_addr      ),
-                .port1_din      (mem1_din       ),
-                .port1_dout     (mem1_dout      )
+                .port1_clk      (mem0_port1_clk       ),
+                .port1_en       (mem0_port1_en        ),
+                .port1_regcke   (mem0_port1_regcke    ),
+                .port1_we       (mem0_port1_we        ),
+                .port1_addr     (mem0_port1_addr      ),
+                .port1_din      (mem0_port1_din       ),
+                .port1_dout     (mem0_port1_dout      )
             );
-
 
     
     logic           cam0_lv_prev;
@@ -472,32 +471,88 @@ module tang_mega_138k_pro_imx219_stereo
         cam0_x <= cam0_lv ? cam0_x + 1 : '0;
     end
 
-    assign mem0_clk    = cam_clk                                    ;
-    assign mem0_en     = cam0_lv                                    ;
-    assign mem0_regcke = 1'b1                                       ;
-//  assign mem0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
-    assign mem0_we     =  (cam0_x >= 1280-256) && (cam0_x < 1280)
-                       && (cam0_y >= 720-256)  && (cam0_y < 720);
-    assign mem0_addr   = {cam0_y[7:0], cam0_x[7:0]}             ;
-    assign mem0_din    = cam0_pixel[9:2]                        ;
+    assign mem0_port0_clk    = cam_clk                                    ;
+    assign mem0_port0_en     = cam0_lv                                    ;
+    assign mem0_port0_regcke = 1'b1                                       ;
+//  assign mem0_port0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
+    assign mem0_port0_we     =  (cam0_x >= 1280-256) && (cam0_x < 1280)
+                             && (cam0_y >= 720-256)  && (cam0_y < 720);
+    assign mem0_port0_addr   = {cam0_y[7:0], cam0_x[7:0]}             ;
+    assign mem0_port0_din    = cam0_pixel[9:2]                        ;
 
-    /*
-    logic   [0:0]   axi4s_cam0_tuser    ;
-    logic           axi4s_cam0_tlast    ;
-    logic   [9:0]   axi4s_cam0_tdata    ;
-    logic           axi4s_cam0_tvalid   ;
+
+
+
+    logic               mem1_port0_clk    ;
+    logic               mem1_port0_en     ;
+    logic               mem1_port0_regcke ;
+    logic               mem1_port0_we     ;
+    logic   [15:0]      mem1_port0_addr   ;
+    logic   [7:0]       mem1_port0_din    ;
+    logic   [7:0]       mem1_port0_dout   ;
+
+    logic               mem1_port1_clk    ;
+    logic               mem1_port1_en     ;
+    logic               mem1_port1_regcke ;
+    logic               mem1_port1_we     ;
+    logic   [15:0]      mem1_port1_addr   ;
+    logic   [7:0]       mem1_port1_din    ;
+    logic   [7:0]       mem1_port1_dout   ;
+
+    jelly2_ram_dualport
+            #(
+                .ADDR_WIDTH     (16             ),
+                .DATA_WIDTH     (8              ),
+                .WE_WIDTH       (1              ),
+                .DOUT_REGS0     (0              ),
+                .DOUT_REGS1     (1              ),
+                .MODE0          ("NORMAL"       ),
+                .MODE1          ("NORMAL"       )
+            )
+        u_ram_dualport_cam1
+            (
+                .port0_clk      (mem1_port0_clk       ),
+                .port0_en       (mem1_port0_en        ),
+                .port0_regcke   (mem1_port0_regcke    ),
+                .port0_we       (mem1_port0_we        ),
+                .port0_addr     (mem1_port0_addr      ),
+                .port0_din      (mem1_port0_din       ),
+                .port0_dout     (mem1_port0_dout      ),
+
+                .port1_clk      (mem1_port1_clk       ),
+                .port1_en       (mem1_port1_en        ),
+                .port1_regcke   (mem1_port1_regcke    ),
+                .port1_we       (mem1_port1_we        ),
+                .port1_addr     (mem1_port1_addr      ),
+                .port1_din      (mem1_port1_din       ),
+                .port1_dout     (mem1_port1_dout      )
+            );
+
+    logic           cam1_lv_prev;
+    logic   [13:0]  cam1_y;
+    logic   [13:0]  cam1_x;
     always_ff @(posedge cam_clk) begin
-        if ( cam0_src_fv == 1'b0 ) begin
-            axi4s_cam0_tuser  <= 1'b1;
+        cam1_lv_prev <= cam1_lv;
+        if ( cam1_fv == 1'b0 ) begin
+            cam1_y <= '0;
         end
-        else if ( axi4s_cam0_tvalid ) begin
-            axi4s_cam0_tuser <= 1'b0;
+        if ( {cam1_lv_prev, cam1_lv} == 2'b10 ) begin
+            cam1_y <= cam1_y + 1;
         end
-        axi4s_cam0_tdata  <= cam0_src_pixel;
-        axi4s_cam0_tvalid <= cam0_src_lv & cam0_src_fv;
+        cam1_x <= cam1_lv ? cam1_x + 1 : '0;
     end
-    assign axi4s_cam0_tlast = axi4s_cam0_tvalid && !cam0_src_lv;
-    */
+
+    assign mem1_port0_clk    = cam_clk                                    ;
+    assign mem1_port0_en     = cam1_lv                                    ;
+    assign mem1_port0_regcke = 1'b1                                       ;
+//  assign mem1_port0_we     = (cam1_src_x < 256) && (cam1_src_y < 256)   ;
+    assign mem1_port0_we     =  (cam1_x >= 1280-256) && (cam1_x < 1280)
+                             && (cam1_y >= 720-256)  && (cam1_y < 720);
+    assign mem1_port0_addr   = {cam1_y[7:0], cam1_x[7:0]}             ;
+    assign mem1_port0_din    = cam1_pixel[9:2]                        ;
+
+
+
 
 
     // ---------------------------------
@@ -568,20 +623,30 @@ module tang_mega_138k_pro_imx219_stereo
     assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
 
 
-    assign mem1_clk    = dvi_clk                            ;
-    assign mem1_en     = 1'b1                               ;
-    assign mem1_regcke = 1'b1                               ;
-    assign mem1_we     = 1'b0                               ;
-    assign mem1_addr   = {syncgen_y[7:0], syncgen_x[7:0]}   ;
-    assign mem1_din    = '0                                 ;
+    assign mem0_port1_clk    = dvi_clk                            ;
+    assign mem0_port1_en     = 1'b1                               ;
+    assign mem0_port1_regcke = 1'b1                               ;
+    assign mem0_port1_we     = 1'b0                               ;
+    assign mem0_port1_addr   = {syncgen_y[7:0], syncgen_x[7:0]}   ;
+    assign mem0_port1_din    = '0                                 ;
+
+    assign mem1_port1_clk    = dvi_clk                            ;
+    assign mem1_port1_en     = 1'b1                               ;
+    assign mem1_port1_regcke = 1'b1                               ;
+    assign mem1_port1_we     = 1'b0                               ;
+    assign mem1_port1_addr   = {syncgen_y[7:0], syncgen_x[7:0]}   ;
+    assign mem1_port1_din    = '0                                 ;
+
 
     logic   [1:0]   syncgen_vsync_ff;
     logic   [1:0]   syncgen_hsync_ff;
     logic   [1:0]   syncgen_de_ff   ;
+    logic   [1:0]   syncgen_sel_ff  ;
     always_ff @(posedge dvi_clk) begin
         syncgen_vsync_ff <= {syncgen_vsync_ff[0:0], syncgen_vsync};
         syncgen_hsync_ff <= {syncgen_hsync_ff[0:0], syncgen_hsync};
         syncgen_de_ff    <= {syncgen_de_ff   [0:0], syncgen_de   };
+        syncgen_sel_ff   <= {syncgen_sel_ff  [0:0], syncgen_x[8] };
     end
 
 
@@ -593,11 +658,11 @@ module tang_mega_138k_pro_imx219_stereo
                 .clk            (dvi_clk        ),
                 .clk_x5         (dvi_clk_x5     ),
 
-                .in_vsync       (syncgen_vsync  ),
-                .in_hsync       (syncgen_hsync  ),
-                .in_de          (syncgen_de     ),
+                .in_vsync       (syncgen_vsync_ff[1]  ),
+                .in_hsync       (syncgen_hsync_ff[1]  ),
+                .in_de          (syncgen_de_ff   [1]     ),
 //              .in_data        (syncgen_rgb    ),
-                .in_data        ({3{mem1_dout}} ),
+                .in_data        (syncgen_sel_ff[1] ? {3{mem0_port1_dout}} : {3{mem1_port1_dout}}),
                 .in_ctl         ('0             ),
 
                 .out_clk_p      (dvi_tx_clk_p   ),
