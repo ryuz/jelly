@@ -74,6 +74,7 @@ module tang_mega_138k_pro_imx219_stereo
                 .lock               (sys_lock               ),
                 .clkout0            (sys_clk                ),
                 .clkout1            (cam_clk                ),
+                .init_clk           (in_clk50               ),
                 .clkin              (in_clk50               )
             );
 
