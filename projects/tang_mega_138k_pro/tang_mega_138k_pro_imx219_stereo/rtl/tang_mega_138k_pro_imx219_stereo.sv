@@ -472,16 +472,23 @@ module tang_mega_138k_pro_imx219_stereo
         cam0_x <= cam0_lv ? cam0_x + 1 : '0;
     end
 
-    assign mem0_port0_clk    = cam_clk                                    ;
-    assign mem0_port0_en     = cam0_lv                                    ;
-    assign mem0_port0_regcke = 1'b1                                       ;
-//  assign mem0_port0_we     = (cam0_src_x < 256) && (cam0_src_y < 256)   ;
-    assign mem0_port0_we     =  (cam0_x >= 1280-256) && (cam0_x < 1280)
-                             && (cam0_y >= 720-256)  && (cam0_y < 720);
-    assign mem0_port0_addr   = {cam0_y[7:0], cam0_x[7:0]}             ;
-    assign mem0_port0_din    = cam0_pixel[9:2]                        ;
+    /*
+    assign mem0_port0_clk    = cam_clk                              ;
+    assign mem0_port0_en     = cam0_lv                              ;
+    assign mem0_port0_regcke = 1'b1                                 ;
+    assign mem0_port0_we     = (cam0_x < 256) && (cam0_y < 256)     ;
+    assign mem0_port0_addr   = {cam0_y[7:0], cam0_x[7:0]}           ;
+    assign mem0_port0_din    = cam0_pixel[9:2]                      ;
+    */
 
-
+    assign mem0_port0_clk = cam_clk;
+    always_ff @(posedge cam_clk) begin
+        mem0_port0_en     <= cam0_lv                              ;
+        mem0_port0_regcke <= 1'b1                                 ;
+        mem0_port0_we     <= (cam0_x < 256) && (cam0_y < 256)     ;
+        mem0_port0_addr   <= {cam0_y[7:0], cam0_x[7:0]}           ;
+        mem0_port0_din    <= cam0_pixel[9:2]                      ;
+    end
 
 
     logic               mem1_port0_clk    ;
@@ -543,16 +550,23 @@ module tang_mega_138k_pro_imx219_stereo
         cam1_x <= cam1_lv ? cam1_x + 1 : '0;
     end
 
-    assign mem1_port0_clk    = cam_clk                                    ;
-    assign mem1_port0_en     = cam1_lv                                    ;
-    assign mem1_port0_regcke = 1'b1                                       ;
-//  assign mem1_port0_we     = (cam1_src_x < 256) && (cam1_src_y < 256)   ;
-    assign mem1_port0_we     =  (cam1_x >= 1280-256) && (cam1_x < 1280)
-                             && (cam1_y >= 720-256)  && (cam1_y < 720);
-    assign mem1_port0_addr   = {cam1_y[7:0], cam1_x[7:0]}             ;
-    assign mem1_port0_din    = cam1_pixel[9:2]                        ;
+    /*
+    assign mem1_port0_clk    = cam_clk                              ;
+    assign mem1_port0_en     = cam1_lv                              ;
+    assign mem1_port0_regcke = 1'b1                                 ;
+    assign mem1_port0_we     = (cam1_x < 256) && (cam1_y < 256)     ;
+    assign mem1_port0_addr   = {cam1_y[7:0], cam1_x[7:0]}           ;
+    assign mem1_port0_din    = cam1_pixel[9:2]                      ;
+    */
 
-
+    assign mem1_port0_clk = cam_clk ;
+    always_ff @(posedge cam_clk) begin
+        mem1_port0_en     <= cam1_lv                              ;
+        mem1_port0_regcke <= 1'b1                                 ;
+        mem1_port0_we     <= (cam1_x < 256) && (cam1_y < 256)     ;
+        mem1_port0_addr   <= {cam1_y[7:0], cam1_x[7:0]}           ;
+        mem1_port0_din    <= cam1_pixel[9:2]                      ;
+    end
 
 
 
