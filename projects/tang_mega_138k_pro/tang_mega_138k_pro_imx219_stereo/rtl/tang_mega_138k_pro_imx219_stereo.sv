@@ -71,11 +71,11 @@ module tang_mega_138k_pro_imx219_stereo
     Gowin_PLL
         u_Gowin_PLL
             (
-                .lock               (sys_lock               ),
+                .init_clk           (in_clk50               ),
+                .clkin              (in_clk50               ),
                 .clkout0            (sys_clk                ),
                 .clkout1            (cam_clk                ),
-                .init_clk           (in_clk50               ),
-                .clkin              (in_clk50               )
+                .lock               (sys_lock               )
             );
 
     logic   sys_reset;
@@ -113,6 +113,7 @@ module tang_mega_138k_pro_imx219_stereo
     Gowin_PLL_dvi
         u_Gowin_PLL_dvi
             (
+                .init_clk           (in_clk50               ),
                 .clkin              (in_clk50               ),
                 .clkout0            (dvi_clk                ),
                 .clkout1            (dvi_clk_x5             ),
