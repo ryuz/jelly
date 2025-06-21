@@ -8,12 +8,15 @@
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/ddr3_memory_interface/DDR3_400.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll/gowin_pll.v" type="file.verilog" enable="1"/>
+        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll/gowin_pll_mod.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_ddr3/gowin_pll_ddr3.v" type="file.verilog" enable="1"/>
+        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_ddr3/gowin_pll_ddr3_mod.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_dvi/gowin_pll_dvi.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/gowin_pll_mipi/gowin_pll_mipi.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/ip/video_frame_buffer/Video_Frame_Buffer_Top.v" type="file.verilog" enable="1"/>
+        <File path="src/pll_init.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/dvi_tx.sv" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/jfive_simple_controller.sv" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_720p_ddr/rtl/tang_mega_138k_pro_imx219_720p.sv" type="file.verilog" enable="1"/>

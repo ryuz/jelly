@@ -70,7 +70,7 @@ module dvi_tx
                     .D9     (enc_data[i][9]),
                     .PCLK   (clk),
                     .FCLK   (clk_x5),
-                    .RESET  (reset)
+                    .RESET  (1'b0)//(reset)
                 );
     end
 

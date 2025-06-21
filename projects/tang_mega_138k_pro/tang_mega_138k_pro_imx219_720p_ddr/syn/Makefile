@@ -19,10 +19,13 @@ CONSTRAIN_DIR = ../constrain
 VLOG_SOURCES  = $(RTL_DIR)/tang_mega_138k_pro_imx219_720p.sv
 VLOG_SOURCES += $(RTL_DIR)/jfive_simple_controller.sv
 VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
+VLOG_SOURCES += $(RTL_DIR)/pll_init.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll.v
-VLOG_SOURCES += $(IP_DIR)/gowin_pll_mipi/gowin_pll_mipi.v
+VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll_mod.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi/gowin_pll_dvi.v
+VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi/gowin_pll_dvi_mod.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll_ddr3/gowin_pll_ddr3.v
+VLOG_SOURCES += $(IP_DIR)/gowin_pll_ddr3/gowin_pll_ddr3_mod.v
 VLOG_SOURCES += $(IP_DIR)/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v
 VLOG_SOURCES += $(IP_DIR)/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v
 VLOG_SOURCES += $(IP_DIR)/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v
@@ -81,7 +84,7 @@ jfive:
 $(VG_SOURCES):
 	make -C ./jfive_tcm all
 
-$(FS_FILE): $(VLOG_SOURCES) $(CST_SOURCES) $(VG_SOURCES)
+$(FS_FILE): $(VLOG_SOURCES) $(SDC_SOURCES) $(CST_SOURCES) $(VG_SOURCES)
 	gw_sh $(TOP_DIR)/scripts/gowin_build.tcl
 
 clean:

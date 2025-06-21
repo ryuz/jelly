@@ -5,19 +5,19 @@
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138
 //Device Version: B
-//Created Time: Sat May 31 18:13:12 2025
+//Created Time: Sat Jun 21 09:36:50 2025
 
-module Gowin_PLL_mipi_MOD (lock, clkout0, clkin, reset, icpsel, lpfres, lpfcap);
+module Gowin_PLL_dvi_MOD (lock, clkout0, clkout1, clkin, reset, icpsel, lpfres, lpfcap);
 
 output lock;
 output clkout0;
+output clkout1;
 input clkin;
 input reset;
 input [5:0] icpsel;
 input [2:0] lpfres;
 input [1:0] lpfcap;
 
-wire clkout1;
 wire clkout2;
 wire clkout3;
 wire clkout4;
@@ -82,20 +82,20 @@ PLL PLL_inst (
 );
 
 defparam PLL_inst.FCLKIN = "50";
-defparam PLL_inst.IDIV_SEL = 2;
+defparam PLL_inst.IDIV_SEL = 1;
 defparam PLL_inst.FBDIV_SEL = 1;
-defparam PLL_inst.ODIV0_SEL = 7;
-defparam PLL_inst.ODIV1_SEL = 8;
+defparam PLL_inst.ODIV0_SEL = 10;
+defparam PLL_inst.ODIV1_SEL = 2;
 defparam PLL_inst.ODIV2_SEL = 8;
 defparam PLL_inst.ODIV3_SEL = 8;
 defparam PLL_inst.ODIV4_SEL = 8;
 defparam PLL_inst.ODIV5_SEL = 8;
 defparam PLL_inst.ODIV6_SEL = 8;
-defparam PLL_inst.MDIV_SEL = 51;
+defparam PLL_inst.MDIV_SEL = 15;
 defparam PLL_inst.MDIV_FRAC_SEL = 0;
 defparam PLL_inst.ODIV0_FRAC_SEL = 0;
 defparam PLL_inst.CLKOUT0_EN = "TRUE";
-defparam PLL_inst.CLKOUT1_EN = "FALSE";
+defparam PLL_inst.CLKOUT1_EN = "TRUE";
 defparam PLL_inst.CLKOUT2_EN = "FALSE";
 defparam PLL_inst.CLKOUT3_EN = "FALSE";
 defparam PLL_inst.CLKOUT4_EN = "FALSE";
@@ -176,4 +176,4 @@ defparam PLL_inst.DYN_DT3_SEL = "FALSE";
 defparam PLL_inst.DYN_ICP_SEL = "TRUE";
 defparam PLL_inst.DYN_LPF_SEL = "TRUE";
 
-endmodule //Gowin_PLL_mipi_MOD
+endmodule //Gowin_PLL_dvi_MOD

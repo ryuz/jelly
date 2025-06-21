@@ -76,54 +76,45 @@ module tang_mega_138k_pro_imx219_720p
     //  Clock and Reset
     // ---------------------------------
 
-    logic   lock    ;
+    logic   sys_lock;
     logic   sys_clk ;
     logic   cam_clk ;   // MIPI : 182.4M pixel/sec
     Gowin_PLL
         u_Gowin_PLL
             (
-                .lock       (lock       ),  //output lock
-                .clkout0    (sys_clk    ),  //output clkout0
-                .clkout1    (cam_clk    ),  //output clkout1
-                .clkin      (in_clk50   )   //input clkin
+                .init_clk           (in_clk50               ),
+                .clkin              (in_clk50               ),
+                .clkout0            (sys_clk                ),
+                .clkout1            (cam_clk                ),
+                .lock               (sys_lock               )
             );
-
-    /*
-    Gowin_PLL_mipi
-        u_Gowin_PLL_mipi
-            (
-                .lock       (           ),  //output lock
-                .clkout0    (cam_clk     ),  //output clkout0
-                .clkin      (in_clk50   )   //input clkin
-            );
-    */
 
     logic   sys_reset;
     jelly_reset
             #(
-                .IN_LOW_ACTIVE      (1                  ),
-                .OUT_LOW_ACTIVE     (0                  ),
-                .INPUT_REGS         (2                  )
+                .IN_LOW_ACTIVE      (1                      ),
+                .OUT_LOW_ACTIVE     (0                      ),
+                .INPUT_REGS         (2                      )
             )
         u_reset_sys
             (
-                .clk                (sys_clk            ),
-                .in_reset           (~in_reset & lock   ),   // asyncrnous reset
-                .out_reset          (sys_reset          )    // syncrnous reset
+                .clk                (sys_clk                ),
+                .in_reset           (~in_reset & sys_lock   ),
+                .out_reset          (sys_reset              )
             );
 
     logic   cam_reset;
     jelly_reset
             #(
-                .IN_LOW_ACTIVE      (1                  ),
-                .OUT_LOW_ACTIVE     (0                  ),
-                .INPUT_REGS         (2                  )
+                .IN_LOW_ACTIVE      (1                      ),
+                .OUT_LOW_ACTIVE     (0                      ),
+                .INPUT_REGS         (2                      )
             )
         u_reset_cam
             (
-                .clk                (cam_clk            ),
-                .in_reset           (~in_reset & lock   ),   // asyncrnous reset
-                .out_reset          (cam_reset          )    // syncrnous reset
+                .clk                (cam_clk                ),
+                .in_reset           (~in_reset & sys_lock   ),
+                .out_reset          (cam_reset              )
             );
 
     // PLL
@@ -133,10 +124,11 @@ module tang_mega_138k_pro_imx219_720p
     Gowin_PLL_dvi
         u_Gowin_PLL_dvi
             (
-                .clkin      (in_clk50   ),
-                .clkout0    (dvi_clk    ),
-                .clkout1    (dvi_clk_x5 ),
-                .lock       (dvi_lock   )
+                .init_clk           (in_clk50               ),
+                .clkin              (in_clk50               ),
+                .clkout0            (dvi_clk                ),
+                .clkout1            (dvi_clk_x5             ),
+                .lock               (dvi_lock               )
             );
 
     // reset sync
@@ -164,10 +156,11 @@ module tang_mega_138k_pro_imx219_720p
     Gowin_PLL_ddr3
         u_Gowin_PLL_ddr3
             (
-                .clkin      (in_clk50       ),
-                .clkout0    (ddr3_clk       ),
-                .lock       (ddr3_pll_lock  ),
-                .enclk0     (ddr3_pll_stop  )
+                .init_clk           (in_clk50               ),
+                .clkin              (in_clk50               ),
+                .clkout0            (ddr3_clk               ),
+                .lock               (ddr3_pll_lock          ),
+                .enclk0             (ddr3_pll_stop          )
             );
 
     // reset sync
