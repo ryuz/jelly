@@ -14,35 +14,38 @@
 
 module jelly3_video_format_regularizer_core
         #(
-            parameter   type    width_t         = logic [11:0]  ,
-            parameter   type    height_t        = logic [11:0]  ,
-            parameter   type    index_t         = logic [0:0]   ,
-            parameter   type    frame_timer_t   = logic [31:0]  ,
-            parameter   type    timer_t         = logic [31:0]  ,
-            parameter   bit     S_REGS          = 1             ,
-            parameter   bit     M_REGS          = 1
+            parameter   int     WIDTH_BITS       = 16                           ,
+            parameter   type    width_t          = logic [WIDTH_BITS-1:0]       ,
+            parameter   int     HEIGHT_BITS      = 16                           ,
+            parameter   type    height_t         = logic [HEIGHT_BITS-1:0]      ,
+            parameter   int     INDEX_BITS       = 1                            ,
+            parameter   type    index_t          = logic [INDEX_BITS-1:0]       ,
+            parameter   int     FRAME_TIMER_BITS = 32                           ,
+            parameter   type    frame_timer_t    = logic [FRAME_TIMER_BITS-1:0] ,
+            parameter   int     TIMER_BITS       = 32                           ,
+            parameter   type    timer_t          = logic [TIMER_BITS-1:0]       ,
+            parameter   bit     S_REG            = 1                            ,
+            parameter   bit     M_REG            = 1                            
         )
         (
-            input   var logic                           aclken,
+            jelly3_axi4s_if.s                           s_axi4s         ,
+            jelly3_axi4s_if.m                           m_axi4s         ,
 
-            jelly3_axi4s_if.s                           s_axi4s,
-            jelly3_axi4s_if.m                           m_axi4s,
-
-            input   var logic                           ctl_enable,
-            input   var logic                           ctl_update,
-            output  var index_t                         ctl_index,
-            output  var logic                           ctl_busy,
-            input   var logic                           ctl_skip,
+            input   var logic                           ctl_enable      ,
+            input   var logic                           ctl_update      ,
+            output  var index_t                         ctl_index       ,
+            output  var logic                           ctl_busy        ,
+            input   var logic                           ctl_skip        ,
             input   var logic                           ctl_frm_timer_en,
-            input   var frame_timer_t                   ctl_frm_timeout,
+            input   var frame_timer_t                   ctl_frm_timeout ,
 
-            input   var width_t                         param_width,
-            input   var height_t                        param_height,
-            input   var logic   [m_axi4s.DATA_BITS-1:0] param_fill,
-            input   var timer_t                         param_timeout,
+            input   var width_t                         param_width     ,
+            input   var height_t                        param_height    ,
+            input   var logic   [m_axi4s.DATA_BITS-1:0] param_fill      ,
+            input   var timer_t                         param_timeout   ,
 
-            output  var width_t                         current_width,
-            output  var height_t                        current_height
+            output  var width_t                         current_width   ,
+            output  var height_t                        current_height  
         );
     
     
@@ -66,14 +69,14 @@ module jelly3_video_format_regularizer_core
     jelly3_stream_ff
             #(
                 .data_t         (axi4s_t                                        ),
-                .S_REGS         (S_REGS                                         ),
-                .M_REGS         (1                                              )
+                .S_REG          (S_REG                                          ),
+                .M_REG          (1                                              )
             )
         u_stream_ff_s
             (
                 .reset          (~s_axi4s.aresetn                               ),
                 .clk            (s_axi4s.aclk                                   ),
-                .cke            (aclken                                         ),
+                .cke            (s_axi4s.aclken                                 ),
                 
                 .s_data         ({s_axi4s.tuser, s_axi4s.tlast, s_axi4s.tdata}  ),
                 .s_valid        (s_axi4s.tvalid                                 ),
@@ -85,43 +88,43 @@ module jelly3_video_format_regularizer_core
             );
     
     
-    logic           cke;
+    logic           cke                 ;
     
-    index_t         reg_index;
-    width_t         reg_param_width;
-    height_t        reg_param_height;
-    data_t          reg_param_fill;
-    frame_timer_t   reg_param_timeout;
+    index_t         reg_index           ;
+    width_t         reg_param_width     ;
+    height_t        reg_param_height    ;
+    data_t          reg_param_fill      ;
+    frame_timer_t   reg_param_timeout   ;
     
-    logic           reg_busy;
-    logic           reg_fill_h;
-    logic           reg_fill_v;
-    logic           reg_skip;
+    logic           reg_busy            ;
+    logic           reg_fill_h          ;
+    logic           reg_fill_v          ;
+    logic           reg_skip            ;
     
-    logic           reg_frame_timeout;
-    frame_timer_t   reg_frame_timer;
+    logic           reg_frame_timeout   ;
+    frame_timer_t   reg_frame_timer     ;
     
-    logic           reg_timeout;
-    timer_t         reg_timer;
-    width_t         reg_x;
-    height_t        reg_y;
-    logic           reg_x_last;
-    logic           reg_y_last;
+    logic           reg_timeout         ;
+    timer_t         reg_timer           ;
+    width_t         reg_x               ;
+    height_t        reg_y               ;
+    logic           reg_x_last          ;
+    logic           reg_y_last          ;
 
     logic   sig_x_first ;
     logic   sig_y_first ;
     logic   sig_x_last  ;
     logic   sig_y_last  ;
-    assign sig_x_first = (reg_x == 0);
-    assign sig_y_first = (reg_y == 0);
-    assign sig_x_last  = reg_x_last;
-    assign sig_y_last  = reg_y_last;
+    assign sig_x_first = (reg_x == 0)   ;
+    assign sig_y_first = (reg_y == 0)   ;
+    assign sig_x_last  = reg_x_last     ;
+    assign sig_y_last  = reg_y_last     ;
     
-    user_t      reg_tuser;
-    logic       reg_tlast;
-    data_t      reg_tdata;
-    logic       reg_tvalid;
-    logic       sig_tready;
+    user_t      reg_tuser   ;
+    logic       reg_tlast   ;
+    data_t      reg_tdata   ;
+    logic       reg_tvalid  ;
+    logic       sig_tready  ;
     
     logic       sig_valid;
     
@@ -131,7 +134,7 @@ module jelly3_video_format_regularizer_core
     
     assign in_tready = cke && ((!reg_busy && (~in_tuser[0] || ctl_enable || ctl_skip)) || (reg_busy && ((~in_tuser[0] && !reg_fill_h) || reg_skip)));
     
-    assign cke       = aclken && (!reg_tvalid || sig_tready);
+    assign cke       = s_axi4s.aclken && (!reg_tvalid || sig_tready);
     
     
     always_ff @(posedge s_axi4s.aclk) begin
@@ -298,14 +301,14 @@ module jelly3_video_format_regularizer_core
     jelly3_stream_ff
             #(
                 .data_t         (axi4s_t                                        ),
-                .S_REGS         (1                                              ),
-                .M_REGS         (M_REGS                                         )
+                .S_REG          (1'b1                                           ),
+                .M_REG          (M_REG                                          )
             )
         u_stream_ff_m
             (
                 .reset          (~s_axi4s.aresetn                               ),
                 .clk            (s_axi4s.aclk                                   ),
-                .cke            (aclken                                         ),
+                .cke            (s_axi4s.aclken                                 ),
                 
                 .s_data         ({reg_tuser, reg_tlast, reg_tdata}              ),
                 .s_valid        (reg_tvalid                                     ),

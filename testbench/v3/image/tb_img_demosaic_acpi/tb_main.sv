@@ -184,7 +184,7 @@ module tb_main
             );
 
     // dump
-    jelly3_model_img_s
+    jelly3_model_img_dump
             #(
                 .FORMAT             ("P3"               ),
                 .FILE_NAME          ("img_"             ),
@@ -192,7 +192,7 @@ module tb_main
                 .SEQUENTIAL_FILE    (1                  ),
                 .ENDIAN             (ENDIAN             )
             )
-        u_model_img_s
+        u_model_img_dump
             (
                 .s_img              (mat_dst.s          ),
                 .frame_num          (                   )

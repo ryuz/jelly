@@ -58,10 +58,10 @@ module jelly3_axi4_to_bram_dp
             2'b01: return ADDR_MASK; // INCR
             2'b10: // WRAP
                 case ( len )
-                axi4_len_t'(1):  return ADDR_UNIT *  2 - 1;  // 2
-                axi4_len_t'(3):  return ADDR_UNIT *  4 - 1;  // 4
-                axi4_len_t'(7):  return ADDR_UNIT *  8 - 1;  // 8
-                axi4_len_t'(15): return ADDR_UNIT * 16 - 1;  // 16
+                axi4_len_t'(1):  return axi4_addr_t'(ADDR_UNIT *  2 - 1);  // 2
+                axi4_len_t'(3):  return axi4_addr_t'(ADDR_UNIT *  4 - 1);  // 4
+                axi4_len_t'(7):  return axi4_addr_t'(ADDR_UNIT *  8 - 1);  // 8
+                axi4_len_t'(15): return axi4_addr_t'(ADDR_UNIT * 16 - 1);  // 16
                 default: return 'x;
                 endcase
             default: return 'x; // reserved
@@ -105,7 +105,7 @@ module jelly3_axi4_to_bram_dp
             end
             else if ( w_cvalid && w_cready ) begin
                 w_addr <= (w_addr & ~w_mask) | ((w_addr + w_inc) & w_mask);
-                w_len  <= w_len - 1;
+                w_len  <= w_len - 1 ;
                 w_last <= w_len == 1;
                 if ( w_last ) begin
                     w_addr <= 'x    ;
@@ -116,17 +116,17 @@ module jelly3_axi4_to_bram_dp
         end
     end
 
-    assign w_cvalid = (w_busy && s_axi4.wvalid);
-    assign w_cready = m_bram_w.cready;
+    assign w_cvalid = (w_busy && s_axi4.wvalid) ;
+    assign w_cready = m_bram_w.cready           ;
 
-    assign m_bram_w.cid    = w_id;
-    assign m_bram_w.cread  = 1'b0;
-    assign m_bram_w.cwrite = w_busy && s_axi4.wvalid;
-    assign m_bram_w.caddr  = bram_addr_t'(w_addr / ADDR_UNIT);
-    assign m_bram_w.clast  = w_last;
-    assign m_bram_w.cstrb  = w_busy ? s_axi4.wstrb : '0;
-    assign m_bram_w.cdata  = s_axi4.wdata;
-    assign m_bram_w.cvalid = w_cvalid;
+    assign m_bram_w.cid    = w_id                       ;
+    assign m_bram_w.cread  = 1'b0                       ;
+    assign m_bram_w.cwrite = w_busy && s_axi4.wvalid    ;
+    assign m_bram_w.caddr  = bram_addr_t'(w_addr / axi4_addr_t'(ADDR_UNIT));
+    assign m_bram_w.clast  = w_last                     ;
+    assign m_bram_w.cstrb  = w_busy ? s_axi4.wstrb : '0 ;
+    assign m_bram_w.cdata  = s_axi4.wdata               ;
+    assign m_bram_w.cvalid = w_cvalid                   ;
 
     assign s_axi4.awready = (!w_busy || (w_cready && w_last)) && !(s_axi4.bvalid && !s_axi4.bready);
     assign s_axi4.wready  = w_busy && m_bram_w.cready;
@@ -188,29 +188,29 @@ module jelly3_axi4_to_bram_dp
             end
             else if ( r_cvalid && r_cready ) begin
                 r_addr <= (r_addr & ~r_mask) | ((r_addr + r_inc) & r_mask);
-                r_len  <= r_len - 1;
+                r_len  <= r_len - 1 ;
                 r_last <= r_len == 1;
                 if ( r_last ) begin
-                    r_addr <= 'x;
-                    r_len  <= 'x;
-                    r_last <= 'x;
-                    r_busy <= 1'b0;
+                    r_addr <= 'x    ;
+                    r_len  <= 'x    ;
+                    r_last <= 'x    ;
+                    r_busy <= 1'b0  ;
                 end
             end
         end
     end
 
-    assign r_cvalid = r_busy;
-    assign r_cready = m_bram_r.cready;
+    assign r_cvalid = r_busy            ;
+    assign r_cready = m_bram_r.cready   ;
 
-    assign m_bram_r.cid    = r_id;
-    assign m_bram_r.cread  = r_busy;
-    assign m_bram_r.cwrite = 1'b0;
-    assign m_bram_r.caddr  = bram_addr_t'(r_addr / ADDR_UNIT);
-    assign m_bram_r.clast  = r_last;
-    assign m_bram_r.cstrb  = '0;
-    assign m_bram_r.cdata  = '0;
-    assign m_bram_r.cvalid = r_cvalid;
+    assign m_bram_r.cid    = r_id       ;
+    assign m_bram_r.cread  = r_busy     ;
+    assign m_bram_r.cwrite = 1'b0       ;
+    assign m_bram_r.caddr  = bram_addr_t'(r_addr / axi4_addr_t'(ADDR_UNIT));
+    assign m_bram_r.clast  = r_last     ;
+    assign m_bram_r.cstrb  = '0         ;
+    assign m_bram_r.cdata  = '0         ;
+    assign m_bram_r.cvalid = r_cvalid   ;
 
     assign s_axi4.arready  = !r_busy || (r_cready && r_last);
 
