@@ -11,90 +11,36 @@
 #include "jelly/VideoDmaControl.h"
 #include "jelly/JellyRegs.h"
 
-
-void cmd_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
-    addr <<= 1;
-    addr |= 1;
-    unsigned char buf[4] = {0x00, 0x00, 0x00, 0x00};
-    buf[0] = ((addr >> 8) & 0xff);
-    buf[1] = ((addr >> 0) & 0xff);
-    buf[2] = ((data >> 8) & 0xff);
-    buf[3] = ((data >> 0) & 0xff);
-    i2c.Write(buf, 4);
-}
-
-std::uint16_t cmd_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
-    addr <<= 1;
-    unsigned char buf[4] = {0x00, 0x00, 0x00, 0x00};
-    buf[0] = ((addr >> 8) & 0xff);
-    buf[1] = ((addr >> 0) & 0xff);
-    i2c.Write(buf, 4);
-    i2c.Read(buf, 2);
-    return (std::uint16_t)buf[0] | (std::uint16_t)(buf[1] << 8);
-}
-
-void spi_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
-    addr |= (1 << 14);
-    cmd_write(i2c, addr, data);
-}
-
-std::uint16_t spi_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
-    addr |= (1 << 14);
-    return cmd_read(i2c, addr);
-}
-
-void spi_change(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
-    auto pre = spi_read(i2c, addr);
-    spi_write(i2c, addr, data);
-    auto post = spi_read(i2c, addr);
-    printf("write %3d <= 0x%04x (%04x -> %04x)\n", addr, data, pre, post);
-}
+void          cmd_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data);
+std::uint16_t cmd_read(jelly::I2cAccessor &i2c, std::uint16_t addr);
+void          spi_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data);
+std::uint16_t spi_read(jelly::I2cAccessor &i2c, std::uint16_t addr);
+void          spi_change(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data);
+void          reg_dump(jelly::I2cAccessor &i2c, const char *fname);
+void          load_setting(jelly::I2cAccessor &i2c);
+void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 
 
-void reg_dump(jelly::I2cAccessor &i2c, const char *fname) {
-    FILE* fp = fopen(fname, "w");
-    for ( int i = 0; i < 512; i++ ) {
-        auto v = spi_read(i2c, i);
-        fprintf(fp, "%3d : 0x%04x (%d)\n", i, v, v);
-    }
-    fclose(fp);
-}
+#define CAMREG_CORE_ID          0x0000
+#define CAMREG_CORE_VERSION     0x0001
+#define CAMREG_ISERDES_RESET    0x0010
+#define CAMREG_ALIGN_RESET      0x0020
+#define CAMREG_ALIGN_PATTERN    0x0022
+#define CAMREG_CALIB_STATUS     0x0028
+#define CAMREG_TRIM_X_START     0x0030
+#define CAMREG_TRIM_X_END       0x0031
+#define CAMREG_CSI_DATA_TYPE    0x0050
+#define CAMREG_CSI_WC           0x0051
+#define CAMREG_DPHY_CORE_RESET  0x0080
+#define CAMREG_DPHY_SYS_RESET   0x0081
+#define CAMREG_DPHY_INIT_DONE   0x0088
 
-void load_setting(jelly::I2cAccessor &i2c) {
-    FILE* fp = fopen("reg_list.txt", "r");
-    if ( fp == nullptr ) {
-        std::cout << "reg_list.txt open error" << std::endl;
-        return;
-    }
-    char line[256];
-    while (fgets(line, sizeof(line), fp)) {
-        char *p = line;
-        // skip leading whitespace
-        while (*p == ' ' || *p == '\t') ++p;
-        if (*p == '\0' || *p == '#') continue; // skip empty/comment
-        unsigned int addr, data;
-        int n = sscanf(p, "%i %i", &addr, &data);
-        if (n == 2) {
-            spi_change(i2c, (std::uint16_t)addr, (std::uint16_t)data);
-        } else {
-            std::cout << "parse error: " << line;
-        }
-    }
-    fclose(fp);
-}
+#define SYSREG_ID               0x0000
+#define SYSREG_DPHY_SW_RESET    0x0001
+#define SYSREG_CAM_ENABLE       0x0002
+#define SYSREG_CSI_DATA_TYPE    0x0003
+#define SYSREG_DPHY_INIT_DONE   0x0004
 
-#define REGADR_CORE_ID          0x0000
-#define REGADR_CORE_VERSION     0x0001
-#define REGADR_ISERDES_RESET    0x0010
-#define REGADR_ALIGN_RESET      0x0020
-#define REGADR_ALIGN_PATTERN    0x0022
-#define REGADR_CALIB_STATUS     0x0028
-#define REGADR_TRIM_X_START     0x0030
-#define REGADR_TRIM_X_END       0x0031
-#define REGADR_CSI_DATA_TYPE    0x0050
-#define REGADR_CSI_WC           0x0051
-#define REGADR_DPHY_CORE_RESET  0x0080
-#define REGADR_DPHY_SYS_RESET   0x0081
 
 int main(int argc, char *argv[])
 {
@@ -133,31 +79,89 @@ int main(int argc, char *argv[])
 
     std::cout << "ON" << std::endl;
 
-    reg_sys.WriteReg(2, 1); // cam_enable = 1
-    usleep(100000);
-//  reg_dump(i2c, "reg_start.txt");
+    // 各種ブロックを初期化
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 0);
+    reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
+    usleep(10000);
+    cmd_write(i2c, CAMREG_ISERDES_RESET  , 1);
+    cmd_write(i2c, CAMREG_ALIGN_RESET    , 1);
+    cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);
+    cmd_write(i2c, CAMREG_DPHY_SYS_RESET , 1);  // Spartan7 dphy-tx sw_rst=1
+
+    // カメラ基板ID確認
+    std::cout << "CORE_ID      : " << std::hex << cmd_read(i2c, CAMREG_CORE_ID        ) << std::endl;
+    std::cout << "CORE_VERSION : " << std::hex << cmd_read(i2c, CAMREG_CORE_VERSION   ) << std::endl;
+
+    // ZYBO側 DPHY ON (センサー側がOFFでないと init_done が来ないので注意)
+    reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
+    usleep(1000);
+    reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 0);
+    usleep(1000);
+    auto dphy_rx_init_done = reg_sys.ReadReg(SYSREG_DPHY_INIT_DONE);
+    if ( dphy_rx_init_done == 0 ) {
+        std::cout << "!!ERROR!! ZYBO DPHY RX init_done = 0" << std::endl;
+        return 1;
+    }
+
+    // センサー電源ON
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1);
+    usleep(10000);
+
+    // センサー基板 DPHY-TX 起動
+    cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 0);
+    cmd_write(i2c, CAMREG_DPHY_SYS_RESET , 0);
+    usleep(1000);
+    auto dphy_tx_init_done = cmd_read(i2c, CAMREG_DPHY_INIT_DONE);
+    if ( dphy_tx_init_done == 0 ) {
+        std::cout << "!!ERROR!! CAM DPHY TX init_done = 0" << std::endl;
+        return 1;
+    }
+
+
+#if 0
+    // センサー電源ON
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1); // cam_enable = 1
+    usleep(10000);
+
+    //  reg_dump(i2c, "reg_start.txt");
 
 //  spi_change(i2c, 17, 0x1234);
 
-    std::cout << "CORE_ID      : " << std::hex << cmd_read(i2c, REGADR_CORE_ID        ) << std::endl;
-    std::cout << "CORE_VERSION : " << std::hex << cmd_read(i2c, REGADR_CORE_VERSION   ) << std::endl;
+
+    // リセットを掛ける
+    usleep(1000);
+    reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);  // ZYBO     dphy-rx sw_rst=1
+    cmd_write(i2c, CAMREG_ISERDES_RESET  , 1);
+    cmd_write(i2c, CAMREG_ALIGN_RESET    , 1);
+    cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);
+    cmd_write(i2c, CAMREG_DPHY_SYS_RESET , 1);  // Spartan7 dphy-tx sw_rst=1
+    usleep(1000);
+    std::cout << "TX DPHY init_done : " << cmd_read(i2c, CAMREG_DPHY_INIT_DONE) << std::endl;
+    std::cout << "RX DPHY init_done : " << reg_sys.ReadReg(SYSREG_DPHY_INIT_DONE) << std::endl;
+
 
     // DPHY 同士のリセットを制御して接続シーケンスを実行
-    reg_sys.WriteReg(1, 1);                     // ZYBO     dphy-rx sw_rst=1
-    cmd_write(i2c, REGADR_DPHY_CORE_RESET, 1);
-    cmd_write(i2c, REGADR_DPHY_SYS_RESET, 1);   // Spartan7 dphy-tx sw_rst=1
+    reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);  // ZYBO     dphy-rx sw_rst=1
+    cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);
+    cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 1);   // Spartan7 dphy-tx sw_rst=1
     usleep(1000);
-    reg_sys.WriteReg(1, 0);                     // ZYBO     dphy-rx sw_rst=0
+    reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 0);  // ZYBO     dphy-rx sw_rst=0
     usleep(1000);
-    cmd_write(i2c, REGADR_DPHY_CORE_RESET, 0);
-    cmd_write(i2c, REGADR_DPHY_SYS_RESET, 0);   // Spartan7 dphy-tx sw_rst=0
+    cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 0);
+    cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 0);   // Spartan7 dphy-tx sw_rst=0
     usleep(1000);
 
-    int internal_w = 240;//420;
-    cmd_write(i2c, REGADR_TRIM_X_START ,     0);
-    cmd_write(i2c, REGADR_TRIM_X_END   , internal_w-1);   //   = 11'd255                  ,
-//  cmd_write(i2c, REGADR_CSI_DATA_TYPE,  0x2b); 
-    cmd_write(i2c, REGADR_CSI_WC       , internal_w*5/4); //    = 16'(256*5/4)             ,
+    usleep(1000);
+    std::cout << "TX DPHY init_done : " << cmd_read(i2c, CAMREG_DPHY_INIT_DONE) << std::endl;
+    std::cout << "RX DPHY init_done : " << reg_sys.ReadReg(SYSREG_DPHY_INIT_DONE) << std::endl;
+#endif
+
+//  int internal_w = 240;//420;
+    int internal_w = 420;
+    cmd_write(i2c, CAMREG_TRIM_X_START ,     0);
+    cmd_write(i2c, CAMREG_TRIM_X_END   , internal_w-1);   //   = 11'd255                  ,
+//  cmd_write(i2c, CAMREG_CSI_DATA_TYPE,  0x2b); 
+    cmd_write(i2c, CAMREG_CSI_WC       , internal_w*5/4); //    = 16'(256*5/4)             ,
 
     // センサー起動    
     spi_change(i2c,  8, 0); // soft_reset_pll
@@ -201,42 +205,55 @@ int main(int argc, char *argv[])
 //    int height = 480;//128;
     int height = 512;//128;
 
+    /*
     usleep(1000);
     reg_sys.WriteReg(1, 1); // sw rst
     usleep(1000);
     reg_sys.WriteReg(1, 0);
+    */
 
     {
         printf("calib\n");
         spi_change(i2c, 192, 0x0);  // 動作停止
         usleep(10000);
-        cmd_write(i2c,  REGADR_ISERDES_RESET, 1);
-        cmd_write(i2c,  REGADR_ALIGN_RESET  , 1);
+        cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
+        cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
         usleep(10000);
-        cmd_write(i2c,  REGADR_ISERDES_RESET, 0);
+        cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
         usleep(10000);
-        cmd_write(i2c,  REGADR_ALIGN_RESET  , 0);
+        cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
         usleep(10000);
-        std::cout << "REGADR_CALIB_STATUS : " << cmd_read(i2c,  REGADR_CALIB_STATUS) << std::endl;
+        std::cout << "CAMREG_CALIB_STATUS : " << cmd_read(i2c,  CAMREG_CALIB_STATUS) << std::endl;
     }
+
     {
         printf("run\n");
         spi_change(i2c, 192, 0x1);  // 動作開始
     }
 
+    usleep(1000);
+    std::cout << "pre 2nd reset" << std::endl;
+    std::cout << "cam TX DPHY init_done : " << cmd_read(i2c, CAMREG_DPHY_INIT_DONE) << std::endl;
+    std::cout << "z7  RX DPHY init_done : " << reg_sys.ReadReg(SYSREG_DPHY_INIT_DONE) << std::endl;
+
     {
         // DPHY 同士のリセットを制御して接続シーケンスを実行
         usleep(1000);
         reg_sys.WriteReg(1, 1);                     // ZYBO     dphy-rx sw_rst=1
-        cmd_write(i2c, REGADR_DPHY_CORE_RESET, 1);
-        cmd_write(i2c, REGADR_DPHY_SYS_RESET, 1);   // Spartan7 dphy-tx sw_rst=1
+        cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);
+        cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 1);   // Spartan7 dphy-tx sw_rst=1
         usleep(1000);
         reg_sys.WriteReg(1, 0);                     // ZYBO     dphy-rx sw_rst=0
         usleep(1000);
-        cmd_write(i2c, REGADR_DPHY_CORE_RESET, 0);
-        cmd_write(i2c, REGADR_DPHY_SYS_RESET, 0);   // Spartan7 dphy-tx sw_rst=0
+        cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 0);
+        cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 0);   // Spartan7 dphy-tx sw_rst=0
         usleep(1000);
     }
+
+    usleep(1000);
+    std::cout << "2nd reset" << std::endl;
+    std::cout << "cam TX DPHY init_done : " << cmd_read(i2c, CAMREG_DPHY_INIT_DONE) << std::endl;
+    std::cout << "z7  RX DPHY init_done : " << reg_sys.ReadReg(SYSREG_DPHY_INIT_DONE) << std::endl;
 
 
     // normalizer start
@@ -255,6 +272,9 @@ int main(int argc, char *argv[])
     cv::setTrackbarMin("exposure",    "img", 1);
     cv::setTrackbarPos("exposure",    "img", exposure);
 
+    bool dphy_tx   = true;
+    bool dphy_rx   = true;
+    bool sensor_en = true;
 
     int key;
     bool swap = true;
@@ -307,14 +327,14 @@ int main(int argc, char *argv[])
 
         case 't':
             printf("CAM DPHY-TX RST = 1\n", swap);
-            cmd_write(i2c, REGADR_DPHY_SYS_RESET, 1);   // Spartan7 dphy-tx sw_rst=1
-            cmd_write(i2c, REGADR_DPHY_CORE_RESET, 1);
+            cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 1);   // Spartan7 dphy-tx sw_rst=1
+            cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);
             break;
 
         case 'r':
             printf("CAM DPHY-TX RST = 0\n", swap);
-            cmd_write(i2c, REGADR_DPHY_CORE_RESET, 0);
-            cmd_write(i2c, REGADR_DPHY_SYS_RESET, 0);   // Spartan7 dphy-tx sw_rst=1
+            cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 0);
+            cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 0);   // Spartan7 dphy-tx sw_rst=1
             break;
 
         case 'c':
@@ -322,14 +342,14 @@ int main(int argc, char *argv[])
             printf("calib\n");
             spi_change(i2c, 192, 0x0);  // 動作停止
             usleep(10000);
-            cmd_write(i2c,  REGADR_ISERDES_RESET, 1);
-            cmd_write(i2c,  REGADR_ALIGN_RESET  , 1);
+            cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
+            cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
             usleep(10000);
-            cmd_write(i2c,  REGADR_ISERDES_RESET, 0);
+            cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
             usleep(10000);
-            cmd_write(i2c,  REGADR_ALIGN_RESET  , 0);
+            cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
             usleep(10000);
-            std::cout << "REGADR_CALIB_STATUS : " << cmd_read(i2c,  REGADR_CALIB_STATUS) << std::endl;
+            std::cout << "CAMREG_CALIB_STATUS : " << cmd_read(i2c,  CAMREG_CALIB_STATUS) << std::endl;
             spi_change(i2c, 192, 0x1);  // 動作停止
             break;
 
@@ -337,12 +357,59 @@ int main(int argc, char *argv[])
             printf("sw rst\n");
             usleep(1000);
             reg_sys.WriteReg(1, 1); // sw rst
-            cmd_write(i2c, REGADR_DPHY_SYS_RESET, 1);
+            cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 1);
             usleep(1000);
             reg_sys.WriteReg(1, 0);
             usleep(1000);
-            cmd_write(i2c, REGADR_DPHY_SYS_RESET, 0);
+            cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 0);
             usleep(1000);
+            break;
+
+        case '1':
+            dphy_tx = !dphy_tx;
+            if ( dphy_tx ) {
+                printf("dphy-tx rst = 1\n");
+                cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 0);
+                cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 0);
+            }
+            else {
+                printf("dphy-tx rst = 0\n");
+                cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 1);
+                cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);
+            }
+            print_status(uio_acc, i2c);
+            break;
+
+        case '2':
+            dphy_rx = !dphy_rx;
+            if ( dphy_rx ) {
+                printf("dphy-rx rst = 0\n");
+                reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 0);
+            }
+            else {
+                printf("dphy-rx rst = 1\n");
+                reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
+            }
+            print_status(uio_acc, i2c);
+            break;
+
+        case '3':
+            sensor_en = !sensor_en;
+            if ( sensor_en ) {
+                printf("sensor enable\n");
+                cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
+                usleep(10000);
+                cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
+                usleep(10000);
+            }
+            else {
+                printf("sensor disable\n");
+                cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
+                usleep(10000);
+                cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
+                usleep(10000);
+            }
+            print_status(uio_acc, i2c);
             break;
         }
     }
@@ -372,14 +439,14 @@ int main(int argc, char *argv[])
             printf("calib\n");
             spi_change(i2c, 192, 0x0);  // 動作停止
             usleep(10000);
-            cmd_write(i2c,  REGADR_ISERDES_RESET, 1);
-            cmd_write(i2c,  REGADR_ALIGN_RESET  , 1);
+            cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
+            cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
             usleep(10000);
-            cmd_write(i2c,  REGADR_ISERDES_RESET, 0);
+            cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
             usleep(10000);
-            cmd_write(i2c,  REGADR_ALIGN_RESET  , 0);
+            cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
             usleep(10000);
-            std::cout << "REGADR_CALIB_STATUS : " << cmd_read(i2c,  REGADR_CALIB_STATUS) << std::endl;
+            std::cout << "CAMREG_CALIB_STATUS : " << cmd_read(i2c,  CAMREG_CALIB_STATUS) << std::endl;
         }
         else if ( c == 'p' ) {
             printf("test pattern\n");
@@ -454,5 +521,93 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+
+
+void print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c) {
+    usleep(1000);
+    std::cout << "=========================================\n"
+              << "cam CAMREG_ISERDES_RESET   : " << cmd_read(i2c, CAMREG_ISERDES_RESET)   << "\n"
+              << "cam CAMREG_ALIGN_RESET     : " << cmd_read(i2c, CAMREG_ALIGN_RESET  )   << "\n"
+              << "cam CAMREG_DPHY_SYS_RESET  : " << cmd_read(i2c, CAMREG_DPHY_SYS_RESET)  << "\n"
+              << "cam CAMREG_DPHY_CORE_RESET : " << cmd_read(i2c, CAMREG_DPHY_CORE_RESET) << "\n"
+              << "z7  SYSREG_DPHY_SW_RESET   : " << uio.ReadReg(SYSREG_DPHY_SW_RESET)     << "\n"
+              << "cam TX DPHY init_done : " << cmd_read(i2c, CAMREG_DPHY_INIT_DONE)    << "\n"
+              << "z7  RX DPHY init_done : " << uio.ReadReg(SYSREG_DPHY_INIT_DONE)      << std::endl;
+}
+
+
+
+void cmd_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
+    addr <<= 1;
+    addr |= 1;
+    unsigned char buf[4] = {0x00, 0x00, 0x00, 0x00};
+    buf[0] = ((addr >> 8) & 0xff);
+    buf[1] = ((addr >> 0) & 0xff);
+    buf[2] = ((data >> 8) & 0xff);
+    buf[3] = ((data >> 0) & 0xff);
+    i2c.Write(buf, 4);
+}
+
+std::uint16_t cmd_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
+    addr <<= 1;
+    unsigned char buf[4] = {0x00, 0x00, 0x00, 0x00};
+    buf[0] = ((addr >> 8) & 0xff);
+    buf[1] = ((addr >> 0) & 0xff);
+    i2c.Write(buf, 4);
+    i2c.Read(buf, 2);
+    return (std::uint16_t)buf[0] | (std::uint16_t)(buf[1] << 8);
+}
+
+void spi_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
+    addr |= (1 << 14);
+    cmd_write(i2c, addr, data);
+}
+
+std::uint16_t spi_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
+    addr |= (1 << 14);
+    return cmd_read(i2c, addr);
+}
+
+void spi_change(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
+    auto pre = spi_read(i2c, addr);
+    spi_write(i2c, addr, data);
+    auto post = spi_read(i2c, addr);
+    printf("write %3d <= 0x%04x (%04x -> %04x)\n", addr, data, pre, post);
+}
+
+
+void reg_dump(jelly::I2cAccessor &i2c, const char *fname) {
+    FILE* fp = fopen(fname, "w");
+    for ( int i = 0; i < 512; i++ ) {
+        auto v = spi_read(i2c, i);
+        fprintf(fp, "%3d : 0x%04x (%d)\n", i, v, v);
+    }
+    fclose(fp);
+}
+
+void load_setting(jelly::I2cAccessor &i2c) {
+    FILE* fp = fopen("reg_list.txt", "r");
+    if ( fp == nullptr ) {
+        std::cout << "reg_list.txt open error" << std::endl;
+        return;
+    }
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        char *p = line;
+        // skip leading whitespace
+        while (*p == ' ' || *p == '\t') ++p;
+        if (*p == '\0' || *p == '#') continue; // skip empty/comment
+        unsigned int addr, data;
+        int n = sscanf(p, "%i %i", &addr, &data);
+        if (n == 2) {
+            spi_change(i2c, (std::uint16_t)addr, (std::uint16_t)data);
+        } else {
+            std::cout << "parse error: " << line;
+        }
+    }
+    fclose(fp);
+}
+
 
 // end of file
