@@ -164,96 +164,52 @@ int main(int argc, char *argv[])
     cmd_write(i2c, CAMREG_CSI_WC       , internal_w*5/4); //    = 16'(256*5/4)             ,
 
     // センサー起動    
-    spi_change(i2c,  8, 0); // soft_reset_pll
-    spi_change(i2c,  9, 0); // soft_reset_cgen
-    spi_change(i2c, 10, 0); // soft_reset_analog
-    spi_change(i2c, 16, 3); // power_down
+    spi_change(i2c,  8, 0);     // soft_reset_pll
+    spi_change(i2c,  9, 0);     // soft_reset_cgen
+    spi_change(i2c, 10, 0);     // soft_reset_analog
+    spi_change(i2c, 16, 3);     // power_down
 //  spi_change(i2c, 32, 0x7 | 0x8); // 8bit
-    spi_change(i2c, 32, 0x7);
+    spi_change(i2c, 32, 0x7);   // 10bit
     spi_change(i2c, 34, 0x1);
     spi_change(i2c, 40, 0x7);
     spi_change(i2c, 48, 0x1);
     spi_change(i2c, 64, 0x1);
     spi_change(i2c, 72, 0x2227);
     spi_change(i2c, 112, 0x7);
-
     spi_change(i2c, 199, 0x255*16*8);    // exposure
-
     spi_change(i2c, 256, ((640+32)/2-1)<<8);  // ROI x_start  x_end
-
 //  spi_change(i2c, 256, (20-1)<<8);  // ROI x_start  x_end
 //  spi_change(i2c, 256, (128/2-1)<<8);  // ROI x_start  x_end
 //  int pix = 640;
     int pix = 256;
-//    spi_change(i2c, 256, (pix/8-1)<<8);  // ROI x_start  x_end
-    // 16-1 -> 28  32
-    // 20-1 -> 36  40
-    // 32-1 -> 60  64
     int x_start = 128/8 ;
     int x_end   = 159   ;
-//  int y_start = 0;
-//  int y_end   = 1023;
     int y_start = 384-8;
     int y_end   = 639;
-//    spi_change(i2c, 256, (x_end << 8) | x_start);    // y_end
-//    spi_change(i2c, 257, y_start);    // y_end
-//    spi_change(i2c, 258, y_end);      // y_end
+//  spi_change(i2c, 256, (x_end << 8) | x_start);    // y_end
+//  spi_change(i2c, 257, y_start);    // y_end
+//  spi_change(i2c, 258, y_end);      // y_end
 
+    int width  = internal_w ;
+    int height = 512        ;
 
-
-    int width  = internal_w;//256;
-//    int height = 480;//128;
-    int height = 512;//128;
-
-    /*
+    spi_change(i2c, 192, 0x0);  // 動作停止(トレーニングパターン出力状態へ)
     usleep(1000);
-    reg_sys.WriteReg(1, 1); // sw rst
+    cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
+    cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
     usleep(1000);
-    reg_sys.WriteReg(1, 0);
-    */
-
-    {
-        printf("calib\n");
-        spi_change(i2c, 192, 0x0);  // 動作停止
-        usleep(10000);
-        cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
-        cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
-        usleep(10000);
-        cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
-        usleep(10000);
-        cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
-        usleep(10000);
-        std::cout << "CAMREG_CALIB_STATUS : " << cmd_read(i2c,  CAMREG_CALIB_STATUS) << std::endl;
+    cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
+    usleep(1000);
+    cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
+    usleep(1000);
+    auto cam_calib_status = cmd_read(i2c,  CAMREG_CALIB_STATUS);
+    if ( cam_calib_status != 0x01 ) {
+        std::cout << "!!ERROR!! CAM calibration is not done.  status =" << cam_calib_status << std::endl;
+        return 1;
     }
 
-    {
-        printf("run\n");
-        spi_change(i2c, 192, 0x1);  // 動作開始
-    }
-
-    usleep(1000);
-    std::cout << "pre 2nd reset" << std::endl;
-    std::cout << "cam TX DPHY init_done : " << cmd_read(i2c, CAMREG_DPHY_INIT_DONE) << std::endl;
-    std::cout << "z7  RX DPHY init_done : " << reg_sys.ReadReg(SYSREG_DPHY_INIT_DONE) << std::endl;
-
-    {
-        // DPHY 同士のリセットを制御して接続シーケンスを実行
-        usleep(1000);
-        reg_sys.WriteReg(1, 1);                     // ZYBO     dphy-rx sw_rst=1
-        cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);
-        cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 1);   // Spartan7 dphy-tx sw_rst=1
-        usleep(1000);
-        reg_sys.WriteReg(1, 0);                     // ZYBO     dphy-rx sw_rst=0
-        usleep(1000);
-        cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 0);
-        cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 0);   // Spartan7 dphy-tx sw_rst=0
-        usleep(1000);
-    }
-
-    usleep(1000);
-    std::cout << "2nd reset" << std::endl;
-    std::cout << "cam TX DPHY init_done : " << cmd_read(i2c, CAMREG_DPHY_INIT_DONE) << std::endl;
-    std::cout << "z7  RX DPHY init_done : " << reg_sys.ReadReg(SYSREG_DPHY_INIT_DONE) << std::endl;
+    // 動作開始
+    spi_change(i2c, 192, 0x1);
 
 
     // normalizer start
@@ -279,9 +235,12 @@ int main(int argc, char *argv[])
     int key;
     bool swap = true;
     while ( (key = (cv::waitKey(100) & 0xff)) != 0x1b ) {
+        // 画像読み込み
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
         cv::Mat img(height, width, CV_32S);
         udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
+
+        // 並び替えを行う
         cv::Mat img_u16(height, width, CV_16U);
         for ( int y = 0; y < height; y++ ) {
             for ( int x = 0; x < width; x++ ) {
@@ -292,77 +251,40 @@ int main(int argc, char *argv[])
                 img_u16.at<std::uint16_t>(y, x) = img.at<std::int32_t>(y, xx);
             }
         }
-//      cv::Mat img_u16;
-//      img.convertTo(img_u16, CV_16U, 65535.0/1023.0);
-        // 最大値に合わせて正規化
+        
+        // 表示
         cv::imshow("img", img_u16 * (65535.0/1023.0));
 
+        // 最大値に合わせて正規化
         cv::Mat img_view;
         cv::normalize(img_u16, img_view, 0, 65535, cv::NORM_MINMAX);
 //      cv::imshow("img", img_view);
 
         // トラックバー値取得
         exposure = cv::getTrackbarPos("exposure", "img");
-//      x_shift  = cv::getTrackbarPos("x_shift", "img");
         // 設定
 //      spi_change(i2c, 199, exposure);
 
 
         switch ( key ) {
-        case 'l':
-            printf("load\n");
-            load_setting(i2c);
-            break;
-
         case 'd':
-            printf("dump\n");
+            printf("image dump\n");
             cv::imwrite("img_u16.png", img_u16);
             cv::imwrite("img.png", img_view);
+            break;
+
+        case 'l':
+            printf("load setting\n");
+            load_setting(i2c);
             break;
         
         case 's':
             swap = !swap;
-            printf("swap %d\n", swap);
-            break;
-
-        case 't':
-            printf("CAM DPHY-TX RST = 1\n", swap);
-            cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 1);   // Spartan7 dphy-tx sw_rst=1
-            cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);
-            break;
-
-        case 'r':
-            printf("CAM DPHY-TX RST = 0\n", swap);
-            cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 0);
-            cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 0);   // Spartan7 dphy-tx sw_rst=1
-            break;
-
-        case 'c':
-            // calib
-            printf("calib\n");
-            spi_change(i2c, 192, 0x0);  // 動作停止
-            usleep(10000);
-            cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
-            cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
-            usleep(10000);
-            cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
-            usleep(10000);
-            cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
-            usleep(10000);
-            std::cout << "CAMREG_CALIB_STATUS : " << cmd_read(i2c,  CAMREG_CALIB_STATUS) << std::endl;
-            spi_change(i2c, 192, 0x1);  // 動作停止
+            printf("pixel swap %d\n", swap);
             break;
 
         case 'p':
-            printf("sw rst\n");
-            usleep(1000);
-            reg_sys.WriteReg(1, 1); // sw rst
-            cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 1);
-            usleep(1000);
-            reg_sys.WriteReg(1, 0);
-            usleep(1000);
-            cmd_write(i2c, CAMREG_DPHY_SYS_RESET, 0);
-            usleep(1000);
+            print_status(uio_acc, i2c);
             break;
 
         case '1':
@@ -414,110 +336,14 @@ int main(int argc, char *argv[])
         }
     }
 
-
-
-#if 0
-//  usleep(10000000);
-    while (1) {
-        printf("$ ");
-        int c = getchar();
-        if ( c == 'q' ) {
-            break;
-        } else if ( c == 'b' ) {
-            printf("bitslip\n");
-            cmd_write(i2c, 0x0012, 0x1f);
-        }
-        else if ( c == 'r' ) {
-            printf("run\n");
-            spi_change(i2c, 192, 0x1);  // 動作開始
-        }
-        else if ( c == 't' ) {
-            printf("training\n");
-            spi_change(i2c, 192, 0x0);  // 動作停止
-        }
-        else if ( c == 'c' ) {
-            printf("calib\n");
-            spi_change(i2c, 192, 0x0);  // 動作停止
-            usleep(10000);
-            cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
-            cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
-            usleep(10000);
-            cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
-            usleep(10000);
-            cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
-            usleep(10000);
-            std::cout << "CAMREG_CALIB_STATUS : " << cmd_read(i2c,  CAMREG_CALIB_STATUS) << std::endl;
-        }
-        else if ( c == 'p' ) {
-            printf("test pattern\n");
-            spi_change(i2c, 144, 0x3 + 0x8);  // testパターン
-        }
-        else if ( c == 'd' ) {
-            printf("dump\n");
-            /*
-            reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_ADDR,       dmabuf_phys_adr);
-            reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_OFFSET,     0);
-            reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_LINE_STEP,  width*4);
-            reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_H_SIZE,     width-1);
-            reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_V_SIZE,     height-1);
-            reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_F_SIZE,     1-1);
-            reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_FRAME_STEP, height*width*4);
-            reg_vdmaw.WriteReg(REG_VDMA_WRITE_PARAM_AWLEN_MAX,  31);
-            reg_vdmaw.WriteReg(REG_VDMA_WRITE_CTL_CONTROL,      0x03 | 0x08);
-            */
-
-            // normalizer start
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,  100000000);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,      width);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,     height);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,       0x000);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,    0x100000);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,      0x03);
-            usleep(100000);
-
-            vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
-            usleep(100000);
-            cv::Mat img(height, width, CV_32S);
-            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
-            cv::Mat img_u16;
-            img.convertTo(img_u16, CV_16U);
-            cv::imwrite("img_u16.png", img_u16);
-            img.convertTo(img_u16, CV_16U, 65535.0/1023.0);
-            cv::imwrite("img.png", img_u16);
-
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,      0x00);
-        }
-        else if ( c == 'v' ) {
-            // normalizer start
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,  100000000);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,      width);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,     height);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,       0x000);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,    0x100000);
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,      0x03);
-            usleep(100000);
-
-            while ( cv::waitKey(10) <= 0 ) {
-                vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
-                usleep(100000);
-                cv::Mat img(height, width, CV_32S);
-                udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
-                cv::Mat img_u16;
-                img.convertTo(img_u16, CV_16U, 65535.0/1023.0);
-                // 最大値に合わせて正規化
-                cv::normalize(img_u16, img_u16, 0, 65535, cv::NORM_MINMAX);
-                cv::imshow("img", img_u16);
-            }
-            reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,      0x00);
-        }
-    }
-    reg_dump(i2c, "reg_end.log");
-#endif
-
+    // 動作停止
     std::cout << "OFF" << std::endl;
-    reg_sys.WriteReg(2, 0); // cam_enable = 0
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 0);
+    reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
+    cmd_write(i2c, CAMREG_ISERDES_RESET  , 1);
+    cmd_write(i2c, CAMREG_ALIGN_RESET    , 1);
+    cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);
+    cmd_write(i2c, CAMREG_DPHY_SYS_RESET , 1);
 
     return 0;
 }
