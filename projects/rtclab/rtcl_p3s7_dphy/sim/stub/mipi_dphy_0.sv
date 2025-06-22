@@ -53,7 +53,7 @@ module mipi_dphy_0
        output                           cl_ulpsactivenot,
        input    [7:0]                   dl0_txdatahs,
        input                            dl0_txrequesths,
-       output                           dl0_txreadyhs,
+       output                      reg  dl0_txreadyhs,
        input                            dl0_forcetxstopmode,
        output                           dl0_stopstate,
        input                            dl0_enable,
@@ -68,7 +68,7 @@ module mipi_dphy_0
        output                           dl0_txreadyesc,
        input    [7:0]                   dl1_txdatahs,
        input                            dl1_txrequesths,
-       output                           dl1_txreadyhs,
+       output                      reg  dl1_txreadyhs,
        input                            dl1_forcetxstopmode,
        output                           dl1_stopstate,
        input                            dl1_enable,
@@ -90,6 +90,14 @@ module mipi_dphy_0
        output    [C_DPHY_LANES -1:0]    data_lp_txp,
        output    [C_DPHY_LANES -1:0]    data_lp_txn
    );
+
+    always_ff @(posedge txbyteclkhs_in) begin
+        dl0_txreadyhs <= dl0_txrequesths;
+        dl1_txreadyhs <= dl1_txrequesths;
+    end
+
+    assign init_done = 1;
+
 
 endmodule
 

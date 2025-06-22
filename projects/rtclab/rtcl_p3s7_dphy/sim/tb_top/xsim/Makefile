@@ -6,7 +6,7 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # setting
-TOP_MODULE = tb_mipi
+TOP_MODULE = tb_top
 
 JELLY_TOP_DIR = ../../../../../..
 
@@ -28,7 +28,8 @@ ELABFLAGS  = -debug wave
 
 SRCS  = ../$(TOP_MODULE).sv
 SRCS += ../../../rtl/rtcl_spartan7_python300.sv
-SRCS += ../../stub/python_to_axi4s.sv
+SRCS += ../../../rtl/python_to_axi4s.sv
+#SRCS += ../../stub/python_to_axi4s.sv
 SRCS += $(XILINX_VIVADO)/data/verilog/src/glbl.v
 
 SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/rtcl_p3s7_dphy.gen/sources_1/ip/selectio_wiz_0/selectio_wiz_0.v

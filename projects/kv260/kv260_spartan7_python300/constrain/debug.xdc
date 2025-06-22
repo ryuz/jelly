@@ -1,3 +1,4 @@
+
 create_debug_core u_ila_0 ila
 set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_0]
 set_property ALL_PROBE_SAME_MU_CNT 1 [get_debug_cores u_ila_0]
@@ -53,59 +54,71 @@ connect_debug_port u_ila_1/probe2 [get_nets [list {dl0_rxdatahs[0]} {dl0_rxdatah
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe3]
 set_property port_width 8 [get_debug_ports u_ila_1/probe3]
-connect_debug_port u_ila_1/probe3 [get_nets [list {dl1_rxdatahs[0]} {dl1_rxdatahs[1]} {dl1_rxdatahs[2]} {dl1_rxdatahs[3]} {dl1_rxdatahs[4]} {dl1_rxdatahs[5]} {dl1_rxdatahs[6]} {dl1_rxdatahs[7]}]]
+connect_debug_port u_ila_1/probe3 [get_nets [list {dl0_rxdatahs_prev[0]} {dl0_rxdatahs_prev[1]} {dl0_rxdatahs_prev[2]} {dl0_rxdatahs_prev[3]} {dl0_rxdatahs_prev[4]} {dl0_rxdatahs_prev[5]} {dl0_rxdatahs_prev[6]} {dl0_rxdatahs_prev[7]}]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe4]
-set_property port_width 1 [get_debug_ports u_ila_1/probe4]
-connect_debug_port u_ila_1/probe4 [get_nets [list dbg0_rxactivehs]]
+set_property port_width 8 [get_debug_ports u_ila_1/probe4]
+connect_debug_port u_ila_1/probe4 [get_nets [list {dl1_rxdatahs[0]} {dl1_rxdatahs[1]} {dl1_rxdatahs[2]} {dl1_rxdatahs[3]} {dl1_rxdatahs[4]} {dl1_rxdatahs[5]} {dl1_rxdatahs[6]} {dl1_rxdatahs[7]}]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe5]
-set_property port_width 1 [get_debug_ports u_ila_1/probe5]
-connect_debug_port u_ila_1/probe5 [get_nets [list dbg0_rxsynchs]]
+set_property port_width 8 [get_debug_ports u_ila_1/probe5]
+connect_debug_port u_ila_1/probe5 [get_nets [list {dl1_rxdatahs_prev[0]} {dl1_rxdatahs_prev[1]} {dl1_rxdatahs_prev[2]} {dl1_rxdatahs_prev[3]} {dl1_rxdatahs_prev[4]} {dl1_rxdatahs_prev[5]} {dl1_rxdatahs_prev[6]} {dl1_rxdatahs_prev[7]}]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe6]
 set_property port_width 1 [get_debug_ports u_ila_1/probe6]
-connect_debug_port u_ila_1/probe6 [get_nets [list dbg0_rxvalidhs]]
+connect_debug_port u_ila_1/probe6 [get_nets [list dbg0_rxactivehs]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe7]
 set_property port_width 1 [get_debug_ports u_ila_1/probe7]
-connect_debug_port u_ila_1/probe7 [get_nets [list dbg1_rxactivehs]]
+connect_debug_port u_ila_1/probe7 [get_nets [list dbg0_rxsynchs]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe8]
 set_property port_width 1 [get_debug_ports u_ila_1/probe8]
-connect_debug_port u_ila_1/probe8 [get_nets [list dbg1_rxsynchs]]
+connect_debug_port u_ila_1/probe8 [get_nets [list dbg0_rxvalidhs]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe9]
 set_property port_width 1 [get_debug_ports u_ila_1/probe9]
-connect_debug_port u_ila_1/probe9 [get_nets [list dbg1_rxvalidhs]]
+connect_debug_port u_ila_1/probe9 [get_nets [list dbg1_rxactivehs]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe10]
 set_property port_width 1 [get_debug_ports u_ila_1/probe10]
-connect_debug_port u_ila_1/probe10 [get_nets [list dbg_reset]]
+connect_debug_port u_ila_1/probe10 [get_nets [list dbg1_rxsynchs]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe11]
 set_property port_width 1 [get_debug_ports u_ila_1/probe11]
-connect_debug_port u_ila_1/probe11 [get_nets [list dl0_rxactivehs]]
+connect_debug_port u_ila_1/probe11 [get_nets [list dbg1_rxvalidhs]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe12]
 set_property port_width 1 [get_debug_ports u_ila_1/probe12]
-connect_debug_port u_ila_1/probe12 [get_nets [list dl0_rxsynchs]]
+connect_debug_port u_ila_1/probe12 [get_nets [list dbg_reset]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe13]
 set_property port_width 1 [get_debug_ports u_ila_1/probe13]
-connect_debug_port u_ila_1/probe13 [get_nets [list dl0_rxvalidhs]]
+connect_debug_port u_ila_1/probe13 [get_nets [list dl0_rxactivehs]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe14]
 set_property port_width 1 [get_debug_ports u_ila_1/probe14]
-connect_debug_port u_ila_1/probe14 [get_nets [list dl1_rxactivehs]]
+connect_debug_port u_ila_1/probe14 [get_nets [list dl0_rxsynchs]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe15]
 set_property port_width 1 [get_debug_ports u_ila_1/probe15]
-connect_debug_port u_ila_1/probe15 [get_nets [list dl1_rxsynchs]]
+connect_debug_port u_ila_1/probe15 [get_nets [list dl0_rxvalidhs]]
 create_debug_port u_ila_1 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe16]
 set_property port_width 1 [get_debug_ports u_ila_1/probe16]
-connect_debug_port u_ila_1/probe16 [get_nets [list dl1_rxvalidhs]]
+connect_debug_port u_ila_1/probe16 [get_nets [list dl1_rxactivehs]]
+create_debug_port u_ila_1 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe17]
+set_property port_width 1 [get_debug_ports u_ila_1/probe17]
+connect_debug_port u_ila_1/probe17 [get_nets [list dl1_rxsynchs]]
+create_debug_port u_ila_1 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe18]
+set_property port_width 1 [get_debug_ports u_ila_1/probe18]
+connect_debug_port u_ila_1/probe18 [get_nets [list dl1_rxvalidhs]]
+create_debug_port u_ila_1 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_1/probe19]
+set_property port_width 1 [get_debug_ports u_ila_1/probe19]
+connect_debug_port u_ila_1/probe19 [get_nets [list dl1_rxdatahs_ng]]
 create_debug_core u_ila_2 ila
 set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_2]
 set_property ALL_PROBE_SAME_MU_CNT 1 [get_debug_cores u_ila_2]

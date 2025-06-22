@@ -430,9 +430,20 @@ module kv260_spartan7_python300
                 .data_rxn           (cam_data_n)
            );
     
-    wire        dphy_clk   = rxbyteclkhs;
-    wire        dphy_reset = system_rst_out;
+    wire logic  dphy_clk   = rxbyteclkhs;
+    wire logic  dphy_reset = system_rst_out;
     
+
+    (* mark_debug=DEBUG *)  logic   [7:0]   dl0_rxdatahs_prev;
+    (* mark_debug=DEBUG *)  logic   [7:0]   dl1_rxdatahs_prev;
+    (* mark_debug=DEBUG *)  logic           dl0_rxdatahs_ng;
+    (* mark_debug=DEBUG *)  logic           dl1_rxdatahs_ng;
+    always_ff @(posedge rxbyteclkhs) begin
+        dl0_rxdatahs_prev <= dl0_rxdatahs;
+        dl1_rxdatahs_prev <= dl1_rxdatahs;
+        dl0_rxdatahs_ng <= (dl0_rxdatahs != dl0_rxdatahs_prev + 1);
+        dl1_rxdatahs_ng <= (dl1_rxdatahs != dl1_rxdatahs_prev - 1);
+    end
 
     
     // ----------------------------------------
