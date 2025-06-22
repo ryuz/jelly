@@ -16,6 +16,8 @@ module tb_main
     localparam  int     DE_BITS      = TAPS ;
     localparam  int     CH_DEPTH     = 3    ;
     localparam  int     CH_BITS      = 8    ;
+    localparam  int     ROWS_BITS    = 14   ;
+    localparam  int     COLS_BITS    = 16   ;
     localparam  int     USER_BITS    = 1    ;
     localparam  bit     ENDIAN       = 0    ;
 
@@ -30,6 +32,8 @@ module tb_main
                 .DE_BITS            (DE_BITS    ),
                 .CH_DEPTH           (CH_DEPTH   ),
                 .CH_BITS            (CH_BITS    ),
+                .ROWS_BITS          (ROWS_BITS  ),
+                .COLS_BITS          (COLS_BITS  ),
                 .USER_BITS          (USER_BITS  )
             )
         mat_src
@@ -48,6 +52,8 @@ module tb_main
                 .DE_BITS            (DE_BITS    ),
                 .CH_DEPTH           (CH_DEPTH   ),
                 .CH_BITS            (CH_BITS    ),
+                .ROWS_BITS          (ROWS_BITS  ),
+                .COLS_BITS          (COLS_BITS  ),
                 .USER_BITS          (USER_BITS  )
             )
         mat_dst
@@ -79,6 +85,8 @@ module tb_main
     jelly3_mat_buf_blk
             #(
                 .TAPS               (TAPS               ),
+                .ROWS_BITS          (ROWS_BITS          ),
+                .COLS_BITS          (COLS_BITS          ),
                 .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
                 .DATA_BITS          (CH_DEPTH*CH_BITS   ),
@@ -99,6 +107,8 @@ module tb_main
                 .clk                 ,
                 .cke                 ,
 
+                .s_mat_rows          (mat_src.rows      ),
+                .s_mat_cols          (mat_src.cols      ),
                 .s_mat_row_first     (mat_src.row_first ),
                 .s_mat_row_last      (mat_src.row_last  ),
                 .s_mat_col_first     (mat_src.col_first ),
@@ -108,6 +118,8 @@ module tb_main
                 .s_mat_data          (mat_src.data      ),
                 .s_mat_valid         (mat_src.valid     ),
 
+                .m_mat_rows          (mat_dst.rows      ),
+                .m_mat_cols          (mat_dst.cols      ),
                 .m_mat_row_first     (mat_dst.row_first ),
                 .m_mat_row_last      (mat_dst.row_last  ),
                 .m_mat_col_first     (mat_dst.col_first ),
@@ -165,7 +177,7 @@ module tb_main
         assign mat_dst.data[tap] = mat_dst_data[tap][ROWS-1][COLS-1];
     end
 
-    jelly3_model_img_s
+    jelly3_model_img_dump
             #(
                 .FORMAT             ("P3"               ),
                 .FILE_NAME          ("img_"             ),
@@ -173,7 +185,7 @@ module tb_main
                 .SEQUENTIAL_FILE    (1                  ),
                 .ENDIAN             (ENDIAN             )
             )
-        u_model_img_s
+        u_model_img_dump
             (
                 .s_img              (mat_dst.s          ),
                 .frame_num          (                   )

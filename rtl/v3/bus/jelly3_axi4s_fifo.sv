@@ -17,9 +17,9 @@ module jelly3_axi4s_fifo
             parameter   int     PTR_BITS    = 9,
             parameter           RAM_TYPE    = "block",
             parameter   bit     LOW_DEALY   = 0,
-            parameter   bit     DOUT_REGS   = 1,
-            parameter   bit     S_REGS      = 1,
-            parameter   bit     M_REGS      = 1
+            parameter   bit     DOUT_REG    = 1,
+            parameter   bit     S_REG       = 1,
+            parameter   bit     M_REG       = 1
         )
         (
             jelly3_axi4s_if.s                   s_axi4s     ,
@@ -43,9 +43,9 @@ module jelly3_axi4s_fifo
                 .PTR_WIDTH      (PTR_BITS           ),
                 .RAM_TYPE       (RAM_TYPE           ),
                 .LOW_DEALY      (LOW_DEALY          ),
-                .DOUT_REGS      (DOUT_REGS          ),
-                .S_REGS         (S_REGS             ),
-                .M_REGS         (M_REGS             )
+                .DOUT_REGS      (DOUT_REG           ),
+                .S_REGS         (S_REG              ),
+                .M_REGS         (M_REG              )
             )
         u_axi4s_fifo
             (

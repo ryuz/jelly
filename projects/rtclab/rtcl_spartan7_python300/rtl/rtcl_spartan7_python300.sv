@@ -211,7 +211,6 @@ module rtcl_spartan7_python300
 
 
                                 logic           ctl_iserdes_reset   ;
-//                              logic   [4:0]   ctl_iserdes_bitslip ;
                                 logic           ctl_align_reset     ;
                                 logic   [9:0]   ctl_align_pattern   ;
     (* MARK_DEBUG = "true" *)   logic           ctl_calib_done      ;
@@ -229,7 +228,6 @@ module rtcl_spartan7_python300
                 .s_axi4l                (axi4l                  ),
 
                 .out_iserdes_reset      (ctl_iserdes_reset      ),
-//              .out_iserdes_bitslip    (ctl_iserdes_bitslip    ),
                 .out_align_reset        (ctl_align_reset        ),
                 .out_align_pattern      (ctl_align_pattern      ),
                 .in_calib_done          (ctl_calib_done         ),
@@ -276,45 +274,44 @@ module rtcl_spartan7_python300
             );
 
     // MIPI DPHY
-//  (* mark_debug="true" *)     logic           dphy_sw_reset               ;
     (* mark_debug="true" *)     logic           dphy_init_done              ;
     (* mark_debug="true" *)     logic           dphy_cl_txclkactivehs       ;
     (* mark_debug="true" *)     logic           dphy_cl_txrequesths         ;
     (* mark_debug="true" *)     logic           dphy_cl_stopstate           ;
     (* mark_debug="true" *)     logic           dphy_cl_enable              ;
-    (* mark_debug="true" *)     logic           dphy_cl_txulpsclk           ;
-    (* mark_debug="true" *)     logic           dphy_cl_txulpsexit          ;
-    (* mark_debug="true" *)     logic           dphy_cl_ulpsactivenot       ;
+                                logic           dphy_cl_txulpsclk           ;
+                                logic           dphy_cl_txulpsexit          ;
+                                logic           dphy_cl_ulpsactivenot       ;
     (* mark_debug="true" *)     logic   [7:0]   dphy_dl0_txdatahs           ;
     (* mark_debug="true" *)     logic           dphy_dl0_txrequesths        ;
     (* mark_debug="true" *)     logic           dphy_dl0_txreadyhs          ;
-    (* mark_debug="true" *)     logic           dphy_dl0_forcetxstopmode    ;
-    (* mark_debug="true" *)     logic           dphy_dl0_stopstate          ;
-    (* mark_debug="true" *)     logic           dphy_dl0_enable             ;
-    (* mark_debug="true" *)     logic           dphy_dl0_txrequestesc       ;
-    (* mark_debug="true" *)     logic           dphy_dl0_txlpdtesc          ;
-    (* mark_debug="true" *)     logic           dphy_dl0_txulpsexit         ;
-    (* mark_debug="true" *)     logic           dphy_dl0_ulpsactivenot      ;
-    (* mark_debug="true" *)     logic           dphy_dl0_txulpsesc          ;
-    (* mark_debug="true" *)     logic   [3:0]   dphy_dl0_txtriggeresc       ;
-    (* mark_debug="true" *)     logic   [7:0]   dphy_dl0_txdataesc          ;
-    (* mark_debug="true" *)     logic           dphy_dl0_txvalidesc         ;
-    (* mark_debug="true" *)     logic           dphy_dl0_txreadyesc         ;
+                                logic           dphy_dl0_forcetxstopmode    ;
+                                logic           dphy_dl0_stopstate          ;
+                                logic           dphy_dl0_enable             ;
+                                logic           dphy_dl0_txrequestesc       ;
+                                logic           dphy_dl0_txlpdtesc          ;
+                                logic           dphy_dl0_txulpsexit         ;
+                                logic           dphy_dl0_ulpsactivenot      ;
+                                logic           dphy_dl0_txulpsesc          ;
+                                logic   [3:0]   dphy_dl0_txtriggeresc       ;
+                                logic   [7:0]   dphy_dl0_txdataesc          ;
+                                logic           dphy_dl0_txvalidesc         ;
+                                logic           dphy_dl0_txreadyesc         ;
     (* mark_debug="true" *)     logic   [7:0]   dphy_dl1_txdatahs           ;
     (* mark_debug="true" *)     logic           dphy_dl1_txrequesths        ;
     (* mark_debug="true" *)     logic           dphy_dl1_txreadyhs          ;
-    (* mark_debug="true" *)     logic           dphy_dl1_forcetxstopmode    ;
-    (* mark_debug="true" *)     logic           dphy_dl1_stopstate          ;
-    (* mark_debug="true" *)     logic           dphy_dl1_enable             ;
-    (* mark_debug="true" *)     logic           dphy_dl1_txrequestesc       ;
-    (* mark_debug="true" *)     logic           dphy_dl1_txlpdtesc          ;
-    (* mark_debug="true" *)     logic           dphy_dl1_txulpsexit         ;
-    (* mark_debug="true" *)     logic           dphy_dl1_ulpsactivenot      ;
-    (* mark_debug="true" *)     logic           dphy_dl1_txulpsesc          ;
-    (* mark_debug="true" *)     logic   [3:0]   dphy_dl1_txtriggeresc       ;
-    (* mark_debug="true" *)     logic   [7:0]   dphy_dl1_txdataesc          ;
-    (* mark_debug="true" *)     logic           dphy_dl1_txvalidesc         ;
-    (* mark_debug="true" *)     logic           dphy_dl1_txreadyesc         ;
+                                logic           dphy_dl1_forcetxstopmode    ;
+                                logic           dphy_dl1_stopstate          ;
+                                logic           dphy_dl1_enable             ;
+                                logic           dphy_dl1_txrequestesc       ;
+                                logic           dphy_dl1_txlpdtesc          ;
+                                logic           dphy_dl1_txulpsexit         ;
+                                logic           dphy_dl1_ulpsactivenot      ;
+                                logic           dphy_dl1_txulpsesc          ;
+                                logic   [3:0]   dphy_dl1_txtriggeresc       ;
+                                logic   [7:0]   dphy_dl1_txdataesc          ;
+                                logic           dphy_dl1_txvalidesc         ;
+                                logic           dphy_dl1_txreadyesc         ;
 
     (* mark_debug="true" *)     logic           dbg_ctl_dphy_core_reset     ;
     (* mark_debug="true" *)     logic           dbg_ctl_dphy_sys_reset      ;
@@ -413,46 +410,6 @@ module rtcl_spartan7_python300
     assign dphy_dl1_txdataesc       = '0    ;
     assign dphy_dl1_txvalidesc      = '0    ;
 
-    /*
-    (* ASYNC_REG="true" *) logic  ff0_init_done, ff1_init_done;
-    always_ff @(posedge dphy_txbyteclkhs) begin
-        ff0_init_done <= dphy_init_done;
-        ff1_init_done <= ff0_init_done;
-    end
-
-    logic [7:0]     mipi_test_count;
-    always_ff @(posedge dphy_txbyteclkhs) begin
-        if ( dphy_txbyteclkhs_reset || !ff1_init_done ) begin
-            dphy_cl_txrequesths  <= 1'b0;
-            dphy_dl0_txrequesths <= 1'b0;
-            dphy_dl1_txrequesths <= 1'b0;
-
-            dphy_dl0_txdatahs    <= '0;
-            dphy_dl1_txdatahs    <= '0;
-
-            mipi_test_count      <= '0;
-        end
-        else begin
-            dphy_cl_txrequesths <= 1'b1;
-            if ( dphy_cl_txclkactivehs ) begin
-                mipi_test_count <= mipi_test_count + 1;
-            end
-            else begin
-                mipi_test_count <= '0;
-            end
-            dphy_dl0_txrequesths <= mipi_test_count[7];
-            dphy_dl1_txrequesths <= mipi_test_count[7];
-
-            if ( dphy_dl0_txreadyhs ) begin
-                dphy_dl0_txdatahs <= dphy_dl0_txdatahs + 1;
-            end
-            if ( dphy_dl1_txreadyhs ) begin
-                dphy_dl1_txdatahs <= dphy_dl1_txdatahs - 1;
-            end
-        end
-    end
-    */
-
 
     // -------------------------------------
     //  PYTHON300 Sensor
@@ -529,7 +486,7 @@ module rtcl_spartan7_python300
                 .reset          (python_reset       ),
                 .clk            (python_clk         ),
 
-                .sw_reset       (ctl_iserdes_reset  ),
+                .sw_reset       (ctl_align_reset    ),
                 
                 .pattern        (ctl_align_pattern  ),
                 .calib_done     (ctl_calib_done     ),
@@ -579,7 +536,6 @@ module rtcl_spartan7_python300
                 .s_valid        (python_align_valid ),
                 .m_axi4s        (axi4s_python_4lane )
             );
-//  assign axi4s_python_4lane.tready = 1'b1;
 
     jelly3_axi4s_if
             #(

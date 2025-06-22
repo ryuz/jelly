@@ -54,7 +54,6 @@ module python_receiver
     jelly_reset
             #(
                 .COUNTER_WIDTH  (4          )
-//                .INSERT_BUFG    (1)
             )
         u_reset
             (
@@ -92,7 +91,7 @@ module python_receiver
                     .C              (out_clk        ),
                     .CE             (1'b1           ),
                     .D              (in_data [i]    ),
-                    .R              (in_reset       ),
+                    .R              (out_reset      ),
                     .S              (1'b0           )
                 );
     end
@@ -125,10 +124,9 @@ module python_receiver
                 .C              (out_clk        ),
                 .CE             (1'b1           ),
                 .D              (in_sync        ),
-                .R              (in_reset       ),
+                .R              (out_reset      ),
                 .S              (1'b0           )
             );
-
 
     // insert FF
     always_ff @(posedge out_clk) begin

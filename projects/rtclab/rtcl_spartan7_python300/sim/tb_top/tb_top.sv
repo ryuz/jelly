@@ -198,6 +198,7 @@ module tb_top();
         @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
         @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
         @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
+//      @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
 
 
         // trainng pattern

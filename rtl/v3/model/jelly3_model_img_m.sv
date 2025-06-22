@@ -183,11 +183,11 @@ module jelly3_model_img_m
     end
 
     assign m_img.rows      = MAT_ROWS_BITS'(IMG_HEIGHT  );
-    assign m_img.cols      = MAT_ROWS_BITS'(IMG_WIDTH   );
+    assign m_img.cols      = MAT_COLS_BITS'(IMG_WIDTH   );
     assign m_img.row_first = m_img.valid ? (y == 0)                       : 'x;
-    assign m_img.row_last  = m_img.valid ? (y == (IMG_HEIGHT-1))            : 'x;
+    assign m_img.row_last  = m_img.valid ? (y == (IMG_HEIGHT-1))          : 'x;
     assign m_img.col_first = m_img.valid ? (x == 0)                       : 'x;
-    assign m_img.col_last  = m_img.valid ? (x >= (IMG_WIDTH-MAT_TAPS))     : 'x;
+    assign m_img.col_last  = m_img.valid ? (x >= (IMG_WIDTH-MAT_TAPS))    : 'x;
     assign m_img.valid     = busy;
 
     assign out_x           = x_t'(x);

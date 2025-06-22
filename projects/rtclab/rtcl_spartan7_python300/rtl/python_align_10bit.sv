@@ -35,8 +35,8 @@ module python_align_10bit
     end
 
     // pattern detect
-    logic               detect     ;
-    logic   [3:0]       phase      ;
+    (* MARK_DEBUG = "true" *)   logic               detect     ;
+    (* MARK_DEBUG = "true" *)   logic   [3:0]       phase      ;
     always_ff @(posedge clk) begin
         if ( reset || ff1_sw_reset ) begin
             phase       <= 'x   ;

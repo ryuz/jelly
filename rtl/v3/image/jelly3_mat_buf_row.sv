@@ -214,7 +214,7 @@ module jelly3_mat_buf_row
                                 st0_index[idx] <= index_t'(last_idx - (idx - last_idx));
                             end
                             else if ( string'(BORDER_MODE) == "CONSTANT" ) begin
-                                st0_data[idx] <= BORDER_VALUE;
+                                st0_data[idx] <= {TAPS{BORDER_VALUE}};
                             end
                             else begin
                                 st0_data[idx] <= 'x;

@@ -344,6 +344,7 @@ module zybo_z7_rtcl_py300
     (* MARK_DEBUG = "true" *)   logic                       reg_sw_reset;
     (* MARK_DEBUG = "true" *)   logic                       reg_cam_enable;
                                 logic   [7:0]               reg_csi_data_type;
+                                logic                       reg_dphy_init_done;
     always_ff @(posedge wb_peri_clk_i) begin
         if ( wb_peri_rst_i ) begin
             reg_sw_reset      <= 1'b0;
@@ -365,6 +366,7 @@ module zybo_z7_rtcl_py300
                           wb_peri_adr_i[3:0] == 1 ? WB_DAT_WIDTH'(reg_sw_reset)         :
                           wb_peri_adr_i[3:0] == 2 ? WB_DAT_WIDTH'(reg_cam_enable)       :
                           wb_peri_adr_i[3:0] == 3 ? WB_DAT_WIDTH'(reg_csi_data_type)    :
+                          wb_peri_adr_i[3:0] == 4 ? WB_DAT_WIDTH'(reg_dphy_init_done)   :
                           '0;
     assign wb_sys_ack_o = wb_sys_stb_i;
 
@@ -516,7 +518,10 @@ module zybo_z7_rtcl_py300
                 .data_lp_rxn        (cam_data_lp_n)
            );
     
-    
+    always_ff @(posedge wb_peri_clk_i) begin
+        reg_dphy_init_done <= init_done;
+    end
+
     wire        dphy_clk   = rxbyteclkhs;
     wire        dphy_reset;
     jelly_reset

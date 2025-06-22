@@ -15,8 +15,8 @@ module jelly3_stream_ff
         #(
             parameter   int     DATA_BITS   = 8                     ,
             parameter   type    data_t      = logic [DATA_BITS-1:0] ,
-            parameter   bit     S_REGS      = 1                     ,
-            parameter   bit     M_REGS      = 1                     ,
+            parameter   bit     S_REG       = 1                     ,
+            parameter   bit     M_REG       = 1                     ,
             parameter   data_t  INIT_DATA   = 'x                    ,
             parameter   bit     RESET_READY = 1'b0                  
         )
@@ -42,7 +42,7 @@ module jelly3_stream_ff
     logic   internal_ready;
     
     // slave port
-    if ( S_REGS ) begin : blk_s_ff
+    if ( S_REG ) begin : blk_s_ff
         logic   reg_s_ready,   next_s_ready;
         data_t  reg_buf_data,  next_buf_data;
         logic   reg_buf_valid, next_buf_valid;
@@ -93,7 +93,7 @@ module jelly3_stream_ff
     
     
     // master port
-    if ( M_REGS ) begin : blk_m_ff
+    if ( M_REG ) begin : blk_m_ff
         data_t  reg_m_data;
         logic   reg_m_valid;
         
