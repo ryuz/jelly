@@ -31,7 +31,6 @@ module python_control
             jelly3_axi4l_if.s           s_axi4l             ,
 
             output  var logic           out_iserdes_reset   ,
-//          output  var logic   [4:0]   out_iserdes_bitslip ,
             output  var logic           out_align_reset     ,
             output  var logic   [9:0]   out_align_pattern   ,
             input   var logic           in_calib_done       ,
@@ -41,7 +40,8 @@ module python_control
             output  var logic   [7:0]   out_csi_data_type   ,
             output  var logic   [15:0]  out_csi_wc          ,
             output  var logic           out_dphy_core_reset ,
-            output  var logic           out_dphy_sys_reset  
+            output  var logic           out_dphy_sys_reset  ,
+            input   var logic           in_dphy_init_done   
         );
     
     
@@ -68,10 +68,10 @@ module python_control
     localparam  regadr_t REGADR_CSI_WC              = regadr_t'('h51);
     localparam  regadr_t REGADR_DPHY_CORE_RESET     = regadr_t'('h80);
     localparam  regadr_t REGADR_DPHY_SYS_RESET      = regadr_t'('h81);
+    localparam  regadr_t REGADR_DPHY_INIT_DONE      = regadr_t'('h88);
 
     // registers
     logic           reg_iserdes_reset   ;
-//  logic   [4:0]   reg_iserdes_bitslip ;
     logic           reg_align_reset     ;
     logic   [9:0]   reg_align_pattern   ;
     logic   [1:0]   reg_calib_status    ;
@@ -81,9 +81,11 @@ module python_control
     logic   [15:0]  reg_csi_wc          ;
     logic           reg_dphy_core_reset ;
     logic           reg_dphy_sys_reset  ;
+    logic           reg_dphy_init_done  ;
 
     always_ff @(posedge s_axi4l.aclk) begin
-        reg_calib_status <= {in_calib_error, in_calib_done};
+        reg_calib_status   <= {in_calib_error, in_calib_done};
+        reg_dphy_init_done <= in_dphy_init_done;
     end
 
     function [s_axi4l.DATA_BITS-1:0] write_mask(
@@ -177,6 +179,7 @@ module python_control
             REGADR_CSI_WC           :   s_axi4l.rdata <= axi4l_data_t'(reg_csi_wc          );
             REGADR_DPHY_CORE_RESET  :   s_axi4l.rdata <= axi4l_data_t'(reg_dphy_core_reset );
             REGADR_DPHY_SYS_RESET   :   s_axi4l.rdata <= axi4l_data_t'(reg_dphy_sys_reset  );
+            REGADR_DPHY_INIT_DONE   :   s_axi4l.rdata <= axi4l_data_t'(reg_dphy_init_done  );
             default                 :   s_axi4l.rdata <= '0;
             endcase
         end
