@@ -276,7 +276,7 @@ module rtcl_spartan7_python300
             );
 
     // MIPI DPHY
-    (* mark_debug="true" *)     logic           dphy_sw_reset               ;
+//  (* mark_debug="true" *)     logic           dphy_sw_reset               ;
     (* mark_debug="true" *)     logic           dphy_init_done              ;
     (* mark_debug="true" *)     logic           dphy_cl_txclkactivehs       ;
     (* mark_debug="true" *)     logic           dphy_cl_txrequesths         ;
@@ -316,11 +316,20 @@ module rtcl_spartan7_python300
     (* mark_debug="true" *)     logic           dphy_dl1_txvalidesc         ;
     (* mark_debug="true" *)     logic           dphy_dl1_txreadyesc         ;
 
+    (* mark_debug="true" *)     logic           dbg_ctl_dphy_core_reset     ;
+    (* mark_debug="true" *)     logic           dbg_ctl_dphy_sys_reset      ;
+    (* mark_debug="true" *)     logic           dbg_dphy_init_done          ;
+    always_ff @(posedge dphy_txbyteclkhs) begin
+        dbg_ctl_dphy_core_reset <= ctl_dphy_core_reset;
+        dbg_ctl_dphy_sys_reset  <= ctl_dphy_sys_reset ;
+        dbg_dphy_init_done      <= dphy_init_done     ;
+    end
+
     mipi_dphy_0
         u_mipi_dphy_0
             (
-                .core_clk               (dphy_core_clk     || ctl_dphy_core_reset),   //  input  
-                .core_rst               (dphy_core_reset            ),   //  input  
+                .core_clk               (dphy_core_clk              ),   //  input  
+                .core_rst               (dphy_core_reset   || ctl_dphy_core_reset           ),   //  input  
                 .txclkesc_in            (dphy_txclkesc              ),   //  input  
                 .txbyteclkhs_in         (dphy_txbyteclkhs           ),   //  input  
                 .oserdes_clkdiv_in      (dphy_oserdes_clkdiv        ),   //  input  
