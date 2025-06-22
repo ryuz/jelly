@@ -265,7 +265,6 @@ int main(int argc, char *argv[])
         // 設定
 //      spi_change(i2c, 199, exposure);
 
-
         switch ( key ) {
         case 'd':
             printf("image dump\n");
