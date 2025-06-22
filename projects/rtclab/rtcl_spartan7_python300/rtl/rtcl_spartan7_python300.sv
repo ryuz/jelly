@@ -221,6 +221,7 @@ module rtcl_spartan7_python300
                                 logic   [15:0]  ctl_csi_wc          ;
                                 logic           ctl_dphy_core_reset ;
                                 logic           ctl_dphy_sys_reset  ;
+                                logic           ctl_dphy_init_done  ;
 
     python_control
         u_python_control
@@ -237,7 +238,8 @@ module rtcl_spartan7_python300
                 .out_csi_data_type      (ctl_csi_data_type      ),
                 .out_csi_wc             (ctl_csi_wc             ),
                 .out_dphy_core_reset    (ctl_dphy_core_reset    ),
-                .out_dphy_sys_reset     (ctl_dphy_sys_reset     )
+                .out_dphy_sys_reset     (ctl_dphy_sys_reset     ),
+                .in_dphy_init_done      (ctl_dphy_init_done     )
             );
     
 
@@ -382,6 +384,9 @@ module rtcl_spartan7_python300
                 .data_lp_txp            (mipi_data_lp_p             ),    // output    [C_DPHY_LANES -1:0]    
                 .data_lp_txn            (mipi_data_lp_n             )     // output    [C_DPHY_LANES -1:0]    
             );
+
+    assign ctl_dphy_init_done = dphy_init_done;
+    
 
 //  assign dphy_cl_txrequesths      = '1    ;
     assign dphy_cl_enable           = '1    ;
