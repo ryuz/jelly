@@ -12,6 +12,7 @@
 #include "jelly/UioAccessor.h"
 #include "jelly/UdmabufAccessor.h"
 #include "jelly/JellyRegs.h"
+#include "jelly/I2cAccessor.h"
 #include "jelly/Imx219Control.h"
 #include "jelly/GpioAccessor.h"
 #include "jelly/VideoDmaControl.h"
@@ -23,178 +24,40 @@ void signal_handler(int signo) {
     g_signal = true;
 }
 
+void          cmd_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data);
+std::uint16_t cmd_read(jelly::I2cAccessor &i2c, std::uint16_t addr);
+void          spi_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data);
+std::uint16_t spi_read(jelly::I2cAccessor &i2c, std::uint16_t addr);
+void          spi_change(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data);
+void          reg_dump(jelly::I2cAccessor &i2c, const char *fname);
+void          load_setting(jelly::I2cAccessor &i2c);
+void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
+
+
+#define CAMREG_CORE_ID          0x0000
+#define CAMREG_CORE_VERSION     0x0001
+#define CAMREG_ISERDES_RESET    0x0010
+#define CAMREG_ALIGN_RESET      0x0020
+#define CAMREG_ALIGN_PATTERN    0x0022
+#define CAMREG_CALIB_STATUS     0x0028
+#define CAMREG_TRIM_X_START     0x0030
+#define CAMREG_TRIM_X_END       0x0031
+#define CAMREG_CSI_DATA_TYPE    0x0050
+#define CAMREG_CSI_WC           0x0051
+#define CAMREG_DPHY_CORE_RESET  0x0080
+#define CAMREG_DPHY_SYS_RESET   0x0081
+#define CAMREG_DPHY_INIT_DONE   0x0088
+
+#define SYSREG_ID               0x0000
+#define SYSREG_DPHY_SW_RESET    0x0001
+#define SYSREG_CAM_ENABLE       0x0002
+#define SYSREG_CSI_DATA_TYPE    0x0003
+
+
 int main(int argc, char *argv[])
 {
-    double  pixel_clock = 91000000.0;
-    bool    binning     = false;
     int     width       = 3280;
     int     height      = 2464;
-    int     aoi_x       = 0;
-    int     aoi_y       = 0;
-    bool    flip_h      = false;
-    bool    flip_v      = false;
-    int     frame_rate  = 20;
-    int     exposure    = 33;
-    int     a_gain      = 20;
-    int     d_gain      = 0;
-    int     bayer_phase = 0;
-    int     fmtsel      = 0;
-    int     view_scale  = 4;
-
-    // 720p
-    pixel_clock = 91000000.0;
-    binning     = true;
-    width       = 1280;
-    height      = 720;
-    aoi_x       = -1;
-    aoi_y       = -1;
-    flip_h      = false;
-    flip_v      = false;
-    frame_rate  = 60;
-    exposure    = 20;
-    a_gain      = 20;
-    d_gain      = 0;
-    bayer_phase = 0;
-    view_scale  = 2;
-
-    for ( int i = 1; i < argc; ++i ) {
-        if ( strcmp(argv[i], "1000fps") == 0 ) {
-            pixel_clock = 139200000.0;
-            binning     = true;
-            width       = 640;
-            height      = 132;
-            aoi_x       = -1;
-            aoi_y       = -1;
-            flip_h      = false;
-            flip_v      = false;
-            frame_rate  = 1000;
-            exposure    = 1;
-            a_gain      = 20;
-            d_gain      = 10;
-            bayer_phase = 0;
-            view_scale  = 1;
-        }
-        else if ( strcmp(argv[i], "vga") == 0 ) {
-            pixel_clock = 91000000.0;
-            binning     = true;
-            width       = 640;
-            height      = 480;
-            aoi_x       = -1;
-            aoi_y       = -1;
-            flip_h      = false;
-            flip_v      = false;
-            frame_rate  = 60;
-            exposure    = 20;
-            a_gain      = 20;
-            d_gain      = 0;
-            bayer_phase = 0;
-            view_scale  = 1;
-        }
-        else if ( strcmp(argv[i], "720p") == 0 ) {
-            pixel_clock = 91000000.0;
-            binning     = true;
-            width       = 1280;
-            height      = 720;
-            aoi_x       = -1;
-            aoi_y       = -1;
-            flip_h      = false;
-            flip_v      = false;
-            frame_rate  = 60;
-            exposure    = 20;
-            a_gain      = 20;
-            d_gain      = 0;
-            bayer_phase = 0;
-            view_scale  = 2;
-        }
-        else if ( strcmp(argv[i], "1080p") == 0 ) {
-            pixel_clock = 91000000.0;
-            binning     = false;
-            width       = 1920;
-            height      = 1080;
-            aoi_x       = -1;
-            aoi_y       = -1;
-            flip_h      = false;
-            flip_v      = false;
-            frame_rate  = 60;
-            exposure    = 20;
-            a_gain      = 20;
-            d_gain      = 0;
-            bayer_phase = 0;
-            view_scale  = 2;
-        }
-        else if ( strcmp(argv[i], "full") == 0 ) {
-            pixel_clock = 91000000;
-            binning    = false;
-            width      = 3280;
-            height     = 2464;
-            aoi_x      = 0;
-            aoi_y      = 0;
-            frame_rate = 20;
-            exposure   = 33;
-            a_gain     = 20;
-            d_gain     = 0;
-            view_scale = 4;
-        }
-        else if ( strcmp(argv[i], "-pixel_clock") == 0 && i+1 < argc) {
-            ++i;
-            pixel_clock = strtof(argv[i], nullptr);
-        }
-        else if ( strcmp(argv[i], "-binning") == 0 && i+1 < argc) {
-            ++i;
-            binning = (strtol(argv[i], nullptr, 0) != 0);
-        }
-        else if ( strcmp(argv[i], "-width") == 0 && i+1 < argc) {
-            ++i;
-            width = strtol(argv[i], nullptr, 0);
-        }
-        else if ( strcmp(argv[i], "-height") == 0 && i+1 < argc) {
-            ++i;
-            height = strtol(argv[i], nullptr, 0);
-        }
-        else if ( strcmp(argv[i], "-aoi_x") == 0 && i+1 < argc) {
-            ++i;
-            aoi_x = strtol(argv[i], nullptr, 0);
-        }
-        else if ( strcmp(argv[i], "-aoi_y") == 0 && i+1 < argc) {
-            ++i;
-            aoi_y = strtol(argv[i], nullptr, 0);
-        }
-        else if ( strcmp(argv[i], "-frame_rate") == 0 && i+1 < argc) {
-            ++i;
-            frame_rate = (int)strtof(argv[i], nullptr);
-        }
-        else if ( strcmp(argv[i], "-exposure") == 0 && i+1 < argc) {
-            ++i;
-            exposure = (int)strtof(argv[i], nullptr);
-        }
-        else if ( strcmp(argv[i], "-a_gain") == 0 && i+1 < argc) {
-            ++i;
-            a_gain = (int)strtof(argv[i], nullptr);
-        }
-        else if ( strcmp(argv[i], "-d_gain") == 0 && i+1 < argc) {
-            ++i;
-            d_gain = (int)strtof(argv[i], nullptr);
-        }
-        else if ( strcmp(argv[i], "-bayer_phase") == 0 && i+1 < argc) {
-            ++i;
-            bayer_phase = strtol(argv[i], nullptr, 0);
-        }
-        else if ( strcmp(argv[i], "-view_scale") == 0 && i+1 < argc) {
-            ++i;
-            view_scale = strtol(argv[i], nullptr, 0);
-        }
-        else {
-            std::cout << "unknown option : " << argv[i] << std::endl;
-            return 1;
-        }
-    }
-    
-    width &= ~0xf;
-    width  = std::max(width, 16);
-    height = std::max(height, 2);
-
-    // set signal
-    signal(SIGINT, signal_handler);
 
     // mmap uio
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
@@ -205,11 +68,6 @@ int main(int argc, char *argv[])
 
     auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
-//  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
-    auto reg_wb     = uio_acc.GetAccessor(0x00121000);
-    auto reg_demos  = uio_acc.GetAccessor(0x00122000);
-    auto reg_colmat = uio_acc.GetAccessor(0x00120800);
-//  auto reg_sel    = uio_acc.GetAccessor(0x00130000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
 #if 1
@@ -235,33 +93,19 @@ int main(int argc, char *argv[])
 
     jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
 
-
     // カメラON
     reg_gpio.WriteReg(2, 1);
     usleep(500000);
 
-    // IMX219 I2C control
-    jelly::Imx219ControlI2c imx219;
-    if ( !imx219.Open("/dev/i2c-6", 0x10) ) {
-        std::cout << "I2C open error" << std::endl;
-        return 1;
-    }
-    imx219.Reset();
+    jelly::I2cAccessor i2c;
+    i2c.Open("/dev/i2c-6", 0x10);
 
-    // カメラID取得
-    std::cout << "Model ID : " << std::hex << std::setfill('0') << std::setw(4) << imx219.GetModelId() << std::endl;
+    // カメラ基板ID確認
+    std::cout << "CORE_ID      : " << std::hex << cmd_read(i2c, CAMREG_CORE_ID        ) << std::endl;
+    std::cout << "CORE_VERSION : " << std::hex << cmd_read(i2c, CAMREG_CORE_VERSION   ) << std::endl;
 
-    // camera 設定
-    imx219.SetPixelClock(pixel_clock);
-    imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
-    imx219.Start();
 
-    int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
-    int     frame_num     = 1;
-
-    if ( rec_frame_num <= 0 ) {
-        std::cout << "udmabuf size error" << std::endl;
-    }
+    return 0;
 
     // video input start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
@@ -274,6 +118,7 @@ int main(int argc, char *argv[])
     usleep(100000);
 
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
+    /*
     cv::createTrackbar("scale",    "img", nullptr, 4);
     cv::setTrackbarMin("scale",    "img", 1);
     cv::setTrackbarPos("scale",    "img", view_scale);
@@ -291,46 +136,24 @@ int main(int argc, char *argv[])
     cv::setTrackbarPos("bayer",    "img", bayer_phase);
     cv::createTrackbar("fmtsel",   "img", nullptr, 3);
     cv::setTrackbarPos("fmtsel",   "img", fmtsel);
+    */
 
     vdmaw.SetBufferAddr(dmabuf_phys_adr);
     vdmaw.SetImageSize(width, height);
 //  vdmaw.Start();
 
-    // White Balance
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET0,    66); // black level R 
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET1,    66); // black level G
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET2,    66); // black level G
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_OFFSET3,    66); // black level B
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4620); // white balance R
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096); // white balance G
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096); // white balance G
-    reg_wb.WriteReg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428); // white balance B
 
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
         
         // トラックバー値取得
-        view_scale  = cv::getTrackbarPos("scale",    "img");
-        frame_rate  = cv::getTrackbarPos("fps",      "img");
-        exposure    = cv::getTrackbarPos("exposure", "img");
-        a_gain      = cv::getTrackbarPos("a_gain",   "img");
-        d_gain      = cv::getTrackbarPos("d_gain",   "img");
-        bayer_phase = cv::getTrackbarPos("bayer" ,   "img");
-        fmtsel      = cv::getTrackbarPos("fmtsel",   "img");
+//      view_scale  = cv::getTrackbarPos("scale",    "img");
 
-        // 設定
-        imx219.SetFrameRate(frame_rate);
-        imx219.SetExposureTime(exposure / 1000.0);
-        imx219.SetGain(a_gain);
-        imx219.SetDigitalGain(d_gain);
-        imx219.SetFlip(flip_h, flip_v);
-        reg_demos.WriteReg(REG_IMG_DEMOSAIC_PARAM_PHASE, bayer_phase);
-        reg_demos.WriteReg(REG_IMG_DEMOSAIC_CTL_CONTROL, 3);  // update & enable
-        reg_gpio.WriteReg(4, fmtsel);
+//      reg_gpio.WriteReg(4, fmtsel);
 
         // キャプチャ
-        vdmaw.Oneshot(dmabuf_phys_adr, width, height, frame_num);
+        vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
 
         if (0) {
             cv::Mat img_raw = cv::Mat(height, width, CV_8UC4);
@@ -344,114 +167,25 @@ int main(int argc, char *argv[])
         }
 
 
-        cv::Mat img;
-        switch ( fmtsel ) {
-        case 0: // BGRx
-        case 1: // RGBx
-            img = cv::Mat(height*frame_num, width, CV_8UC4);
-            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-            break;
-
-        case 2: // Raw10bit
-        case 3: // Raw16bit
-            img = cv::Mat(height*frame_num, width, CV_32S);
-            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-            img.convertTo(img, CV_16U);
-//          cv::Mat img_col;
-//          cv::cvtColor(img, img_col, CV_BayerBG2BGR);
-            break;
-
-        default:
-            img = cv::Mat(height*frame_num, width, CV_8UC4);
-            udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4 * frame_num);
-            break;
-        }
-
         // 表示
-        view_scale = std::max(1, view_scale);
-        cv::Mat view_img;
-        cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
-        cv::imshow("img", view_img);
+//        view_scale = std::max(1, view_scale);
+//        cv::Mat view_img;
+//        cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
+//        cv::imshow("img", view_img);
 
         // ユーザー操作
         switch ( key ) {
         case 'p':
-            std::cout << "pixel clock   : " << imx219.GetPixelClock()   << " [Hz]"  << std::endl;
-            std::cout << "frame rate    : " << imx219.GetFrameRate()    << " [fps]" << std::endl;
-            std::cout << "exposure time : " << imx219.GetExposureTime() << " [s]"   << std::endl;
-            std::cout << "analog  gain  : " << imx219.GetGain()         << " [db]"  << std::endl;
-            std::cout << "digital gain  : " << imx219.GetDigitalGain()  << " [db]"  << std::endl;
-            std::cout << "AOI width     : " << imx219.GetAoiWidth()  << std::endl;
-            std::cout << "AOI height    : " << imx219.GetAoiHeight() << std::endl;
-            std::cout << "AOI x         : " << imx219.GetAoiX() << std::endl;
-            std::cout << "AOI y         : " << imx219.GetAoiY() << std::endl;
-            std::cout << "flip h        : " << imx219.GetFlipH() << std::endl;
-            std::cout << "flip v        : " << imx219.GetFlipV() << std::endl;
             break;
         
-        // flip
-        case 'h':  flip_h = !flip_h;  break;
-        case 'v':  flip_v = !flip_v;  break;
-        
-        // aoi position
-        case 'w':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() - 4);    break;
-        case 'z':  imx219.SetAoiPosition(imx219.GetAoiX(), imx219.GetAoiY() + 4);    break;
-        case 'a':  imx219.SetAoiPosition(imx219.GetAoiX() - 4, imx219.GetAoiY());    break;
-        case 's':  imx219.SetAoiPosition(imx219.GetAoiX() + 4, imx219.GetAoiY());    break;
 
         case 'd':   // image dump
-            switch ( fmtsel ) {
-            case 0:
-            case 1:
-                cv::imwrite("img_dump.png", img);
-                break;
-
-            case 2:
-                cv::imwrite("img_dump_raw10.png", img);
-                write_pgm("img_dump_raw10.pgm", img, 4095);
-                break;
-
-            case 3:
-                cv::imwrite("img_dump_raw.png", img);
-                write_pgm("img_dump_raw.pgm", img, 4095);
-                break;
-
-            default:
-                cv::imwrite("img_dump_x.png", img);
-                break;
-            }
-            break;
-
-        case 'r': // image record
-            std::cout << "record" << std::endl;
-            vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
-            int offset = 0;
-            for ( int i = 0; i < rec_frame_num; i++ ) {
-                char fname[64];
-                sprintf(fname, "rec_%04d.png", i);
-                cv::Mat imgRec(height, width, CV_8UC4);
-                udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
-                offset += width * height * 4;
-                cv::Mat imgRgb;
-                cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
-                cv::imwrite(fname, imgRgb);
-            }
+//            cv::imwrite("img_dump.png", img);
             break;
         }
     }
 
     std::cout << "close device" << std::endl;
-
-    // DMA 停止
-    vdmaw.Stop();
-
-    // 取り込み停止
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x00);
-    usleep(100000);
-
-    // close
-    imx219.Stop();
-    imx219.Close();
 
     // カメラOFF
     reg_gpio.WriteReg(2, 0);
@@ -461,18 +195,91 @@ int main(int argc, char *argv[])
 }
 
 
-void write_pgm(const char* filename, cv::Mat img, int depth)
-{
-    FILE* fp = fopen(filename, "wb");
-    if ( fp ) {
-        fprintf(fp, "P2\n%d %d\n%d\n", img.cols, img.rows, depth);
-        for ( int y = 0; y < img.rows; ++y ) {
-            for ( int x = 0; x < img.cols; ++x ) {
-                fprintf(fp, "%d\n", img.at<uint16_t>(y, x));
-            }
-        }
-        fclose(fp);
-    }
+/*
+void print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c) {
+    usleep(1000);
+    std::cout << "=========================================\n"
+              << "cam CAMREG_ISERDES_RESET   : " << cmd_read(i2c, CAMREG_ISERDES_RESET)   << "\n"
+              << "cam CAMREG_ALIGN_RESET     : " << cmd_read(i2c, CAMREG_ALIGN_RESET  )   << "\n"
+              << "cam CAMREG_DPHY_SYS_RESET  : " << cmd_read(i2c, CAMREG_DPHY_SYS_RESET)  << "\n"
+              << "cam CAMREG_DPHY_CORE_RESET : " << cmd_read(i2c, CAMREG_DPHY_CORE_RESET) << "\n"
+              << "z7  SYSREG_DPHY_SW_RESET   : " << uio.ReadReg(SYSREG_DPHY_SW_RESET)     << "\n"
+              << "cam TX DPHY init_done : " << cmd_read(i2c, CAMREG_DPHY_INIT_DONE)    << "\n"
+              << "z7  RX DPHY init_done : " << uio.ReadReg(SYSREG_DPHY_INIT_DONE)      << std::endl;
 }
+*/
+
+void cmd_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
+    addr <<= 1;
+    addr |= 1;
+    unsigned char buf[4] = {0x00, 0x00, 0x00, 0x00};
+    buf[0] = ((addr >> 8) & 0xff);
+    buf[1] = ((addr >> 0) & 0xff);
+    buf[2] = ((data >> 8) & 0xff);
+    buf[3] = ((data >> 0) & 0xff);
+    i2c.Write(buf, 4);
+}
+
+std::uint16_t cmd_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
+    addr <<= 1;
+    unsigned char buf[4] = {0x00, 0x00, 0x00, 0x00};
+    buf[0] = ((addr >> 8) & 0xff);
+    buf[1] = ((addr >> 0) & 0xff);
+    i2c.Write(buf, 4);
+    i2c.Read(buf, 2);
+    return (std::uint16_t)buf[0] | (std::uint16_t)(buf[1] << 8);
+}
+
+void spi_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
+    addr |= (1 << 14);
+    cmd_write(i2c, addr, data);
+}
+
+std::uint16_t spi_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
+    addr |= (1 << 14);
+    return cmd_read(i2c, addr);
+}
+
+void spi_change(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
+    auto pre = spi_read(i2c, addr);
+    spi_write(i2c, addr, data);
+    auto post = spi_read(i2c, addr);
+    printf("write %3d <= 0x%04x (%04x -> %04x)\n", addr, data, pre, post);
+}
+
+
+void reg_dump(jelly::I2cAccessor &i2c, const char *fname) {
+    FILE* fp = fopen(fname, "w");
+    for ( int i = 0; i < 512; i++ ) {
+        auto v = spi_read(i2c, i);
+        fprintf(fp, "%3d : 0x%04x (%d)\n", i, v, v);
+    }
+    fclose(fp);
+}
+
+void load_setting(jelly::I2cAccessor &i2c) {
+    FILE* fp = fopen("reg_list.txt", "r");
+    if ( fp == nullptr ) {
+        std::cout << "reg_list.txt open error" << std::endl;
+        return;
+    }
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        char *p = line;
+        // skip leading whitespace
+        while (*p == ' ' || *p == '\t') ++p;
+        if (*p == '\0' || *p == '#') continue; // skip empty/comment
+        unsigned int addr, data;
+        int n = sscanf(p, "%i %i", &addr, &data);
+        if (n == 2) {
+            spi_change(i2c, (std::uint16_t)addr, (std::uint16_t)data);
+        } else {
+            std::cout << "parse error: " << line;
+        }
+    }
+    fclose(fp);
+}
+
+
 
 // end of file
