@@ -17,7 +17,8 @@ set_property IOSTANDARD LVCMOS33 [get_ports fan_en]
 # i_design_1/clk_wiz_0/inst/clk_in1  
 
 # cam_clk_p
-create_clock -period 2.1929 -name cam_clk_p -waveform {0.000 1.0964} [get_ports cam_clk_p]
+#create_clock -period 2.1929 -name cam_clk_p -waveform {0.000 1.0964} [get_ports cam_clk_p]
+create_clock -period 1.600 -name cam_clk_p -waveform {0.000 0.800} [get_ports cam_clk_p]
 
 set_max_delay -datapath_only -from [get_clocks cam_clk_p_FIFO_WRCLK_OUT]      -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  5.000
 set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT]       5.000

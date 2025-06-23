@@ -282,8 +282,10 @@ module rtcl_p3s7_dphy
             else begin
                 mipi_test_count <= '0;
             end
-            dphy_dl0_txrequesths <= mipi_test_count[7];
-            dphy_dl1_txrequesths <= mipi_test_count[7];
+//            dphy_dl0_txrequesths <= mipi_test_count[7];
+//            dphy_dl1_txrequesths <= mipi_test_count[7];
+            dphy_dl0_txrequesths <= 1'b1;
+            dphy_dl1_txrequesths <= 1'b1;
 
             if ( dphy_dl0_txreadyhs ) begin
                 dphy_dl0_txdatahs <= dphy_dl0_txdatahs + 1;
