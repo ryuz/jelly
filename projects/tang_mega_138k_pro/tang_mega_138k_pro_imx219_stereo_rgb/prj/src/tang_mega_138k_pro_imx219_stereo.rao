@@ -1,0 +1,119 @@
+<?xml version="1" encoding="UTF-8"?>
+<GAO_CONFIG>
+    <Version>3.0</Version>
+    <Mode>Standard</Mode>
+    <AoCore index="0" sample_clock="cam_clk" trig_type="0" storage_depth="1024" window_num="1" capture_amount="1024" implementation="0" trigger_pos="0" module_name="tang_mega_138k_pro_imx219_stereo" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
+        <SignalList>
+            <Bus capture_enable="true" name="axi4s_cam0_src.tdata[9:0]">
+                <Signal>axi4s_cam0_src.tdata[9]</Signal>
+                <Signal>axi4s_cam0_src.tdata[8]</Signal>
+                <Signal>axi4s_cam0_src.tdata[7]</Signal>
+                <Signal>axi4s_cam0_src.tdata[6]</Signal>
+                <Signal>axi4s_cam0_src.tdata[5]</Signal>
+                <Signal>axi4s_cam0_src.tdata[4]</Signal>
+                <Signal>axi4s_cam0_src.tdata[3]</Signal>
+                <Signal>axi4s_cam0_src.tdata[2]</Signal>
+                <Signal>axi4s_cam0_src.tdata[1]</Signal>
+                <Signal>axi4s_cam0_src.tdata[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="axi4s_cam0_src.tuser[0:0]">
+                <Signal>axi4s_cam0_src.tuser[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">axi4s_cam0_src.tlast</Signal>
+            <Signal capture_enable="true">axi4s_cam0_src.tvalid</Signal>
+            <Signal capture_enable="true">axi4s_cam0_src.tready</Signal>
+            <Bus capture_enable="true" name="axi4s_cam0_rgb.tdata[39:0]">
+                <Signal>axi4s_cam0_rgb.tdata[39]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[38]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[37]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[36]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[35]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[34]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[33]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[32]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[31]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[30]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[29]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[28]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[27]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[26]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[25]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[24]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[23]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[22]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[21]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[20]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[19]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[18]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[17]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[16]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[15]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[14]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[13]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[12]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[11]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[10]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[9]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[8]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[7]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[6]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[5]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[4]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[3]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[2]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[1]</Signal>
+                <Signal>axi4s_cam0_rgb.tdata[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="axi4s_cam0_rgb.tuser[0:0]">
+                <Signal>axi4s_cam0_rgb.tuser[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">axi4s_cam0_rgb.tlast</Signal>
+            <Signal capture_enable="true">axi4s_cam0_rgb.tvalid</Signal>
+        </SignalList>
+        <Triggers>
+            <Trigger index="0">
+                <SignalList>
+                    <Signal>axi4s_cam0_src.tvalid</Signal>
+                    <Signal>axi4s_cam0_src.tready</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="1"/>
+            <Trigger index="2"/>
+            <Trigger index="3"/>
+            <Trigger index="4"/>
+            <Trigger index="5"/>
+            <Trigger index="6"/>
+            <Trigger index="7"/>
+            <Trigger index="8"/>
+            <Trigger index="9"/>
+            <Trigger index="10"/>
+            <Trigger index="11"/>
+            <Trigger index="12"/>
+            <Trigger index="13"/>
+            <Trigger index="14"/>
+            <Trigger index="15"/>
+        </Triggers>
+        <MatchUnits>
+            <MatchUnit index="0" enabled="1" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="11" value1="00" trigger="0"/>
+            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="11" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="12" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+        </MatchUnits>
+        <Expressions type="Static">
+            <Expression>M0</Expression>
+        </Expressions>
+    </AoCore>
+    <GAO_ID>1111110111111011</GAO_ID>
+</GAO_CONFIG>
