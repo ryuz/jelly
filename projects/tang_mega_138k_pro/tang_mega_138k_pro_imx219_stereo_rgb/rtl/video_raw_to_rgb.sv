@@ -14,8 +14,8 @@
 
 module video_raw_to_rgb
         #(
-            parameter   int     WIDTH_BITS  = 10                        ,
-            parameter   int     HEIGHT_BITS = 9                         ,
+            parameter   int     WIDTH_BITS  = 13                        ,
+            parameter   int     HEIGHT_BITS = 12                        ,
             parameter   type    width_t     = logic [WIDTH_BITS-1:0]    ,
             parameter   type    height_t    = logic [HEIGHT_BITS-1:0]   ,
             parameter   int     M_CH_DEPTH  = 4                         ,
@@ -218,7 +218,7 @@ module video_raw_to_rgb
             #(
                 .CH_BITS            ($bits(ch_t)),
                 .ch_t               (ch_t       ),
-                .MAX_COLS           (4096       ),
+                .MAX_COLS           (2048       ),
                 .RAM_TYPE           ("block"    ),
                 .INIT_PARAM_PHASE   (2'b00      )
             )

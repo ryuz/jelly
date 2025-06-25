@@ -94,9 +94,9 @@
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v3/misc/jelly3_axi4s_debug_monitor.sv" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v3/primitive/jelly3_shift_register.sv" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/rtl/v3/video/jelly3_video_format_regularizer_core.sv" type="file.verilog" enable="1"/>
-        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo/syn/jfive_tcm/impl/gwsynthesis/jfive_tcm.vg" type="file.netlist" enable="1"/>
-        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo/constrain/tang_mega_138k_pro_imx219_stereo.cst" type="file.cst" enable="1"/>
-        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo/constrain/tang_mega_138k_pro_imx219_stereo.sdc" type="file.sdc" enable="1"/>
+        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/syn/jfive_tcm/impl/gwsynthesis/jfive_tcm.vg" type="file.netlist" enable="1"/>
+        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/constrain/tang_mega_138k_pro_imx219_stereo.cst" type="file.cst" enable="1"/>
+        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/constrain/tang_mega_138k_pro_imx219_stereo.sdc" type="file.sdc" enable="1"/>
         <File path="src/tang_mega_138k_pro_imx219_stereo.rao" type="file.gao" enable="1"/>
     </FileList>
 </Project>
