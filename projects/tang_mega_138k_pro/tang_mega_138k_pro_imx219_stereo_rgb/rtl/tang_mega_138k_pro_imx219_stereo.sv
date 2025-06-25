@@ -712,7 +712,7 @@ module tang_mega_138k_pro_imx219_stereo
     // generate AXI4-Stream
     jelly3_axi4s_if
             #(
-                .DATA_BITS      (10*4       ),
+                .DATA_BITS      (10         ),
                 .DEBUG          ("false"    )
             )
         axi4s_dvigen
@@ -764,19 +764,41 @@ module tang_mega_138k_pro_imx219_stereo
         mem_sel[0] <= gen_mem_x[MEM_X_BITS];
         mem_sel[1] <= mem_sel[0];
     end
-    
+
     assign gen_mem_rdata     = mem_sel[1] ? mem1_port1_dout : mem0_port1_dout;
 
 
-    /*
-    assign mem1_port1_clk    = dvi_clk                            ;
-    assign mem1_port1_en     = 1'b1                               ;
-    assign mem1_port1_regcke = 1'b1                               ;
-    assign mem1_port1_we     = 1'b0                               ;
-    assign mem1_port1_addr   = {syncgen_y[6:0], syncgen_x[6:0]}   ;
-    assign mem1_port1_din    = '0                                 ;
-    */
 
+    // FIFO
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS      (10         ),
+                .DEBUG          ("false"    )
+            )
+        axi4s_dvi_fifo
+            (
+                .aresetn        (~dvi_reset ),
+                .aclk           (dvi_clk    ),
+                .aclken         (1'b1       )
+            );
+
+    jelly3_axi4s_fifo
+            #(
+                .ASYNC          (0                  ),
+                .PTR_BITS       (9                  ),
+                .RAM_TYPE       ("block"            ),
+                .LOW_DEALY      (0                  ),
+                .DOUT_REG       (1                  ),
+                .S_REG          (1                  ),
+                .M_REG          (1                  )
+            )
+        u_axi4s_fifo
+            (
+                .s_axi4s        (axi4s_dvigen.s     ),
+                .m_axi4s        (axi4s_dvi_fifo.m   ),
+                .s_free_count   (                   ),
+                .m_data_count   (                   )
+            );
 
 
     logic           dvitx_vsync ;
@@ -792,11 +814,11 @@ module tang_mega_138k_pro_imx219_stereo
                 .reset          (dvi_reset          ),
                 .clk            (dvi_clk            ),
                 
-                .s_axi4s_tuser  (axi4s_dvigen.tuser ),
-                .s_axi4s_tlast  (axi4s_dvigen.tlast ),
-                .s_axi4s_tdata  ({3{axi4s_dvigen.tdata[9:2]}}),
-                .s_axi4s_tvalid (axi4s_dvigen.tvalid),
-                .s_axi4s_tready (axi4s_dvigen.tready),
+                .s_axi4s_tuser  (axi4s_dvi_fifo.tuser ),
+                .s_axi4s_tlast  (axi4s_dvi_fifo.tlast ),
+                .s_axi4s_tdata  ({3{axi4s_dvi_fifo.tdata[9:2]}}),
+                .s_axi4s_tvalid (axi4s_dvi_fifo.tvalid),
+                .s_axi4s_tready (axi4s_dvi_fifo.tready),
                 
                 .in_vsync       (syncgen_vsync      ),
                 .in_hsync       (syncgen_hsync      ),
