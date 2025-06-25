@@ -715,7 +715,7 @@ module tang_mega_138k_pro_imx219_stereo
                 .DATA_BITS      (10         ),
                 .DEBUG          ("false"    )
             )
-        axi4s_dvigen
+        axi4s_raw
             (
                 .aresetn        (~dvi_reset ),
                 .aclk           (dvi_clk    ),
@@ -742,7 +742,7 @@ module tang_mega_138k_pro_imx219_stereo
                 .mem_addry      (gen_mem_y      ),
                 .mem_rdata      (gen_mem_rdata  ),
 
-                .m_axi4s        (axi4s_dvigen.m )
+                .m_axi4s        (axi4s_raw.m    )
             );
 
     assign mem0_port1_clk    = dvi_clk                                                  ;
@@ -769,10 +769,79 @@ module tang_mega_138k_pro_imx219_stereo
 
 
 
+    // RGB
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS      (10*4       ),
+                .DEBUG          ("false"    )
+            )
+        axi4s_rgb10
+            (
+                .aresetn        (~dvi_reset ),
+                .aclk           (dvi_clk    ),
+                .aclken         (1'b1       )
+            );
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS      (32         ),
+                .DATA_BITS      (32         )
+            )
+        axi4l_peri
+            (
+                .aresetn        (~sys_reset ),
+                .aclk           (sys_clk    ),
+                .aclken         (1'b1       )
+            );
+    
+    assign axi4l_peri.awvalid = 1'b0;
+    assign axi4l_peri.wvalid  = 1'b0;
+    assign axi4l_peri.bready  = 1'b0;
+    assign axi4l_peri.arvalid = 1'b0;
+    assign axi4l_peri.rready  = 1'b0;
+    
+    video_raw_to_rgb
+            #(
+                .WIDTH_BITS     (14                 ),
+                .HEIGHT_BITS    (12                 ),
+                .M_CH_DEPTH     (4                  ),
+                .DEVICE         ("RTL"              )
+            )
+        u_video_raw_to_rgb
+            (
+                .in_update_req  (1'b1               ),
+                .param_width    (14'd1280           ),
+                .param_height   (12'd720            ),
+
+                .s_axi4s        (axi4s_raw.s        ),
+                .m_axi4s        (axi4s_rgb10.m      ),
+                .s_axi4l        (axi4l_peri         )
+            );
+
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS      (24         ),
+                .DEBUG          ("false"    )
+            )
+        axi4s_rgb
+            (
+                .aresetn        (~dvi_reset ),
+                .aclk           (dvi_clk    ),
+                .aclken         (1'b1       )
+            );
+    
+    assign axi4s_rgb.tuser           = axi4s_rgb10.tuser;
+    assign axi4s_rgb.tlast           = axi4s_rgb10.tlast;
+    assign axi4s_rgb.tdata[0*8 +: 8] = axi4s_rgb10.tdata[0*10+2 +: 8];
+    assign axi4s_rgb.tdata[1*8 +: 8] = axi4s_rgb10.tdata[1*10+2 +: 8];
+    assign axi4s_rgb.tdata[2*8 +: 8] = axi4s_rgb10.tdata[2*10+2 +: 8];
+    assign axi4s_rgb.tvalid          = axi4s_rgb10.tvalid;
+    assign axi4s_rgb10.tready = axi4s_rgb.tready;
+
     // FIFO
     jelly3_axi4s_if
             #(
-                .DATA_BITS      (10         ),
+                .DATA_BITS      (24         ),
                 .DEBUG          ("false"    )
             )
         axi4s_dvi_fifo
@@ -794,7 +863,7 @@ module tang_mega_138k_pro_imx219_stereo
             )
         u_axi4s_fifo
             (
-                .s_axi4s        (axi4s_dvigen.s     ),
+                .s_axi4s        (axi4s_rgb.s        ),
                 .m_axi4s        (axi4s_dvi_fifo.m   ),
                 .s_free_count   (                   ),
                 .m_data_count   (                   )
@@ -816,7 +885,8 @@ module tang_mega_138k_pro_imx219_stereo
                 
                 .s_axi4s_tuser  (axi4s_dvi_fifo.tuser ),
                 .s_axi4s_tlast  (axi4s_dvi_fifo.tlast ),
-                .s_axi4s_tdata  ({3{axi4s_dvi_fifo.tdata[9:2]}}),
+//              .s_axi4s_tdata  ({3{axi4s_dvi_fifo.tdata[9:2]}}),
+                .s_axi4s_tdata  (axi4s_dvi_fifo.tdata),
                 .s_axi4s_tvalid (axi4s_dvi_fifo.tvalid),
                 .s_axi4s_tready (axi4s_dvi_fifo.tready),
                 
