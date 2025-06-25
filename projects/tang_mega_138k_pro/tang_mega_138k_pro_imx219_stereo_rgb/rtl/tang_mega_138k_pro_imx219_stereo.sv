@@ -643,18 +643,6 @@ module tang_mega_138k_pro_imx219_stereo
         mem0_port0_din    <= cam0_pixel[9:0]                                    ;
     end
 
-
-    /*
-    assign mem0_port0_clk = cam_clk;
-    always_ff @(posedge cam_clk) begin
-        mem0_port0_en     <= cam0_rgb_valid                             ;
-        mem0_port0_regcke <= 1'b1                                       ;
-        mem0_port0_we     <= (cam0_rgb_x < MEM_X_SIZE) && (cam0_rgb_y < MEM_Y_SIZE)   ;
-        mem0_port0_addr   <= {cam0_rgb_y[6:0], cam0_rgb_x[6:0]}         ;
-        mem0_port0_din    <= {cam0_rgb_pix[2][9:2], cam0_rgb_pix[1][9:2], cam0_rgb_pix[0][9:2]};
-    end
-    */
-
     logic           cam1_lv_prev;
     logic   [13:0]  cam1_y;
     logic   [13:0]  cam1_x;
@@ -763,7 +751,32 @@ module tang_mega_138k_pro_imx219_stereo
     assign mem0_port1_we     = 1'b0                                                     ;
     assign mem0_port1_addr   = {gen_mem_y[MEM_X_BITS-1:0], gen_mem_x[MEM_X_BITS-1:0]}   ;
     assign mem0_port1_din    = '0                                                       ;
-    assign gen_mem_rdata     = mem0_port1_dout                                          ;
+
+    assign mem1_port1_clk    = dvi_clk                                                  ;
+    assign mem1_port1_en     = gen_mem_en                                               ;
+    assign mem1_port1_regcke = gen_mem_en                                               ;
+    assign mem1_port1_we     = 1'b0                                                     ;
+    assign mem1_port1_addr   = {gen_mem_y[MEM_X_BITS-1:0], gen_mem_x[MEM_X_BITS-1:0]}   ;
+    assign mem1_port1_din    = '0                                                       ;
+
+    logic   [1:0]   mem_sel;
+    always_ff @(posedge dvi_clk) begin
+        mem_sel[0] <= gen_mem_x[MEM_X_BITS];
+        mem_sel[1] <= mem_sel[0];
+    end
+    
+    assign gen_mem_rdata     = mem_sel[1] ? mem1_port1_dout : mem0_port1_dout;
+
+
+    /*
+    assign mem1_port1_clk    = dvi_clk                            ;
+    assign mem1_port1_en     = 1'b1                               ;
+    assign mem1_port1_regcke = 1'b1                               ;
+    assign mem1_port1_we     = 1'b0                               ;
+    assign mem1_port1_addr   = {syncgen_y[6:0], syncgen_x[6:0]}   ;
+    assign mem1_port1_din    = '0                                 ;
+    */
+
 
 
     logic           dvitx_vsync ;
@@ -799,60 +812,6 @@ module tang_mega_138k_pro_imx219_stereo
             );
 
 
-    // 適当にパターンを作る
-    logic       prev_de     ;
-    dvi_h_t     syncgen_x   ;
-    dvi_v_t     syncgen_y   ;
-    always_ff @(posedge dvi_clk) begin
-        prev_de <= syncgen_de;
-        if ( syncgen_vsync == 1'b1 ) begin
-            syncgen_y <= 0;
-        end
-        else if ( {prev_de, syncgen_de} == 2'b10 ) begin
-            syncgen_y <= syncgen_y + 1;
-        end
-
-        if ( syncgen_hsync == 1'b1 ) begin
-            syncgen_x <= 0;
-        end
-        else if ( syncgen_de ) begin
-            syncgen_x <= syncgen_x + 1;
-        end
-    end
-    
-    logic   [7:0]   xy;
-    assign xy  = 8'(syncgen_x + syncgen_y);
-    logic   [23:0]  syncgen_rgb;
-    assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
-
-/*
-    assign mem0_port1_clk    = dvi_clk                            ;
-    assign mem0_port1_en     = 1'b1                               ;
-    assign mem0_port1_regcke = 1'b1                               ;
-    assign mem0_port1_we     = 1'b0                               ;
-    assign mem0_port1_addr   = {syncgen_y[6:0], syncgen_x[6:0]}   ;
-    assign mem0_port1_din    = '0                                 ;
-*/
-    assign mem1_port1_clk    = dvi_clk                            ;
-    assign mem1_port1_en     = 1'b1                               ;
-    assign mem1_port1_regcke = 1'b1                               ;
-    assign mem1_port1_we     = 1'b0                               ;
-    assign mem1_port1_addr   = {syncgen_y[6:0], syncgen_x[6:0]}   ;
-    assign mem1_port1_din    = '0                                 ;
-
-
-    logic   [1:0]   syncgen_vsync_ff;
-    logic   [1:0]   syncgen_hsync_ff;
-    logic   [1:0]   syncgen_de_ff   ;
-    logic   [1:0]   syncgen_sel_ff  ;
-    always_ff @(posedge dvi_clk) begin
-        syncgen_vsync_ff <= {syncgen_vsync_ff[0:0], syncgen_vsync};
-        syncgen_hsync_ff <= {syncgen_hsync_ff[0:0], syncgen_hsync};
-        syncgen_de_ff    <= {syncgen_de_ff   [0:0], syncgen_de   };
-        syncgen_sel_ff   <= {syncgen_sel_ff  [0:0], syncgen_x[7] };
-    end
-
-
     // DVI TX
     dvi_tx
         u_dvi_tx
@@ -860,18 +819,6 @@ module tang_mega_138k_pro_imx219_stereo
                 .reset          (dvi_reset      ),
                 .clk            (dvi_clk        ),
                 .clk_x5         (dvi_clk_x5     ),
-
-                /*
-                .in_vsync       (syncgen_vsync_ff[1]  ),
-                .in_hsync       (syncgen_hsync_ff[1]  ),
-                .in_de          (syncgen_de_ff   [1]  ),
-//              .in_data        (syncgen_rgb    ),
-//              .in_data        (syncgen_sel_ff[1] ? {3{mem0_port1_dout}} : {3{mem1_port1_dout}}),
-                .in_data        (syncgen_sel_ff[1] ? {3{mem0_port1_dout[9:2]}} : {3{mem1_port1_dout[9:2]}}),
-//              .in_data        (syncgen_sel_ff[1] ? mem0_port1_dout : {3{mem1_port1_dout[9:2]}}),
-//              .in_data        (syncgen_sel_ff[1] ? mem0_port1_dout : {3{mem1_port1_dout}}),
-                .in_ctl         ('0             ),
-                */
 
                 .in_vsync       (dvitx_vsync    ),
                 .in_hsync       (dvitx_hsync    ),
@@ -899,11 +846,6 @@ module tang_mega_138k_pro_imx219_stereo
             counter <= counter + 1;
         end
     end
-
-//    logic   [24:0]  mipi0_dphy_counter = '0;
-//    always_ff @(posedge mipi0_dphy_rx_clk) begin
-//        mipi0_dphy_counter <= mipi0_dphy_counter + 1;
-//    end
 
 
     logic   [25:0]  dvi_clk1_counter = '0;
