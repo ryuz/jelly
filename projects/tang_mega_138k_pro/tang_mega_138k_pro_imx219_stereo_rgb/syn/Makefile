@@ -20,6 +20,7 @@ VLOG_SOURCES  = $(RTL_DIR)/tang_mega_138k_pro_imx219_stereo.sv
 VLOG_SOURCES += $(RTL_DIR)/jfive_simple_controller.sv
 VLOG_SOURCES += $(RTL_DIR)/imx219_mipi_rx.sv
 VLOG_SOURCES += $(RTL_DIR)/video_raw_to_rgb.sv
+VLOG_SOURCES += $(RTL_DIR)/axi4s_generate.sv
 VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
 VLOG_SOURCES += $(RTL_DIR)/pll_init.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll.v
@@ -51,6 +52,7 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c_core.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vsync_generator_core.v
+VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vout_axi4s.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_dvi_tx_encode.v
 
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/bus/jelly3_axi4s_if.sv
