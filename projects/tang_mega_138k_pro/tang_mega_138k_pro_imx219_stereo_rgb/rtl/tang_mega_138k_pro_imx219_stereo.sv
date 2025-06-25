@@ -521,11 +521,12 @@ module tang_mega_138k_pro_imx219_stereo
     //  RAM
     // ---------------------------------
 
-    localparam  int     MEM_X_SIZE    = 128;
-    localparam  int     MEM_Y_SIZE    = 128;
+    localparam  int     MEM_X_SIZE    = 256;
+    localparam  int     MEM_Y_SIZE    = 256;
     localparam  int     MEM_X_BITS    = $clog2(MEM_X_SIZE);
     localparam  int     MEM_Y_BITS    = $clog2(MEM_Y_SIZE);
-    localparam  int     MEM_ADDR_BITS = MEM_Y_BITS + MEM_Y_BITS;
+    localparam  int     MEM_ADDR_BITS = MEM_Y_BITS + MEM_X_BITS;
+    localparam  type    mem_addr_t    = logic [MEM_ADDR_BITS-1:0];
 
 
     // Memory 0
@@ -533,7 +534,7 @@ module tang_mega_138k_pro_imx219_stereo
     logic               mem0_port0_en     ;
     logic               mem0_port0_regcke ;
     logic               mem0_port0_we     ;
-    logic   [13:0]      mem0_port0_addr   ;
+    mem_addr_t          mem0_port0_addr   ;
     logic   [9:0]       mem0_port0_din    ;
     logic   [9:0]       mem0_port0_dout   ;
 
@@ -541,7 +542,7 @@ module tang_mega_138k_pro_imx219_stereo
     logic               mem0_port1_en     ;
     logic               mem0_port1_regcke ;
     logic               mem0_port1_we     ;
-    logic   [13:0]      mem0_port1_addr   ;
+    mem_addr_t          mem0_port1_addr   ;
     logic   [9:0]       mem0_port1_din    ;
     logic   [9:0]       mem0_port1_dout   ;
 
@@ -579,7 +580,7 @@ module tang_mega_138k_pro_imx219_stereo
     logic               mem1_port0_en     ;
     logic               mem1_port0_regcke ;
     logic               mem1_port0_we     ;
-    logic   [13:0]      mem1_port0_addr   ;
+    mem_addr_t          mem1_port0_addr   ;
     logic   [9:0]       mem1_port0_din    ;
     logic   [9:0]       mem1_port0_dout   ;
 
@@ -587,7 +588,7 @@ module tang_mega_138k_pro_imx219_stereo
     logic               mem1_port1_en     ;
     logic               mem1_port1_regcke ;
     logic               mem1_port1_we     ;
-    logic   [13:0]      mem1_port1_addr   ;
+    mem_addr_t          mem1_port1_addr   ;
     logic   [9:0]       mem1_port1_din    ;
     logic   [9:0]       mem1_port1_dout   ;
 
