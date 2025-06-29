@@ -46,19 +46,22 @@ module tang_mega_138k_pro_imx219_stereo
     //  parameters
     // ---------------------------------
 
-    localparam  int     CAM_WIDTH  = 1280                   ;
-    localparam  int     CAM_HEIGHT = 720                    ;
-    localparam  int     CAM_H_BITS = $clog2(CAM_WIDTH )     ;
-    localparam  int     CAM_V_BITS = $clog2(CAM_HEIGHT)     ;
+    localparam  int     CAM_H_BITS = 14                     ;
+    localparam  int     CAM_V_BITS = 13                     ;
     localparam  type    cam_h_t    = logic [CAM_H_BITS-1:0] ;
     localparam  type    cam_v_t    = logic [CAM_V_BITS-1:0] ;
+    localparam  cam_h_t CAM_WIDTH  = 1280                   ;
+    localparam  cam_v_t CAM_HEIGHT = 720                    ;
 
-    localparam  int     DVI_WIDTH  = 1280                   ;
-    localparam  int     DVI_HEIGHT = 720                    ;
-    localparam  int     DVI_H_BITS = $clog2(DVI_WIDTH )     ;
-    localparam  int     DVI_V_BITS = $clog2(DVI_HEIGHT)     ;
+
+    localparam  int     DVI_H_BITS = 13                     ;
+    localparam  int     DVI_V_BITS = 12                     ;
     localparam  type    dvi_h_t    = logic [DVI_H_BITS-1:0] ;
     localparam  type    dvi_v_t    = logic [DVI_V_BITS-1:0] ;
+    localparam  int     DVI_WIDTH  = 1280                   ;
+    localparam  int     DVI_HEIGHT = 720                    ;
+//    localparam  dvi_h_t DVI_WIDTH  = 640                    ;
+//    localparam  dvi_v_t DVI_HEIGHT = 480                    ;
 
 
     // ---------------------------------
@@ -110,15 +113,28 @@ module tang_mega_138k_pro_imx219_stereo
     logic   dvi_clk     ;
     logic   dvi_clk_x5  ;
     logic   dvi_lock    ;
-    Gowin_PLL_dvi
-        u_Gowin_PLL_dvi
-            (
-                .init_clk           (in_clk50               ),
-                .clkin              (in_clk50               ),
-                .clkout0            (dvi_clk                ),
-                .clkout1            (dvi_clk_x5             ),
-                .lock               (dvi_lock               )
-            );
+    if ( DVI_HEIGHT == 720 ) begin : pll_dvi_720p
+        Gowin_PLL_dvi_720p
+            u_Gowin_PLL_dvi
+                (
+                    .init_clk           (in_clk50               ),
+                    .clkin              (in_clk50               ),
+                    .clkout0            (dvi_clk                ),
+                    .clkout1            (dvi_clk_x5             ),
+                    .lock               (dvi_lock               )
+                );
+    end
+    else begin : pll_dvi_vga
+        Gowin_PLL_dvi_vga
+            u_Gowin_PLL_dvi
+                (
+                    .init_clk           (in_clk50               ),
+                    .clkin              (in_clk50               ),
+                    .clkout0            (dvi_clk                ),
+                    .clkout1            (dvi_clk_x5             ),
+                    .lock               (dvi_lock               )
+                );
+    end
 
     logic   dvi_reset;
     jelly_reset
@@ -442,79 +458,6 @@ module tang_mega_138k_pro_imx219_stereo
         axi4s_cam0_src.tvalid <= cam0_ff_lv && cam0_ff_fv   ;
     end
 
-    /*
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS      (10*4       ),
-                .DEBUG          ("false"    )
-            )
-        axi4s_cam0_rgb
-            (
-                .aresetn        (~cam_reset ),
-                .aclk           (cam_clk    ),
-                .aclken         (1'b1       )
-            );
-
-    jelly3_axi4l_if
-            #(
-                .ADDR_BITS      (32         ),
-                .DATA_BITS      (32         )
-            )
-        axi4l_peri
-            (
-                .aresetn        (~sys_reset ),
-                .aclk           (sys_clk    ),
-                .aclken         (1'b1       )
-            );
-    
-    assign axi4l_peri.awvalid = 1'b0;
-    assign axi4l_peri.wvalid  = 1'b0;
-    assign axi4l_peri.bready  = 1'b0;
-    assign axi4l_peri.arvalid = 1'b0;
-    assign axi4l_peri.rready  = 1'b0;
-    
-    video_raw_to_rgb
-            #(
-                .WIDTH_BITS     (14                 ),
-                .HEIGHT_BITS    (12                 ),
-                .M_CH_DEPTH     (4                  ),
-                .DEVICE         ("RTL"              )
-            )
-        u_video_raw_to_rgb
-            (
-                .in_update_req  (1'b1               ),
-                .param_width    (14'd1280           ),
-                .param_height   (12'd720            ),
-
-                .s_axi4s        (axi4s_cam0_src.s   ),
-                .m_axi4s        (axi4s_cam0_rgb.m   ),
-                .s_axi4l        (axi4l_peri         )
-            );
-    
-    assign axi4s_cam0_rgb.tready = 1'b1;
-
-    logic               cam0_rgb_last   ;
-    logic   [13:0]      cam0_rgb_x      ;
-    logic   [11:0]      cam0_rgb_y      ;
-    logic   [2:0][9:0]  cam0_rgb_pix    ;
-    logic               cam0_rgb_valid  ;
-
-    always_ff @(posedge cam_clk) begin
-        cam0_rgb_last   <= axi4s_cam0_rgb.tlast;
-        cam0_rgb_pix[0] <= axi4s_cam0_rgb.tdata[0*10 +: 10];
-        cam0_rgb_pix[1] <= axi4s_cam0_rgb.tdata[1*10 +: 10];
-        cam0_rgb_pix[2] <= axi4s_cam0_rgb.tdata[2*10 +: 10];
-        cam0_rgb_valid  <= axi4s_cam0_rgb.tvalid;
-        cam0_rgb_x      <= cam0_rgb_x + cam0_rgb_valid;
-        if ( cam0_rgb_valid && cam0_rgb_last ) begin
-            cam0_rgb_x <= '0            ;
-            cam0_rgb_y <= cam0_rgb_y + 1;
-        end
-        if ( axi4s_cam0_rgb.tvalid && axi4s_cam0_rgb.tuser[0] ) begin
-            cam0_rgb_y <= '0  ;
-        end
-    end
-    */
 
 
     // ---------------------------------
@@ -621,9 +564,9 @@ module tang_mega_138k_pro_imx219_stereo
                 .port1_dout     (mem1_port1_dout      )
             );
 
-    logic           cam0_lv_prev;
-    logic   [13:0]  cam0_y;
-    logic   [13:0]  cam0_x;
+    logic       cam0_lv_prev;
+    cam_v_t     cam0_y;
+    cam_h_t     cam0_x;
     always_ff @(posedge cam_clk) begin
         cam0_lv_prev <= cam0_lv;
         if ( cam0_fv == 1'b0 ) begin
@@ -639,7 +582,7 @@ module tang_mega_138k_pro_imx219_stereo
     always_ff @(posedge cam_clk) begin
         mem0_port0_en     <= cam0_lv                                            ;
         mem0_port0_regcke <= 1'b1                                               ;
-        mem0_port0_we     <= (cam0_x < MEM_X_SIZE) && (cam0_y < MEM_Y_SIZE)     ;
+        mem0_port0_we     <= (cam0_x < cam_h_t'(MEM_X_SIZE)) && (cam0_y < cam_v_t'(MEM_Y_SIZE));
         mem0_port0_addr   <= {cam0_y[MEM_Y_BITS-1:0], cam0_x[MEM_X_BITS-1:0]}   ;
         mem0_port0_din    <= cam0_pixel[9:0]                                    ;
     end
@@ -674,39 +617,84 @@ module tang_mega_138k_pro_imx219_stereo
     //  DVI output
     // ---------------------------------
 
+    dvi_h_t     vsync_param_htotal      ;
+    dvi_h_t     vsync_param_hdisp_start ;
+    dvi_h_t     vsync_param_hdisp_end   ;
+    dvi_h_t     vsync_param_hsync_start ;
+    dvi_h_t     vsync_param_hsync_end   ;
+    logic       vsync_param_hsync_pol   ;
+    dvi_v_t     vsync_param_vtotal      ;
+    dvi_v_t     vsync_param_vdisp_start ;
+    dvi_v_t     vsync_param_vdisp_end   ;
+    dvi_v_t     vsync_param_vsync_start ;
+    dvi_v_t     vsync_param_vsync_end   ;
+    logic       vsync_param_vsync_pol   ;
+
+    always_comb begin
+        if ( DVI_HEIGHT == 720 ) begin
+            vsync_param_htotal      = dvi_h_t'(1650);
+            vsync_param_hdisp_start = dvi_h_t'(   0);
+            vsync_param_hdisp_end   = dvi_h_t'(1280);
+            vsync_param_hsync_start = dvi_h_t'(1390);
+            vsync_param_hsync_end   = dvi_h_t'(1430);
+            vsync_param_hsync_pol   = 1'b1    ;
+            vsync_param_vtotal      = dvi_v_t'( 750);
+            vsync_param_vdisp_start = dvi_v_t'(   0);
+            vsync_param_vdisp_end   = dvi_v_t'( 720);
+            vsync_param_vsync_start = dvi_v_t'( 725);
+            vsync_param_vsync_end   = dvi_v_t'( 730);
+            vsync_param_vsync_pol   = 1'b1    ;
+        end
+       else begin
+            vsync_param_htotal      = dvi_h_t'(96 + 16 + 640 + 48);
+            vsync_param_hdisp_start = dvi_h_t'(96 + 16           );
+            vsync_param_hdisp_end   = dvi_h_t'(96 + 16 + 640     );
+            vsync_param_hsync_start = dvi_h_t'(0                 );
+            vsync_param_hsync_end   = dvi_h_t'(96                );
+            vsync_param_hsync_pol   = 1'b0;
+            vsync_param_vtotal      = dvi_v_t'(2 + 10 + 480 + 33 );
+            vsync_param_vdisp_start = dvi_v_t'(2 + 10            );
+            vsync_param_vdisp_end   = dvi_v_t'(2 + 10 + 480      );
+            vsync_param_vsync_start = dvi_v_t'(0                 );
+            vsync_param_vsync_end   = dvi_v_t'(2                 );
+            vsync_param_vsync_pol   = 1'b0;
+       end
+    end
+
+
     // generate video sync
     logic                           syncgen_vsync;
     logic                           syncgen_hsync;
     logic                           syncgen_de;
     jelly_vsync_generator_core
             #(
-                .H_COUNTER_WIDTH    (DVI_H_BITS     ),
-                .V_COUNTER_WIDTH    (DVI_V_BITS     )
+                .H_COUNTER_WIDTH    (DVI_H_BITS             ),
+                .V_COUNTER_WIDTH    (DVI_V_BITS             )
             )
         u_vsync_generator_core
             (
-                .reset              (dvi_reset      ),
-                .clk                (dvi_clk        ),
+                .reset              (dvi_reset              ),
+                .clk                (dvi_clk                ),
                 
-                .ctl_enable         (1'b1           ),
-                .ctl_busy           (               ),
+                .ctl_enable         (1'b1                   ),
+                .ctl_busy           (                       ),
                 
-                .param_htotal       (11'd1650       ),
-                .param_hdisp_start  (11'd0          ),
-                .param_hdisp_end    (11'd1280       ),
-                .param_hsync_start  (11'd1390       ),
-                .param_hsync_end    (11'd1430       ),
-                .param_hsync_pol    (1'b1           ),
-                .param_vtotal       (10'd750        ),
-                .param_vdisp_start  (10'd0          ),
-                .param_vdisp_end    (10'd720        ),
-                .param_vsync_start  (10'd725        ),
-                .param_vsync_end    (10'd730        ),
-                .param_vsync_pol    (1'b1           ),
-                
-                .out_vsync          (syncgen_vsync  ),
-                .out_hsync          (syncgen_hsync  ),
-                .out_de             (syncgen_de     )
+                .param_htotal       (vsync_param_htotal     ),
+                .param_hdisp_start  (vsync_param_hdisp_start),
+                .param_hdisp_end    (vsync_param_hdisp_end  ),
+                .param_hsync_start  (vsync_param_hsync_start),
+                .param_hsync_end    (vsync_param_hsync_end  ),
+                .param_hsync_pol    (vsync_param_hsync_pol  ),
+                .param_vtotal       (vsync_param_vtotal     ),
+                .param_vdisp_start  (vsync_param_vdisp_start),
+                .param_vdisp_end    (vsync_param_vdisp_end  ),
+                .param_vsync_start  (vsync_param_vsync_start),
+                .param_vsync_end    (vsync_param_vsync_end  ),
+                .param_vsync_pol    (vsync_param_vsync_pol  ),
+
+                .out_vsync          (syncgen_vsync          ),
+                .out_hsync          (syncgen_hsync          ),
+                .out_de             (syncgen_de             )
         );
 
 
@@ -723,20 +711,20 @@ module tang_mega_138k_pro_imx219_stereo
                 .aclken         (1'b1       )
             );
 
-    logic            gen_mem_en;
-    logic   [13:0]   gen_mem_x;
-    logic   [13:0]   gen_mem_y;
-    logic   [9:0]    gen_mem_rdata;
+    logic           gen_mem_en;
+    dvi_h_t         gen_mem_x;
+    dvi_v_t         gen_mem_y;
+    logic   [9:0]   gen_mem_rdata;
     axi4s_generate
             #(
-                .X_BITS         (14             ),
-                .Y_BITS         (14             ),
+                .X_BITS         (DVI_H_BITS     ),
+                .Y_BITS         (DVI_V_BITS     ),
                 .DATA_BITS      (10             )
             )
         u_axi4s_generate
             (
-                .param_width    (14'd1280       ),
-                .param_height   (14'd720        ),
+                .param_width    (DVI_WIDTH      ),
+                .param_height   (DVI_HEIGHT     ),
                 
                 .mem_en         (gen_mem_en     ),
                 .mem_addrx      (gen_mem_x      ),
@@ -803,16 +791,16 @@ module tang_mega_138k_pro_imx219_stereo
     
     video_raw_to_rgb
             #(
-                .WIDTH_BITS     (14                 ),
-                .HEIGHT_BITS    (12                 ),
+                .WIDTH_BITS     (DVI_H_BITS         ),
+                .HEIGHT_BITS    (DVI_V_BITS         ),
                 .M_CH_DEPTH     (4                  ),
                 .DEVICE         ("RTL"              )
             )
         u_video_raw_to_rgb
             (
                 .in_update_req  (1'b1               ),
-                .param_width    (14'd1280           ),
-                .param_height   (12'd720            ),
+                .param_width    (DVI_WIDTH          ),
+                .param_height   (DVI_HEIGHT         ),
 
                 .s_axi4s        (axi4s_raw.s        ),
                 .m_axi4s        (axi4s_rgb10.m      ),

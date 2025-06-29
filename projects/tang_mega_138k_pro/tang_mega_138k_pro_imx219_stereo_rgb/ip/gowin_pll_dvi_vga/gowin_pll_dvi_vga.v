@@ -1,4 +1,4 @@
-module Gowin_PLL_dvi(
+module Gowin_PLL_dvi_vga(
     clkin,
     init_clk,
     clkout0,
@@ -18,7 +18,7 @@ wire pll_lock;
 wire pll_rst;
 
 
-    Gowin_PLL_dvi_MOD u_pll(
+    Gowin_PLL_dvi_vga_MOD u_pll(
         .clkout1(clkout1),
         .clkout0(clkout0),
         .lock(pll_lock),

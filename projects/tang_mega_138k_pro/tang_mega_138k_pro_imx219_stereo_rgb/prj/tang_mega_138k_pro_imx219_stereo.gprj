@@ -10,6 +10,10 @@
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/ip/gowin_pll/gowin_pll_mod.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/ip/gowin_pll_dvi/gowin_pll_dvi.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/ip/gowin_pll_dvi/gowin_pll_dvi_mod.v" type="file.verilog" enable="1"/>
+        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/ip/gowin_pll_dvi_720p/gowin_pll_dvi_720p.v" type="file.verilog" enable="1"/>
+        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/ip/gowin_pll_dvi_720p/gowin_pll_dvi_720p_mod.v" type="file.verilog" enable="1"/>
+        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/ip/gowin_pll_dvi_vga/gowin_pll_dvi_vga.v" type="file.verilog" enable="1"/>
+        <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/ip/gowin_pll_dvi_vga/gowin_pll_dvi_vga_mod.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/ip/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v" type="file.verilog" enable="1"/>
         <File path="//wsl.localhost/Ubuntu-20/home/ryuji/git-work/jelly_gowin/projects/tang_mega_138k_pro/tang_mega_138k_pro_imx219_stereo_rgb/ip/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v" type="file.verilog" enable="1"/>
         <File path="src/pll_init.v" type="file.verilog" enable="1"/>
