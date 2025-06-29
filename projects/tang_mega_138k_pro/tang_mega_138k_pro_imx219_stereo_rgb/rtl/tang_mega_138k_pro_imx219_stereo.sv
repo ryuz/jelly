@@ -58,10 +58,10 @@ module tang_mega_138k_pro_imx219_stereo
     localparam  int     DVI_V_BITS = 12                     ;
     localparam  type    dvi_h_t    = logic [DVI_H_BITS-1:0] ;
     localparam  type    dvi_v_t    = logic [DVI_V_BITS-1:0] ;
-    localparam  int     DVI_WIDTH  = 1280                   ;
-    localparam  int     DVI_HEIGHT = 720                    ;
-//    localparam  dvi_h_t DVI_WIDTH  = 640                    ;
-//    localparam  dvi_v_t DVI_HEIGHT = 480                    ;
+//  localparam  int     DVI_WIDTH  = 1280                   ;
+//  localparam  int     DVI_HEIGHT = 720                    ;
+    localparam  dvi_h_t DVI_WIDTH  = 640                    ;
+    localparam  dvi_v_t DVI_HEIGHT = 480                    ;
 
 
     // ---------------------------------
