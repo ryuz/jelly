@@ -33,7 +33,7 @@ chmod +x などのコマンドで実行権限を与えてパスの通ったと�
 
 ```bash
 #!/usr/bin/bash
-/mnt/c/Gowin/Gowin_V1.9.11.01_x64/IDE/bin/gw_sh.exe $@
+/mnt/c/Gowin/Gowin_V1.9.11.02_SP1_x64/IDE/bin/gw_sh.exe $@
 ```
 
 ### openFPGALoader
