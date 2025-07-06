@@ -1,14 +1,14 @@
-# Tang Mega 138K Pro の IMX219 カメラお試し
+# Tang Mega 138K Pro の IMX219 ステレオカメラお試し
 
 
 ## 概要
 
 コマンドラインから [Tang Mega 138K Pro Dock](https://wiki.sipeed.com/hardware/en/tang/tang-mega-138k/mega-138k-pro.html) で
-IMX219 MIPIカメラを動かす検証中のものです。
+IMX219 MIPIカメラを2つ動かす検証中のものです。
 
 こちら[https://github.com/ryuz/imx219_mipi24_sipeed]の変換基板を利用しています。
 
-カメラは J15 コネクタにフレキの向きなどに注意して取り付けてください。
+カメラは J15 と J16 のコネクタにフレキの向きなどに注意して取り付けてください。
 
 自家製 RISC-Vコア で Rust を利用しているのでそれらの事前インストールも必要です。
 
@@ -19,7 +19,7 @@ RISC-V 用 Rust のセットアップについては [こちら](/projects/kv260
 
 ## 環境
 
-私は Windows 版の Gowin EDA を、WSL2 から利用しています。バージョンは Gowin_V1.9.11.01 を利用しています。
+私は Windows 版の Gowin EDA を、WSL2 から利用しています。バージョンは Gowin_V1.9.11.02_SP1 を利用しています。
 
 焼き込みには Windows版の [openFPGALoader](https://github.com/trabucayre/openFPGALoader) を利用させて頂いています。
 
@@ -70,3 +70,4 @@ make run
 
 で、ダウンロード実行します。
 
+## 動作結果

@@ -101,7 +101,7 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
 
         // 設定
         let frame_rate: f64 = 30.0;
-        let exposure: f64 = 0.015;
+        let exposure: f64 = 0.030;
         let a_gain: f64 = 20.0;
         let d_gain: f64 = 0.0;
         let flip_h: bool = false;

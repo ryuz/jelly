@@ -183,10 +183,14 @@ module video_raw_to_rgb
                 .COEFF_Q            (12                     ),
                 .INIT_CTL_CONTROL   (2'b01                  ),
                 .INIT_PARAM_PHASE   (2'b00                  ),
-                .INIT_PARAM_OFFSET0 ('0                     ),
-                .INIT_PARAM_OFFSET1 ('0                     ),
-                .INIT_PARAM_OFFSET2 ('0                     ),
-                .INIT_PARAM_OFFSET3 ('0                     ) 
+                .INIT_PARAM_OFFSET0 (66                     ),
+                .INIT_PARAM_OFFSET1 (66                     ),
+                .INIT_PARAM_OFFSET2 (66                     ),
+                .INIT_PARAM_OFFSET3 (66                     ),
+                .INIT_PARAM_COEFF0  (4620                   ),
+                .INIT_PARAM_COEFF1  (4096                   ),
+                .INIT_PARAM_COEFF2  (4096                   ),
+                .INIT_PARAM_COEFF3  (10428                  ) 
             )
         u_img_bayer_white_balance
             (
