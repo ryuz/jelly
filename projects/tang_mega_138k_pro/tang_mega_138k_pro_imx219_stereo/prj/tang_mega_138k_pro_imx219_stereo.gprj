@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project>
+    <Template>FPGA</Template>
+    <Version>5</Version>
+    <Device name="GW5AST-138B" pn="GW5AST-LV138FPG676AES">gw5ast138b-002</Device>
+    <FileList>
+        <File path="../ip/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v" type="file.verilog" enable="1" />
+        <File path="../ip/gowin_pll/gowin_pll.v" type="file.verilog" enable="1" />
+        <File path="../ip/gowin_pll/gowin_pll_mod.v" type="file.verilog" enable="1" />
+        <File path="../ip/gowin_pll_dvi/gowin_pll_dvi.v" type="file.verilog" enable="1" />
+        <File path="../ip/gowin_pll_dvi/gowin_pll_dvi_mod.v" type="file.verilog" enable="1" />
+        <File path="../ip/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v" type="file.verilog" enable="1" />
+        <File path="../ip/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v" type="file.verilog" enable="1" />
+        <File path="src/pll_init.v" type="file.verilog" enable="1" />
+        <File path="../rtl/clkgen_clkdiv.sv" type="file.verilog" enable="1" />
+        <File path="../rtl/dvi_tx.sv" type="file.verilog" enable="1" />
+        <File path="../rtl/imx219_mipi_rx.sv" type="file.verilog" enable="1" />
+        <File path="../rtl/jfive_simple_controller.sv" type="file.verilog" enable="1" />
+        <File path="../rtl/tang_mega_138k_pro_imx219_stereo.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v1/library/jelly_pipeline_control.v" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v1/library/jelly_pipeline_insert_ff.v" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v1/library/jelly_reset.v" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v1/peripheral/jelly_i2c.v" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v1/peripheral/jelly_i2c_core.v" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v1/video/jelly_dvi_tx_encode.v" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v1/video/jelly_vsync_generator_core.v" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/jfive/jelly2_jfive_simple_core.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/jfive/jelly2_register_file.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/jfive/jelly2_register_file_ram.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/jfive/jelly2_register_file_ram32x1d.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/library/jelly2_fifo.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/library/jelly2_fifo_fwtf.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/library/jelly2_fifo_generic_fwtf.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/library/jelly2_fifo_ram.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/library/jelly2_fifo_read_fwtf.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/library/jelly2_ram_dualport.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/library/jelly2_ram_simple_dualport.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/peripheral/jelly2_uart.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/peripheral/jelly2_uart_core.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/peripheral/jelly2_uart_rx.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/peripheral/jelly2_uart_tx.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v2/primitive/jelly2_ram32x1d.sv" type="file.verilog" enable="1" />
+        <File path="../syn/jfive_tcm/impl/gwsynthesis/jfive_tcm.vg" type="file.netlist" enable="1" />
+        <File path="../constrain/tang_mega_138k_pro_imx219_stereo.cst" type="file.cst" enable="1" />
+        <File path="../constrain/tang_mega_138k_pro_imx219_stereo.sdc" type="file.sdc" enable="1" />
+    </FileList>
+</Project>

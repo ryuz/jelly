@@ -1,7 +1,7 @@
 
 
 # setting
-TOP_MODULE = tb_video_format_regularizer
+TOP_MODULE = tb_dma_video_write
 
 JELLY_TOP_DIR = ../../../../..
 

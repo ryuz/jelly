@@ -20,25 +20,27 @@ module jelly2_fifo_shifter
             parameter   bit     DOUT_REGS  = 0
         )
         (
-            input   wire                        reset,
-            input   wire                        clk,
-            input   wire                        cke,
+            input   var logic                       reset,
+            input   var logic                       clk,
+            input   var logic                       cke,
             
-            input   wire                        wr_en,
-            input   wire    [DATA_WIDTH-1:0]    wr_data,
+            input   var logic                       wr_en,
+            input   var logic   [DATA_WIDTH-1:0]    wr_data,
             
-            input   wire                        rd_en,
-            input   wire                        rd_regcke,
-            output  wire    [DATA_WIDTH-1:0]    rd_data,
+            input   var logic                       rd_en,
+            input   var logic                       rd_regcke,
+            output  var logic   [DATA_WIDTH-1:0]    rd_data,
             
-            output  wire                        full,
-            output  wire                        empty,
-            output  wire    [PTR_WIDTH:0]       free_count,
-            output  wire    [PTR_WIDTH:0]       data_count
+            output  var logic                       full,
+            output  var logic                       empty,
+            output  var logic   [PTR_WIDTH:0]       free_count,
+            output  var logic   [PTR_WIDTH:0]       data_count
         );
     
-    wire                        write_en = (wr_en & ~full);
-    wire                        read_en  = (rd_en & ~empty);
+    logic                       write_en;
+    logic                       read_en ;
+    assign write_en = (wr_en & ~full);
+    assign read_en  = (rd_en & ~empty);
     
     // shifter
     logic   [PTR_WIDTH-1:0]     shifter_sel;
@@ -66,8 +68,9 @@ module jelly2_fifo_shifter
     logic   [PTR_WIDTH-1:0]     reg_ptr;
     logic                       reg_empty;
     logic                       reg_full;
-    
-    wire    [PTR_WIDTH:0]       next_ptr = {1'b0, reg_ptr} + PTR_WIDTH'(write_en) - PTR_WIDTH'(read_en);
+
+    logic   [PTR_WIDTH:0]       next_ptr;
+    assign next_ptr = {1'b0, reg_ptr} + PTR_WIDTH'(write_en) - PTR_WIDTH'(read_en);
     
     always_ff @(posedge clk) begin
         if ( reset ) begin

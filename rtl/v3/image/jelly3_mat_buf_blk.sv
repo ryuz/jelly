@@ -12,7 +12,7 @@
 
 module jelly3_mat_buf_blk
         #(
-            parameter   int     TAPS         = 1                        ,
+            parameter   int     TAPS         = 1                                ,
             parameter   int     ROWS_BITS    = 16                               ,
             parameter   type    rows_t       = logic [ROWS_BITS-1:0]            ,
             parameter   int     COLS_BITS    = 16                               ,
@@ -79,9 +79,16 @@ module jelly3_mat_buf_blk
     jelly3_mat_buf_row
             #(
                 .TAPS               (TAPS               ),
+                .ROWS_BITS          ($bits(rows_t)      ),
+                .rows_t             (rows_t             ),
+                .COLS_BITS          ($bits(cols_t)      ),
+                .cols_t             (cols_t             ),
                 .DE_BITS            ($bits(de_t)        ),
+                .de_t               (de_t               ),
                 .USER_BITS          ($bits(user_t)      ),
+                .user_t             (user_t             ),
                 .DATA_BITS          ($bits(data_t)      ),
+                .data_t             (data_t             ),
                 .ROWS               (ROWS               ),
                 .ANCHOR             (ROW_ANCHOR         ),
                 .MAX_COLS           (MAX_COLS           ),
@@ -137,6 +144,10 @@ module jelly3_mat_buf_blk
     jelly3_mat_buf_col
             #(
                 .TAPS               (TAPS                   ),
+                .ROWS_BITS          ($bits(rows_t)          ),
+                .rows_t             (rows_t                 ),
+                .COLS_BITS          ($bits(cols_t)          ),
+                .cols_t             (cols_t                 ),
                 .DE_BITS            ($bits(de_t)            ),
                 .USER_BITS          ($bits(user_t)          ),
                 .DATA_BITS          ($bits(data_t) * ROWS   ),
