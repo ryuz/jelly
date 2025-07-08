@@ -91,19 +91,19 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
         // camera 設定
         let pixel_clock: f64 = 91000000.0;
         let binning: bool = true;
-        let width: i32 = 1280;// / 2;
-        let height: i32 = 720;// / 2;
-        let aoi_x: i32 = -1;
-        let aoi_y: i32 = -1;
+        let width: i32  = 640;
+        let height: i32 = 480;
+        let aoi_x: i32  = -1;
+        let aoi_y: i32  = -1;
         imx219.set_pixel_clock(pixel_clock)?;
         imx219.set_aoi(width, height, aoi_x, aoi_y, binning, binning)?;
         imx219.start()?;
 
         // 設定
         let frame_rate: f64 = 30.0;
-        let exposure: f64 = 0.030;
+        let exposure: f64 = 0.032;
         let a_gain: f64 = 20.0;
-        let d_gain: f64 = 0.0;
+        let d_gain: f64 = 1.0;
         let flip_h: bool = false;
         let flip_v: bool = false;
         imx219.set_frame_rate(frame_rate)?;

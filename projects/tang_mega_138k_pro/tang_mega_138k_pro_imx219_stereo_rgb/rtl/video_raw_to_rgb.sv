@@ -181,7 +181,7 @@ module video_raw_to_rgb
                 .OFFSET_BITS        (S_CH_BITS              ),
                 .COEFF_BITS         (16                     ),
                 .COEFF_Q            (12                     ),
-                .INIT_CTL_CONTROL   (2'b01                  ),
+                .INIT_CTL_CONTROL   (2'b11                  ),
                 .INIT_PARAM_PHASE   (2'b00                  ),
                 .INIT_PARAM_OFFSET0 (66                     ),
                 .INIT_PARAM_OFFSET1 (66                     ),

@@ -50,8 +50,8 @@ module tang_mega_138k_pro_imx219_stereo
     localparam  int     CAM_V_BITS = 13                     ;
     localparam  type    cam_h_t    = logic [CAM_H_BITS-1:0] ;
     localparam  type    cam_v_t    = logic [CAM_V_BITS-1:0] ;
-    localparam  cam_h_t CAM_WIDTH  = 1280                   ;
-    localparam  cam_v_t CAM_HEIGHT = 720                    ;
+    localparam  cam_h_t CAM_WIDTH  = 640;//1280                   ;
+    localparam  cam_v_t CAM_HEIGHT = 480;//720                    ;
 
 
     localparam  int     DVI_H_BITS = 13                     ;
@@ -464,8 +464,8 @@ module tang_mega_138k_pro_imx219_stereo
     //  RAM
     // ---------------------------------
 
-    localparam  int     MEM_X_SIZE    = 256;
-    localparam  int     MEM_Y_SIZE    = 256;
+    localparam  cam_h_t MEM_X_SIZE    = 256;
+    localparam  cam_v_t MEM_Y_SIZE    = 256;
     localparam  int     MEM_X_BITS    = $clog2(MEM_X_SIZE);
     localparam  int     MEM_Y_BITS    = $clog2(MEM_Y_SIZE);
     localparam  int     MEM_ADDR_BITS = MEM_Y_BITS + MEM_X_BITS;
@@ -587,9 +587,9 @@ module tang_mega_138k_pro_imx219_stereo
         mem0_port0_din    <= cam0_pixel[9:0]                                    ;
     end
 
-    logic           cam1_lv_prev;
-    logic   [13:0]  cam1_y;
-    logic   [13:0]  cam1_x;
+    logic       cam1_lv_prev;
+    cam_v_t     cam1_y;
+    cam_h_t     cam1_x;
     always_ff @(posedge cam_clk) begin
         cam1_lv_prev <= cam1_lv;
         if ( cam1_fv == 1'b0 ) begin
@@ -734,28 +734,48 @@ module tang_mega_138k_pro_imx219_stereo
                 .m_axi4s        (axi4s_raw.m    )
             );
 
+    localparam DVI_CAM0_X    = ((DVI_WIDTH / 2) - dvi_h_t'(MEM_X_SIZE)) / 2;
+    localparam DVI_CAM0_Y    = (DVI_HEIGHT      - dvi_v_t'(MEM_Y_SIZE)) / 2;
+    localparam DVI_CAM1_X    = ((DVI_WIDTH / 2) - dvi_h_t'(MEM_X_SIZE)) / 2 + (DVI_WIDTH / 2);
+    localparam DVI_CAM1_Y    = (DVI_HEIGHT      - dvi_v_t'(MEM_Y_SIZE)) / 2;
+
+    dvi_h_t     mem0_x, mem1_x;
+    dvi_v_t     mem0_y, mem1_y;
+    assign mem0_x = gen_mem_x - DVI_CAM0_X;
+    assign mem0_y = gen_mem_y - DVI_CAM0_Y;
+    assign mem1_x = gen_mem_x - DVI_CAM1_X;
+    assign mem1_y = gen_mem_y - DVI_CAM1_Y;
+
     assign mem0_port1_clk    = dvi_clk                                                  ;
     assign mem0_port1_en     = gen_mem_en                                               ;
     assign mem0_port1_regcke = gen_mem_en                                               ;
     assign mem0_port1_we     = 1'b0                                                     ;
-    assign mem0_port1_addr   = {gen_mem_y[MEM_X_BITS-1:0], gen_mem_x[MEM_X_BITS-1:0]}   ;
+    assign mem0_port1_addr   = {mem0_y[MEM_X_BITS-1:0], mem0_x[MEM_X_BITS-1:0]}   ;
     assign mem0_port1_din    = '0                                                       ;
 
     assign mem1_port1_clk    = dvi_clk                                                  ;
     assign mem1_port1_en     = gen_mem_en                                               ;
     assign mem1_port1_regcke = gen_mem_en                                               ;
     assign mem1_port1_we     = 1'b0                                                     ;
-    assign mem1_port1_addr   = {gen_mem_y[MEM_X_BITS-1:0], gen_mem_x[MEM_X_BITS-1:0]}   ;
+    assign mem1_port1_addr   = {mem1_y[MEM_X_BITS-1:0], mem1_x[MEM_X_BITS-1:0]}   ;
     assign mem1_port1_din    = '0                                                       ;
 
-    logic   [1:0]   mem_sel;
+    logic       mem_st0_sel0;
+    logic       mem_st0_sel1;
+    logic       mem_st1_sel0;
+    logic       mem_st1_sel1;
     always_ff @(posedge dvi_clk) begin
-        mem_sel[0] <= gen_mem_x[MEM_X_BITS];
-        mem_sel[1] <= mem_sel[0];
+       mem_st0_sel0 <= mem0_x >= 0 && mem0_x < dvi_h_t'(MEM_X_SIZE)
+                    && mem0_y >= 0 && mem0_y < dvi_v_t'(MEM_Y_SIZE);
+       mem_st0_sel1 <= mem1_x >= 0 && mem1_x < dvi_h_t'(MEM_X_SIZE)
+                    && mem1_y >= 0 && mem1_y < dvi_v_t'(MEM_Y_SIZE);
+
+       mem_st1_sel0 <= mem_st0_sel0;
+       mem_st1_sel1 <= mem_st0_sel1;
     end
 
-    assign gen_mem_rdata     = mem_sel[1] ? mem1_port1_dout : mem0_port1_dout;
-
+    assign gen_mem_rdata     = mem_st1_sel0 ? mem0_port1_dout :
+                               mem_st1_sel1 ? mem1_port1_dout : '0;
 
 
     // RGB
