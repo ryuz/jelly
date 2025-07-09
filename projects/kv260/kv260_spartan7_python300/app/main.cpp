@@ -52,13 +52,11 @@ void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 #define SYSREG_DPHY_SW_RESET    0x0001
 #define SYSREG_CAM_ENABLE       0x0002
 #define SYSREG_CSI_DATA_TYPE    0x0003
+#define SYSREG_DPHY_INIT_DONE   0x0004
 
 
 int main(int argc, char *argv[])
 {
-    int     width       = 3280;
-    int     height      = 2464;
-
     // mmap uio
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
     if ( !uio_acc.IsMapped() ) {
@@ -66,13 +64,13 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
+    auto reg_sys   = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
 #if 1
     std::cout << "CORE ID" << std::endl;
-    std::cout << std::hex << reg_gpio.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_sys.ReadReg(SYSREG_ID) << std::endl;
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
 //  std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
 //  std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
@@ -85,17 +83,10 @@ int main(int argc, char *argv[])
         std::cout << "udmabuf mmap error" << std::endl;
         return 1;
     }
-
     auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
     auto dmabuf_mem_size = udmabuf_acc.GetSize();
     std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
     std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
-
-    jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
-
-    // カメラON
-    reg_gpio.WriteReg(2, 1);
-    usleep(500000);
 
     jelly::I2cAccessor i2c;
     i2c.Open("/dev/i2c-6", 0x10);
@@ -105,7 +96,103 @@ int main(int argc, char *argv[])
     std::cout << "CORE_VERSION : " << std::hex << cmd_read(i2c, CAMREG_CORE_VERSION   ) << std::endl;
 
 
-    return 0;
+    // 受信側 DPHY リセット
+    reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
+
+    // カメラ板初期化
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 0);     // センサー電源OFF
+    cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);  // 受信側 DPHY リセット
+    cmd_write(i2c, CAMREG_DPHY_SYS_RESET , 1);  // 受信側 DPHY リセット
+    usleep(100000);
+
+//  std::cout << "Press Enter to continue..." << std::endl;
+//  getchar(); // wait for user input
+
+    // 受信側 DPHY 解除 (必ずこちらを先に解除)
+    reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 0);
+
+    // センサー電源ON
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1);
+    usleep(500000);
+
+    // センサー基板 DPHY-TX リセット解除
+    cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 0);
+    cmd_write(i2c, CAMREG_DPHY_SYS_RESET , 0);
+    usleep(1000);
+    auto dphy_tx_init_done = cmd_read(i2c, CAMREG_DPHY_INIT_DONE);
+    if ( dphy_tx_init_done == 0 ) {
+        std::cout << "!!ERROR!! CAM DPHY TX init_done = 0" << std::endl;
+        return 1;
+    }
+
+    // ここで RX 側も init_done が来る
+    auto dphy_rx_init_done = reg_sys.ReadReg(SYSREG_DPHY_INIT_DONE);
+    if ( dphy_rx_init_done == 0 ) {
+        std::cout << "!!ERROR!! KV260 DPHY RX init_done = 0" << std::endl;
+        return 1;
+    }
+
+//    usleep(10000);
+//    std::cout << "SYSREG_DPHY_INIT_DONE : " << reg_sys.ReadReg(SYSREG_DPHY_INIT_DONE) << std::endl;
+
+
+//  int internal_w = 240;//420;
+    int internal_w = 420;
+    cmd_write(i2c, CAMREG_TRIM_X_START ,     0);
+    cmd_write(i2c, CAMREG_TRIM_X_END   , internal_w-1);   //   = 11'd255                  ,
+//  cmd_write(i2c, CAMREG_CSI_DATA_TYPE,  0x2b); 
+    cmd_write(i2c, CAMREG_CSI_WC       , internal_w*5/4); //    = 16'(256*5/4)             ,
+
+    // センサー起動    
+    spi_change(i2c,  8, 0);     // soft_reset_pll
+    spi_change(i2c,  9, 0);     // soft_reset_cgen
+    spi_change(i2c, 10, 0);     // soft_reset_analog
+    spi_change(i2c, 16, 3);     // power_down
+//  spi_change(i2c, 32, 0x7 | 0x8); // 8bit
+    spi_change(i2c, 32, 0x7);   // 10bit
+    spi_change(i2c, 34, 0x1);
+    spi_change(i2c, 40, 0x7);
+    spi_change(i2c, 48, 0x1);
+    spi_change(i2c, 64, 0x1);
+    spi_change(i2c, 72, 0x2227);
+    spi_change(i2c, 112, 0x7);
+    spi_change(i2c, 199, 0x255*16*8);    // exposure
+    spi_change(i2c, 256, ((640+32)/2-1)<<8);  // ROI x_start  x_end
+//  spi_change(i2c, 256, (20-1)<<8);  // ROI x_start  x_end
+//  spi_change(i2c, 256, (128/2-1)<<8);  // ROI x_start  x_end
+//  int pix = 640;
+    int pix = 256;
+    int x_start = 128/8 ;
+    int x_end   = 159   ;
+    int y_start = 384-8;
+    int y_end   = 639;
+//  spi_change(i2c, 256, (x_end << 8) | x_start);    // y_end
+//  spi_change(i2c, 257, y_start);    // y_end
+//  spi_change(i2c, 258, y_end);      // y_end
+
+    int width  = internal_w ;
+    int height = 512        ;
+
+    spi_change(i2c, 192, 0x0);  // 動作停止(トレーニングパターン出力状態へ)
+    usleep(1000);
+    cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
+    cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
+    usleep(1000);
+    cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
+    usleep(1000);
+    cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
+    usleep(1000);
+    auto cam_calib_status = cmd_read(i2c,  CAMREG_CALIB_STATUS);
+    if ( cam_calib_status != 0x01 ) {
+        std::cout << "!!ERROR!! CAM calibration is not done.  status =" << cam_calib_status << std::endl;
+        return 1;
+    }
+
+    // 動作開始
+    spi_change(i2c, 192, 0x1);
+
+
+    jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
 
     // video input start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
@@ -138,24 +225,46 @@ int main(int argc, char *argv[])
     cv::setTrackbarPos("fmtsel",   "img", fmtsel);
     */
 
-    vdmaw.SetBufferAddr(dmabuf_phys_adr);
-    vdmaw.SetImageSize(width, height);
+//  vdmaw.SetBufferAddr(dmabuf_phys_adr);
+//  vdmaw.SetImageSize(width, height);
 //  vdmaw.Start();
 
-
+    int     swap = 1;
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
         
+        // 画像読み込み
+        vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
+        cv::Mat img(height, width, CV_32S);
+        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
+        
+        // 並び替えを行う
+        cv::Mat img_u16(height, width, CV_16U);
+        for ( int y = 0; y < height; y++ ) {
+            for ( int x = 0; x < width; x++ ) {
+                int xx = x;
+                xx = (xx & 0x8) ? (xx ^ 0x7) : xx;
+                xx = ((xx & 0xfff8) | ((xx & 0x6) >> 1) | ((xx & 0x1) << 2));
+                if ( !swap ) { xx = x; }
+                img_u16.at<std::uint16_t>(y, x) = img.at<std::int32_t>(y, xx);
+            }
+        }
+        
+        // 表示
+        cv::imshow("img", img_u16 * (65535.0/1023.0));
+
+
         // トラックバー値取得
 //      view_scale  = cv::getTrackbarPos("scale",    "img");
 
-//      reg_gpio.WriteReg(4, fmtsel);
+//      reg_sys.WriteReg(4, fmtsel);
 
+#if 0
         // キャプチャ
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
 
-        if (0) {
+        if ( 1 ) {
             cv::Mat img_raw = cv::Mat(height, width, CV_8UC4);
             udmabuf_acc.MemCopyTo(img_raw.data, 0, width * height * 4);
             std::vector<cv::Mat> planes;
@@ -165,7 +274,7 @@ int main(int argc, char *argv[])
             cv::imshow("plane2", planes[2]);
             cv::imshow("plane3", planes[3]);
         }
-
+#endif
 
         // 表示
 //        view_scale = std::max(1, view_scale);
@@ -178,7 +287,11 @@ int main(int argc, char *argv[])
         case 'p':
             break;
         
-
+        case 'l':
+            printf("load setting\n");
+            load_setting(i2c);
+            break;
+        
         case 'd':   // image dump
 //            cv::imwrite("img_dump.png", img);
             break;
@@ -188,7 +301,7 @@ int main(int argc, char *argv[])
     std::cout << "close device" << std::endl;
 
     // カメラOFF
-    reg_gpio.WriteReg(2, 0);
+    reg_sys.WriteReg(2, 0);
     usleep(100000);
 
     return 0;
