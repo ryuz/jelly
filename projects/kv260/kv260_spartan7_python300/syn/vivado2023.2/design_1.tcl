@@ -275,6 +275,7 @@ proc create_root_design { parentCell } {
    CONFIG.ASSOCIATED_BUSIF {s_axi4_mem0} \
  ] $s_axi4_mem_aclk
   set s_axi4_mem_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst s_axi4_mem_aresetn ]
+  set out_clk333 [ create_bd_port -dir O -type clk out_clk333 ]
 
   # Create instance: axi_iic_0, and set properties
   set axi_iic_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_iic:2.1 axi_iic_0 ]
@@ -296,11 +297,16 @@ proc create_root_design { parentCell } {
     CONFIG.CLKOUT3_PHASE_ERROR {98.576} \
     CONFIG.CLKOUT3_REQUESTED_OUT_FREQ {249.9975} \
     CONFIG.CLKOUT3_USED {true} \
+    CONFIG.CLKOUT4_JITTER {104.543} \
+    CONFIG.CLKOUT4_PHASE_ERROR {98.576} \
+    CONFIG.CLKOUT4_REQUESTED_OUT_FREQ {333.333} \
+    CONFIG.CLKOUT4_USED {true} \
     CONFIG.MMCM_CLKFBOUT_MULT_F {10.000} \
     CONFIG.MMCM_CLKOUT0_DIVIDE_F {10.000} \
     CONFIG.MMCM_CLKOUT1_DIVIDE {5} \
     CONFIG.MMCM_CLKOUT2_DIVIDE {4} \
-    CONFIG.NUM_OUT_CLKS {3} \
+    CONFIG.MMCM_CLKOUT3_DIVIDE {3} \
+    CONFIG.NUM_OUT_CLKS {4} \
     CONFIG.RESET_PORT {resetn} \
     CONFIG.RESET_TYPE {ACTIVE_LOW} \
   ] $clk_wiz_0
@@ -1399,6 +1405,7 @@ connect_bd_intf_net -intf_net [get_bd_intf_nets S_AXI_HP0_FPD_0_1] [get_bd_intf_
   connect_bd_net -net clk_wiz_0_clk_out1 [get_bd_pins clk_wiz_0/clk_out1] [get_bd_ports out_clk100] [get_bd_pins proc_sys_reset_0/slowest_sync_clk]
   connect_bd_net -net clk_wiz_0_clk_out2 [get_bd_pins clk_wiz_0/clk_out2] [get_bd_ports out_clk200]
   connect_bd_net -net clk_wiz_0_clk_out3 [get_bd_pins clk_wiz_0/clk_out3] [get_bd_ports out_clk250] [get_bd_ports s_axi4_mem_aclk] [get_bd_pins ila_0/clk] [get_bd_pins zynq_ultra_ps_e_0/saxihp0_fpd_aclk]
+  connect_bd_net -net clk_wiz_0_clk_out4 [get_bd_pins clk_wiz_0/clk_out4] [get_bd_ports out_clk333]
   connect_bd_net -net clk_wiz_0_locked [get_bd_pins clk_wiz_0/locked] [get_bd_pins proc_sys_reset_0/dcm_locked]
   connect_bd_net -net proc_sys_reset_0_peripheral_aresetn [get_bd_pins proc_sys_reset_0/peripheral_aresetn] [get_bd_ports s_axi4_mem_aresetn]
   connect_bd_net -net proc_sys_reset_0_peripheral_reset [get_bd_pins proc_sys_reset_0/peripheral_reset] [get_bd_ports out_reset]

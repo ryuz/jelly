@@ -42,6 +42,7 @@ module kv260_spartan7_python300
     logic       sys_clk100          ;
     logic       sys_clk200          ;
     logic       sys_clk250          ;
+    logic       sys_clk333          ;
 
     logic       axi4l_peri_aresetn  ;
     logic       axi4l_peri_aclk     ;
@@ -90,6 +91,7 @@ module kv260_spartan7_python300
                 .out_clk100             (sys_clk100         ),
                 .out_clk200             (sys_clk200         ),
                 .out_clk250             (sys_clk250         ),
+                .out_clk333             (sys_clk333         ),
 
                 .i2c_scl_i              (i2c0_scl_i         ),
                 .i2c_scl_o              (i2c0_scl_o         ),
@@ -189,7 +191,7 @@ module kv260_spartan7_python300
     //  Address decoder
     // ----------------------------------------
 
-    localparam DEC_GPIO  = 0;
+    localparam DEC_SYS  = 0;
     localparam DEC_FMTR  = 1;
     localparam DEC_RGB   = 2;
     localparam DEC_WDMA  = 3;
@@ -209,7 +211,7 @@ module kv260_spartan7_python300
             );
     
     // address map
-    assign {axi4l_dec[DEC_GPIO].addr_base, axi4l_dec[DEC_GPIO].addr_high} = {40'ha000_0000, 40'ha000_ffff};
+    assign {axi4l_dec[DEC_SYS ].addr_base, axi4l_dec[DEC_SYS ].addr_high} = {40'ha000_0000, 40'ha000_ffff};
     assign {axi4l_dec[DEC_FMTR].addr_base, axi4l_dec[DEC_FMTR].addr_high} = {40'ha010_0000, 40'ha010_ffff};
     assign {axi4l_dec[DEC_RGB ].addr_base, axi4l_dec[DEC_RGB ].addr_high} = {40'ha012_0000, 40'ha012_ffff};
     assign {axi4l_dec[DEC_WDMA].addr_base, axi4l_dec[DEC_WDMA].addr_high} = {40'ha021_0000, 40'ha021_ffff};
@@ -234,65 +236,63 @@ module kv260_spartan7_python300
 
 
     // ----------------------------------------
-    //  GPIO
+    //  System Control
     // ----------------------------------------
     
-    (* MARK_DEBUG=DEBUG *)  logic           reg_sw_reset;
-    (* MARK_DEBUG=DEBUG *)  logic           reg_cam_enable;
-    (* MARK_DEBUG=DEBUG *)  logic   [7:0]   reg_csi_data_type;
-    (* MARK_DEBUG=DEBUG *)  logic   [2:0]   reg_fmt_select;
-    always_ff @(posedge axi4l_dec[DEC_GPIO].aclk) begin
-        if ( ~axi4l_dec[DEC_GPIO].aresetn ) begin
-            axi4l_dec[DEC_GPIO].bvalid <= 1'b0;
-            axi4l_dec[DEC_GPIO].rdata  <= 'x;
-            axi4l_dec[DEC_GPIO].rvalid <= 1'b0;
+    (* MARK_DEBUG=DEBUG *)  logic           reg_sw_reset        ;
+    (* MARK_DEBUG=DEBUG *)  logic           reg_cam_enable      ;
+    (* MARK_DEBUG=DEBUG *)  logic   [7:0]   reg_csi_data_type   ;
+    (* MARK_DEBUG=DEBUG *)  logic           reg_dphy_init_done  ;
+    always_ff @(posedge axi4l_dec[DEC_SYS].aclk) begin
+        if ( ~axi4l_dec[DEC_SYS].aresetn ) begin
+            axi4l_dec[DEC_SYS].bvalid <= 1'b0;
+            axi4l_dec[DEC_SYS].rdata  <= 'x;
+            axi4l_dec[DEC_SYS].rvalid <= 1'b0;
 
             reg_sw_reset      <= 1'b0;
             reg_cam_enable    <= 1'b0;
             reg_csi_data_type <= 8'h2b;
-            reg_fmt_select    <= '0;
         end
         else begin
             // write
-            if ( axi4l_dec[DEC_GPIO].bready ) begin
-                axi4l_dec[DEC_GPIO].bvalid <= 1'b0;
+            if ( axi4l_dec[DEC_SYS].bready ) begin
+                axi4l_dec[DEC_SYS].bvalid <= 1'b0;
             end
-            if ( axi4l_dec[DEC_GPIO].awvalid && axi4l_dec[DEC_GPIO].awready 
-                    && axi4l_dec[DEC_GPIO].wvalid && axi4l_dec[DEC_GPIO].wready
-                    && axi4l_dec[DEC_GPIO].wstrb[0] ) begin
-                case ( axi4l_dec[DEC_GPIO].awaddr[5:3] )
-                1: reg_sw_reset      <= 1'(axi4l_dec[DEC_GPIO].wdata);
-                2: reg_cam_enable    <= 1'(axi4l_dec[DEC_GPIO].wdata);
-                3: reg_csi_data_type <= 8'(axi4l_dec[DEC_GPIO].wdata);
-                4: reg_fmt_select    <= 3'(axi4l_dec[DEC_GPIO].wdata);
+            if ( axi4l_dec[DEC_SYS].awvalid && axi4l_dec[DEC_SYS].awready 
+                    && axi4l_dec[DEC_SYS].wvalid && axi4l_dec[DEC_SYS].wready
+                    && axi4l_dec[DEC_SYS].wstrb[0] ) begin
+                case ( axi4l_dec[DEC_SYS].awaddr[5:3] )
+                1: reg_sw_reset      <= 1'(axi4l_dec[DEC_SYS].wdata);
+                2: reg_cam_enable    <= 1'(axi4l_dec[DEC_SYS].wdata);
+                3: reg_csi_data_type <= 8'(axi4l_dec[DEC_SYS].wdata);
                 default:;
                 endcase
-                axi4l_dec[DEC_GPIO].bvalid <= 1'b1;
+                axi4l_dec[DEC_SYS].bvalid <= 1'b1;
             end
 
             // read
-            if ( axi4l_dec[DEC_GPIO].rready ) begin
-                axi4l_dec[DEC_GPIO].rdata  <= 'x;
-                axi4l_dec[DEC_GPIO].rvalid <= 1'b0;
+            if ( axi4l_dec[DEC_SYS].rready ) begin
+                axi4l_dec[DEC_SYS].rdata  <= 'x;
+                axi4l_dec[DEC_SYS].rvalid <= 1'b0;
             end
-            if ( axi4l_dec[DEC_GPIO].arvalid && axi4l_dec[DEC_GPIO].arready ) begin
-                case ( axi4l_dec[DEC_GPIO].awaddr[5:3] )
-                0:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(32'h01234567)     ;
-                1:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_sw_reset)     ;
-                2:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_cam_enable)   ;
-                3:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_csi_data_type);
-                4:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_fmt_select)   ;
-                default:    axi4l_dec[DEC_GPIO].rdata  <= '0    ;
+            if ( axi4l_dec[DEC_SYS].arvalid && axi4l_dec[DEC_SYS].arready ) begin
+                case ( axi4l_dec[DEC_SYS].awaddr[5:3] )
+                0:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(32'h01234567)      ;
+                1:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_sw_reset)      ;
+                2:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_cam_enable)    ;
+                3:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_csi_data_type) ;
+                4:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_dphy_init_done);
+                default:    axi4l_dec[DEC_SYS].rdata  <= '0    ;
                 endcase
-                axi4l_dec[DEC_GPIO].rvalid <= 1'b1;
+                axi4l_dec[DEC_SYS].rvalid <= 1'b1;
             end
         end
     end
-    assign axi4l_dec[DEC_GPIO].awready = axi4l_dec[DEC_GPIO].wvalid  && !axi4l_dec[DEC_GPIO].bvalid;
-    assign axi4l_dec[DEC_GPIO].wready  = axi4l_dec[DEC_GPIO].awvalid && !axi4l_dec[DEC_GPIO].bvalid;
-    assign axi4l_dec[DEC_GPIO].bresp   = '0;
-    assign axi4l_dec[DEC_GPIO].arready = !axi4l_dec[DEC_GPIO].rvalid;
-    assign axi4l_dec[DEC_GPIO].rresp   = '0;
+    assign axi4l_dec[DEC_SYS].awready = axi4l_dec[DEC_SYS].wvalid  && !axi4l_dec[DEC_SYS].bvalid;
+    assign axi4l_dec[DEC_SYS].wready  = axi4l_dec[DEC_SYS].awvalid && !axi4l_dec[DEC_SYS].bvalid;
+    assign axi4l_dec[DEC_SYS].bresp   = '0;
+    assign axi4l_dec[DEC_SYS].arready = !axi4l_dec[DEC_SYS].rvalid;
+    assign axi4l_dec[DEC_SYS].rresp   = '0;
 
     assign cam_enable = reg_cam_enable;
 
@@ -429,6 +429,25 @@ module kv260_spartan7_python300
                 .data_rxp           (cam_data_p),
                 .data_rxn           (cam_data_n)
            );
+
+    (* mark_debug=DEBUG *)  logic   dbg_sys_reset       ;
+    (* mark_debug=DEBUG *)  logic   dbg_reg_sw_reset    ;
+    (* mark_debug=DEBUG *)  logic   dbg_pll_lock_out    ;
+    (* mark_debug=DEBUG *)  logic   dbg_system_rst_out  ;
+    (* mark_debug=DEBUG *)  logic   dbg_init_done       ;
+
+    always_ff @(posedge axi4l_dec[DEC_SYS].aclk) begin
+        dbg_sys_reset      <= sys_reset     ;
+        dbg_reg_sw_reset   <= reg_sw_reset  ;
+        dbg_pll_lock_out   <= pll_lock_out  ;
+        dbg_system_rst_out <= system_rst_out;
+        dbg_init_done      <= init_done     ;
+    end
+
+
+    always_ff @(posedge axi4l_dec[DEC_SYS].aclk) begin
+        reg_dphy_init_done <= init_done;
+    end
     
     wire logic  dphy_clk   = rxbyteclkhs;
     wire logic  dphy_reset = system_rst_out;
@@ -453,7 +472,7 @@ module kv260_spartan7_python300
     logic axi4s_cam_aresetn;
     logic axi4s_cam_aclk   ;
     assign axi4s_cam_aresetn = ~sys_reset;
-    assign axi4s_cam_aclk    = sys_clk200;
+    assign axi4s_cam_aclk    = sys_clk250;
 
     jelly3_axi4s_if
             #(
@@ -485,7 +504,8 @@ module kv260_spartan7_python300
         u_mipi_csi2_rx
             (
                 .aresetn            (~sys_reset),
-                .aclk               (sys_clk250),
+//              .aclk               (sys_clk250),
+                .aclk               (sys_clk333),
 
                 .param_data_type    (reg_csi_data_type),
 
@@ -583,11 +603,12 @@ module kv260_spartan7_python300
 
                 .s_axi4l        (axi4l_dec[DEC_RGB].s)
             );
+*/
 
     // FIFO
     jelly3_axi4s_if
             #(
-                .DATA_BITS  (10*4             )
+                .DATA_BITS  (10               )
             )
         axi4s_fifo
             (
@@ -608,13 +629,11 @@ module kv260_spartan7_python300
             )
         u_axi4s_fifo
             (
-                .s_axi4s        (axi4s_rgb.s),
+                .s_axi4s        (axi4s_fmtr.s),
                 .m_axi4s        (axi4s_fifo.m),
                 .s_free_count   (),
                 .m_data_count   ()
             );
-    */
-
 
     // DMA write
     jelly3_axi4s_if
@@ -682,11 +701,19 @@ module kv260_spartan7_python300
     assign axi4s_fifo.tready = axi4s_wdma.tready;
     */
 
+    /*
     assign axi4s_wdma.tuser  = axi4s_fmtr.tuser ;
     assign axi4s_wdma.tlast  = axi4s_fmtr.tlast ;
     assign axi4s_wdma.tdata  = axi4s_fmtr.tdata ;
     assign axi4s_wdma.tvalid = axi4s_fmtr.tvalid;
     assign axi4s_fmtr.tready = axi4s_wdma.tready;
+    */
+
+    assign axi4s_wdma.tuser  = axi4s_fifo.tuser ;
+    assign axi4s_wdma.tlast  = axi4s_fifo.tlast ;
+    assign axi4s_wdma.tdata  = axi4s_fifo.tdata ;
+    assign axi4s_wdma.tvalid = axi4s_fifo.tvalid;
+    assign axi4s_fifo.tready = axi4s_wdma.tready;
 
     jelly3_dma_video_write
             #(
@@ -820,20 +847,21 @@ module kv260_spartan7_python300
     end
     
     // pmod
- //   assign pmod[0] = reg_counter_rxbyteclkhs[25];
-//    assign pmod[1] = reg_counter_clk100     [25];
-//    assign pmod[2] = reg_counter_clk200     [25];
-//    assign pmod[3] = reg_counter_clk250     [25];
-    assign pmod[0] = i2c0_scl_o;
-    assign pmod[1] = i2c0_scl_t;
-    assign pmod[2] = i2c0_sda_o;
-    assign pmod[3] = i2c0_sda_t;
+    assign pmod[0] = reg_counter_rxbyteclkhs[25];
+    assign pmod[1] = reg_counter_clk100     [25];
+    assign pmod[2] = reg_counter_clk200     [25];
+    assign pmod[3] = reg_counter_clk250     [25];
+//    assign pmod[0] = i2c0_scl_o;
+//    assign pmod[1] = i2c0_scl_t;
+//    assign pmod[2] = i2c0_sda_o;
+//    assign pmod[3] = i2c0_sda_t;
     assign pmod[4] = cam_enable;
     assign pmod[5] = reg_frame_count[7];
     assign pmod[7:6] = reg_counter_clk100[9:8];
     
     
     // Debug
+    /*
     (* mark_debug = "true" *)   logic               dbg_reset;
     (* mark_debug = "true" *)   logic   [7:0]       dbg0_rxdatahs;
     (* mark_debug = "true" *)   logic               dbg0_rxvalidhs;
@@ -854,7 +882,9 @@ module kv260_spartan7_python300
         dbg1_rxactivehs <= dl1_rxactivehs;
         dbg1_rxsynchs   <= dl1_rxsynchs;
     end
-        
+    */
+
+    
 endmodule
 
 
