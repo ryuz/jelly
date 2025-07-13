@@ -137,7 +137,11 @@ int main(int argc, char *argv[])
 
 
 //  int internal_w = 240;//420;
-    int internal_w = 420;
+    int internal_w = 416;
+    int width  = internal_w ;
+    int height = 160; // 416        ;
+
+
     cmd_write(i2c, CAMREG_TRIM_X_START ,     0);
     cmd_write(i2c, CAMREG_TRIM_X_END   , internal_w-1);   //   = 11'd255                  ,
 //  cmd_write(i2c, CAMREG_CSI_DATA_TYPE,  0x2b); 
@@ -162,16 +166,17 @@ int main(int argc, char *argv[])
 //  spi_change(i2c, 256, (128/2-1)<<8);  // ROI x_start  x_end
 //  int pix = 640;
     int pix = 256;
-    int x_start = 128/8 ;
-    int x_end   = 159   ;
-    int y_start = 384-8;
-    int y_end   = 639;
-//  spi_change(i2c, 256, (x_end << 8) | x_start);    // y_end
-//  spi_change(i2c, 257, y_start);    // y_end
-//  spi_change(i2c, 258, y_end);      // y_end
+    int x_start = 0         ;
+//  int x_end   = x_start + width/8 - 1 ;
+    int x_end   = x_start + 1280/8 - 1 ;
+    int y_start = 0;
+    int y_end   = y_start + height - 1;
+    spi_change(i2c, 256, (x_end << 8) | x_start);    // y_end
+    spi_change(i2c, 257, y_start);    // y_start
+    spi_change(i2c, 258, y_end);      // y_end
 
-    int width  = internal_w ;
-    int height = 512        ;
+    spi_change(i2c, 129, 0x0000);    // auto_blackcal_enable : OFF
+
 
     spi_change(i2c, 192, 0x0);  // 動作停止(トレーニングパターン出力状態へ)
     usleep(1000);
@@ -291,10 +296,38 @@ int main(int argc, char *argv[])
             printf("load setting\n");
             load_setting(i2c);
             break;
-        
+            
         case 'd':   // image dump
-//            cv::imwrite("img_dump.png", img);
+            cv::imwrite("img_dump.png", img);
             break;
+
+
+        case 'r':   // record
+            // 画像読み込み
+            vdmaw.Oneshot(dmabuf_phys_adr, width, height, 100);
+            
+            for ( int i = 0; i < 100; i++ ) {
+                // 画像読み込み
+                cv::Mat img(height, width, CV_32S);
+                udmabuf_acc.MemCopyTo(img.data, width * height * 4 * i, width * height * 4);
+        
+                // 並び替えを行う
+                cv::Mat img_u16(height, width, CV_16U);
+                for ( int y = 0; y < height; y++ ) {
+                    for ( int x = 0; x < width; x++ ) {
+                        int xx = x;
+                        xx = (xx & 0x8) ? (xx ^ 0x7) : xx;
+                        xx = ((xx & 0xfff8) | ((xx & 0x6) >> 1) | ((xx & 0x1) << 2));
+                        if ( !swap ) { xx = x; }
+                        img_u16.at<std::uint16_t>(y, x) = img.at<std::int32_t>(y, xx);
+                    }
+                }
+
+                // 保存
+                char fname[256];
+                sprintf(fname, "rec/img_%03d.png", i);
+                cv::imwrite(fname, img_u16 * (65535.0/1023.0));
+            }
         }
     }
 
