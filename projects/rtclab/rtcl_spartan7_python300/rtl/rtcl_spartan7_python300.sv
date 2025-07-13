@@ -811,6 +811,18 @@ module rtcl_spartan7_python300
         python_clk_counter <= python_clk_counter + 1;
     end
 
+    logic   python_frame_toggle;
+    always_ff @(posedge python_clk) begin
+        if ( python_reset ) begin
+            python_frame_toggle <= 1'b0;
+        end
+        else begin
+            if ( python_frame_start ) begin
+                python_frame_toggle <= ~python_frame_toggle;
+            end
+        end
+    end
+
 
 //  assign led[0] = clk50_counter[24];
 //  assign led[1] = clk72_counter[24];
@@ -819,7 +831,8 @@ module rtcl_spartan7_python300
 //  assign led[1] = sensor_pgood;
     assign led[1] = python_clk_counter[24];
 
-    assign pmod[7:0] = clk50_counter[15:8];
+    assign pmod[0]   = python_frame_toggle;
+    assign pmod[7:1] = clk50_counter[15:9];
 
 
     // --------------------------------
