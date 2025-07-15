@@ -88,7 +88,7 @@ module tb_top();
     pullup(mipi_scl);
     pullup(mipi_sda);
 
-    rtcl_spartan7_python300
+    rtcl_p3s7_mipi
         u_top
             (
                 .in_clk50               (clk50      ),
@@ -161,28 +161,39 @@ module tb_top();
         end
     endtask
 
-    task send_python_line(
+    task automatic send_python_line(
                 input [9:0] start_code  ,
                 input [9:0] end_code    ,
                 input [9:0] data_code   ,
                 input [9:0] id_code     ,
                 input int   len         
             );
-        logic   [9:0] data0;
-        logic   [9:0] data1;
-        logic   [9:0] data2;
-        logic   [9:0] data3;
-        data0 = 0;
-        data1 = 1;
-        data2 = 2;
-        data3 = 3;
-        send_python_10bit(data0, data1, data2, data3, start_code); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-        send_python_10bit(data0, data1, data2, data3, id_code   ); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
+        automatic logic   [15:0][9:0] data;
+        automatic logic         [3:0] idx;
+        idx = 0;
+        data[ 0] =  0;
+        data[ 1] =  2;
+        data[ 2] =  4;
+        data[ 3] =  6;
+        data[ 4] =  1;
+        data[ 5] =  3;
+        data[ 6] =  5;
+        data[ 7] =  7;
+        data[ 8] = 15;
+        data[ 9] = 13;
+        data[10] = 11;
+        data[11] =  9;
+        data[12] = 14;
+        data[13] = 12;
+        data[14] = 10;
+        data[15] =  8;
+        send_python_10bit(data[idx+0], data[idx+1], data[idx+2], data[idx+3], start_code); for ( int j = 0; j < 4; j++ ) begin data[idx] += 16; idx++; end
+        send_python_10bit(data[idx+0], data[idx+1], data[idx+2], data[idx+3], id_code   ); for ( int j = 0; j < 4; j++ ) begin data[idx] += 16; idx++; end
         for ( int i = 0; i < len/4-4; i++ ) begin
-            send_python_10bit(data0, data1, data2, data3, data_code); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
+            send_python_10bit(data[idx+0], data[idx+1], data[idx+2], data[idx+3], data_code); for ( int j = 0; j < 4; j++ ) begin data[idx] += 16; idx++; end
         end
-        send_python_10bit(data0, data1, data2, data3, end_code); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
-        send_python_10bit(data0, data1, data2, data3, id_code ); data0 += 4; data1 += 4; data2 += 4; data3 += 4;
+        send_python_10bit(data[idx+0], data[idx+1], data[idx+2], data[idx+3], end_code); for ( int j = 0; j < 4; j++ ) begin data[idx] += 16; idx++; end
+        send_python_10bit(data[idx+0], data[idx+1], data[idx+2], data[idx+3], id_code ); for ( int j = 0; j < 4; j++ ) begin data[idx] += 16; idx++; end
         send_python_10bit(10'h3ff, 10'h3ff, 10'h3ff, 10'h3ff, 10'h059); // CRC
 
         // balank

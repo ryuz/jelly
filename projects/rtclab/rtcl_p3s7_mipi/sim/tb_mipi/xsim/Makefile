@@ -27,12 +27,10 @@ VLOGFLAGS += -i $(JELLY_TOP_DIR)/include
 ELABFLAGS  = -debug wave
 
 SRCS  = ../$(TOP_MODULE).sv
-SRCS += ../../../rtl/rtcl_spartan7_python300.sv
+SRCS += ../../../rtl/rtcl_p3s7_mipi.sv
 SRCS += ../../stub/python_to_axi4s.sv
 SRCS += $(XILINX_VIVADO)/data/verilog/src/glbl.v
 
-SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/rtcl_p3s7_dphy.gen/sources_1/ip/selectio_wiz_0/selectio_wiz_0.v
-SIM_LIB_DIRS += ../../../ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/rtcl_p3s7_dphy.gen/sources_1/ip/selectio_wiz_0
 SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/clk_mipi_core/rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core/clk_mipi_core.v
 SIM_LIB_DIRS += ../../../ip/vivado$(VIVADO_VERSION)/clk_mipi_core/rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core
 SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/clk_mipi_serial/rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_serial/clk_mipi_serial.v

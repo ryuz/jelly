@@ -87,7 +87,7 @@ module tb_mipi();
     pullup(mipi_scl);
     pullup(mipi_sda);
 
-    rtcl_spartan7_python300
+    rtcl_p3s7_mipi
         u_top
             (
                 .in_clk50               (clk50      ),

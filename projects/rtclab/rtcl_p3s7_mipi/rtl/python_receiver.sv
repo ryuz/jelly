@@ -82,7 +82,7 @@ module python_receiver
                     .DDR_CLK_EDGE   (DDR_CLK_EDGE   ),
                     .INIT_Q1        (1'b0           ),
                     .INIT_Q2        (1'b0           ),
-                    .SRTYPE         ("SYNC"         )
+                    .SRTYPE         ("ASYNC"        )
                 )
             u_iddr_data
                 (
@@ -91,7 +91,7 @@ module python_receiver
                     .C              (out_clk        ),
                     .CE             (1'b1           ),
                     .D              (in_data [i]    ),
-                    .R              (out_reset      ),
+                    .R              (1'b0           ),
                     .S              (1'b0           )
                 );
     end
@@ -115,7 +115,7 @@ module python_receiver
                 .DDR_CLK_EDGE   (DDR_CLK_EDGE   ),
                 .INIT_Q1        (1'b0           ),
                 .INIT_Q2        (1'b0           ),
-                .SRTYPE         ("SYNC"         )
+                .SRTYPE         ("ASYNC"        )
             )
         u_iddr_sync
             (
@@ -124,7 +124,7 @@ module python_receiver
                 .C              (out_clk        ),
                 .CE             (1'b1           ),
                 .D              (in_sync        ),
-                .R              (out_reset      ),
+                .R              (1'b0           ),
                 .S              (1'b0           )
             );
 
