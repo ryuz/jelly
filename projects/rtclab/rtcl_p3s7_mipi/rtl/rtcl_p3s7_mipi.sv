@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module rtcl_spartan7_python300
+module rtcl_p3s7_mipi
         (
             input   var logic           in_clk50                ,
             input   var logic           in_clk72                ,

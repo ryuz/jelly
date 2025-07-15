@@ -7,7 +7,7 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-PROJECT_NAME = rtcl_p3s7_dphy
+PROJECT_NAME = rtcl_p3s7_mipi
 BOARD_NAME   = 
 export PRJ_NAME     = $(PROJECT_NAME)_tcl
 export TOP_MODULE   = $(PROJECT_NAME)
@@ -35,13 +35,22 @@ HLS_IP =
 export HLS_IP
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/rtcl_p3s7_dphy.sv
+SOURCES  = $(PRJ_DIR)/rtl/rtcl_p3s7_mipi.sv
 SOURCES += $(PRJ_DIR)/rtl/sensor_pwr_mng.sv
-SOURCES += $(PRJ_DIR)/rtl/mipi_dphy_clk_gen.sv
-SOURCES += $(PRJ_DIR)/rtl/py300_control.sv
-SOURCES += $(PRJ_DIR)/rtl/python_spi.sv
+SOURCES += $(PRJ_DIR)/rtl/conv_csi_raw10.sv
+SOURCES += $(PRJ_DIR)/rtl/generate_csi_packet.sv
 SOURCES += $(PRJ_DIR)/rtl/i2c_to_spi.sv
-#SOURCES += $(PRJ_DIR)/rtl/pttern_align_10bit.sv
+SOURCES += $(PRJ_DIR)/rtl/lane_conv_4to1.sv
+SOURCES += $(PRJ_DIR)/rtl/line_trimming.sv
+SOURCES += $(PRJ_DIR)/rtl/mipi_dphy_clk_gen.sv
+SOURCES += $(PRJ_DIR)/rtl/pack_csi_raw10.sv
+SOURCES += $(PRJ_DIR)/rtl/pixel_swap.sv
+SOURCES += $(PRJ_DIR)/rtl/python_align_10bit.sv
+SOURCES += $(PRJ_DIR)/rtl/python_control.sv
+SOURCES += $(PRJ_DIR)/rtl/python_receiver.sv
+SOURCES += $(PRJ_DIR)/rtl/python_spi.sv
+SOURCES += $(PRJ_DIR)/rtl/python_to_axi4s.sv
+
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
@@ -49,7 +58,7 @@ export SOURCES
 IP_CORES  = $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_core/clk_mipi_core.xci
 IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_serial/clk_mipi_serial.xci
 IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/mipi_dphy_0/mipi_dphy_0.xci
-IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/selectio_wiz_0.xci
+#IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/selectio_wiz_0.xci
 export IP_CORES
 
 # block design
