@@ -439,6 +439,7 @@ module rtcl_spartan7_python300
                 .python_clk_pll          (python_clk_pll        )
             );
 
+    // SPI
     python_spi
         u_python_spi
             (
@@ -460,6 +461,7 @@ module rtcl_spartan7_python300
             );
 
 
+    // Image Receive
                                 logic               python_reset    ;
                                 logic               python_clk      ;
     (* mark_debug = "true" *)   logic   [3:0][1:0]  python_data     ;
@@ -485,6 +487,7 @@ module rtcl_spartan7_python300
     (* MARK_DEBUG = "true" *)   logic        [9:0]  python_align_sync      ;
     (* MARK_DEBUG = "true" *)   logic               python_align_valid     ;
 
+    // Align
     python_align_10bit
         u_python_align_10bit
             (
@@ -542,6 +545,30 @@ module rtcl_spartan7_python300
                 .m_axi4s        (axi4s_python_4lane )
             );
 
+    // pixel swap
+    jelly3_axi4s_if
+            #(
+                .USE_LAST       (1                  ),
+                .USE_USER       (1                  ),
+                .DATA_BITS      (4*10               ),
+                .USER_BITS      (1                  ),
+                .DEBUG          ("true"             )
+            )
+        axi4s_python_swap
+            (
+                .aresetn        (~python_reset      ),
+                .aclk           (python_clk         ),
+                .aclken         (1'b1               )
+            );
+    
+    pixel_swap
+        u_pixel_swap
+            (
+                .s_axi4s    (axi4s_python_4lane ),
+                .m_axi4s    (axi4s_python_swap  )
+            );
+    
+    // Convert 1lane
     jelly3_axi4s_if
             #(
                 .USE_LAST       (1                  ),
@@ -560,7 +587,7 @@ module rtcl_spartan7_python300
     lane_conv_4to1
         u_lane_conv_4to1
             (
-                .s_axi4s    (axi4s_python_4lane ),
+                .s_axi4s    (axi4s_python_swap  ),
                 .m_axi4s    (axi4s_python_1lane )
             );
 
@@ -611,11 +638,9 @@ module rtcl_spartan7_python300
     pack_csi_raw10
         u_pack_csi_raw10
             (
-//              .s_axi4s        (axi4s_python_1lane ),
                 .s_axi4s        (axi4s_python_trim  ),
                 .m_axi4s        (axi4s_csi_raw10    )
             );
-
 
     // FIFO
     jelly3_axi4s_if

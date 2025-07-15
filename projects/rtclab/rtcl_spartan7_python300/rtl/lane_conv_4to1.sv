@@ -37,7 +37,7 @@ module lane_conv_4to1
                     tvalid <= 1'b0;
                 end
             end
-            if ( s_axi4s.tvalid || s_axi4s.tready ) begin
+            if ( s_axi4s.tvalid && s_axi4s.tready ) begin
                 phase   <= '0               ;
                 tuser   <= s_axi4s.tuser    ;
                 tlast   <= s_axi4s.tlast    ;
