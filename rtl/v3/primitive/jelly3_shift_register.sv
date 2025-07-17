@@ -91,8 +91,8 @@ module jelly3_shift_register
     if ( DEPTH > 1 && DEPTH <= 8
           && ( string'(DEVICE) == "Topaz"
             || string'(DEVICE) == "Titanium" ) ) begin : efinix
-        logic   [3:0]   a;
-        assign a = 4'(addr);
+        logic   [2:0]   a;
+        assign a = 3'(addr);
         for ( genvar i = 0; i < $bits(data_t); i++ ) begin : srl8
             EFX_SRL8 
                     #(
