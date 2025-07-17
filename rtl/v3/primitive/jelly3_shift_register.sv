@@ -37,6 +37,7 @@ module jelly3_shift_register
             || string'(DEVICE) == "VIRTEX6"
             || string'(DEVICE) == "7SERIES"
             || string'(DEVICE) == "ULTRASCALE"
+            || string'(DEVICE) == "ULTRASCALE_PLUS"
             || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
             || string'(DEVICE) == "ULTRASCALE_PLUS_ES2"
             || string'(DEVICE) == "VERSAL_AI_CORE"
@@ -86,6 +87,29 @@ module jelly3_shift_register
                             .D      (in_data[i]     )
                         );
             end
+        end
+    end
+    else if ( DEPTH > 1 && DEPTH <= 8
+          && ( string'(DEVICE) == "Topaz"
+            || string'(DEVICE) == "Titanium" ) ) begin : efinix
+        logic   [2:0]   a;
+        assign a = 3'(addr);
+        for ( genvar i = 0; i < $bits(data_t); i++ ) begin : srl8
+            logic   q;
+            EFX_SRL8
+                    #(
+                        .INIT   (8'h00          )
+                    )
+                u_srl16e
+                    (
+                        .D      (in_data[i]     ),
+                        .CE     (cke            ),
+                        .CLK    (clk            ),
+                        .A      (~a             ),
+                        .Q      (q              ),
+                        .Q7     (               )
+                    );
+            assign out_data[i] = ~q;
         end
     end
     else begin : rtl
