@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module python_receiver
+module python_receiver_2bit
         #(
             parameter   int CHANNELS     = 4                        ,
             parameter       DDR_CLK_EDGE = "SAME_EDGE_PIPELINED"    ,

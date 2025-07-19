@@ -3,7 +3,7 @@
 `default_nettype none
 
 
-module python_align_10bit
+module python_2bit_to_10bit
         (
             input   var logic               reset       ,
             input   var logic               clk         ,

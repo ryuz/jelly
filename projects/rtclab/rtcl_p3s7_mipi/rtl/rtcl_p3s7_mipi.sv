@@ -461,13 +461,13 @@ module rtcl_p3s7_mipi
             );
 
 
-    // Image Receive
-                                logic               python_reset    ;
-                                logic               python_clk      ;
-    (* mark_debug = "true" *)   logic   [3:0][1:0]  python_data     ;
-    (* mark_debug = "true" *)   logic        [1:0]  python_sync     ;
-    python_receiver
-        u_python_receiver
+    // Python LVDS DDR Receiver (4lane 2bit@360Mhz)
+                                logic               python_reset        ;
+                                logic               python_clk          ;
+    (* mark_debug = "true" *)   logic   [3:0][1:0]  python_2bit_data    ;
+    (* mark_debug = "true" *)   logic        [1:0]  python_2bit_sync    ;
+    python_receiver_2bit
+        u_python_receiver_2bit
             (
                 .in_reset       (ctl_iserdes_reset  ),
                 .in_clk_p       (python_clk_p       ),
@@ -479,17 +479,19 @@ module rtcl_p3s7_mipi
 
                 .out_reset      (python_reset       ),
                 .out_clk        (python_clk         ),
-                .out_data       (python_data        ),
-                .out_sync       (python_sync        )
+                .out_data       (python_2bit_data   ),
+                .out_sync       (python_2bit_sync   )
             );
 
-    (* MARK_DEBUG = "true" *)   logic   [3:0][9:0]  python_align_data      ;
-    (* MARK_DEBUG = "true" *)   logic        [9:0]  python_align_sync      ;
-    (* MARK_DEBUG = "true" *)   logic               python_align_valid     ;
-
-    // Align
-    python_align_10bit
-        u_python_align_10bit
+    // 2bit to 10bit
+    (* MARK_DEBUG = "true" *)   logic   [3:0][9:0]  python_align_data   ;
+    (* MARK_DEBUG = "true" *)   logic        [9:0]  python_align_sync   ;
+    (* MARK_DEBUG = "true" *)   logic               python_align_valid  ;
+    (* MARK_DEBUG = "true" *)   logic   [3:0][9:0]  python_10bit_data   ;
+    (* MARK_DEBUG = "true" *)   logic        [9:0]  python_10bit_sync   ;
+    (* MARK_DEBUG = "true" *)   logic               python_10bit_valid  ;
+    python_2bit_to_10bit
+        u_python_2bit_to_10bit
             (
                 .reset          (python_reset       ),
                 .clk            (python_clk         ),
@@ -500,13 +502,13 @@ module rtcl_p3s7_mipi
                 .calib_done     (ctl_calib_done     ),
                 .calib_error    (ctl_calib_error    ),
                 
-                .s_data         (python_data        ),
-                .s_sync         (python_sync        ),
+                .s_data         (python_2bit_data   ),
+                .s_sync         (python_2bit_sync   ),
                 .s_valid        (1'b1               ),
 
-                .m_data         (python_align_data  ),
-                .m_sync         (python_align_sync  ),
-                .m_valid        (python_align_valid )
+                .m_data         (python_10bit_data  ),
+                .m_sync         (python_10bit_sync  ),
+                .m_valid        (python_10bit_valid )
             );
 
     logic   python_frame_start;
@@ -515,7 +517,7 @@ module rtcl_p3s7_mipi
             python_frame_start <= 1'b0;
         end
         else begin
-            python_frame_start <= (python_align_valid && python_align_sync == 10'h22a);
+            python_frame_start <= (python_10bit_valid && python_10bit_sync == 10'h22a);
         end
     end
 
@@ -539,9 +541,9 @@ module rtcl_p3s7_mipi
     python_to_axi4s
         u_python_to_axi4s
             (
-                .s_data         (python_align_data  ),
-                .s_sync         (python_align_sync  ),
-                .s_valid        (python_align_valid ),
+                .s_data         (python_10bit_data  ),
+                .s_sync         (python_10bit_sync  ),
+                .s_valid        (python_10bit_valid ),
                 .m_axi4s        (axi4s_python_4lane )
             );
 
