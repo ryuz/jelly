@@ -19,6 +19,8 @@ SRCS += ../../../rtl/rtcl_p3s7_hs.sv
 SRCS += ../../../rtl/python_to_axi4s.sv
 #SRCS += ../../stub/python_to_axi4s.sv
 SRCS += ../../stub/IDDR.sv
+SRCS += ../../../../../kv260/kv260_rtcl_p3s7_hs/rtl/rtcl_p3s7_hs_dphy_recv.sv
+SRCS += ../../../../../kv260/kv260_rtcl_p3s7_hs/rtl/rtcl_p3s7_hs_cnv_axi4s.sv
 
 SRCS += $(XILINX_VIVADO)/data/verilog/src/glbl.v
 
