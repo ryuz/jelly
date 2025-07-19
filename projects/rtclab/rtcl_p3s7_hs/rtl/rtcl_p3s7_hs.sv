@@ -4,7 +4,8 @@
 
 module rtcl_p3s7_hs
         #(
-            parameter   DEBUG = "true"
+            parameter   int     I2C_DIVIDER = 8                 ,
+            parameter           DEBUG       = "true"
         )
         (
             input   var logic           in_clk50                ,
@@ -136,27 +137,27 @@ module rtcl_p3s7_hs
 
     jelly2_i2c_slave_core
             #(
-                .DIVIDER_WIDTH  (8              )
+                .DIVIDER_WIDTH  (8                  )
             )
         u_i2c_slave_core
             (
-                .reset          (reset          ),
-                .clk            (clk72          ),
+                .reset          (reset              ),
+                .clk            (clk72              ),
 
-                .i2c_scl        (mipi_scl_i     ),
-                .i2c_sda        (mipi_sda_i     ),
-                .i2c_sda_t      (mipi_sda_t     ),
+                .i2c_scl        (mipi_scl_i         ),
+                .i2c_sda        (mipi_sda_i         ),
+                .i2c_sda_t      (mipi_sda_t         ),
 
-                .divider        (8              ),
-                .dev            (7'h10          ),
+                .divider        (I2C_DIVIDER        ),
+                .dev            (7'h10              ),
 
-                .wr_start       (i2c_wr_start   ),
-                .wr_en          (i2c_wr_en      ),
-                .wr_data        (i2c_wr_data    ),
-                .rd_start       (i2c_rd_start   ),
-                .rd_req         (i2c_rd_req     ),
-                .rd_en          (i2c_rd_en      ),
-                .rd_data        (i2c_rd_data    )
+                .wr_start       (i2c_wr_start       ),
+                .wr_en          (i2c_wr_en          ),
+                .wr_data        (i2c_wr_data        ),
+                .rd_start       (i2c_rd_start       ),
+                .rd_req         (i2c_rd_req         ),
+                .rd_en          (i2c_rd_en          ),
+                .rd_data        (i2c_rd_data        )
             );
 
 
@@ -211,33 +212,36 @@ module rtcl_p3s7_hs
 
 
     // controller
-                                logic           ctl_iserdes_reset   ;
+                                logic           ctl_recv_reset      ;
                                 logic           ctl_align_reset     ;
                                 logic   [9:0]   ctl_align_pattern   ;
-    (* MARK_DEBUG = DEBUG *)    logic           ctl_calib_done      ;
-    (* MARK_DEBUG = DEBUG *)    logic           ctl_calib_error     ;
-                                logic   [10:0]  ctl_trim_x_start    ;
-                                logic   [10:0]  ctl_trim_x_end      ;
-                                logic   [7:0]   ctl_csi_data_type   ;
-                                logic   [15:0]  ctl_csi_wc          ;
+    (* MARK_DEBUG = DEBUG *)    logic           ctl_align_done      ;
+    (* MARK_DEBUG = DEBUG *)    logic           ctl_align_error     ;
                                 logic           ctl_dphy_core_reset ;
                                 logic           ctl_dphy_sys_reset  ;
                                 logic           ctl_dphy_init_done  ;
 
-    python_control
-        u_python_control
+    system_control
+            #(
+                .CORE_ID                (16'h527a               ),
+                .CORE_VERSION           (16'h0100               ),
+                .INIT_RECV_RESET        (1'b1                   ),
+                .INIT_ALIGN_RESET       (1'b1                   ),
+                .INIT_ALIGN_PATTERN     (10'h3a6                ),
+                .INIT_CSI_DATA_TYPE     (8'h2b                  ),
+                .INIT_CSI_WC            (16'(256*5/4)           ),
+                .INIT_DPHY_CORE_RESET   (1'b1                   ),
+                .INIT_DPHY_SYS_RESET    (1'b1                   )
+            )
+        u_system_control
             (
                 .s_axi4l                (axi4l                  ),
 
-                .out_iserdes_reset      (ctl_iserdes_reset      ),
+                .out_recv_reset         (ctl_recv_reset         ),
                 .out_align_reset        (ctl_align_reset        ),
                 .out_align_pattern      (ctl_align_pattern      ),
-                .in_calib_done          (ctl_calib_done         ),
-                .in_calib_error         (ctl_calib_error        ),
-                .out_trim_x_start       (ctl_trim_x_start       ),
-                .out_trim_x_end         (ctl_trim_x_end         ),
-                .out_csi_data_type      (ctl_csi_data_type      ),
-                .out_csi_wc             (ctl_csi_wc             ),
+                .in_align_done          (ctl_align_done         ),
+                .in_align_error         (ctl_align_error        ),
                 .out_dphy_core_reset    (ctl_dphy_core_reset    ),
                 .out_dphy_sys_reset     (ctl_dphy_sys_reset     ),
                 .in_dphy_init_done      (ctl_dphy_init_done     )
@@ -469,13 +473,14 @@ module rtcl_p3s7_hs
     python_receiver_10bit
         u_python_receiver_10bit
             (
-                .in_reset       (reset || ctl_iserdes_reset  ),
+                .in_reset       (reset              ),
                 .in_clk_p       (python_clk_p       ),
                 .in_clk_n       (python_clk_n       ),
                 .in_data_p      (python_data_p      ),
                 .in_data_n      (python_data_n      ),
                 .in_sync_p      (python_sync_p      ),
                 .in_sync_n      (python_sync_n      ),
+                .sw_reset       (ctl_recv_reset     ),
 
                 .bitslip        (bitslip            ),
                 .out_reset      (python_reset       ),
@@ -502,8 +507,8 @@ module rtcl_p3s7_hs
                 .sw_reset       (ctl_align_reset    ),
                 
                 .pattern        (ctl_align_pattern  ),
-                .align_done     (ctl_calib_done     ),
-                .align_error    (ctl_calib_error    ),
+                .align_done     (ctl_align_done     ),
+                .align_error    (ctl_align_error    ),
                 
                 .bitslip        (bitslip            ),
 
@@ -590,10 +595,7 @@ module rtcl_p3s7_hs
                 .m_axi4s        (axi4s_clip.m        )
             );
 
-    assign axi4s_clip.tready = 1'b1; 
-
     // DPHY TX
-    /*
     axi4s_to_dphy
             #(
                 .CHANNELS       (CHANNELS           ),
@@ -603,7 +605,7 @@ module rtcl_p3s7_hs
             )
         u_axi4s_to_dphy
             (
-                .s_axi4s        (axi4s_clips.s     ),
+                .s_axi4s        (axi4s_clip        ),
 
                 .dphy_reset     (dphy_txhs_reset   ),
                 .dphy_clk       (dphy_txhs_clk     ),
@@ -614,7 +616,6 @@ module rtcl_p3s7_hs
                 .dphy_request   (dphy_dl0_txrequesths),
                 .dphy_ready     (dphy_dl0_txreadyhs )
             );
-    */
 
     // Blinking LED
     logic   [24:0]     clk50_counter; // リセットがないので初期値を設定

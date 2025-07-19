@@ -18,6 +18,7 @@ module python_receiver_10bit
             input   var logic   [CHANNELS-1:0]      in_data_n   ,
             input   var logic                       in_sync_p   ,
             input   var logic                       in_sync_n   ,
+            input   var logic                       sw_reset    ,
 
             input   var logic                       bitslip     ,
             output  var logic                       out_reset   ,
@@ -25,7 +26,7 @@ module python_receiver_10bit
             output  var logic   [CHANNELS-1:0][9:0] out_data    ,
             output  var logic                 [9:0] out_sync    
         );
-
+    
     // clock input
     logic   in_clk;
     IBUFDS
@@ -62,7 +63,9 @@ module python_receiver_10bit
                 .O              (out_clk    )
             );
 
-
+    // reset
+    logic   reset;
+    assign reset = in_reset || sw_reset;
     jelly3_reset
             #(
                 .ADDITIONAL_CYCLE   (16         )
@@ -71,7 +74,7 @@ module python_receiver_10bit
             (
                 .clk                (out_clk    ),
                 .cke                (1'b1       ),
-                .in_reset           (in_reset   ),
+                .in_reset           (reset      ),
                 .out_reset          (out_reset  )
             );
 

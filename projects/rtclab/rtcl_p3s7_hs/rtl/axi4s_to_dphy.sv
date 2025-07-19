@@ -78,12 +78,12 @@ module axi4s_to_dphy
     packet_type_t             conv_user   ;
     logic                     conv_valid  ;
     logic                     conv_ready  ;
-    assign conv_data    = s_axi4s.tvalid ? s_axi4s.tdata   : '0;
-    assign conv_first   = s_axi4s.tvalid ? s_axi4s.tuser[0]: '0;  // frame_start
-    assign conv_last    = s_axi4s.tvalid ? s_axi4s.tuser[1]: '0;  // frame_end
-    assign conv_user    = s_axi4s.tvalid ? packet_type     : '0;
+    assign conv_data    = axi4s_fifo.tvalid ? axi4s_fifo.tdata   : '0;
+    assign conv_first   = axi4s_fifo.tvalid ? axi4s_fifo.tuser[0]: '0;  // frame_start
+    assign conv_last    = axi4s_fifo.tvalid ? axi4s_fifo.tuser[1]: '0;  // frame_end
+    assign conv_user    = axi4s_fifo.tvalid ? packet_type        : '0;
     assign conv_valid   = 1'b1;  // always valid
-    assign s_axi4s.tready = conv_ready;
+    assign axi4s_fifo.tready = conv_ready;
 
     jelly3_axi4s_if
             #(
@@ -109,7 +109,7 @@ module axi4s_to_dphy
                 .HAS_LAST           (1                      ),
                 .HAS_STRB           (0                      ),
                 .HAS_KEEP           (0                      ),
-                .AUTO_FIRST         (1                      ),
+                .AUTO_FIRST         (0                      ),
                 .HAS_ALIGN_S        (0                      ),
                 .HAS_ALIGN_M        (0                      ),
                 .FIRST_OVERWRITE    (0                      ),

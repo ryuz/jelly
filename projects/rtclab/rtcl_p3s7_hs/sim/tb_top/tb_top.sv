@@ -89,6 +89,10 @@ module tb_top();
     pullup(mipi_sda);
 
     rtcl_p3s7_hs
+            #(
+                .I2C_DIVIDER            (1          ),
+                .DEBUG                  ("true"     )
+            )
         u_top
             (
                 .in_clk50               (clk50      ),
@@ -235,6 +239,8 @@ module tb_top();
         send_python_train(67);
     endtask
 
+
+    logic       calib_pettern_en = 1'b1;
     initial begin
         int width, height;
         width  = 640;//256;
@@ -245,9 +251,10 @@ module tb_top();
         @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
 //      @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
 
-
         // trainng pattern
-        send_python_train(2000);
+        while ( calib_pettern_en ) begin
+            send_python_train(100);
+        end
 
         // frame
         forever begin
@@ -355,66 +362,13 @@ module tb_top();
         $finish;
     end
     
-    /*
-    // to stream
-    jelly3_axi4s_if
-            #(
-                .USE_LAST   (1                  ),
-                .USE_USER   (1                  ),
-                .DATA_BITS  (4*10               ),
-                .USER_BITS  (1                  ),
-                .DEBUG      ("true"             )
-            )
-        axi4s
-            (
-                .aresetn    (~u_top.io_reset    ),
-                .aclk       (u_top.python_clk   ),
-                .aclken     (1'b1               )
-            );
-
-    jelly3_model_axi4s_m
-            #(
-                .COMPONENTS     (4      ),
-                .DATA_BITS      (10     ),
-                .IMG_WIDTH      (640/4  ),
-                .IMG_HEIGHT     (480    ),
-                .H_BLANK        (0      ),
-                .V_BLANK        (0      ),
-                .X_BITS         (32     ),
-                .BUSY_RATE      (60     ),
-                .RANDOM_SEED    (0      ),
-                .ENDIAN         (0      )
-            )
-        u_model_axi4s_m
-            (
-                .enable         (1'b1   ),
-                .busy           (       ),
-                .m_axi4s        (axi4s  ),
-                .out_x          (       ),
-                .out_y          (       ),
-                .out_f          (       )
-            );
-    
-    initial begin
-//        force u_top.axi4s_python.tuser  = axi4s.tuser ;
-//        force u_top.axi4s_python.tlast  = axi4s.tlast ;
-//        force u_top.axi4s_python.tdata  = axi4s.tdata ;
-//        force u_top.axi4s_python.tvalid = axi4s.tvalid;
-
-        force u_top.axi4s_python_tuser  = axi4s.tuser ;
-        force u_top.axi4s_python_tlast  = axi4s.tlast ;
-        force u_top.axi4s_python_tdata  = axi4s.tdata ;
-        force u_top.axi4s_python_tvalid = axi4s.tvalid;
-    end
-    assign axi4s.tready = u_top.axi4s_python.tready;
-    */
 
 
     // ----------------------------------
     //  I2C
     // ----------------------------------
 
-    localparam I2C_RATE = 1000;
+    localparam I2C_RATE = 100;
     logic  scl = 1'b1;
     logic  sda = 1'b1;
 
@@ -484,16 +438,30 @@ module tb_top();
     endtask
 
 
-
-    localparam  REGADR_CORE_ID       = 15'h0000;
-    localparam  REGADR_CORE_VERSION  = 15'h0001;
-    localparam  REGADR_CTL_BITSLIP   = 15'h0012;
+    localparam  REGADR_CORE_ID         = 15'h0000;
+    localparam  REGADR_CORE_VERSION    = 15'h0001;
+    localparam  REGADR_RECV_RESET      = 15'h0010;
+    localparam  REGADR_ALIGN_RESET     = 15'h0020;
+    localparam  REGADR_ALIGN_PATTERN   = 15'h0022;
+    localparam  REGADR_ALIGN_STATUS    = 15'h0028;
+//  localparam  REGADR_TRIM_X_START    = 15'h0030;
+//  localparam  REGADR_TRIM_X_END      = 15'h0031;
+//  localparam  REGADR_CSI_DATA_TYPE   = 15'h0050;
+//  localparam  REGADR_CSI_WC          = 15'h0051;
+    localparam  REGADR_DPHY_CORE_RESET = 15'h0080;
+    localparam  REGADR_DPHY_SYS_RESET  = 15'h0081;
+    localparam  REGADR_DPHY_INIT_DONE  = 15'h0088;
 
     initial begin
         logic [15:0] rdata;
 
-        #(I2C_RATE*10);
-        cmd_write(REGADR_CTL_BITSLIP, 16'haa55);
+        #10000; // wait for reset
+        cmd_write(REGADR_DPHY_CORE_RESET, 16'h0000);
+        cmd_write(REGADR_DPHY_SYS_RESET , 16'h0000);
+        cmd_write(REGADR_RECV_RESET     , 16'h0000);
+        cmd_write(REGADR_ALIGN_RESET    , 16'h0000);
+        #1000;
+        calib_pettern_en = 1'b0;
 
         #(I2C_RATE*2);
         cmd_write(15'h4000, 16'habcd);
@@ -501,8 +469,11 @@ module tb_top();
         cmd_read (15'h4000, rdata);
         #(I2C_RATE);
 
+        cmd_read(REGADR_CORE_ID     , rdata);
+        cmd_read(REGADR_CORE_VERSION, rdata);
 
-        #(I2C_RATE*10)  $finish();
+        #500000;
+        $finish();
     end;
 
 

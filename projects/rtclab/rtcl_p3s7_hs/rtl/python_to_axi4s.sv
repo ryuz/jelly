@@ -90,6 +90,7 @@ module python_to_axi4s
                 if ( s_sync == 10'h22a ) begin   // Black Start
                     busy             <= 1'b1;
                     id               <= 1'b1;
+                    m_axi4s.tuser[0] <= 1'b1;
                     m_axi4s.tuser[3] <= 1'b1;
                     m_axi4s.tvalid   <= 1'b1;
                 end

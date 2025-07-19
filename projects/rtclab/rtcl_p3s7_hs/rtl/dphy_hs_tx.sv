@@ -46,7 +46,7 @@ module dphy_hs_tx
                 if ( !dphy_ready ) begin
                     // start
                     if ( s_axi4s.tvalid && s_axi4s.tuser[0] ) begin
-                        dphy_data    <= data_t'(s_axi4s.tuser);
+                        dphy_data    <= data_t'(s_axi4s.tuser >> 1);
                         dphy_request <= 1'b1;
                     end
                 end
@@ -69,7 +69,7 @@ module dphy_hs_tx
         end
     end
 
-    assign s_axi4s.tready = !dphy_request || dphy_ready;
+    assign s_axi4s.tready = (!dphy_request && !(s_axi4s.tvalid && s_axi4s.tuser[0])) || (dphy_request && dphy_ready);
 
 endmodule
 
