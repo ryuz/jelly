@@ -10,25 +10,19 @@ create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports
 # MIPI  1250Mbps : 8bit@156.25MHz 6.400ns
 # MIPI   950Mbps : 8bit@118.75MHz 8.421ns
 
-# in_clk72               :  72MHz 13.888ns
-# python_clk_p           : 360MHz  2.777ns
-# clk_out1_clk_mipi_core : 200MHz  5.000ns
-# dphy_txbyteclkhs       : 156.25MHz  6.400ns
+# in_clk72               :  50.00MHz 20.000ns
+# in_clk72               :  72.00MHz 13.888ns
+# python_clk_p           : 360.00MHz  2.777ns
+# python_clk             :  72.00MHz 13.888ns
+# clk_out1_clk_mipi_core : 200.00MHz  5.000ns
+# dphy_txhs_clk          : 156.25MHz  6.400ns
 
-
-#set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks clk_out1_clk_mipi_core] 10.000
-#set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks python_clk] 10.000
-#set_max_delay -datapath_only -from [get_clocks in_clk72] -to [get_clocks python_clk_p] 10.000
-#set_max_delay -datapath_only -from [get_clocks python_clk] -to [get_clocks in_clk72] 10.000
-
-set_max_delay -datapath_only -from [get_clocks clk_out1_clk_mipi_core] -to [get_clocks dphy_txbyteclkhs]       5.200
-set_max_delay -datapath_only -from [get_clocks dphy_txbyteclkhs]       -to [get_clocks python_clk_p]           2.777
-set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks clk_out1_clk_mipi_core] 5.000
-set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks python_clk_p]           2.777
-set_max_delay -datapath_only -from [get_clocks in_clk72]               -to [get_clocks dphy_txbyteclkhs]       8.000
-set_max_delay -datapath_only -from [get_clocks python_clk_p]           -to [get_clocks dphy_txbyteclkhs]       2.777
-set_max_delay -datapath_only -from [get_clocks python_clk_p]           -to [get_clocks in_clk72]               2.777
-
+set_clock_groups -asynchronous -group {in_clk50} \
+                               -group {in_clk72} \
+                               -group {python_clk_p} \
+                               -group {python_clk} \
+                               -group {dphy_txhs_clk} \
+                               -group {clk_out1_clk_mipi_core} \
 
 # clock
 set_property PACKAGE_PIN H4 [get_ports in_clk50]

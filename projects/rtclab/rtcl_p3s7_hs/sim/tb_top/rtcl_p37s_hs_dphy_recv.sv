@@ -40,6 +40,7 @@ module rtcl_p37s_hs_dphy_recv
 
     // DPHY Receive
     logic                           rx_first    ;
+    logic                           rx_last     ;
     logic   [7:0]                   rx_type     ;
     logic   [DPHY_LANES-1:0][7:0]   rx_data     ;
     logic                           rx_valid    ;
@@ -76,6 +77,8 @@ module rtcl_p37s_hs_dphy_recv
             end
         end
     end
+    assign rx_last = rx_valid & ~dphy_valid;
+    
 
     // FIFO
     logic                           fifo_first    ;
@@ -177,7 +180,12 @@ module rtcl_p37s_hs_dphy_recv
                 .m_ready            (1'b1                   )
             );
 
-    
+    // width convert
+    localparam  type    raw_t = logic [RAW_BITS-1:0];
+    logic                   conv_first    ;
+    logic                   conv_black    ;
+    raw_t   [CHANNELS-1:0]  conv_data     ;
+    logic                   conv_valid    ;
 
 
 endmodule
