@@ -18,13 +18,12 @@ module tb_top();
 
     localparam RATE50  = 1000.0/50.00;
     localparam RATE72  = 1000.0/72.00;
-    localparam RATE720 = 1000.0/720.00;
+//  localparam RATE720 = 1000.0/720.00;
     localparam RATE360 = 1000.0/360.00;
-    localparam RATE180 = 1000.0/180.00;
+//  localparam RATE180 = 1000.0/180.00;
     localparam RATE250 = 1000.0/250.00;
-    localparam RATE500 = 1000.0/500.00;
-    localparam RATE288 = 1000.0/288.00;     // RX側ピクセルクロック
-
+//  localparam RATE500 = 1000.0/500.00;
+    
     logic       reset = 1'b1;
     initial #8000 reset = 1'b0;
 
@@ -40,14 +39,15 @@ module tb_top();
 //  logic       clk180 = 1'b1;
 //  initial forever #(RATE180/2.0) clk180 = ~clk180;
 
-//  logic       clk250 = 1'b1;
-//  initial forever #(RATE250/2.0) clk250 = ~clk250;
+    logic       clk250 = 1'b1;
+    initial forever #(RATE250/2.0) clk250 = ~clk250;
 
 //  logic       clk500 = 1'b1;
 //  initial forever #(RATE500/2.0) clk500 = ~clk500;
 
-    logic       clk288 = 1'b1;
-    initial forever #(RATE288/2.0) clk288 = ~clk288;
+    localparam RATE_DPHY = 1000.0/156.25;
+    logic       clk_dphy = 1'b1;
+    initial forever #(RATE_DPHY/2.0) clk_dphy = ~clk_dphy;
 
 
     // ---------------------------------
@@ -309,7 +309,7 @@ module tb_top();
         axi4s_black
             (
                 .aresetn        (~reset     ),
-                .aclk           (clk288     ),
+                .aclk           (clk250     ),
                 .aclken         (1'b1       )
             );
 
@@ -323,7 +323,7 @@ module tb_top();
         axi4s_image
             (
                 .aresetn        (~reset     ),
-                .aclk           (clk288     ),
+                .aclk           (clk250     ),
                 .aclken         (1'b1       )
             );
 
@@ -349,6 +349,9 @@ module tb_top();
                 .m_axi4s_black      (axi4s_black    ),
                 .m_axi4s_image      (axi4s_image    )
             );
+
+    assign axi4s_black.tready = 1'b1;
+    assign axi4s_image.tready = 1'b1;
 
 
     // ---------------------------------
