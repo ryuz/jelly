@@ -5,19 +5,38 @@
 
 module rtcl_p37s_hs_dphy_recv
         #(
+            parameter   int     X_BITS         = 10                         ,
+            parameter   type    x_t            = logic  [X_BITS^1:0]        ,
+            parameter   int     Y_BITS         = 10                         ,
+            parameter   type    y_t            = logic  [Y_BITS^1:0]        ,
+
             parameter   int     CHANNELS       = 1                          ,
             parameter   int     RAW_BITS       = 10                         ,
             parameter   int     DPHY_LANES     = 2                          ,
             parameter           DEBUG          = "false"                    
         )
         (
-            input   var logic                           dphy_reset      ,
-            input   var logic                           dphy_clk        ,
-            input   var logic   [DPHY_LANES-1:0][7:0]   dphy_data       ,
-            input   var logic                           dphy_valid      ,
+            input   var x_t                             param_blk_width     ,
+            input   var y_t                             param_blk_height    ,
+            input   var x_t                             param_img_width     ,
+            input   var y_t                             param_img_height    ,
 
-            jelly3_axi4s_if.m                           m_axi4s         
+            input   var logic                           dphy_reset          ,
+            input   var logic                           dphy_clk            ,
+            input   var logic   [DPHY_LANES-1:0][7:0]   dphy_data           ,
+            input   var logic                           dphy_valid          ,
+
+            jelly3_axi4s_if.m                           m_axi4s_blk         ,
+            jelly3_axi4s_if.m                           m_axi4s_img         
         );
+
+    logic       aresetn     ;
+    logic       aclk        ;
+    logic       aclken      ;
+    assign aresetn = m_axi4s_img.aresetn    ;
+    assign aclk    = m_axi4s_img.aclk       ;
+    assign aclken  = m_axi4s_img.aclken     ;
+
 
     // DPHY Receive
     logic                           rx_first    ;
@@ -87,9 +106,9 @@ module rtcl_p37s_hs_dphy_recv
                 .s_ready        (                   ),
                 .s_free_count   (                   ),
 
-                .m_reset        (~m_axi4s.aresetn   ),
-                .m_clk          (m_axi4s.aclk       ),
-                .m_cke          (m_axi4s.aclken     ),
+                .m_reset        (aresetn            ),
+                .m_clk          (aclk               ),
+                .m_cke          (aclken             ),
                 .m_data         ({
                                     fifo_first  ,
                                     fifo_black  ,
@@ -128,9 +147,9 @@ module rtcl_p37s_hs_dphy_recv
             )
         u_stream_width_convert
             (
-                .reset              (~m_axi4s.aresetn       ),
-                .clk                (m_axi4s.aclk           ),
-                .cke                (m_axi4s.aclken         ),
+                .reset              (~aresetn               ),
+                .clk                (aclk                   ),
+                .cke                (aclken                 ),
 
                 .endian             (1'b0                   ),
                 .padding            ('0                     ),
@@ -157,6 +176,8 @@ module rtcl_p37s_hs_dphy_recv
                 .m_valid            (conv_valid             ),
                 .m_ready            (1'b1                   )
             );
+
+    
 
 
 endmodule
