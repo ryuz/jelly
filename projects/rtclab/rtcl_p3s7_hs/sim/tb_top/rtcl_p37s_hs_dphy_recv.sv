@@ -25,29 +25,36 @@ module rtcl_p37s_hs_dphy_recv
     logic   [DPHY_LANES-1:0][7:0]   rx_data     ;
     logic                           rx_valid    ;
     always_ff @(posedge dphy_clk) begin
-        if (dphy_reset) begin
-            rx_first <= 1'b0;
-            rx_type  <= 8'hxx;
-            rx_data  <= 'x;
-            rx_valid <= 1'b0;
+        if ( dphy_reset ) begin
+            rx_first <= 1'b0    ;
+            rx_type  <= 8'hxx   ;
+            rx_data  <= 'x      ;
+            rx_valid <= 1'b0    ;
         end
         else begin
-//          if ( !dphy_valid ) begin
-//              rx_first <= 1'b0;
-//          end
-//          else if ( rx_valid ) begin
-//              rx_first <= 1'b1;
-//          end
-
-            if ( dphy_valid && !rx_valid ) begin
-                rx_type  <= dphy_data[0][7:0]   ;
-                rx_first <= 1'b1                ;
+            if ( dphy_valid ) begin
+                if ( !rx_valid ) begin
+                    if ( !rx_first ) begin
+                        rx_type  <= dphy_data[0][7:0]   ;
+                        rx_first <= 1'b1                ;
+                    end
+                    else begin
+                        rx_data  <= dphy_data   ;
+                        rx_valid <= 1'b1        ;
+                    end
+                end
+                else begin
+                    rx_first <= 1'b0        ;
+                    rx_data  <= dphy_data   ;
+                    rx_valid <= 1'b1        ;
+                end
             end
-            if ( rx_valid || !dphy_valid ) begin
-                rx_first <= 1'b0                ;
+            else begin
+                rx_first <= 1'b0    ;
+                rx_type  <= 8'hxx   ;
+                rx_data  <= 'x      ;
+                rx_valid <= 1'b0    ;
             end
-            rx_data  <= dphy_data;
-            rx_valid <= dphy_valid && (rx_first || rx_valid);
         end
     end
 
