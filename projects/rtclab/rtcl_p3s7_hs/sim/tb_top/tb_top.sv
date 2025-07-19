@@ -23,6 +23,7 @@ module tb_top();
     localparam RATE180 = 1000.0/180.00;
     localparam RATE250 = 1000.0/250.00;
     localparam RATE500 = 1000.0/500.00;
+    localparam RATE288 = 1000.0/288.00;     // RX側ピクセルクロック
 
     logic       reset = 1'b1;
     initial #8000 reset = 1'b0;
@@ -36,14 +37,17 @@ module tb_top();
     logic       clk360 = 1'b1;
     initial forever #(RATE360/2.0) clk360 = ~clk360;
 
-    logic       clk180 = 1'b1;
-    initial forever #(RATE180/2.0) clk180 = ~clk180;
+//  logic       clk180 = 1'b1;
+//  initial forever #(RATE180/2.0) clk180 = ~clk180;
 
-    logic       clk250 = 1'b1;
-    initial forever #(RATE250/2.0) clk250 = ~clk250;
+//  logic       clk250 = 1'b1;
+//  initial forever #(RATE250/2.0) clk250 = ~clk250;
 
-    logic       clk500 = 1'b1;
-    initial forever #(RATE500/2.0) clk500 = ~clk500;
+//  logic       clk500 = 1'b1;
+//  initial forever #(RATE500/2.0) clk500 = ~clk500;
+
+    logic       clk288 = 1'b1;
+    initial forever #(RATE288/2.0) clk288 = ~clk288;
 
 
     // ---------------------------------
@@ -296,6 +300,40 @@ module tb_top();
     assign  rxsynchs   = ~rxvalidhs & {u_top.dphy_dl1_txreadyhs, u_top.dphy_dl0_txreadyhs };
     assign  rxactivehs = rxsynchs | rxvalidhs;
 
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST       (1          ),
+                .USE_USER       (1          ),
+                .DATA_BITS      (10         ),
+                .USER_BITS      (2          )
+            )
+        axi4s_rx_dphy
+            (
+                .aresetn        (reset      ),
+                .aclk           (clk288     ),
+                .aclken         (1'b1       )
+            );
+    
+    rtcl_p37s_hs_dphy_recv
+            #(
+                .CHANNELS       (2          ),
+                .RAW_BITS       (10         ),
+                .DPHY_LANES     (2          ),
+                .DEBUG          ("false"    )
+            )
+        u_rtcl_p37s_hs_dphy_recv
+            (
+                .dphy_reset     (rxreseths      ),
+                .dphy_clk       (rxbyteclkhs    ),
+                .dphy_data      (rxdatahs       ),
+                .dphy_valid     (rxvalidhs[0]   ),
+
+                .m_axi4s        (axi4s_rx_dphy  )
+            );
+
+
+    /*
     logic               mipi_ecc_corrected;
     logic               mipi_ecc_error;
     logic               mipi_ecc_valid;
@@ -346,7 +384,7 @@ module tb_top();
                 .m_axi4s_tvalid     (axi4s_csi2_tvalid  ),
                 .m_axi4s_tready     (1'b1               )  // (axi4s_csi2_tready)
             );
-    
+    */
 
     // ---------------------------------
     //  Testbench
