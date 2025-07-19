@@ -15,21 +15,13 @@ set_property IOSTANDARD LVCMOS33 [get_ports fan_en]
 # clk_out4_design_1_clk_wiz_0_0      333MHz
 # clk_pl_0                           100MHz
 # clkoutphy_out                      128.125MHz   7.8ns
-# i_design_1/clk_wiz_0/inst/clk_in1  
+# i_design_1/clk_wiz_0/inst/clk_in1
 
 # cam_clk_p
 #create_clock -period 2.1929 -name cam_clk_p -waveform {0.000 1.0964} [get_ports cam_clk_p]
 create_clock -period 1.600 -name cam_clk_p -waveform {0.000 0.800} [get_ports cam_clk_p]
 
-set_clock_groups -asynchronous -group {cam_clk_p_FIFO_WRCLK_OUT} \
-                               -group {GEN_PLL_IN_IP_USP.pll0_clkout0} \
-                               -group {clk_out1_design_1_clk_wiz_0_0} \
-                               -group {clk_out2_design_1_clk_wiz_0_0} \
-                               -group {clk_out3_design_1_clk_wiz_0_0} \
-                               -group {clk_out4_design_1_clk_wiz_0_0} \
-                               -group {clk_pl_0} \
-                               -group {clkoutphy_out} \
-                               -group {i_design_1/clk_wiz_0/inst/clk_in1}
+set_clock_groups -asynchronous -group cam_clk_p_FIFO_WRCLK_OUT -group GEN_PLL_IN_IP_USP.pll0_clkout0 -group clk_out1_design_1_clk_wiz_0_0 -group clk_out2_design_1_clk_wiz_0_0 -group clk_out3_design_1_clk_wiz_0_0 -group clk_out4_design_1_clk_wiz_0_0 -group clk_pl_0 -group clkoutphy_out -group i_design_1/clk_wiz_0/inst/clk_in1
 
 # set_max_delay -datapath_only -from [get_clocks cam_clk_p_FIFO_WRCLK_OUT]      -to [get_clocks clk_out3_design_1_clk_wiz_0_0]  5.000
 # set_max_delay -datapath_only -from [get_clocks clk_out1_design_1_clk_wiz_0_0] -to [get_clocks cam_clk_p_FIFO_WRCLK_OUT]       5.000
@@ -51,12 +43,12 @@ set_clock_groups -asynchronous -group {cam_clk_p_FIFO_WRCLK_OUT} \
 
 
 # MIPI
-set_property PACKAGE_PIN D7  [get_ports cam_clk_p]
-set_property PACKAGE_PIN D6  [get_ports cam_clk_n]
-set_property PACKAGE_PIN E5  [get_ports {cam_data_p[0]}]
-set_property PACKAGE_PIN D5  [get_ports {cam_data_n[0]}]
-set_property PACKAGE_PIN G6  [get_ports {cam_data_p[1]}]
-set_property PACKAGE_PIN F6  [get_ports {cam_data_n[1]}]
+set_property PACKAGE_PIN D7 [get_ports cam_clk_p]
+set_property PACKAGE_PIN D6 [get_ports cam_clk_n]
+set_property PACKAGE_PIN E5 [get_ports {cam_data_p[0]}]
+set_property PACKAGE_PIN D5 [get_ports {cam_data_n[0]}]
+set_property PACKAGE_PIN G6 [get_ports {cam_data_p[1]}]
+set_property PACKAGE_PIN F6 [get_ports {cam_data_n[1]}]
 
 set_property PACKAGE_PIN G11 [get_ports cam_scl]
 set_property PACKAGE_PIN F10 [get_ports cam_sda]
@@ -103,4 +95,5 @@ set_property IOSTANDARD LVCMOS33 [get_ports {pmod[4]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod[5]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod[6]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {pmod[7]}]
+
 
