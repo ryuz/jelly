@@ -243,13 +243,11 @@ module tb_top();
         send_python_train(67);
     endtask
 
+    int width  = 640;//256;
+    int height = 64;
 
     logic       calib_pettern_en = 1'b1;
     initial begin
-        int width, height;
-        width  = 640;//256;
-        height = 64;
-
         @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
         @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
         @(python_clk_p); #0;  python_data_p = '1; python_sync_p = '1;
@@ -304,32 +302,52 @@ module tb_top();
     jelly3_axi4s_if
             #(
                 .USE_LAST       (1          ),
-                .USE_USER       (1          ),
+                .USE_USER       (2          ),
                 .DATA_BITS      (10         ),
                 .USER_BITS      (2          )
             )
-        axi4s_rx_dphy
+        axi4s_black
             (
                 .aresetn        (~reset     ),
                 .aclk           (clk288     ),
                 .aclken         (1'b1       )
             );
-    
-    rtcl_p37s_hs_dphy_recv
+
+    jelly3_axi4s_if
+            #(
+                .USE_LAST       (1          ),
+                .USE_USER       (2          ),
+                .DATA_BITS      (10         ),
+                .USER_BITS      (2          )
+            )
+        axi4s_image
+            (
+                .aresetn        (~reset     ),
+                .aclk           (clk288     ),
+                .aclken         (1'b1       )
+            );
+
+    rtcl_p3s7_hs_dphy_recv
             #(
                 .CHANNELS       (1          ),
                 .RAW_BITS       (10         ),
                 .DPHY_LANES     (2          ),
                 .DEBUG          ("false"    )
             )
-        u_rtcl_p37s_hs_dphy_recv
+        u_rtcl_p3s7_hs_dphy_recv
             (
-                .dphy_reset     (rxreseths      ),
-                .dphy_clk       (rxbyteclkhs    ),
-                .dphy_data      (rxdatahs       ),
-                .dphy_valid     (rxvalidhs[0]   ),
+                .param_black_width  (1280           ),
+                .param_black_height (1              ),
+                .param_image_width  (width          ),
+                .param_image_height (height         ),
 
-                .m_axi4s        (axi4s_rx_dphy  )
+                .dphy_reset         (rxreseths      ),
+                .dphy_clk           (rxbyteclkhs    ),
+                .dphy_data          (rxdatahs       ),
+                .dphy_valid         (rxvalidhs[0]   ),
+
+                .m_axi4s_black      (axi4s_black    ),
+                .m_axi4s_image      (axi4s_image    )
             );
 
 

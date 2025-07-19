@@ -6,7 +6,7 @@
         overlay0: __overlay__ {
             #address-cells = <2>;
             #size-cells = <2>;
-            firmware-name = "kv260_spartan7_python300.bit.bin";
+            firmware-name = "kv260_rtcl_p3s7_mipi.bit.bin";
         };
     };
     

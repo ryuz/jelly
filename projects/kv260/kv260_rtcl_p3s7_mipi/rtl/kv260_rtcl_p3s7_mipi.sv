@@ -5,7 +5,7 @@
 `default_nettype none
 
 
-module kv260_spartan7_python300
+module kv260_rtcl_p3s7_mipi
         #(
             parameter   int     WIDTH_BITS  = 16,
             parameter   int     HEIGHT_BITS = 16,
