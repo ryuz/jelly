@@ -670,8 +670,11 @@ module rtcl_p3s7_hs
 //  assign led[1] = sensor_pgood;
     assign led[1] = python_clk_counter[24];
 
-    assign pmod[0]   = python_frame_toggle;
-    assign pmod[7:1] = clk50_counter[15:9];
+    assign pmod[0] = python_frame_toggle;
+//  assign pmod[7:1] = clk50_counter[15:9];
+    assign pmod[1] = clk50_counter[8];
+    assign pmod[2] = clk72_counter[8];
+    assign pmod[7:3] = '0;
 
 
     // --------------------------------

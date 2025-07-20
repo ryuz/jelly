@@ -243,15 +243,17 @@ module kv260_rtcl_p3s7_hs
     (* MARK_DEBUG=DEBUG *)  logic           reg_cam_enable      ;
     (* MARK_DEBUG=DEBUG *)  logic   [7:0]   reg_csi_data_type   ;
     (* MARK_DEBUG=DEBUG *)  logic           reg_dphy_init_done  ;
+                            logic   [31:0]  reg_fps_count       ;
+                            logic   [31:0]  reg_frame_count     ;
                             logic   [11:0]  reg_image_width     ;
                             logic   [11:0]  reg_image_height    ;
                             logic   [11:0]  reg_black_width     ;
                             logic   [11:0]  reg_black_height    ;
     always_ff @(posedge axi4l_dec[DEC_SYS].aclk) begin
         if ( ~axi4l_dec[DEC_SYS].aresetn ) begin
-            axi4l_dec[DEC_SYS].bvalid <= 1'b0;
-            axi4l_dec[DEC_SYS].rdata  <= 'x;
-            axi4l_dec[DEC_SYS].rvalid <= 1'b0;
+            axi4l_dec[DEC_SYS].bvalid <= 1'b0   ;
+            axi4l_dec[DEC_SYS].rdata  <= '0     ;
+            axi4l_dec[DEC_SYS].rvalid <= 1'b0   ;
 
             reg_sw_reset      <= 1'b0;
             reg_cam_enable    <= 1'b0;
@@ -284,16 +286,18 @@ module kv260_rtcl_p3s7_hs
 
             // read
             if ( axi4l_dec[DEC_SYS].rready ) begin
-                axi4l_dec[DEC_SYS].rdata  <= 'x;
+                axi4l_dec[DEC_SYS].rdata  <= '0;
                 axi4l_dec[DEC_SYS].rvalid <= 1'b0;
             end
             if ( axi4l_dec[DEC_SYS].arvalid && axi4l_dec[DEC_SYS].arready ) begin
-                case ( axi4l_dec[DEC_SYS].awaddr[6:3] )
+                case ( axi4l_dec[DEC_SYS].araddr[6:3] )
                 0:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(32'h01234567)      ;
                 1:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_sw_reset)      ;
                 2:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_cam_enable)    ;
                 3:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_csi_data_type) ;
                 4:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_dphy_init_done);
+                6:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_fps_count)     ;
+                7:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_frame_count)   ;
                 8:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_image_width)   ;
                 9:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_image_height)  ;
                 10:         axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_black_width)   ;
@@ -845,22 +849,32 @@ module kv260_rtcl_p3s7_hs
         end
     end
     
-    logic   [7:0]   reg_frame_count;
+    // frame monitor
+    (* mark_debug = "true" *) logic   [31:0]  mon_frame_rate_count;
+    (* mark_debug = "true" *) logic   [31:0]  mon_frame_rate_value;
+    (* mark_debug = "true" *) logic   [31:0]  mon_frame_count;
     always_ff @(posedge axi4s_cam_aclk) begin
+        mon_frame_rate_count <= mon_frame_rate_count + 1;
         if ( axi4s_image.tuser[0] && axi4s_image.tvalid ) begin
-            reg_frame_count <= reg_frame_count + 1;
+            mon_frame_rate_value <= mon_frame_rate_count;
+            mon_frame_rate_count <= '0;
+            mon_frame_count      <= mon_frame_count + 1;
         end
     end
-    
+
+    always_ff @(posedge axi4l_dec[DEC_SYS].aclk) begin
+        reg_fps_count   <= mon_frame_rate_value;
+        reg_frame_count <= mon_frame_count;
+    end
+
     // pmod
     assign pmod[0] = reg_counter_rxbyteclkhs[25];
-    assign pmod[1] = reg_counter_clk100     [25];
-    assign pmod[2] = reg_counter_clk200     [25];
-    assign pmod[3] = reg_counter_clk250     [25];
-//    assign pmod[0] = i2c0_scl_o;
-//    assign pmod[1] = i2c0_scl_t;
-//    assign pmod[2] = i2c0_sda_o;
-//    assign pmod[3] = i2c0_sda_t;
+    assign pmod[1] = axi4s_image.tvalid;
+    assign pmod[2] = axi4s_black.tvalid;
+    assign pmod[3] = mon_frame_count[0];
+//  assign pmod[1] = reg_counter_clk100     [25];
+//  assign pmod[2] = reg_counter_clk200     [25];
+//  assign pmod[3] = reg_counter_clk250     [25];
     assign pmod[4] = cam_enable;
     assign pmod[5] = reg_frame_count[7];
     assign pmod[7:6] = reg_counter_clk100[9:8];
