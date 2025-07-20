@@ -35,6 +35,8 @@ export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/kv260_rtcl_p3s7_hs.sv
+SOURCES += $(PRJ_DIR)/rtl/rtcl_p3s7_hs_dphy_recv.sv
+SOURCES += $(PRJ_DIR)/rtl/rtcl_p3s7_hs_cnv_axi4s.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 

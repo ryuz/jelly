@@ -15,13 +15,13 @@ create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports
 # python_clk_p           : 360.00MHz  2.777ns
 # python_clk             :  72.00MHz 13.888ns
 # clk_out1_clk_mipi_core : 200.00MHz  5.000ns
-# dphy_txhs_clk          : 156.25MHz  6.400ns
+# dphy_clk               : 156.25MHz  6.400ns
 
 set_clock_groups -asynchronous -group {in_clk50} \
                                -group {in_clk72} \
                                -group {python_clk_p} \
                                -group {python_clk} \
-                               -group {dphy_txhs_clk} \
+                               -group {dphy_clk} \
                                -group {clk_out1_clk_mipi_core} \
 
 # clock

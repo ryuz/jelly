@@ -96,8 +96,17 @@ module mipi_dphy_0
         dl1_txreadyhs <= dl1_txrequesths;
     end
 
-    assign init_done = 1;
+    int     counter;
+    always_ff @(posedge txbyteclkhs_in) begin
+        if ( core_rst || system_rst_in ) begin
+            counter <= '0;
+        end
+        else begin
+            counter <= counter + 1;
+        end
+    end
 
+    assign init_done = (counter > 100);
 
 endmodule
 

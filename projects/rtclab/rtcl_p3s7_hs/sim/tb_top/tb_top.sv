@@ -282,8 +282,8 @@ module tb_top();
     logic   [1:0]       rxactivehs  ;
     logic   [1:0]       rxsynchs    ;
 
-    assign  rxreseths   = u_top.dphy_txhs_reset ;
-    assign  rxbyteclkhs = u_top.dphy_txhs_clk   ;
+    assign  rxreseths   = u_top.dphy_reset ;
+    assign  rxbyteclkhs = u_top.dphy_clk   ;
     always_ff @(posedge rxbyteclkhs) begin
         if ( rxreseths ) begin
             rxdatahs    <= '0;
