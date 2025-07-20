@@ -34,16 +34,13 @@ void          load_setting(jelly::I2cAccessor &i2c);
 void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 
 
+
 #define CAMREG_CORE_ID          0x0000
 #define CAMREG_CORE_VERSION     0x0001
-#define CAMREG_ISERDES_RESET    0x0010
+#define CAMREG_RECV_RESET       0x0010
 #define CAMREG_ALIGN_RESET      0x0020
 #define CAMREG_ALIGN_PATTERN    0x0022
-#define CAMREG_CALIB_STATUS     0x0028
-#define CAMREG_TRIM_X_START     0x0030
-#define CAMREG_TRIM_X_END       0x0031
-#define CAMREG_CSI_DATA_TYPE    0x0050
-#define CAMREG_CSI_WC           0x0051
+#define CAMREG_ALIGN_STATUS     0x0028
 #define CAMREG_DPHY_CORE_RESET  0x0080
 #define CAMREG_DPHY_SYS_RESET   0x0081
 #define CAMREG_DPHY_INIT_DONE   0x0088
@@ -53,10 +50,39 @@ void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 #define SYSREG_CAM_ENABLE       0x0002
 #define SYSREG_CSI_DATA_TYPE    0x0003
 #define SYSREG_DPHY_INIT_DONE   0x0004
+#define SYSREG_FPS_COUNT        0x0006
+#define SYSREG_FRAME_COUNT      0x0007
+#define SYSREG_IMAGE_WIDTH      0x0008
+#define SYSREG_IMAGE_HEIGHT     0x0009
+#define SYSREG_BLACK_WIDTH      0x000a
+#define SYSREG_BLACK_HEIGHT     0x000b
 
 
 int main(int argc, char *argv[])
 {
+    int width  = 256 ;
+    int height = 256 ;
+
+    for ( int i = 1; i < argc; ++i ) {
+        if ( strcmp(argv[i], "-width") == 0 && i+1 < argc) {
+            ++i;
+            width = strtol(argv[i], nullptr, 0);
+        }
+        else if ( strcmp(argv[i], "-height") == 0 && i+1 < argc) {
+            ++i;
+            height = strtol(argv[i], nullptr, 0);
+        }
+        else {
+            std::cout << "unknown option : " << argv[i] << std::endl;
+            return 1;
+        }
+    }
+
+    width &= ~0xf;
+    width  = std::max(width, 16);
+    height = std::max(height, 1);
+
+
     // mmap uio
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
     if ( !uio_acc.IsMapped() ) {
@@ -137,15 +163,17 @@ int main(int argc, char *argv[])
 
 
 //  int internal_w = 240;//420;
-    int internal_w = 416;
-    int width  = internal_w ;
-    int height = 160; // 416        ;
+//  int internal_w = 416;
+//  int width  = internal_w ;
+//  int height = 160; // 416        ;
+    reg_sys.WriteReg(SYSREG_IMAGE_WIDTH,  width);
+    reg_sys.WriteReg(SYSREG_IMAGE_HEIGHT, height);
 
 
-    cmd_write(i2c, CAMREG_TRIM_X_START ,     0);
-    cmd_write(i2c, CAMREG_TRIM_X_END   , internal_w-1);   //   = 11'd255                  ,
-//  cmd_write(i2c, CAMREG_CSI_DATA_TYPE,  0x2b); 
-    cmd_write(i2c, CAMREG_CSI_WC       , internal_w*5/4); //    = 16'(256*5/4)             ,
+//    cmd_write(i2c, CAMREG_TRIM_X_START ,     0);
+//    cmd_write(i2c, CAMREG_TRIM_X_END   , internal_w-1);   //   = 11'd255                  ,
+////  cmd_write(i2c, CAMREG_CSI_DATA_TYPE,  0x2b); 
+//    cmd_write(i2c, CAMREG_CSI_WC       , internal_w*5/4); //    = 16'(256*5/4)             ,
 
     // センサー起動    
     spi_change(i2c,  8, 0);     // soft_reset_pll
@@ -166,10 +194,13 @@ int main(int argc, char *argv[])
 //  spi_change(i2c, 256, (128/2-1)<<8);  // ROI x_start  x_end
 //  int pix = 640;
     int pix = 256;
-    int x_start = 0         ;
-//  int x_end   = x_start + width/8 - 1 ;
-    int x_end   = x_start + 1280/8 - 1 ;
-    int y_start = 0;
+
+    int roi_x = ((672 -  width) / 2) & ~0x0f; // 16の倍数
+    int roi_y = ((512 - height) / 2) & ~0x01; // 2の倍数
+
+    int x_start = roi_x / 8;
+    int x_end   = x_start + width/8 - 1 ;
+    int y_start = roi_y;
     int y_end   = y_start + height - 1;
     spi_change(i2c, 256, (x_end << 8) | x_start);    // y_end
     spi_change(i2c, 257, y_start);    // y_start
@@ -180,14 +211,14 @@ int main(int argc, char *argv[])
 
     spi_change(i2c, 192, 0x0);  // 動作停止(トレーニングパターン出力状態へ)
     usleep(1000);
-    cmd_write(i2c,  CAMREG_ISERDES_RESET, 1);
-    cmd_write(i2c,  CAMREG_ALIGN_RESET  , 1);
+    cmd_write(i2c,  CAMREG_RECV_RESET,  1);
+    cmd_write(i2c,  CAMREG_ALIGN_RESET, 1);
     usleep(1000);
-    cmd_write(i2c,  CAMREG_ISERDES_RESET, 0);
+    cmd_write(i2c,  CAMREG_RECV_RESET,  0);
     usleep(1000);
-    cmd_write(i2c,  CAMREG_ALIGN_RESET  , 0);
+    cmd_write(i2c,  CAMREG_ALIGN_RESET, 0);
     usleep(1000);
-    auto cam_calib_status = cmd_read(i2c,  CAMREG_CALIB_STATUS);
+    auto cam_calib_status = cmd_read(i2c,  CAMREG_ALIGN_STATUS);
     if ( cam_calib_status != 0x01 ) {
         std::cout << "!!ERROR!! CAM calibration is not done.  status =" << cam_calib_status << std::endl;
         return 1;
@@ -234,7 +265,7 @@ int main(int argc, char *argv[])
 //  vdmaw.SetImageSize(width, height);
 //  vdmaw.Start();
 
-    int     swap = 1;
+    int     swap = 0;
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
@@ -290,6 +321,16 @@ int main(int argc, char *argv[])
         // ユーザー操作
         switch ( key ) {
         case 'p':
+            {
+                std::cout << "SYSREG_ID           : 0x" << std::hex << reg_sys.ReadReg(SYSREG_ID)  << std::endl;
+                std::cout << "SYSREG_IMAGE_WIDTH  : " << std::dec << reg_sys.ReadReg(SYSREG_IMAGE_WIDTH)  << std::endl;
+                std::cout << "SYSREG_IMAGE_HEIGHT : " << std::dec << reg_sys.ReadReg(SYSREG_IMAGE_HEIGHT) << std::endl;
+                int fps_count   = reg_sys.ReadReg(SYSREG_FPS_COUNT);
+                int frame_count = reg_sys.ReadReg(SYSREG_FRAME_COUNT);
+                std::cout << "SYSREG_FPS_COUNT   : " << std::dec << fps_count << std::endl;
+                std::cout << "SYSREG_FRAME_COUNT : " << std::dec << frame_count << std::endl;
+                std::cout << "fps = " << 250000000.0 / (double)fps_count << " [fps]" << std::endl;
+            }
             break;
         
         case 'l':

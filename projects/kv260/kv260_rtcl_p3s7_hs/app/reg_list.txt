@@ -10,7 +10,7 @@
 #201  0x0400
 
 # ROI-0
-256  0x3f00
+#256  0x3f00
 #256  0x9f00
 #257  0
 #258  1023
@@ -19,3 +19,27 @@
 # blackcal
 128 0x4008
 129 0x0000
+
+# mult_timer  14.705ns  68Mz
+#199 1000
+199 530
+
+# fr_length 
+#200 2000
+200 100
+
+# exposure
+#201 100
+
+
+# integration_control
+#194 0x00e4
+
+# delay_configuration
+193 0x3c00
+
+# ZNROT
+#192 0x0001
+
+#192 0x0045
+
