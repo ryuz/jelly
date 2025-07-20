@@ -276,7 +276,7 @@ module kv260_rtcl_p3s7_mipi
                 axi4l_dec[DEC_SYS].rvalid <= 1'b0;
             end
             if ( axi4l_dec[DEC_SYS].arvalid && axi4l_dec[DEC_SYS].arready ) begin
-                case ( axi4l_dec[DEC_SYS].awaddr[5:3] )
+                case ( axi4l_dec[DEC_SYS].araddr[5:3] )
                 0:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(32'h01234567)      ;
                 1:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_sw_reset)      ;
                 2:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_cam_enable)    ;

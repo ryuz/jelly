@@ -11,8 +11,8 @@ module mipi_dphy_clk_gen
         output  var logic   core_reset          ,
         output  var logic   core_clk            ,
         output  var logic   system_reset        ,
-        output  var logic   txhs_reset          ,
-        output  var logic   txhs_clk            ,   // BUFR  (div4 from oserdes_clk90)
+//      output  var logic   dphy_reset          ,
+        output  var logic   dphy_clk            ,   // BUFR  (div4 from oserdes_clk90)
         output  var logic   txclkesc            ,   // BUFG
         output  var logic   oserdes_clkdiv      ,   // BUFR  (div4 from oserdes_clk)
         output  var logic   oserdes_clk         ,   // BUFIO
@@ -101,7 +101,7 @@ module mipi_dphy_clk_gen
                 .I                  (serial_clk90       ),
                 .CE                 (1'b1               ),
                 .CLR                (1'b0               ),
-                .O                  (txhs_clk           )
+                .O                  (dphy_clk           )
             );
 
     // -----------------------------
@@ -129,14 +129,16 @@ module mipi_dphy_clk_gen
                 .out_reset          (system_reset                           )
             );
 
+    /*
     jelly3_reset
         u_reset_dphy
             (
-                .clk                (txhs_clk               ),
+                .clk                (dphy_clk               ),
                 .cke                (1'b1                   ),
                 .in_reset           (system_reset           ),
-                .out_reset          (txhs_reset             )
+                .out_reset          (dphy_reset             )
             );
+    */
 
 endmodule
 

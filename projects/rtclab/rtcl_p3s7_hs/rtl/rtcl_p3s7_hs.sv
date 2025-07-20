@@ -148,7 +148,7 @@ module rtcl_p3s7_hs
                 .i2c_sda        (mipi_sda_i         ),
                 .i2c_sda_t      (mipi_sda_t         ),
 
-                .divider        (I2C_DIVIDER        ),
+                .divider        (8'(I2C_DIVIDER)    ),
                 .dev            (7'h10              ),
 
                 .wr_start       (i2c_wr_start       ),
@@ -259,8 +259,8 @@ module rtcl_p3s7_hs
     logic   dphy_core_reset         ;
     logic   dphy_core_clk           ;
     logic   dphy_system_reset       ;
-    logic   dphy_txhs_reset         ;
-    logic   dphy_txhs_clk           ;
+//  logic   dphy_txhs_reset         ;
+    logic   dphy_clk                ;
     logic   dphy_txclkesc           ;
     logic   dphy_oserdes_clkdiv     ;
     logic   dphy_oserdes_clk        ;
@@ -275,8 +275,8 @@ module rtcl_p3s7_hs
                 .core_reset         (dphy_core_reset        ),
                 .core_clk           (dphy_core_clk          ),
                 .system_reset       (dphy_system_reset      ),
-                .txhs_reset         (dphy_txhs_reset        ),
-                .txhs_clk           (dphy_txhs_clk          ),
+//              .dphy_reset         (                       ),
+                .dphy_clk           (dphy_clk               ),
                 .txclkesc           (dphy_txclkesc          ),
                 .oserdes_clkdiv     (dphy_oserdes_clkdiv    ),
                 .oserdes_clk        (dphy_oserdes_clk       ),
@@ -329,7 +329,7 @@ module rtcl_p3s7_hs
                 .core_clk               (dphy_core_clk              ),   //  input
                 .core_rst               (dphy_core_reset   || ctl_dphy_core_reset),   //  input
                 .txclkesc_in            (dphy_txclkesc              ),   //  input
-                .txbyteclkhs_in         (dphy_txhs_clk              ),   //  input
+                .txbyteclkhs_in         (dphy_clk                   ),   //  input
                 .oserdes_clkdiv_in      (dphy_oserdes_clkdiv        ),   //  input
                 .oserdes_clk_in         (dphy_oserdes_clk           ),   //  input
                 .oserdes_clk90_in       (dphy_oserdes_clk90         ),   //  input
@@ -386,8 +386,18 @@ module rtcl_p3s7_hs
 
     assign ctl_dphy_init_done = dphy_init_done;
     
+    logic   dphy_reset;
+    jelly3_reset
+        u_reset_core
+            (
+                .clk                (dphy_clk                   ),
+                .cke                (1'b1                       ),
+                .in_reset           (reset || ~dphy_init_done   ),
+                .out_reset          (dphy_reset                 )
+            );
 
-//  assign dphy_cl_txrequesths      = '1    ;
+
+    assign dphy_cl_txrequesths      = '1    ;
     assign dphy_cl_enable           = '1    ;
     assign dphy_cl_txulpsclk        = '0    ;
     assign dphy_cl_txulpsexit       = '0    ;
@@ -596,6 +606,9 @@ module rtcl_p3s7_hs
             );
 
     // DPHY TX
+    logic   [1:0][7:0]  dphy_data   ;
+    logic               dphy_request  ;
+    logic               dphy_ready  ;
     axi4s_to_dphy
             #(
                 .CHANNELS       (CHANNELS           ),
@@ -605,17 +618,21 @@ module rtcl_p3s7_hs
             )
         u_axi4s_to_dphy
             (
-                .s_axi4s        (axi4s_clip        ),
+                .s_axi4s        (axi4s_clip         ),
 
-                .dphy_reset     (dphy_txhs_reset   ),
-                .dphy_clk       (dphy_txhs_clk     ),
-                .dphy_data      ({
-                                    dphy_dl1_txdatahs,
-                                    dphy_dl0_txdatahs
-                                }),
-                .dphy_request   (dphy_dl0_txrequesths),
-                .dphy_ready     (dphy_dl0_txreadyhs )
+                .dphy_reset     (dphy_reset         ),
+                .dphy_clk       (dphy_clk           ),
+                .dphy_data      (dphy_data          ),
+                .dphy_request   (dphy_request       ),
+                .dphy_ready     (dphy_ready         )
             );
+
+    assign dphy_dl0_txdatahs    = dphy_data[0];
+    assign dphy_dl1_txdatahs    = dphy_data[1];
+    assign dphy_dl0_txrequesths = dphy_request;
+    assign dphy_dl1_txrequesths = dphy_request;
+    assign dphy_ready = dphy_dl1_txreadyhs & dphy_dl0_txreadyhs;
+
 
     // Blinking LED
     logic   [24:0]     clk50_counter; // リセットがないので初期値を設定
@@ -653,8 +670,11 @@ module rtcl_p3s7_hs
 //  assign led[1] = sensor_pgood;
     assign led[1] = python_clk_counter[24];
 
-    assign pmod[0]   = python_frame_toggle;
-    assign pmod[7:1] = clk50_counter[15:9];
+    assign pmod[0] = python_frame_toggle;
+//  assign pmod[7:1] = clk50_counter[15:9];
+    assign pmod[1] = clk50_counter[8];
+    assign pmod[2] = clk72_counter[8];
+    assign pmod[7:3] = '0;
 
 
     // --------------------------------
@@ -686,8 +706,8 @@ module rtcl_p3s7_hs
                 .s_ready        (                           ),
                 .s_free_count   (                           ),
                 
-                .m_reset        (dphy_txhs_reset            ),
-                .m_clk          (dphy_txhs_clk              ),
+                .m_reset        (dphy_reset                 ),
+                .m_clk          (dphy_clk                   ),
                 .m_cke          (1'b1                       ),
                 .m_data         ({
                                     dbg_python_align_data,
@@ -702,7 +722,7 @@ module rtcl_p3s7_hs
     (* mark_debug = DEBUG *)    logic           dbg_ctl_dphy_core_reset     ;
     (* mark_debug = DEBUG *)    logic           dbg_ctl_dphy_sys_reset      ;
     (* mark_debug = DEBUG *)    logic           dbg_dphy_init_done          ;
-    always_ff @(posedge dphy_txhs_clk) begin
+    always_ff @(posedge dphy_clk) begin
         dbg_ctl_dphy_core_reset <= ctl_dphy_core_reset;
         dbg_ctl_dphy_sys_reset  <= ctl_dphy_sys_reset ;
         dbg_dphy_init_done      <= dphy_init_done     ;
