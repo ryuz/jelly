@@ -3,6 +3,17 @@
 #247 0xfff0 # gain
 #247 0x0000 # gain
 
+# gain
+#204 0x01e3
+#205 0x0080
+204 0x1fe3
+205 0x0080
+
+# AEC
+160 0x0010
+
+
+
 #257  300
 
 #199  0x0100
@@ -16,17 +27,23 @@
 #258  1023
 #258  511
 
+# black lines
+#197 0x0102
+197 0x0102
+#197 0x0108
+
 # blackcal
-128 0x4008
+128 0x4108
 129 0x0000
 
 # mult_timer  14.705ns  68Mz
 #199 1000
-199 530
+#199 530
 
-# fr_length 
+# fr_length
 #200 2000
-200 100
+#200 100
+#200 0
 
 # exposure
 #201 100
@@ -35,11 +52,15 @@
 # integration_control
 #194 0x00e4
 
-# delay_configuration
-193 0x3c00
+# delay_configuration  xsm_delay
+193 0x3900
+#193 0x0f00
 
 # ZNROT
 #192 0x0001
 
+192 0x0045
+
 #192 0x0045
+
 

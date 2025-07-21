@@ -175,21 +175,27 @@ int main(int argc, char *argv[])
 ////  cmd_write(i2c, CAMREG_CSI_DATA_TYPE,  0x2b); 
 //    cmd_write(i2c, CAMREG_CSI_WC       , internal_w*5/4); //    = 16'(256*5/4)             ,
 
+    // 8番地(soft_reset_pll)
+    // 9番地(soft_reset_cgen)
+    // 10番地(soft_reset_analog)
+    // 16番地(power_down)
+    // 32番地(config0)
+
     // センサー起動    
-    spi_change(i2c,  8, 0);     // soft_reset_pll
-    spi_change(i2c,  9, 0);     // soft_reset_cgen
-    spi_change(i2c, 10, 0);     // soft_reset_analog
-    spi_change(i2c, 16, 3);     // power_down
-//  spi_change(i2c, 32, 0x7 | 0x8); // 8bit
-    spi_change(i2c, 32, 0x7);   // 10bit
-    spi_change(i2c, 34, 0x1);
-    spi_change(i2c, 40, 0x7);
-    spi_change(i2c, 48, 0x1);
-    spi_change(i2c, 64, 0x1);
-    spi_change(i2c, 72, 0x2227);
-    spi_change(i2c, 112, 0x7);
-    spi_change(i2c, 199, 0x255*16*8);    // exposure
-    spi_change(i2c, 256, ((640+32)/2-1)<<8);  // ROI x_start  x_end
+    spi_change(i2c,  8, 0x0000);    // pll_soft_reset, pll_lock_soft_reset
+    spi_change(i2c,  9, 0x0000);    // cgen_soft_reset
+    spi_change(i2c, 10, 0x0000);    // soft_reset_analog
+    spi_change(i2c, 16, 0x0003);    // power_down  0:pwd_n, 1:PLL enable, 2: PLL Bypass 
+    spi_change(i2c, 32, 0x0007);    // config0 (10bit mode) 0: enable_analog, 1: enabale_log, 2: select PLL
+    spi_change(i2c, 34, 0x1);       // config0 Logic General Enable Configuration
+    spi_change(i2c, 40, 0x7);       // image_core_config0 
+    spi_change(i2c, 48, 0x1);       // AFE Power down for AFE’s
+    spi_change(i2c, 64, 0x1);       // Bias Bias Power Down Configuration
+    spi_change(i2c, 72, 0x2227);    // Charge Pump
+    spi_change(i2c, 112, 0x7);      // Serializers/LVDS/IO 
+//  spi_change(i2c, 199, 0x255*16*8);    // exposure
+
+    //  spi_change(i2c, 256, ((640+32)/2-1)<<8);  // ROI x_start  x_end
 //  spi_change(i2c, 256, (20-1)<<8);  // ROI x_start  x_end
 //  spi_change(i2c, 256, (128/2-1)<<8);  // ROI x_start  x_end
 //  int pix = 640;
@@ -206,8 +212,7 @@ int main(int argc, char *argv[])
     spi_change(i2c, 257, y_start);    // y_start
     spi_change(i2c, 258, y_end);      // y_end
 
-    spi_change(i2c, 129, 0x0000);    // auto_blackcal_enable : OFF
-
+//  spi_change(i2c, 129, 0x0000);    // auto_blackcal_enable : OFF
 
     spi_change(i2c, 192, 0x0);  // 動作停止(トレーニングパターン出力状態へ)
     usleep(1000);
