@@ -7,10 +7,10 @@
 
 module kv260_rtcl_p3s7_hs
         #(
-            parameter   int     WIDTH_BITS  = 16,
-            parameter   int     HEIGHT_BITS = 16,
-            parameter   int     IMG_WIDTH   = 3280 / 2,
-            parameter   int     IMG_HEIGHT  = 2464 / 2,
+            parameter   int     WIDTH_BITS  = 16    ,
+            parameter   int     HEIGHT_BITS = 16    ,
+            parameter   int     IMG_WIDTH   = 64    ,
+            parameter   int     IMG_HEIGHT  = 64    ,
             parameter           DEBUG       = "true"
         )
         (
@@ -239,29 +239,29 @@ module kv260_rtcl_p3s7_hs
     //  System Control
     // ----------------------------------------
     
-    (* MARK_DEBUG=DEBUG *)  logic           reg_sw_reset        ;
-    (* MARK_DEBUG=DEBUG *)  logic           reg_cam_enable      ;
-    (* MARK_DEBUG=DEBUG *)  logic   [7:0]   reg_csi_data_type   ;
-    (* MARK_DEBUG=DEBUG *)  logic           reg_dphy_init_done  ;
-                            logic   [31:0]  reg_fps_count       ;
-                            logic   [31:0]  reg_frame_count     ;
-                            logic   [11:0]  reg_image_width     ;
-                            logic   [11:0]  reg_image_height    ;
-                            logic   [11:0]  reg_black_width     ;
-                            logic   [11:0]  reg_black_height    ;
+    (* MARK_DEBUG=DEBUG *)  logic                       reg_sw_reset        ;
+    (* MARK_DEBUG=DEBUG *)  logic                       reg_cam_enable      ;
+    (* MARK_DEBUG=DEBUG *)  logic   [7:0]               reg_csi_data_type   ;
+    (* MARK_DEBUG=DEBUG *)  logic                       reg_dphy_init_done  ;
+                            logic   [31:0]              reg_fps_count       ;
+                            logic   [31:0]              reg_frame_count     ;
+                            logic   [WIDTH_BITS-1:0]    reg_image_width     ;
+                            logic   [HEIGHT_BITS-1:0]   reg_image_height    ;
+                            logic   [11:0]              reg_black_width     ;
+                            logic   [11:0]              reg_black_height    ;
     always_ff @(posedge axi4l_dec[DEC_SYS].aclk) begin
         if ( ~axi4l_dec[DEC_SYS].aresetn ) begin
             axi4l_dec[DEC_SYS].bvalid <= 1'b0   ;
             axi4l_dec[DEC_SYS].rdata  <= '0     ;
             axi4l_dec[DEC_SYS].rvalid <= 1'b0   ;
 
-            reg_sw_reset      <= 1'b0;
-            reg_cam_enable    <= 1'b0;
-            reg_csi_data_type <= 8'h2b;
-            reg_image_width   <=  640;
-            reg_image_height  <=  480;
-            reg_black_width   <= 1284;
-            reg_black_height  <=    1;
+            reg_sw_reset      <= 1'b0       ;
+            reg_cam_enable    <= 1'b0       ;
+            reg_csi_data_type <= 8'h2b      ;
+            reg_image_width   <= IMG_WIDTH  ;
+            reg_image_height  <= IMG_HEIGHT ;
+            reg_black_width   <= 1284       ;
+            reg_black_height  <=    1       ;
         end
         else begin
             // write
@@ -537,7 +537,32 @@ module kv260_rtcl_p3s7_hs
                 .m_axi4s_black      (axi4s_black        ),
                 .m_axi4s_image      (axi4s_image        )
             );
+    
+    /*
+    jelly3_video_pattern_generator
+            #(
+                .X_BITS         (WIDTH_BITS             ),
+                .Y_BITS         (HEIGHT_BITS            ),
+                .F_BITS         (16                     ),
+                .BLOCK_BITS     (5                      )
+            )
+        u_video_pattern_generator
+            (
+                .enable         (1'b1                   ),
+                .busy           (                       ),
 
+                .param_pattern  (3'd0                   ),
+                .param_width    (reg_image_width        ),
+                .param_height   (reg_image_height       ),
+                .param_h_total  (reg_image_width  + 32  ),
+                .param_v_total  (reg_image_height + 16  ),
+
+                .m_axi4s        (axi4s_image            ),
+                .out_x          (                       ),
+                .out_y          (                       ),
+                .out_f          (                       )
+            );
+    */
     assign axi4s_black.tready = 1'b1;
 //  assign axi4s_image.tready = 1'b1;
 
@@ -734,7 +759,7 @@ module kv260_rtcl_p3s7_hs
                 .SIZE_OFFSET            (1'b1                   ),
                 .H_SIZE_BITS            (14                     ),
                 .V_SIZE_BITS            (14                     ),
-                .F_SIZE_BITS            (8                      ),
+                .F_SIZE_BITS            (14                     ),
                 .LINE_STEP_BITS         (16                     ),
                 .FRAME_STEP_BITS        (32                     ),
                 

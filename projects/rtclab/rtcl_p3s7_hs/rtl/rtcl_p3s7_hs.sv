@@ -67,7 +67,6 @@ module rtcl_p3s7_hs
                 .O  (clk72      )
             );
 
-
     // 初期リセット生成
     logic   [7:0]   reset_counter = '0;
     logic           reset = 1'b1;
@@ -80,7 +79,46 @@ module rtcl_p3s7_hs
         end
     end
 
+    // DPHY clock
+    logic   dphy_core_reset         ;
+    logic   dphy_core_clk           ;
+    logic   dphy_system_reset       ;
+//  logic   dphy_txhs_reset         ;
+    logic   dphy_clk                ;
+    logic   dphy_txclkesc           ;
+    logic   dphy_oserdes_clkdiv     ;
+    logic   dphy_oserdes_clk        ;
+    logic   dphy_oserdes_clk90      ;
 
+    mipi_dphy_clk_gen
+        u_mipi_dphy_clk_gen
+            (
+                .reset              (reset                  ),
+                .clk50              (clk50                  ),
+
+                .core_reset         (dphy_core_reset        ),
+                .core_clk           (dphy_core_clk          ),
+                .system_reset       (dphy_system_reset      ),
+//              .dphy_reset         (                       ),
+                .dphy_clk           (dphy_clk               ),
+                .txclkesc           (dphy_txclkesc          ),
+                .oserdes_clkdiv     (dphy_oserdes_clkdiv    ),
+                .oserdes_clk        (dphy_oserdes_clk       ),
+                .oserdes_clk90      (dphy_oserdes_clk90     )
+            );
+
+
+    logic       idelayctrl_rdy;
+    (* IODELAY_GROUP = "IODELAY_GRP_LVDS" *)
+    IDELAYCTRL
+        u_idleyctrl_lvds
+            (
+                .RDY        (idelayctrl_rdy     ),
+                .REFCLK     (dphy_core_clk      ),
+                .RST        (dphy_core_reset    )
+            );
+
+    
     // -------------------------------------
     //  MIPI GPIO
     // -------------------------------------
@@ -255,33 +293,6 @@ module rtcl_p3s7_hs
 
     localparam  DPHY_DATA_BITS = 8  ;
     localparam  DPHY_LANES     = 2  ;
-
-    logic   dphy_core_reset         ;
-    logic   dphy_core_clk           ;
-    logic   dphy_system_reset       ;
-//  logic   dphy_txhs_reset         ;
-    logic   dphy_clk                ;
-    logic   dphy_txclkesc           ;
-    logic   dphy_oserdes_clkdiv     ;
-    logic   dphy_oserdes_clk        ;
-    logic   dphy_oserdes_clk90      ;
-
-    mipi_dphy_clk_gen
-        u_mipi_dphy_clk_gen
-            (
-                .reset              (reset                  ),
-                .clk50              (clk50                  ),
-
-                .core_reset         (dphy_core_reset        ),
-                .core_clk           (dphy_core_clk          ),
-                .system_reset       (dphy_system_reset      ),
-//              .dphy_reset         (                       ),
-                .dphy_clk           (dphy_clk               ),
-                .txclkesc           (dphy_txclkesc          ),
-                .oserdes_clkdiv     (dphy_oserdes_clkdiv    ),
-                .oserdes_clk        (dphy_oserdes_clk       ),
-                .oserdes_clk90      (dphy_oserdes_clk90     )
-            );
 
     // MIPI DPHY
     (* mark_debug = DEBUG *)    logic           dphy_init_done              ;

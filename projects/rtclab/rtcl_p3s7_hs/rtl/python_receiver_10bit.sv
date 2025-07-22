@@ -4,11 +4,13 @@
 
 module python_receiver_10bit
         #(
-            parameter   int CHANNELS     = 4                        ,
-            parameter       DDR_CLK_EDGE = "SAME_EDGE_PIPELINED"    ,
-            parameter       IOSTANDARD   = "DIFF_HSTL_I_18"         ,
-            parameter       DIFF_TERM    = "FALSE"                  ,
-            parameter       DEVICE       = "7SERIES"                
+            parameter   int CHANNELS         = 4                        ,
+            parameter       DDR_CLK_EDGE     = "SAME_EDGE_PIPELINED"    ,
+            parameter       IOSTANDARD       = "DIFF_HSTL_I_18"         ,
+            parameter       DIFF_TERM        = "FALSE"                  ,
+            parameter       IODELAY_GRP      = "IODELAY_GRP_LVDS"       ,
+            parameter       REFCLK_FREQUENCY = 200.0                    ,
+            parameter       DEVICE           = "7SERIES"                
         )
         (
             input   var logic                       in_reset    ,
@@ -40,14 +42,45 @@ module python_receiver_10bit
                 .O              (in_clk     )
             );
 
+    // delay the input clock
+    logic       in_clk_dly;
+    (* IODELAY_GROUP = IODELAY_GRP *)
+    IDELAYE2
+            #(
+                .CINVCTRL_SEL           ("FALSE"            ),
+                .DELAY_SRC              ("IDATAIN"          ),
+                .HIGH_PERFORMANCE_MODE  ("FALSE"            ),
+                .IDELAY_TYPE            ("FIXED"            ),
+                .IDELAY_VALUE           (8                  ),
+                .REFCLK_FREQUENCY       (REFCLK_FREQUENCY   ),
+                .PIPE_SEL               ("FALSE"            ),
+                .SIGNAL_PATTERN         ("CLOCK"            )
+            )
+        u_idelaye2_clk
+            (
+                .DATAOUT                (in_clk_dly         ),
+                .DATAIN                 (1'b0               ),
+                .C                      (1'b0               ),
+                .CE                     (1'b0               ),
+                .INC                    (1'b0               ),
+                .IDATAIN                (in_clk             ),
+                .LD                     (in_reset           ),
+                .LDPIPEEN               (1'b0               ),
+                .REGRST                 (1'b0               ),
+                .CNTVALUEIN             (5'b00000           ),
+                .CNTVALUEOUT            (                   ),
+                .CINVCTRL               (1'b0               )
+            );
+
     // I/O clock buffer
     logic   io_clk;
     BUFIO
         u_bufio
             (
-                .I              (in_clk     ),
+                .I              (in_clk_dly ),
                 .O              (io_clk     )
             );
+
 
     // Resional clock buffer
     BUFR
@@ -59,7 +92,7 @@ module python_receiver_10bit
             (
                 .CE             (1'b1       ),
                 .CLR            (1'b0       ),
-                .I              (in_clk     ),
+                .I              (in_clk_dly ),
                 .O              (out_clk    )
             );
 
