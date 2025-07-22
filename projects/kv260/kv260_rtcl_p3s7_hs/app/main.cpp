@@ -114,6 +114,9 @@ int main(int argc, char *argv[])
     std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
     std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
 
+    int rec_frames = dmabuf_mem_size / (width * height * 4);
+    std::cout << "udmabuf0 rec_frames : " << rec_frames << std::endl;
+
     jelly::I2cAccessor i2c;
     i2c.Open("/dev/i2c-6", 0x10);
 
@@ -182,18 +185,19 @@ int main(int argc, char *argv[])
     // 32番地(config0)
 
     // センサー起動    
+    spi_change(i2c, 16, 0x0003);    // power_down  0:pwd_n, 1:PLL enable, 2: PLL Bypass
+    spi_change(i2c, 32, 0x0007);    // config0 (10bit mode) 0: enable_analog, 1: enabale_log, 2: select PLL
     spi_change(i2c,  8, 0x0000);    // pll_soft_reset, pll_lock_soft_reset
     spi_change(i2c,  9, 0x0000);    // cgen_soft_reset
-    spi_change(i2c, 10, 0x0000);    // soft_reset_analog
-    spi_change(i2c, 16, 0x0003);    // power_down  0:pwd_n, 1:PLL enable, 2: PLL Bypass 
-    spi_change(i2c, 32, 0x0007);    // config0 (10bit mode) 0: enable_analog, 1: enabale_log, 2: select PLL
     spi_change(i2c, 34, 0x1);       // config0 Logic General Enable Configuration
     spi_change(i2c, 40, 0x7);       // image_core_config0 
     spi_change(i2c, 48, 0x1);       // AFE Power down for AFE’s
     spi_change(i2c, 64, 0x1);       // Bias Bias Power Down Configuration
     spi_change(i2c, 72, 0x2227);    // Charge Pump
     spi_change(i2c, 112, 0x7);      // Serializers/LVDS/IO 
-//  spi_change(i2c, 199, 0x255*16*8);    // exposure
+    spi_change(i2c, 10, 0x0000);    // soft_reset_analog
+
+    //  spi_change(i2c, 199, 0x255*16*8);    // exposure
 
     //  spi_change(i2c, 256, ((640+32)/2-1)<<8);  // ROI x_start  x_end
 //  spi_change(i2c, 256, (20-1)<<8);  // ROI x_start  x_end
@@ -245,7 +249,14 @@ int main(int argc, char *argv[])
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
 
+    int black_level = 0;
+    int soft_gain   = 10;
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
+    cv::createTrackbar("bl",   "img", nullptr, 1024);
+    cv::setTrackbarPos("bl",   "img", black_level);
+    cv::createTrackbar("sg",   "img", nullptr, 100);
+    cv::setTrackbarPos("sg",   "img", soft_gain);
+
     /*
     cv::createTrackbar("scale",    "img", nullptr, 4);
     cv::setTrackbarMin("scale",    "img", 1);
@@ -274,7 +285,10 @@ int main(int argc, char *argv[])
     int     key;
     while ( (key = (cv::waitKey(10) & 0xff)) != 0x1b ) {
         if ( g_signal ) { break; }
-        
+
+        black_level  = cv::getTrackbarPos("bl", "img");
+        soft_gain    = cv::getTrackbarPos("sg", "img");
+
         // 画像読み込み
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
         cv::Mat img(height, width, CV_32S);
@@ -292,6 +306,23 @@ int main(int argc, char *argv[])
             }
         }
         
+        // img_u16 の黒レベル補正
+        for ( int y = 0; y < height; y++ ) {
+            for ( int x = 0; x < width; x++ ) {
+                int val = img_u16.at<std::uint16_t>(y, x);
+                if ( val < black_level ) {
+                    val = 0;
+                } else {
+                    val -= black_level;
+                }
+                val = val * soft_gain / 10;
+                if ( val > 1023 ) {
+                    val = 1023;
+                }
+                img_u16.at<std::uint16_t>(y, x) = val;
+            }
+        }
+
         // 表示
         cv::imshow("img", img_u16 * (65535.0/1023.0));
 
@@ -347,12 +378,11 @@ int main(int argc, char *argv[])
             cv::imwrite("img_dump.png", img);
             break;
 
-
         case 'r':   // record
             // 画像読み込み
-            vdmaw.Oneshot(dmabuf_phys_adr, width, height, 100);
+            vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frames);
             
-            for ( int i = 0; i < 100; i++ ) {
+            for ( int i = 0; i < rec_frames; i++ ) {
                 // 画像読み込み
                 cv::Mat img(height, width, CV_32S);
                 udmabuf_acc.MemCopyTo(img.data, width * height * 4 * i, width * height * 4);

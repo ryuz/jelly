@@ -17,7 +17,9 @@ backup/
 *.back
 Untitled.*
 * copy
+* copy *
 * copy.*
+* *
 *コピー
 *コピー.*
 *.tmp
