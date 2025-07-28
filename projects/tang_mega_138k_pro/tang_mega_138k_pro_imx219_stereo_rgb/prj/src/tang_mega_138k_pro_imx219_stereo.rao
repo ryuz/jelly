@@ -22,38 +22,6 @@
             <Signal capture_enable="true">axi4s_cam0_src.tlast</Signal>
             <Signal capture_enable="true">axi4s_cam0_src.tvalid</Signal>
             <Signal capture_enable="true">axi4s_cam0_src.tready</Signal>
-            <Bus capture_enable="true" name="cam0_y[13:0]">
-                <Signal>cam0_y[13]</Signal>
-                <Signal>cam0_y[12]</Signal>
-                <Signal>cam0_y[11]</Signal>
-                <Signal>cam0_y[10]</Signal>
-                <Signal>cam0_y[9]</Signal>
-                <Signal>cam0_y[8]</Signal>
-                <Signal>cam0_y[7]</Signal>
-                <Signal>cam0_y[6]</Signal>
-                <Signal>cam0_y[5]</Signal>
-                <Signal>cam0_y[4]</Signal>
-                <Signal>cam0_y[3]</Signal>
-                <Signal>cam0_y[2]</Signal>
-                <Signal>cam0_y[1]</Signal>
-                <Signal>cam0_y[0]</Signal>
-            </Bus>
-            <Bus capture_enable="true" name="cam0_x[13:0]">
-                <Signal>cam0_x[13]</Signal>
-                <Signal>cam0_x[12]</Signal>
-                <Signal>cam0_x[11]</Signal>
-                <Signal>cam0_x[10]</Signal>
-                <Signal>cam0_x[9]</Signal>
-                <Signal>cam0_x[8]</Signal>
-                <Signal>cam0_x[7]</Signal>
-                <Signal>cam0_x[6]</Signal>
-                <Signal>cam0_x[5]</Signal>
-                <Signal>cam0_x[4]</Signal>
-                <Signal>cam0_x[3]</Signal>
-                <Signal>cam0_x[2]</Signal>
-                <Signal>cam0_x[1]</Signal>
-                <Signal>cam0_x[0]</Signal>
-            </Bus>
             <Signal capture_enable="true">cam0_fv</Signal>
             <Signal capture_enable="true">cam0_lv</Signal>
         </SignalList>
@@ -108,5 +76,163 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1001011111011000</GAO_ID>
+    <AoCore index="1" sample_clock="u_imx219_mipi_rx_cam0/mipi_dphy_rx_clk" trig_type="0" storage_depth="1024" window_num="1" capture_amount="1024" implementation="0" trigger_pos="0" module_name="tang_mega_138k_pro_imx219_stereo" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
+        <SignalList>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[15:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[15]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[14]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[13]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[12]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[11]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[10]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[9]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[8]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[7]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[6]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[5]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[4]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[3]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[2]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[15:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[15]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[14]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[13]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[12]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[11]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[10]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[9]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[8]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[7]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[6]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[5]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[4]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[3]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[2]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_hsrxd[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_hsrxd_vld[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrxd_vld[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrxd_vld[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_odten[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_odten[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_odten[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_di_lprxck[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_di_lprxck[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_di_lprxck[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_di_lprx0[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_di_lprx0[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_di_lprx0[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_di_lprx1[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_di_lprx1[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_di_lprx1[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_byte_d0[7:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d0[7]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d0[6]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d0[5]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d0[4]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d0[3]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d0[2]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d0[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d0[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_byte_d1[7:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d1[7]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d1[6]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d1[5]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d1[4]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d1[3]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d1[2]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d1[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_d1[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_lp0_reg_0[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_lp0_reg_0[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_lp0_reg_0[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_lp0_reg_1[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_lp0_reg_1[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_lp0_reg_1[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_cnt[5:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_cnt[5]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_cnt[4]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_cnt[3]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_cnt[2]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_cnt[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_cnt[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_odt_en[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_odt_en[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_odt_en[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_drst_n</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_deskew_error</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_deskew_done</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_d1ln_deskew_done</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_byte_ready</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_odt_en_msk</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_hsrx_en_msk</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_reg3to1</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_from0to3</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_from1to0</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_from1to2</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_from1to3</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_from3to1</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_fromXto3</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_from1toX</Signal>
+        </SignalList>
+        <Triggers>
+            <Trigger index="0">
+                <SignalList>
+                    <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_byte_ready</Signal>
+                </SignalList>
+            </Trigger>
+            <Trigger index="1"/>
+            <Trigger index="2"/>
+            <Trigger index="3"/>
+            <Trigger index="4"/>
+            <Trigger index="5"/>
+            <Trigger index="6"/>
+            <Trigger index="7"/>
+            <Trigger index="8"/>
+            <Trigger index="9"/>
+            <Trigger index="10"/>
+            <Trigger index="11"/>
+            <Trigger index="12"/>
+            <Trigger index="13"/>
+            <Trigger index="14"/>
+            <Trigger index="15"/>
+        </Triggers>
+        <MatchUnits>
+            <MatchUnit index="0" enabled="1" match_type="1" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="1" value1="0" trigger="0"/>
+            <MatchUnit index="1" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="2" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="3" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="4" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="5" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="6" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="7" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="8" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="9" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="10" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="11" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="12" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="13" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="14" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+            <MatchUnit index="15" enabled="0" match_type="0" counter_enable="0" counter_width="2" counter="2" countinuous="0" func="0" value0="" value1=""/>
+        </MatchUnits>
+        <Expressions type="Static">
+            <Expression>M0</Expression>
+        </Expressions>
+    </AoCore>
+    <GAO_ID>1011000001110001</GAO_ID>
 </GAO_CONFIG>

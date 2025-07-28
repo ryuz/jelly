@@ -152,6 +152,7 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
                 println!("  i2cr16 <addr> - Read 16bit data from I2C address <addr>");
                 println!("  cam on     - Turn camera power ON");
                 println!("  cam off    - Turn camera power OFF");
+                println!("  camsel <0|1> - Select camera 0 or 1");
                 // 他のコマンドもここに追加
             },
             "i2cw8" => {
@@ -207,6 +208,23 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
             "cam" if tokens[1] == "off" => {
                 camera_power_off();
                 println!("Camera power OFF");
+            },
+            "camsel" => {
+                if !tokens[1].is_empty() {
+                    match tokens[1].parse::<u32>() {
+                        Ok(0) => {
+                            camera_select(0);
+                            println!("Camera 0 selected");
+                        },
+                        Ok(1) => {
+                            camera_select(1);
+                            println!("Camera 1 selected");
+                        },
+                        _ => println!("Invalid camera selection. Use 0 or 1."),
+                    }
+                } else {
+                    println!("Usage: camsel <0|1>");
+                }
             },
             _ => {
                 println!("Unknown command: {}", com_str);

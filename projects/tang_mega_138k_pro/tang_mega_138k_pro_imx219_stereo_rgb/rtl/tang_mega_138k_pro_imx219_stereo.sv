@@ -231,7 +231,7 @@ module tang_mega_138k_pro_imx219_stereo
                 .WB_ADR_WIDTH       (2                  ),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH       ),
                 .DIVIDER_WIDTH      (8                  ),
-                .DIVIDER_INIT       (54-1               ),
+                .DIVIDER_INIT       (54-1               ),  // 50MHz時 115200bps
                 .SIMULATION         (0                  ),
                 .DEBUG              (1                  )
             )
