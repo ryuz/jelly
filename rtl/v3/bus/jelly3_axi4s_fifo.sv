@@ -13,13 +13,13 @@
 
 module jelly3_axi4s_fifo
         #(
-            parameter   bit     ASYNC       = 1,
-            parameter   int     PTR_BITS    = 9,
-            parameter           RAM_TYPE    = "block",
-            parameter   bit     LOW_DEALY   = 0,
-            parameter   bit     DOUT_REG    = 1,
-            parameter   bit     S_REG       = 1,
-            parameter   bit     M_REG       = 1
+            parameter   bit     ASYNC       = 1             ,
+            parameter   int     PTR_BITS    = 9             ,
+            parameter           RAM_TYPE    = "block"       ,
+            parameter   bit     LOW_DEALY   = 0             ,
+            parameter   bit     DOUT_REG    = 1             ,
+            parameter   bit     S_REG       = 1             ,
+            parameter   bit     M_REG       = 1             
         )
         (
             jelly3_axi4s_if.s                   s_axi4s     ,
