@@ -40,9 +40,9 @@ module tb_mipi_raw10();
     localparam          DEBUG          = "false"    ;
 
     localparam  int     IMG_WIDTH   = 64 ;
-    localparam  int     IMG_HEIGHT  = 32 ;
-    localparam  int     H_BLANK     = 16 ;
-    localparam  int     V_BLANK     = 4  ;
+    localparam  int     IMG_HEIGHT  = 16 ;
+    localparam  int     H_BLANK     = 64 ;
+    localparam  int     V_BLANK     = 8  ;
 
 
     jelly3_axi4s_if
@@ -195,28 +195,29 @@ module tb_mipi_raw10();
             );
 
     // DPYH-TX
-    logic   [1:0][7:0]  dphy_tx_datahs;
-    logic               dphy_tx_validhs;
-    logic               dphy_tx_readyhs;
-    jelly3_data_delay
-            #(
-                .LATENCY        (11                 ),
-                .DATA_BITS      (1                  ),
-                .DATA_INIT      (1'b0               )
-            )
-        u_data_delay
-            (
-                .reset          (reset              ),
-                .clk            (dphy_clk           ),
-                .cke            (1'b1               ),
-                .s_data         (dphy_tx_validhs    ),
-                .m_data         (dphy_tx_readyhs    )
-            );
+    logic   [1:0][7:0]  dphy_tx_datahs  ;
+    logic               dphy_tx_validhs ;
+    logic               dphy_tx_readyhs ;
+    int                 dphy_tx_count   ;
+    always_ff @(posedge dphy_clk) begin
+        if ( reset || !dphy_tx_validhs ) begin
+            dphy_tx_readyhs <= 1'b0 ;
+            dphy_tx_count   <= 11   ;
+        end
+        else begin
+            if ( dphy_tx_count > 0 ) begin
+                dphy_tx_count   <= dphy_tx_count - 1;
+                dphy_tx_readyhs <= 1'b0 ;
+            end
+            else begin
+                dphy_tx_readyhs <= 1'b1 ;
+            end
+        end
+    end
 
     assign dphy_tx_datahs  = axi4s_tx_dphy.tdata    ;
     assign dphy_tx_validhs = axi4s_tx_dphy.tvalid   ;
     assign axi4s_tx_dphy.tready = dphy_tx_readyhs   ;
-
 
 
 endmodule
