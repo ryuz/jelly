@@ -10,7 +10,7 @@
 `default_nettype none
 
 // MIPI-CSI 2lane データ生成
-module jelly3_mipi_csi_tx_packet_2lane
+module jelly3_mipi_csi2_tx_packet_2lane
         #(
             parameter   DEVICE         = "RTL"      ,
             parameter   SIMULATION     = "false"    ,

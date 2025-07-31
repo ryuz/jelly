@@ -3,11 +3,11 @@
 `default_nettype none
 
 
-module tb_mipi_raw10();
+module tb_mipi_csi2_raw10();
     
     initial begin
-        $dumpfile("tb_mipi_raw10.vcd");
-        $dumpvars(0, tb_mipi_raw10);
+        $dumpfile("tb_mipi_csi2_raw10.vcd");
+        $dumpvars(0, tb_mipi_csi2_raw10);
     
     #1000000
         $finish;
@@ -19,6 +19,7 @@ module tb_mipi_raw10();
     // -----------------------------
 
     localparam RATE_200  = 1000.0/200.0;
+    localparam RATE_250  = 1000.0/250.0;
     localparam RATE_DPHY = 1000.0/114.0;
 
     logic   reset = 1'b1;
@@ -27,6 +28,9 @@ module tb_mipi_raw10();
     logic   clk200 = 1'b1;
     initial forever #(RATE_200/2.0)     clk200 = ~clk200;
     
+    logic   clk250 = 1'b1;
+    initial forever #(RATE_250/2.0)     clk250 = ~clk250;
+
     logic   dphy_clk = 1'b1;
     initial forever #(RATE_DPHY/2.0)    dphy_clk = ~dphy_clk;
 
@@ -91,13 +95,13 @@ module tb_mipi_raw10();
                 .aclken         (1'b1               )
             );
 
-    jelly3_mipi_csi_tx_raw10_to_2byte
+    jelly3_mipi_csi2_tx_raw10_to_2byte
             #(
                 .DEVICE         (DEVICE             ),
                 .SIMULATION     (SIMULATION         ),
                 .DEBUG          (DEBUG              )
             )
-        u_mipi_csi_tx_raw10_to_2byte
+        u_mipi_csi2_tx_raw10_to_2byte
             (
                 .s_axi4s        (axi4s_tx_raw10.s   ),
                 .m_axi4s        (axi4s_tx_2byte.m   )
@@ -131,8 +135,8 @@ module tb_mipi_raw10();
                 .s_axi4s        (axi4s_tx_2byte.s   ),
                 .m_axi4s        (axi4s_tx_fifo.m    ),
 
-                .s_free_count   (                   ),
-                .m_data_count   (                   )
+                .s_free_size    (                   ),
+                .m_data_size    (                   )
             );
 
     // mipi_csi_tx_gen_2lane
@@ -176,13 +180,13 @@ module tb_mipi_raw10();
     logic   [15:0]  param_wc    ;
     assign param_type = 8'h2b;  // RAW10
     assign param_wc   = 16'(IMG_WIDTH * 10 / 8);
-    jelly3_mipi_csi_tx_packet_2lane
+    jelly3_mipi_csi2_tx_packet_2lane
             #(
                 .DEVICE         (DEVICE             ),
                 .SIMULATION     (SIMULATION         ),
                 .DEBUG          (DEBUG              )
             )
-        u_mipi_csi_tx_packet_2lane
+        u_mipi_csi2_tx_packet_2lane
             (
                 .param_type      ,
                 .param_wc        ,
@@ -219,6 +223,152 @@ module tb_mipi_raw10();
     assign dphy_tx_validhs = axi4s_tx_dphy.tvalid   ;
     assign axi4s_tx_dphy.tready = dphy_tx_readyhs   ;
 
+
+    // -------------------------------------
+    //  MIPI CSI-2 RX
+    // -------------------------------------
+
+    // dphy_rx
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1                  ),
+                .DATA_BITS      (16                 )
+            )
+        axi4s_rx_dphy
+            (
+                .aresetn        (~reset             ),
+                .aclk           (dphy_clk           ),
+                .aclken         (1'b1               )
+            );
+
+    always_ff @(posedge dphy_clk) begin
+        if ( reset ) begin
+            axi4s_rx_dphy.tuser   <= 1'b1   ;
+            axi4s_rx_dphy.tdata   <= '0     ;
+            axi4s_rx_dphy.tvalid  <= 1'b0   ;
+        end
+        else begin
+            axi4s_rx_dphy.tuser   <= ~axi4s_rx_dphy.tvalid  ;
+            axi4s_rx_dphy.tdata   <= dphy_tx_datahs         ;
+            axi4s_rx_dphy.tvalid  <= dphy_tx_validhs        ;
+        end
+    end
+    assign axi4s_rx_dphy.tlast = ~dphy_tx_validhs  ;
+
+    // rx_fifo
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1                  ),
+                .DATA_BITS      (16                 )
+            )
+        axi4s_rx_fifo
+            (
+                .aresetn        (~reset             ),
+                .aclk           (clk250             ),
+                .aclken         (1'b1               )
+            );
+
+    jelly3_axi4s_fifo
+            #(
+                .ASYNC          (1                  ),
+                .PTR_BITS       (9                  ),
+                .RAM_TYPE       ("block"            ),
+                .LOW_DEALY      (0                  ),
+                .DOUT_REG       (1                  ),
+                .S_REG          (1                  ),
+                .M_REG          (1                  )
+            )
+        u_axi4s_fifo_rx
+            (
+                .s_axi4s        (axi4s_rx_dphy.s    ),
+                .m_axi4s        (axi4s_rx_fifo.m    ),
+
+                .s_free_size    (                   ),
+                .m_data_size    (                   )
+            );
+
+
+    // width convert
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1                  ),
+                .DATA_BITS      (8                  )
+            )
+        axi4s_rx_byte
+            (
+                .aresetn        (~reset             ),
+                .aclk           (clk250             ),
+                .aclken         (1'b1               )
+            );
+
+    jelly_data_width_converter
+            #(
+                .UNIT_WIDTH     (8                      ),
+                .S_DATA_SIZE    (1                      ),
+                .M_DATA_SIZE    (0                      )
+            )
+        u_data_width_converter
+            (
+                .reset          (~axi4s_rx_fifo.aresetn ),
+                .clk            (axi4s_rx_fifo.aclk     ),
+                .cke            (1'b1),
+                
+                .endian         (1'b0),
+                
+                .s_data         (axi4s_rx_fifo.tdata    ),
+                .s_first        (axi4s_rx_fifo.tuser[0] ),
+                .s_last         (axi4s_rx_fifo.tlast    ),
+                .s_valid        (axi4s_rx_fifo.tvalid   ),
+                .s_ready        (axi4s_rx_fifo.tready   ),
+                
+                .m_data         (axi4s_rx_byte.tdata    ),
+                .m_first        (axi4s_rx_byte.tuser    ),
+                .m_last         (axi4s_rx_byte.tlast    ),
+                .m_valid        (axi4s_rx_byte.tvalid   ),
+                .m_ready        (axi4s_rx_byte.tready   )
+            );
+
+
+    // rx
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1                  ),
+                .DATA_BITS      (8                  )
+            )
+        axi4s_rx_packet
+            (
+                .aresetn        (~reset             ),
+                .aclk           (clk250             ),
+                .aclken         (1'b1               )
+            );
+    
+    logic           rx_frame_start      ;
+    logic           rx_frame_end        ;
+    logic           rx_ecc_corrected    ;
+    logic           rx_ecc_error        ;
+    logic           rx_ecc_valid        ;
+    logic           rx_crc_error        ;
+    logic           rx_crc_valid        ;
+    logic           rx_packet_lost      ;
+    jelly3_mipi_csi2_rx_packet
+        u_mipi_csi2_rx_low_layer
+            (
+                .param_data_type    (8'h2b              ),
+                
+                .out_frame_start    (rx_frame_start     ),
+                .out_frame_end      (rx_frame_end       ),
+                .out_ecc_corrected  (rx_ecc_corrected   ),
+                .out_ecc_error      (rx_ecc_error       ),
+                .out_ecc_valid      (rx_ecc_valid       ),
+                .out_crc_error      (rx_crc_error       ),
+                .out_crc_valid      (rx_crc_valid       ),
+                .out_packet_lost    (rx_packet_lost     ),
+
+                .s_axi4s            (axi4s_rx_byte.s    ),
+                .m_axi4s            (axi4s_rx_packet.m  )
+            );
+    
+    assign axi4s_rx_packet.tready = 1'b1;
 
 endmodule
 

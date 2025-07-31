@@ -3,7 +3,7 @@
 `default_nettype none
 
 
-module jelly3_mipi_csi_tx_raw10_to_2byte
+module jelly3_mipi_csi2_tx_raw10_to_2byte
         #(
             parameter   DEVICE         = "RTL"      ,
             parameter   SIMULATION     = "false"    ,

@@ -24,8 +24,8 @@ module jelly3_axi4s_fifo
         (
             jelly3_axi4s_if.s                   s_axi4s     ,
             jelly3_axi4s_if.m                   m_axi4s     ,
-            output  var logic   [PTR_BITS:0]    s_free_count,
-            output  var logic   [PTR_BITS:0]    m_data_count
+            output  var logic   [PTR_BITS:0]    s_free_size ,
+            output  var logic   [PTR_BITS:0]    m_data_size 
         );
     
     jelly2_axi4s_fifo
@@ -59,7 +59,7 @@ module jelly3_axi4s_fifo
                 .s_axi4s_tuser  (s_axi4s.tuser      ),
                 .s_axi4s_tvalid (s_axi4s.tvalid     ),
                 .s_axi4s_tready (s_axi4s.tready     ),
-                .s_free_count,
+                .s_free_count   (s_free_size        ),
             
                 .m_aresetn      (m_axi4s.aresetn    ),
                 .m_aclk         (m_axi4s.aclk       ),
@@ -71,7 +71,7 @@ module jelly3_axi4s_fifo
                 .m_axi4s_tuser  (m_axi4s.tuser      ),
                 .m_axi4s_tvalid (m_axi4s.tvalid     ),
                 .m_axi4s_tready (m_axi4s.tready     ),
-                .m_data_count
+                .m_data_count   (m_data_size        )
             );
 
 endmodule

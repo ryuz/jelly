@@ -710,20 +710,20 @@ module kv260_imx219
     
     jelly3_axi4s_fifo
             #(
-                .ASYNC          (0          ),
-                .PTR_BITS       (9          ),
-                .RAM_TYPE       ("block"    ),
-                .LOW_DEALY      (0          ),
-                .DOUT_REG       (1          ),
-                .S_REG          (1          ),
-                .M_REG          (1          )
+                .ASYNC          (0              ),
+                .PTR_BITS       (9              ),
+                .RAM_TYPE       ("block"        ),
+                .LOW_DEALY      (0              ),
+                .DOUT_REG       (1              ),
+                .S_REG          (1              ),
+                .M_REG          (1              )
             )
         u_axi4s_fifo
             (
-                .s_axi4s        (axi4s_rgb.s),
-                .m_axi4s        (axi4s_fifo.m),
-                .s_free_count   (),
-                .m_data_count   ()
+                .s_axi4s        (axi4s_rgb.s    ),
+                .m_axi4s        (axi4s_fifo.m   ),
+                .s_free_size    (               ),
+                .m_data_size    (               )
             );
 
     // DMA write

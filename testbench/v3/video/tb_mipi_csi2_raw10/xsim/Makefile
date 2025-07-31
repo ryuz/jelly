@@ -1,7 +1,7 @@
 
 
 # setting
-TOP_MODULE = tb_mipi_raw10
+TOP_MODULE = tb_mipi_csi2_raw10
 
 JELLY_TOP_DIR = ../../../../..
 
