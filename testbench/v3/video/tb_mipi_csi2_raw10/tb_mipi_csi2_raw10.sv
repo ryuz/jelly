@@ -300,6 +300,49 @@ module tb_mipi_csi2_raw10();
             );
 
 
+    // rx
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1                  ),
+                .DATA_BITS      (16                 )
+            )
+        axi4s_rx_packet
+            (
+                .aresetn        (~reset             ),
+                .aclk           (clk250             ),
+                .aclken         (1'b1               )
+            );
+    
+    logic           rx_frame_start      ;
+    logic           rx_frame_end        ;
+    logic           rx_ecc_corrected    ;
+    logic           rx_ecc_error        ;
+    logic           rx_ecc_valid        ;
+    logic           rx_crc_error        ;
+    logic           rx_crc_valid        ;
+    logic           rx_packet_lost      ;
+    jelly3_mipi_csi2_rx_packet_2lane
+        u_mipi_csi2_rx_packet_2lane
+            (
+                .param_data_type    (8'h2b              ),
+                
+                .out_frame_start    (rx_frame_start     ),
+                .out_frame_end      (rx_frame_end       ),
+                .out_ecc_corrected  (rx_ecc_corrected   ),
+                .out_ecc_error      (rx_ecc_error       ),
+                .out_ecc_valid      (rx_ecc_valid       ),
+                .out_crc_error      (rx_crc_error       ),
+                .out_crc_valid      (rx_crc_valid       ),
+                .out_packet_lost    (rx_packet_lost     ),
+
+                .s_axi4s            (axi4s_rx_fifo.s    ),
+                .m_axi4s            (axi4s_rx_packet.m  )
+            );
+    
+    assign axi4s_rx_packet.tready = 1'b1;
+
+
+    /*
     // width convert
     jelly3_axi4s_if
             #(
@@ -426,6 +469,7 @@ module tb_mipi_csi2_raw10();
             end
         end
     end
+    */
 
 endmodule
 

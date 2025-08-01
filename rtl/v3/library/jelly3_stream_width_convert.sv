@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2025 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -98,18 +98,18 @@ module jelly3_stream_width_convert
     
     // set data
     function automatic unit_t [BUF_NUM-1:0] set_data(
-                                        input logic                 endian  ,
-                                        input unit_t                orgn    ,
-                                        input unit_t    [S_NUM-1:0] data    ,
-                                        input count_t               position
+                                        input logic                     endian  ,
+                                        input unit_t    [BUF_NUM-1:0]   orgn    ,
+                                        input unit_t    [S_NUM-1:0]     data    ,
+                                        input count_t                   position
                                     );
         set_data = orgn;
         for ( int i = 0; i < S_NUM; i++ ) begin
             if ( endian ) begin
-                set_data[(BUF_NUM-1) - 32'(position)] = data[S_NUM-1 - i];
+                set_data[(BUF_NUM-1) - int'(position)] = data[S_NUM-1 - i];
             end
             else begin
-                set_data[32'(position) + i] = data[i];
+                set_data[int'(position) + i] = data[i];
             end
         end
     endfunction
@@ -124,10 +124,10 @@ module jelly3_stream_width_convert
         set_strb = orgn;
         for ( int i = 0; i < S_NUM; i++ ) begin
             if ( endian ) begin
-                set_strb[(BUF_NUM-1) - 32'(position) + i] = strb[S_NUM-1 - i];
+                set_strb[(BUF_NUM-1) - int'(position) + i] = strb[S_NUM-1 - i];
             end
             else begin
-                set_strb[32'(position) + i] = strb[i];
+                set_strb[int'(position) + i] = strb[i];
             end
         end
     endfunction
@@ -141,12 +141,12 @@ module jelly3_stream_width_convert
                                     );
         get_data = '0;
         for ( int i = 0; i < M_NUM; i++ ) begin
-            if ( 32'(position) + i < BUF_NUM ) begin
+            if ( int'(position) + i < BUF_NUM ) begin
                 if ( endian ) begin
-                    get_data[BUF_NUM-1 - i] = data[BUF_NUM-1 - 32'(position) + i];
+                    get_data[BUF_NUM-1 - i] = data[BUF_NUM-1 - int'(position) + i];
                 end
                 else begin
-                    get_data[i] = data[32'(position) + i];
+                    get_data[i] = data[int'(position) + i];
                 end
             end
         end
@@ -160,7 +160,7 @@ module jelly3_stream_width_convert
                                     );
         get_strb = {M_NUM{1'b0}};
         for (int i = 0; i < M_NUM; ++i) begin
-            if (32'(position) + i < BUF_NUM) begin
+            if (int'(position) + i < BUF_NUM) begin
                 if (endian) begin
                     get_strb[M_NUM-1 - i] = strb[BUF_NUM-1 - (int'(position) + i)];
                 end else begin
@@ -501,8 +501,8 @@ module jelly3_stream_width_convert
             next_free  = (BUF_NUM - int'(next_count) >= S_NUM) && !next_flush;
             next_last  = (next_flush && int'(next_count) <= M_NUM);
             
-            next_valid = (32'(next_count) >= M_NUM) || next_flush;
-            next_ready = ((BUF_NUM - int'(next_count) + M_NUM >= S_NUM) && next_valid && !next_flush) || (next_valid && next_last && 32'(next_count) <= M_NUM);
+            next_valid = (int'(next_count) >= M_NUM) || next_flush;
+            next_ready = ((BUF_NUM - int'(next_count) + M_NUM >= S_NUM) && next_valid && !next_flush) || (next_valid && next_last && int'(next_count) <= M_NUM);
         end
         
 //      assign st0_ready  = (reg_ready && st1_ready)    // 次で空く
@@ -669,7 +669,7 @@ module jelly3_stream_width_convert
 
     assign  ff_m_packet.data   = strb_data({M_NUM{padding}}, st2_data, st2_strb)    ;
     assign  ff_m_packet.strb   = st2_strb                                           ;
-    assign  ff_m_packet.keep   = USE_KEEP ? st2_keep : {M_NUM{1'b1}}                ;
+    assign  ff_m_packet.keep   = USE_KEEP ? st2_keep : '1                           ;
     assign  ff_m_packet.user_f = st2_user_f                                         ;
     assign  ff_m_packet.user_l = st2_user_l                                         ;
     assign  ff_m_packet.last   = st2_last                                           ;
