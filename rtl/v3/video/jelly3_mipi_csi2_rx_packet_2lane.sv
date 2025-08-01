@@ -170,6 +170,7 @@ module jelly3_mipi_csi2_rx_packet_2lane
     logic           st1_first       ;
     logic           st1_last        ;
     logic           st1_end         ;
+    logic           st1_user        ;
     logic   [15:0]  st1_data        ;
     logic           st1_valid       ;
     logic           st1_frame_start ;
@@ -186,6 +187,7 @@ module jelly3_mipi_csi2_rx_packet_2lane
             st1_counter     <= 'x   ;
             st1_crc         <= 'x   ;
             st1_crc_sum     <= 'x   ;
+            st1_user        <= 1'b0 ;
             st1_data        <= 'x   ;
             st1_first       <= 1'bx ;
             st1_last        <= 1'bx ;
@@ -206,7 +208,14 @@ module jelly3_mipi_csi2_rx_packet_2lane
             st1_last        <= ecc_last ;
             st1_end         <= 1'b0     ;
             st1_valid       <= 1'b0     ;
-            
+
+            if ( st1_frame_start ) begin
+                st1_user <= 1'b1;
+            end
+            else if ( m_axi4s.tvalid && m_axi4s.tuser ) begin
+                st1_user <= 1'b0;
+            end
+
             if ( ecc_valid ) begin
                 if ( ecc_ph && (!ecc_error || ecc_corrected) ) begin
                     if ( ecc_id[5:4] == 2'b00 ) begin
@@ -290,10 +299,10 @@ module jelly3_mipi_csi2_rx_packet_2lane
     
     assign s_axi4s.tready   = !m_axi4s.tvalid | m_axi4s.tready;
     
-    assign m_axi4s.tuser    = st1_first ;
-    assign m_axi4s.tlast    = st1_last  ;
-    assign m_axi4s.tdata    = st1_data  ;
-    assign m_axi4s.tvalid   = st1_valid ;
+    assign m_axi4s.tuser    = st1_user & st1_first  ;
+    assign m_axi4s.tlast    = st1_last              ;
+    assign m_axi4s.tdata    = st1_data              ;
+    assign m_axi4s.tvalid   = st1_valid             ;
     
 endmodule
 

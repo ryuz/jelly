@@ -20,9 +20,6 @@ module jelly3_mipi_dphy_recv
             parameter           DEBUG          = "false"    
         )
         (
-            input   var logic                       reset       ,
-            input   var logic                       clk         ,
-            
             // input
             input   var logic   [LANES-1:0][7:0]    rxdatahs    ,
             input   var logic   [LANES-1:0]         rxvalidhs   ,   // syncコードでは立たない
@@ -52,8 +49,8 @@ module jelly3_mipi_dphy_recv
     logic                       st1_last        ;
     logic                       st1_valid       ;
     
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
+    always_ff @(posedge m_axi4s.aclk) begin
+        if ( ~m_axi4s.aresetn ) begin
             st0_rxdatahs   <= 'x    ;
             st0_rxvalidhs  <= '0    ;
             st0_rxactivehs <= '0    ;
