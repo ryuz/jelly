@@ -95,7 +95,7 @@ module jelly3_stream_width_convert
     function automatic buf_t strb_to_data(
                                         input [BUF_NUM-1:0] strb
                                     );
-        for ( int i = 0; i < BUF_BITS ; i++ ) begin
+        for ( int i = 0; i < $bits(buf_t) ; i++ ) begin
             strb_to_data[i] = strb[i] ? '1 : '0;
         end
     endfunction
@@ -103,18 +103,18 @@ module jelly3_stream_width_convert
     
     // set data
     function automatic buf_t set_data(
-                                        input logic                             endian  ,
-                                        input buf_t                             orgn    ,
-                                        input s_data_t                          data    ,
-                                        input count_t                           position
+                                        input logic     endian  ,
+                                        input buf_t     orgn    ,
+                                        input s_data_t  data    ,
+                                        input count_t   position
                                     );
         set_data = orgn;
-        for ( int i = 0; i < S_NUM*$bits(unit_t); i++ ) begin
+        for ( int i = 0; i < $bits(s_data_t); i++ ) begin
             if ( endian ) begin
-                set_data[($bits(buf_t)-1) - (int'(position)*$bits(unit_t) + i)] = data[S_NUM*$bits(unit_t)-1 - i];
+                set_data[($bits(buf_t)-1) - (int'(position)*$bits(unit_t) + i)] = data[$bits(s_data_t)-1 - i];
             end
             else begin
-                set_data[int'(position) * UNIT_BITS + i] = data[i];
+                set_data[int'(position)*$bits(unit_t) + i] = data[i];
             end
         end
     endfunction
@@ -139,16 +139,16 @@ module jelly3_stream_width_convert
     
     
     // get data
-    function automatic logic [M_NUM*$bits(unit_t)-1:0] get_data(
-                                        input logic                     endian  ,
-                                        input buf_t                     data    ,
-                                        input count_t                   position
+    function automatic m_data_t get_data(
+                                        input logic     endian  ,
+                                        input buf_t     data    ,
+                                        input count_t   position
                                     );
         get_data = '0;
-        for ( int i = 0; i < M_NUM*$bits(unit_t); i++ ) begin
+        for ( int i = 0; i < $bits(m_data_t); i++ ) begin
             if ( position*$bits(unit_t) + i < $bits(buf_t) ) begin
                 if ( endian ) begin
-                    get_data[M_NUM*$bits(unit_t)-1 - i] = data[$bits(buf_t)-1 - (int'(position)*$bits(unit_t) + i)];
+                    get_data[$bits(m_data_t)-1 - i] = data[$bits(buf_t)-1 - (int'(position)*$bits(unit_t) + i)];
                 end
                 else begin
                     get_data[i] = data[int'(position)*$bits(unit_t) + i];
@@ -163,7 +163,7 @@ module jelly3_stream_width_convert
                                         input logic [BUF_NUM-1:0]   strb    ,
                                         input count_t               position
                                     );
-        get_strb = {M_NUM{1'b0}};
+        get_strb = '0;
         for (int i = 0; i < M_NUM; ++i) begin
             if (int'(position) + i < BUF_NUM) begin
                 if (endian) begin
@@ -225,27 +225,27 @@ module jelly3_stream_width_convert
     logic    auto_first = (AUTO_FIRST && USE_LAST && reg_auto_first);
     
     typedef struct packed {
-        unit_t   [S_NUM-1:0]        data    ;
-        logic    [S_NUM-1:0]        strb    ;
-        logic    [S_NUM-1:0]        keep    ;
-        logic    [USER_F_BITS-1:0]  user_f  ;
-        logic    [USER_L_BITS-1:0]  user_l  ;
-        logic                       first   ;
-        logic                       last    ;
-        logic    [ALIGN_S_BITS-1:0] align_s ;
-        logic    [ALIGN_M_BITS-1:0] align_m ;
+        unit_t   [S_NUM-1:0]    data    ;
+        logic    [S_NUM-1:0]    strb    ;
+        logic    [S_NUM-1:0]    keep    ;
+        user_f_t                user_f  ;
+        user_l_t                user_l  ;
+        logic                   first   ;
+        logic                   last    ;
+        align_s_t               align_s ;
+        align_m_t               align_m ;
     } s_pack_t;
 
     s_pack_t     s_packet   ;
-    assign s_packet.data    = s_data                                           ;
-    assign s_packet.strb    = USE_STRB ? s_strb : {S_NUM{1'b1}}                ;
-    assign s_packet.keep    = USE_KEEP ? s_keep : {S_NUM{1'b1}}                ;
-    assign s_packet.user_f  = s_user_f                                         ;
-    assign s_packet.user_l  = s_user_l                                         ;
-    assign s_packet.first   = (USE_FIRST  ? s_first   : 1'b0) | auto_first     ;
-    assign s_packet.last    = USE_LAST    ? s_last    : 1'b0                   ;
-    assign s_packet.align_s = USE_ALIGN_S ? s_align_s : {ALIGN_S_BITS{1'b0}}   ;
-    assign s_packet.align_m = USE_ALIGN_M ? s_align_m : {ALIGN_M_BITS{1'b0}}   ;
+    assign s_packet.data    = s_data                                        ;
+    assign s_packet.strb    = USE_STRB ? s_strb : '1                        ;
+    assign s_packet.keep    = USE_KEEP ? s_keep : '1                        ;
+    assign s_packet.user_f  = s_user_f                                      ;
+    assign s_packet.user_l  = s_user_l                                      ;
+    assign s_packet.first   = (USE_FIRST  ? s_first   : 1'b0) | auto_first  ;
+    assign s_packet.last    = USE_LAST    ? s_last    : 1'b0                ;
+    assign s_packet.align_s = USE_ALIGN_S ? s_align_s : '0                  ;
+    assign s_packet.align_m = USE_ALIGN_M ? s_align_m : '0                  ;
 
     s_pack_t     ff_s_packet;
     logic        ff_s_valid ;
@@ -279,41 +279,41 @@ module jelly3_stream_width_convert
     // -----------------------------------------
     
     // alignment
-    unit_t   [S_NUM-1:0]            st0_data    ;
-    logic    [S_NUM-1:0]            st0_strb    ;
-    logic    [S_NUM-1:0]            st0_keep    ;
-    logic    [USER_F_BITS-1:0]      st0_user_f  ;
-    logic    [USER_L_BITS-1:0]      st0_user_l  ;
-    logic                           st0_first   ;
-    logic                           st0_last    ;
-    count_t                         st0_count   ;
-    logic                           st0_valid   ;
-    logic                           st0_ready   ;
+    unit_t   [S_NUM-1:0]        st0_data    ;
+    logic    [S_NUM-1:0]        st0_strb    ;
+    logic    [S_NUM-1:0]        st0_keep    ;
+    user_f_t                    st0_user_f  ;
+    user_l_t                    st0_user_l  ;
+    logic                       st0_first   ;
+    logic                       st0_last    ;
+    count_t                     st0_count   ;
+    logic                       st0_valid   ;
+    logic                       st0_ready   ;
     
     if ( USE_ALIGN_S || USE_ALIGN_M ) begin : st0_align
-        unit_t  [S_NUM-1:0]         tmp_data    ;
-        logic   [S_NUM-1:0]         tmp_strb    ;
-        logic   [S_NUM-1:0]         tmp_keep    ;
+        unit_t  [S_NUM-1:0]     tmp_data    ;
+        logic   [S_NUM-1:0]     tmp_strb    ;
+        logic   [S_NUM-1:0]     tmp_keep    ;
         
-        unit_t  [S_NUM-1:0]         reg_data    ;
-        logic   [S_NUM-1:0]         reg_strb    ;
-        logic   [S_NUM-1:0]         reg_keep    ;
-        user_f_t                    reg_user_f  ;
-        user_l_t                    reg_user_l  ;
-        logic                       reg_first   ;
-        logic                       reg_last    ;
-        count_t                     reg_count   ;
-        logic                       reg_valid   ;
+        unit_t  [S_NUM-1:0]     reg_data    ;
+        logic   [S_NUM-1:0]     reg_strb    ;
+        logic   [S_NUM-1:0]     reg_keep    ;
+        user_f_t                reg_user_f  ;
+        user_l_t                reg_user_l  ;
+        logic                   reg_first   ;
+        logic                   reg_last    ;
+        count_t                 reg_count   ;
+        logic                   reg_valid   ;
         always_ff @(posedge clk) begin
             if ( cke && ff_s_ready ) begin
                 if ( ff_s_packet.first ) begin
                     if ( endian ) begin
-                        tmp_data = (ff_s_packet.data >> (ff_s_packet.align_s * UNIT_BITS));
+                        tmp_data = (ff_s_packet.data >> (ff_s_packet.align_s * $bits(unit_t)));
                         tmp_strb = (ff_s_packet.strb >> ff_s_packet.align_s);
                         tmp_keep = (ff_s_packet.keep >> ff_s_packet.align_s);
                     end
                     else begin
-                        tmp_data = (ff_s_packet.data << (ff_s_packet.align_s * UNIT_BITS));
+                        tmp_data = (ff_s_packet.data << (ff_s_packet.align_s * $bits(unit_t)));
                         tmp_strb = (ff_s_packet.strb << ff_s_packet.align_s);
                         tmp_keep = (ff_s_packet.keep << ff_s_packet.align_s);
                     end
@@ -392,8 +392,8 @@ module jelly3_stream_width_convert
         unit_t  [BUF_NUM-1:0]       reg_data    , next_data     ;
         logic   [BUF_NUM-1:0]       reg_strb    , next_strb     ;
         logic   [BUF_NUM-1:0]       reg_keep    , next_keep     ;
-        logic   [USER_F_BITS-1:0]   reg_user_f  , next_user_f   ;
-        logic   [USER_L_BITS-1:0]   reg_user_l  , next_user_l   ;
+        user_f_t                    reg_user_f  , next_user_f   ;
+        user_l_t                    reg_user_l  , next_user_l   ;
         logic                       reg_first   , next_first    ;
         logic                       reg_last    , next_last     ;
         logic                       reg_flag_l  , next_flag_l   ;   // フラグ予約

@@ -11,7 +11,7 @@ module tb_main
    
     parameter   int     UNIT_BITS        = 8                                    ;
     parameter   type    unit_t           = logic [UNIT_BITS-1:0]                ;
-    parameter   int     S_NUM            = 1                                    ;
+    parameter   int     S_NUM            = 5                                    ;
     parameter   int     M_NUM            = 3                                    ;
     parameter   bit     USE_FIRST        = 0                                    ;   // first を備える
     parameter   bit     USE_LAST         = 0                                    ;   // last を備える
@@ -179,7 +179,7 @@ module tb_main
     // master
     always_ff @(posedge clk) begin
         if ( reset ) begin
-            endian     <= '1;
+            endian     <= '0;
             padding    <= '0;
             s_align_s  <= '0;
             s_align_m  <= '0;
@@ -194,6 +194,8 @@ module tb_main
         end
         else begin
             if ( !(s_valid && !s_ready) ) begin
+                s_strb     <= S_NUM'($random);
+                s_keep     <= S_NUM'($random);
                 s_valid <= 1'($random);
             end
             
@@ -214,6 +216,12 @@ module tb_main
             if ( m_valid && m_ready ) begin
                 if ( m_data != m2_data ) begin
                     $display("m_data mismatch: %0h != %0h", m_data, m2_data);
+                end
+                if ( m_strb != m2_strb ) begin
+                    $display("m_strb mismatch: %0h != %0h", m_data, m2_data);
+                end
+                if ( m_keep != m2_keep ) begin
+                    $display("m_keep mismatch: %0h != %0h", m_data, m2_data);
                 end
             end
             m_ready <= 1'($random);
