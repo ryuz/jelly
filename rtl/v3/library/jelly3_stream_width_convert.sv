@@ -74,11 +74,16 @@ module jelly3_stream_width_convert
     // -----------------------------------------
     //  localparam
     // -----------------------------------------
-    
-    localparam  int     BUF_NUM    = S_NUM != M_NUM ? (S_NUM + M_NUM - 1) : S_NUM   ;
-    localparam  int     BUF_BITS   = BUF_NUM * $bits(unit_t)                        ;
-    localparam  int     COUNT_BITS = $clog2(BUF_NUM) > 0 ? $clog2(BUF_NUM) : 1      ;
-    localparam  type    count_t    = logic [COUNT_BITS-1:0]                         ;
+
+    localparam  int     S_DATA_BITS = S_NUM * $bits(unit_t)                          ;
+    localparam  type    s_data_t    = logic [S_DATA_BITS-1:0]                        ;
+    localparam  int     M_DATA_BITS = M_NUM * $bits(unit_t)                          ;
+    localparam  type    m_data_t    = logic [M_DATA_BITS-1:0]                        ;
+    localparam  int     BUF_NUM     = S_NUM != M_NUM ? (S_NUM + M_NUM - 1) : S_NUM   ;
+    localparam  int     BUF_BITS    = BUF_NUM * $bits(unit_t)                        ;
+    localparam  type    buf_t       = logic [BUF_BITS-1:0]                           ;
+    localparam  int     COUNT_BITS  = $clog2(BUF_NUM+1) > 0 ? $clog2(BUF_NUM+1) : 1  ;
+    localparam  type    count_t     = logic [COUNT_BITS-1:0]                         ;
     
     
     
@@ -87,29 +92,29 @@ module jelly3_stream_width_convert
     // -----------------------------------------
      
     // strb to data
-    function automatic unit_t [BUF_NUM-1:0] strb_to_data(
+    function automatic buf_t strb_to_data(
                                         input [BUF_NUM-1:0] strb
                                     );
-        for ( int i = 0; i < BUF_NUM ; i++ ) begin
+        for ( int i = 0; i < BUF_BITS ; i++ ) begin
             strb_to_data[i] = strb[i] ? '1 : '0;
         end
     endfunction
     
     
     // set data
-    function automatic unit_t [BUF_NUM-1:0] set_data(
-                                        input logic                     endian  ,
-                                        input unit_t    [BUF_NUM-1:0]   orgn    ,
-                                        input unit_t    [S_NUM-1:0]     data    ,
-                                        input count_t                   position
+    function automatic buf_t set_data(
+                                        input logic                             endian  ,
+                                        input buf_t                             orgn    ,
+                                        input s_data_t                          data    ,
+                                        input count_t                           position
                                     );
         set_data = orgn;
-        for ( int i = 0; i < S_NUM; i++ ) begin
+        for ( int i = 0; i < S_NUM*$bits(unit_t); i++ ) begin
             if ( endian ) begin
-                set_data[(BUF_NUM-1) - int'(position)] = data[S_NUM-1 - i];
+                set_data[($bits(buf_t)-1) - (int'(position)*$bits(unit_t) + i)] = data[S_NUM*$bits(unit_t)-1 - i];
             end
             else begin
-                set_data[int'(position) + i] = data[i];
+                set_data[int'(position) * UNIT_BITS + i] = data[i];
             end
         end
     endfunction
@@ -134,19 +139,19 @@ module jelly3_stream_width_convert
     
     
     // get data
-    function automatic unit_t   [M_NUM-1:0] get_data(
+    function automatic logic [M_NUM*$bits(unit_t)-1:0] get_data(
                                         input logic                     endian  ,
-                                        input unit_t    [BUF_NUM-1:0]   data    ,
+                                        input buf_t                     data    ,
                                         input count_t                   position
                                     );
         get_data = '0;
-        for ( int i = 0; i < M_NUM; i++ ) begin
-            if ( int'(position) + i < BUF_NUM ) begin
+        for ( int i = 0; i < M_NUM*$bits(unit_t); i++ ) begin
+            if ( position*$bits(unit_t) + i < $bits(buf_t) ) begin
                 if ( endian ) begin
-                    get_data[BUF_NUM-1 - i] = data[BUF_NUM-1 - int'(position) + i];
+                    get_data[M_NUM*$bits(unit_t)-1 - i] = data[$bits(buf_t)-1 - (int'(position)*$bits(unit_t) + i)];
                 end
                 else begin
-                    get_data[i] = data[int'(position) + i];
+                    get_data[i] = data[int'(position)*$bits(unit_t) + i];
                 end
             end
         end
@@ -180,19 +185,19 @@ module jelly3_stream_width_convert
     endfunction
 
     // shift data
-    function automatic unit_t [BUF_NUM-1:0] shift_data(
+    function automatic buf_t shift_data(
                                         input logic                 endian  ,
                                         input unit_t [BUF_NUM-1:0]  data    ,
                                         input count_t               count
                                     );
-        return endian ? (data << (count * UNIT_BITS)) : (data >> (count * UNIT_BITS));
+        return endian ? (data << (count * $bits(unit_t))) : (data >> (count * $bits(unit_t)));
     endfunction
 
     // data strb
     function automatic unit_t [M_NUM-1:0] strb_data(
                 input unit_t [M_NUM-1:0] orgn,
                 input unit_t [M_NUM-1:0] data,
-                input logic [M_NUM-1:0] strb
+                input logic  [M_NUM-1:0] strb
             );
         for (int i = 0; i < M_NUM; i++) begin
             strb_data[i] = strb[i] ? data[i] : orgn[i];
@@ -383,20 +388,20 @@ module jelly3_stream_width_convert
     logic                       st1_ready   ;
     
     if ( S_NUM != M_NUM ) begin : st1_buffer
-        count_t                     reg_count   ,  next_count   ;
-        unit_t  [BUF_NUM-1:0]       reg_data    ,   next_data   ;
-        logic   [BUF_NUM-1:0]       reg_strb    ,   next_strb   ;
-        logic   [BUF_NUM-1:0]       reg_keep    ,   next_keep   ;
+        count_t                     reg_count   , next_count    ;
+        unit_t  [BUF_NUM-1:0]       reg_data    , next_data     ;
+        logic   [BUF_NUM-1:0]       reg_strb    , next_strb     ;
+        logic   [BUF_NUM-1:0]       reg_keep    , next_keep     ;
         logic   [USER_F_BITS-1:0]   reg_user_f  , next_user_f   ;
         logic   [USER_L_BITS-1:0]   reg_user_l  , next_user_l   ;
-        logic                       reg_first   ,  next_first   ;
-        logic                       reg_last    ,   next_last   ;
+        logic                       reg_first   , next_first    ;
+        logic                       reg_last    , next_last     ;
         logic                       reg_flag_l  , next_flag_l   ;   // フラグ予約
-        logic                       reg_flush   ,  next_flush   ;   // 最終データがバッファに入ったフラグ
-        logic                       reg_empty   ,  next_empty   ;   // 完全に空
-        logic                       reg_free    ,   next_free   ;   // 即時受け入れ可
-        logic                       reg_ready   ,  next_ready   ;   // 今のデータが吐き出せれば受け入れ可
-        logic                       reg_valid   ,  next_valid   ;
+        logic                       reg_flush   , next_flush    ;   // 最終データがバッファに入ったフラグ
+        logic                       reg_empty   , next_empty    ;   // 完全に空
+        logic                       reg_free    , next_free     ;   // 即時受け入れ可
+        logic                       reg_ready   , next_ready    ;   // 今のデータが吐き出せれば受け入れ可
+        logic                       reg_valid   , next_valid    ;
         
         always_ff @(posedge clk) begin
             if ( reset ) begin
@@ -469,9 +474,9 @@ module jelly3_stream_width_convert
             if ( st0_ready & st0_valid ) begin
                 if ( st0_first ) begin
                     // 先頭ならリフレッシュ
-                    next_data   = 'bx       ;
-                    next_strb   = 'b0       ;
-                    next_keep   = 'b0       ;
+                    next_data   = 'x        ;
+                    next_strb   = '0        ;
+                    next_keep   = '0        ;
                     next_count  = st0_count ;
                     next_user_f = st0_user_f;
                     next_flush  = 1'b0      ;
@@ -505,10 +510,6 @@ module jelly3_stream_width_convert
             next_ready = ((BUF_NUM - int'(next_count) + M_NUM >= S_NUM) && next_valid && !next_flush) || (next_valid && next_last && int'(next_count) <= M_NUM);
         end
         
-//      assign st0_ready  = (reg_ready && st1_ready)    // 次で空く
-//                       || reg_free                    // flush中ではなく空いている
-//                       || (FIRST_OVERWRITE && USE_FIRST && st0_valid && st0_first);   // 上書きモード
-
         assign st0_ready  = ((reg_ready && st1_ready) || reg_free) && (FIRST_OVERWRITE || !USE_FIRST || !(!reg_empty && st0_valid && st0_first));
         
         assign st1_count  = reg_count                   ;
@@ -566,11 +567,11 @@ module jelly3_stream_width_convert
         
         always_ff @(posedge clk) begin
             if ( reset ) begin
-                reg_data   <= 'bx   ;
-                reg_strb   <= 'b0   ;
-                reg_keep   <= 'b0   ;
-                reg_user_f <= 'b0   ;
-                reg_user_l <= 'b0   ;
+                reg_data   <= 'x    ;
+                reg_strb   <= '0    ;
+                reg_keep   <= '0    ;
+                reg_user_f <= '0    ;
+                reg_user_l <= '0    ;
                 reg_first  <= 1'b0  ;
                 reg_last   <= 1'b0  ;
                 reg_none   <= 1'b0  ;
