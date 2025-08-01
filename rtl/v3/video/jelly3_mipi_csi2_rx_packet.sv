@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2025 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -62,16 +62,16 @@ module jelly3_mipi_csi2_rx_packet
         ST0_WC0  = 2'd1,
         ST0_WC1  = 2'd2,
         ST0_ECC  = 2'd3
-    } state_t;
+    } st0_state_t;
     
-    state_t         st0_state;
-    logic   [7:0]   st0_id;
-    logic   [15:0]  st0_wc;
-    logic   [7:0]   st0_ecc;
-    logic           st0_ph;
-    logic           st0_last;
-    logic   [7:0]   st0_data;
-    logic           st0_valid;
+    st0_state_t     st0_state   ;
+    logic   [7:0]   st0_id      ;
+    logic   [15:0]  st0_wc      ;
+    logic   [7:0]   st0_ecc     ;
+    logic           st0_ph      ;
+    logic           st0_last    ;
+    logic   [7:0]   st0_data    ;
+    logic           st0_valid   ;
     
     always @(posedge s_axi4s.aclk) begin
         if ( ~s_axi4s.aresetn ) begin
@@ -177,9 +177,14 @@ module jelly3_mipi_csi2_rx_packet
     
     
     // stage1
-    localparam  [1:0]   ST1_IDLE = 0, ST1_DATA = 1, ST1_CRC0 = 2, ST1_CRC1 = 3;
+    typedef enum logic [1:0] {
+        ST1_IDLE  = 2'd0,
+        ST1_DATA  = 2'd1,
+        ST1_CRC0  = 2'd2,
+        ST1_CRC1  = 2'd3
+    } st1_state_t;
     
-    logic   [1:0]   st1_state       ;
+    st1_state_t     st1_state       ;
     logic           st1_de          ;
     logic   [15:0]  st1_wc          ;
     logic   [15:0]  st1_counter     ;
@@ -198,7 +203,7 @@ module jelly3_mipi_csi2_rx_packet
     
     always @(posedge s_axi4s.aclk) begin
         if ( ~s_axi4s.aresetn ) begin
-            st1_state       <= ST0_IDLE;
+            st1_state       <= ST1_IDLE;
             st1_de          <= 1'bx ;
             st1_wc          <= 'x   ;
             st1_counter     <= 'x   ;
@@ -296,8 +301,8 @@ module jelly3_mipi_csi2_rx_packet
                 st1_lost   <= (st1_state != ST1_IDLE && st1_state != ST1_CRC1);
             end
             
-            st1_crc_error <= st1_valid && st1_end && (st1_crc_sum != st1_crc);
-            st1_crc_valid <= st1_valid && st1_end;
+            st1_crc_error <= st1_end && (st1_crc_sum != st1_crc);
+            st1_crc_valid <= st1_end;
         end
     end
     

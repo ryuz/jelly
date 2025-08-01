@@ -9,7 +9,7 @@ module tb_mipi_csi2_raw10();
         $dumpfile("tb_mipi_csi2_raw10.vcd");
         $dumpvars(0, tb_mipi_csi2_raw10);
     
-    #1000000
+    #500000
         $finish;
     end
     
@@ -48,6 +48,8 @@ module tb_mipi_csi2_raw10();
     localparam  int     H_BLANK     = 64 ;
     localparam  int     V_BLANK     = 8  ;
 
+    wire    logic   tx_cam_reset = reset    ;
+    wire    logic   tx_cam_clk   = clk250   ;
 
     jelly3_axi4s_if
             #(
@@ -56,8 +58,8 @@ module tb_mipi_csi2_raw10();
             )
         axi4s_tx_raw10
             (
-                .aresetn        (~reset             ),
-                .aclk           (clk200             ),
+                .aresetn        (~tx_cam_reset      ),
+                .aclk           (tx_cam_clk         ),
                 .aclken         (1'b1               )
             );
 
@@ -90,8 +92,8 @@ module tb_mipi_csi2_raw10();
             )
         axi4s_tx_2byte
             (
-                .aresetn        (~reset             ),
-                .aclk           (clk200             ),
+                .aresetn        (~tx_cam_reset      ),
+                .aclk           (tx_cam_clk         ),
                 .aclken         (1'b1               )
             );
 
@@ -139,19 +141,8 @@ module tb_mipi_csi2_raw10();
                 .m_data_size    (                   )
             );
 
+
     // mipi_csi_tx_gen_2lane
-    jelly3_axi4s_if
-            #(
-                .USER_BITS      (1                  ),
-                .DATA_BITS      (16                 )
-            )
-        axi4s_tx_dphy
-            (
-                .aresetn        (~reset             ),
-                .aclk           (dphy_clk           ),
-                .aclken         (1'b1               )
-            );
-    
     logic       tx_frame_start;
     jelly3_pulse_async
             #(
@@ -174,7 +165,17 @@ module tb_mipi_csi2_raw10();
                 .m_pulse        (tx_frame_start         )
             );
     
-
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1                  ),
+                .DATA_BITS      (16                 )
+            )
+        axi4s_tx_dphy
+            (
+                .aresetn        (~reset             ),
+                .aclk           (dphy_clk           ),
+                .aclken         (1'b1               )
+            );
 
     logic   [7:0]   param_type  ;
     logic   [15:0]  param_wc    ;
@@ -197,6 +198,17 @@ module tb_mipi_csi2_raw10();
                 .s_axi4s         (axi4s_tx_fifo.s   ),
                 .m_axi4s         (axi4s_tx_dphy.m   )
             );
+
+    int axi4s_tx_dphy_count = 0;
+    always_ff @(posedge dphy_clk) begin
+        if ( axi4s_tx_dphy.tvalid && axi4s_tx_dphy.tready ) begin
+            axi4s_tx_dphy_count <= axi4s_tx_dphy_count + 1;
+        end
+        else begin
+            axi4s_tx_dphy_count <= 0;
+        end
+    end
+
 
     // DPYH-TX
     logic   [1:0][7:0]  dphy_tx_datahs  ;
@@ -250,7 +262,7 @@ module tb_mipi_csi2_raw10();
         else begin
             axi4s_rx_dphy.tuser   <= ~axi4s_rx_dphy.tvalid  ;
             axi4s_rx_dphy.tdata   <= dphy_tx_datahs         ;
-            axi4s_rx_dphy.tvalid  <= dphy_tx_validhs        ;
+            axi4s_rx_dphy.tvalid  <= dphy_tx_readyhs        ;
         end
     end
     assign axi4s_rx_dphy.tlast = ~dphy_tx_validhs  ;
@@ -351,7 +363,7 @@ module tb_mipi_csi2_raw10();
     logic           rx_crc_valid        ;
     logic           rx_packet_lost      ;
     jelly3_mipi_csi2_rx_packet
-        u_mipi_csi2_rx_low_layer
+        u_mipi_csi2_rx_packet
             (
                 .param_data_type    (8'h2b              ),
                 
@@ -367,8 +379,53 @@ module tb_mipi_csi2_raw10();
                 .s_axi4s            (axi4s_rx_byte.s    ),
                 .m_axi4s            (axi4s_rx_packet.m  )
             );
+
+    // rx raw10
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1                  ),
+                .DATA_BITS      (10                 )
+            )
+        axi4s_rx_raw10
+            (
+                .aresetn        (~reset             ),
+                .aclk           (clk250             ),
+                .aclken         (1'b1               )
+            );
     
-    assign axi4s_rx_packet.tready = 1'b1;
+    jelly2_mipi_csi2_rx_raw10
+        u_mipi_csi2_rx_raw10
+            (
+                .aresetn        (axi4s_rx_packet.aresetn    ),
+                .aclk           (axi4s_rx_packet.aclk       ),
+
+                .s_axi4s_tuser  (axi4s_rx_packet.tuser      ),
+                .s_axi4s_tlast  (axi4s_rx_packet.tlast      ),
+                .s_axi4s_tdata  (axi4s_rx_packet.tdata      ),
+                .s_axi4s_tvalid (axi4s_rx_packet.tvalid     ),
+                .s_axi4s_tready (axi4s_rx_packet.tready     ),
+
+                .m_axi4s_tuser  (axi4s_rx_raw10.tuser       ),
+                .m_axi4s_tlast  (axi4s_rx_raw10.tlast       ),
+                .m_axi4s_tdata  (axi4s_rx_raw10.tdata       ),
+                .m_axi4s_tvalid (axi4s_rx_raw10.tvalid      ),
+                .m_axi4s_tready (axi4s_rx_raw10.tready      )
+            );
+   
+
+   assign axi4s_rx_raw10.tready = 1'b1;
+
+    int axi4s_rx_raw10_count = 0;
+    always_ff @(posedge axi4s_rx_raw10.aclk) begin
+        if ( axi4s_rx_raw10.tvalid && axi4s_rx_raw10.tready ) begin
+            if ( axi4s_rx_raw10.tlast ) begin
+                axi4s_rx_raw10_count <= 0;
+            end
+            else begin
+                axi4s_rx_raw10_count <= axi4s_rx_raw10_count + 1;
+            end
+        end
+    end
 
 endmodule
 
