@@ -338,8 +338,30 @@ module tb_mipi_csi2_raw10();
                 .s_axi4s            (axi4s_rx_fifo.s    ),
                 .m_axi4s            (axi4s_rx_packet.m  )
             );
+
+//    assign axi4s_rx_packet.tready = 1'b1;
+
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1                  ),
+                .DATA_BITS      (10                 )
+            )
+        axi4s_rx_raw10
+            (
+                .aresetn        (~reset             ),
+                .aclk           (clk250             ),
+                .aclken         (1'b1               )
+            );
+
+    jelly3_mipi_csi2_rx_byte_to_raw10
+        u_mipi_csi2_rx_byte_to_raw10
+            (
+                .s_axi4s        (axi4s_rx_packet.s  ),
+                .m_axi4s        (axi4s_rx_raw10.m   )
+            );
     
-    assign axi4s_rx_packet.tready = 1'b1;
+    assign axi4s_rx_raw10.tready = 1'b1;
+
 
 
     /*
