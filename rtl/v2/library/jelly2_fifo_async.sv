@@ -57,7 +57,7 @@ module jelly2_fifo_async
                 .DOUT_REGS      (DOUT_REGS),
                 .RAM_TYPE       (RAM_TYPE)
             )
-        j_ram_simple_dualport
+        i_ram_simple_dualport
             (
                 .wr_clk         (wr_clk),
                 .wr_en          (ram_wr_en),
