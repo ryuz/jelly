@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //   math
 //
-//                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2025 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -68,8 +68,8 @@ module video_raw_to_rgb
             );
     
     // address map
-    assign {axi4l_dec[DEC_WB   ].addr_base, axi4l_dec[DEC_WB   ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
-    assign {axi4l_dec[DEC_DEMOS].addr_base, axi4l_dec[DEC_DEMOS].addr_high} = {40'ha012_2000, 40'ha012_2fff};
+    assign {axi4l_dec[DEC_WB   ].addr_base, axi4l_dec[DEC_WB   ].addr_high} = {32'h0000_1000, 32'h0000_1fff};
+    assign {axi4l_dec[DEC_DEMOS].addr_base, axi4l_dec[DEC_DEMOS].addr_high} = {32'h0000_2000, 32'h0000_2fff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -159,7 +159,7 @@ module video_raw_to_rgb
     // -------------------------------------
 
     // 現像用データサイズ
-    localparam  int     CH_BITS = S_CH_BITS + 1;
+    localparam  int     CH_BITS = S_CH_BITS + 2;
     localparam  type    ch_t    = logic signed [CH_BITS-1:0];
 
     jelly3_mat_if
@@ -250,7 +250,7 @@ module video_raw_to_rgb
 
     jelly3_mat_if
             #(
-                .CH_BITS        (img_sink.CH_BITS   ),
+                .CH_BITS        (10                 ),
                 .CH_DEPTH       (img_sink.CH_DEPTH  )
             )
          img_clamp
@@ -267,21 +267,88 @@ module video_raw_to_rgb
         u_mat_clamp_core
             (
                 .enable         (1'b1               ),
-                .min_value      (11'd0              ),
-                .max_value      (11'd1023           ),
+                .min_value      (12'd0              ),
+                .max_value      (12'd1023           ),
                 .s_mat          (img_demos.s        ),
                 .m_mat          (img_clamp.m        )
             );
 
-    assign img_sink.row_first   = img_clamp.row_first;
-    assign img_sink.row_last    = img_clamp.row_last ;
-    assign img_sink.col_first   = img_clamp.col_first;
-    assign img_sink.col_last    = img_clamp.col_last ;
-    assign img_sink.de          = img_clamp.de       ;
-    assign img_sink.data        = img_clamp.data     ;
-    assign img_sink.user        = img_clamp.user     ;
-    assign img_sink.valid       = img_clamp.valid    ;
+    // -------------------------------------
+    //  Gamma Correction
+    // -------------------------------------
+    /*
+    jelly3_mat_if
+            #(
+                .CH_BITS        (10                 ),
+                .CH_DEPTH       (img_sink.CH_DEPTH  )
+            )
+         img_gamma
+            (
+                .reset          (img_src.reset      ),
+                .clk            (img_src.clk        ),
+                .cke            (img_src.cke        )
+            );
 
+    jelly3_gamma_table
+            #(
+                .N              (img_sink.CH_DEPTH  ),
+                .ADDR_BITS      (10                 ),
+                .DATA_BITS      (8                  ),
+                .USER_BITS      (5+1                ),
+                .DOUT_REG       (0                  ),
+                .GAMMA          (2.2                )
+            )
+        u_gamma_table
+            (
+                .reset          (img_src.reset      ),
+                .clk            (img_src.clk        ),
+                .cke            (img_src.cke        ),
+
+                .s_addr         (img_clamp.data     ),
+                .s_user         ({
+                                    img_clamp.row_first,
+                                    img_clamp.row_last ,
+                                    img_clamp.col_first,
+                                    img_clamp.col_last ,
+                                    img_clamp.de       ,
+                                    img_clamp.user     
+                                }),
+                .s_valid        (img_clamp.valid    ),
+                .s_ready        (                   ),
+
+                .m_data         (img_gamma.data     ),
+                .m_user         ({
+                                    img_gamma.row_first,
+                                    img_gamma.row_last ,
+                                    img_gamma.col_first,
+                                    img_gamma.col_last ,
+                                    img_gamma.de       ,
+                                    img_gamma.user     
+                                }),
+                .m_valid        (img_gamma.valid    ),
+                .m_ready        (1'b1               )
+            );
+    
+    assign img_sink.row_first   = img_gamma.row_first;
+    assign img_sink.row_last    = img_gamma.row_last ;
+    assign img_sink.col_first   = img_gamma.col_first;
+    assign img_sink.col_last    = img_gamma.col_last ;
+    assign img_sink.de          = img_gamma.de       ;
+    assign img_sink.data        = img_gamma.data     ;
+    assign img_sink.user        = img_gamma.user     ;
+    assign img_sink.valid       = img_gamma.valid    ;
+    */
+
+    assign img_sink.row_first       = img_clamp.row_first;
+    assign img_sink.row_last        = img_clamp.row_last ;
+    assign img_sink.col_first       = img_clamp.col_first;
+    assign img_sink.col_last        = img_clamp.col_last ;
+    assign img_sink.de              = img_clamp.de       ;
+    assign img_sink.data[0][0][7:0] = img_clamp.data[0][0][9:2];
+    assign img_sink.data[0][1][7:0] = img_clamp.data[0][1][9:2];
+    assign img_sink.data[0][2][7:0] = img_clamp.data[0][2][9:2];
+    assign img_sink.user            = img_clamp.user     ;
+    assign img_sink.valid           = img_clamp.valid    ;
 
 
     /*

@@ -781,10 +781,10 @@ module tang_mega_138k_pro_imx219_stereo
     // RGB
     jelly3_axi4s_if
             #(
-                .DATA_BITS      (10*4       ),
+                .DATA_BITS      (8*4        ),
                 .DEBUG          ("false"    )
             )
-        axi4s_rgb10
+        axi4s_rgb
             (
                 .aresetn        (~dvi_reset ),
                 .aclk           (dvi_clk    ),
@@ -823,10 +823,11 @@ module tang_mega_138k_pro_imx219_stereo
                 .param_height   (DVI_HEIGHT         ),
 
                 .s_axi4s        (axi4s_raw.s        ),
-                .m_axi4s        (axi4s_rgb10.m      ),
+                .m_axi4s        (axi4s_rgb.m        ),
                 .s_axi4l        (axi4l_peri         )
             );
 
+    /*
     jelly3_axi4s_if
             #(
                 .DATA_BITS      (24         ),
@@ -846,6 +847,7 @@ module tang_mega_138k_pro_imx219_stereo
     assign axi4s_rgb.tdata[2*8 +: 8] = axi4s_rgb10.tdata[2*10+2 +: 8];
     assign axi4s_rgb.tvalid          = axi4s_rgb10.tvalid;
     assign axi4s_rgb10.tready = axi4s_rgb.tready;
+    */
 
     // FIFO
     jelly3_axi4s_if
