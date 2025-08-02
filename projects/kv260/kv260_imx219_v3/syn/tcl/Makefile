@@ -35,6 +35,7 @@ export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/kv260_imx219.sv
+SOURCES += $(PRJ_DIR)/rtl/imx219_mipi_rx.sv
 SOURCES += $(PRJ_DIR)/rtl/video_raw_to_rgb.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
