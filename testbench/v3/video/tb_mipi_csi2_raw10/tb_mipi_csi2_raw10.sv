@@ -127,7 +127,6 @@ module tb_mipi_csi2_raw10();
                 .ASYNC          (1                  ),
                 .PTR_BITS       (9                  ),
                 .RAM_TYPE       ("block"            ),
-                .LOW_DEALY      (0                  ),
                 .DOUT_REG       (1                  ),
                 .S_REG          (1                  ),
                 .M_REG          (1                  )
@@ -285,7 +284,6 @@ module tb_mipi_csi2_raw10();
                 .ASYNC          (1                  ),
                 .PTR_BITS       (9                  ),
                 .RAM_TYPE       ("block"            ),
-                .LOW_DEALY      (0                  ),
                 .DOUT_REG       (1                  ),
                 .S_REG          (1                  ),
                 .M_REG          (1                  )

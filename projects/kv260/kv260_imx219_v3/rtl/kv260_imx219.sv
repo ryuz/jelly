@@ -33,11 +33,11 @@ module kv260_imx219
     //  Zynq UltraScale+ MPSoC block
     // ----------------------------------------
 
-    localparam  int     AXI4L_PERI_ADDR_BITS = 40;
-    localparam  int     AXI4L_PERI_DATA_BITS = 64;
-    localparam  int     AXI4_MEM_ID_BITS     = 6;
-    localparam  int     AXI4_MEM_ADDR_BITS   = 49;
-    localparam  int     AXI4_MEM_DATA_BITS   = 128;
+    localparam  int     AXI4L_PERI_ADDR_BITS = 40   ;
+    localparam  int     AXI4L_PERI_DATA_BITS = 64   ;
+    localparam  int     AXI4_MEM_ID_BITS     = 6    ;
+    localparam  int     AXI4_MEM_ADDR_BITS   = 49   ;
+    localparam  int     AXI4_MEM_DATA_BITS   = 128  ;
    
 
     logic       sys_reset           ;
@@ -751,9 +751,8 @@ module kv260_imx219
     jelly3_axi4s_fifo
             #(
                 .ASYNC          (0              ),
-                .PTR_BITS       (9              ),
+                .PTR_BITS       (6              ),
                 .RAM_TYPE       ("block"        ),
-                .LOW_DEALY      (0              ),
                 .DOUT_REG       (1              ),
                 .S_REG          (1              ),
                 .M_REG          (1              )
@@ -864,7 +863,7 @@ module kv260_imx219
                 .ALLOW_UNALIGNED        (1                      ), // (0),
                 .CAPACITY_BITS          (32                     ),
                 
-                .WFIFO_PTR_BITS         (9                      ),
+                .WFIFO_PTR_BITS         (8                      ),
                 .WFIFO_RAM_TYPE         ("block"                )
             )
         u_dma_video_write

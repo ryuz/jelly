@@ -227,7 +227,6 @@ module imx219_mipi_rx
                 .ASYNC          (1                  ),
                 .PTR_BITS       (9                  ),
                 .RAM_TYPE       ("block"            ),
-                .LOW_DEALY      (0                  ),
                 .DOUT_REG       (1                  ),
                 .S_REG          (1                  ),
                 .M_REG          (1                  )
