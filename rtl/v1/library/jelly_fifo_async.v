@@ -110,7 +110,9 @@ module jelly_fifo_async
     wire    [PTR_WIDTH:0]       wr_wptr_gray;
     reg     [PTR_WIDTH:0]       wr_wptr_gray__async_tx;
     
+    (* ASYNC_REG="true" *)
     reg     [PTR_WIDTH:0]       wr_rptr_gray__async_rx;
+    (* ASYNC_REG="true" *)
     reg     [PTR_WIDTH:0]       wr_rptr_gray_in;
     wire    [PTR_WIDTH:0]       wr_rptr_in;
     reg     [PTR_WIDTH:0]       wr_rptr;
@@ -121,7 +123,9 @@ module jelly_fifo_async
     wire    [PTR_WIDTH:0]       rd_rptr_gray;
     reg     [PTR_WIDTH:0]       rd_rptr_gray__async_tx;
     
+    (* ASYNC_REG="true" *)
     reg     [PTR_WIDTH:0]       rd_wptr_gray__async_rx;
+    (* ASYNC_REG="true" *)
     reg     [PTR_WIDTH:0]       rd_wptr_gray_in;
     wire    [PTR_WIDTH:0]       rd_wptr_in;
     reg     [PTR_WIDTH:0]       rd_wptr;
