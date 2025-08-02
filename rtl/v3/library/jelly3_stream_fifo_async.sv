@@ -10,11 +10,11 @@
 `default_nettype none
 
 
-// FIFO
-module jelly3_fifo_async
+// Stream Async-FIFO
+module jelly3_stream_fifo_async
         #(
             parameter   int     PTR_BITS     = 5                    ,
-            parameter   int     FIFO_SIZE    = 2 ** PTR_BITS        ,
+            localparam  int     FIFO_SIZE    = 2 ** PTR_BITS        ,
             parameter   int     SIZE_BITS    = $clog2(FIFO_SIZE + 1),
             parameter   type    size_t       = logic [SIZE_BITS-1:0],
             parameter   int     DATA_BITS    = 8                    ,
@@ -47,182 +47,90 @@ module jelly3_fifo_async
             output  var size_t  m_data_size 
         );
     
+    // FIFO
+    logic       wr_en           ;
+    data_t      wr_data         ;
+    logic       wr_full         ;
+    size_t      wr_free_size    ;
+;
+    logic       rd_en           ;
+    logic       rd_regcke       ;
+    data_t      rd_data         ;
+    logic       rd_empty        ;
+    size_t      rd_data_size    ;
 
-    // ---------------------------------
-    //  localparam
-    // ---------------------------------
-
-    // Full と Empty でポインタが一周するので 1bit 多く定義
-    localparam  type    ptr_t     = logic [PTR_BITS:0]      ;
-
-    localparam  int     ADDR_BITS = PTR_BITS                ;
-    localparam  type    addr_t    = logic [ADDR_BITS-1:0]   ;
-    
-
-    // ---------------------------------
-    //  RAM
-    // ---------------------------------
-    
-    logic       ram_wr_en       ;
-    addr_t      ram_wr_addr     ;
-    data_t      ram_wr_data     ;
-    
-    logic       ram_rd_en       ;
-    logic       ram_rd_regcke   ;
-    addr_t      ram_rd_addr     ;
-    data_t      ram_rd_data     ;
-
-    jelly3_ram_simple_dualport
+    jelly3_fifo_async
             #(
-                .ADDR_BITS  ($bits(addr_t)      ),
-                .addr_t     (addr_t             ),
-                .DATA_BITS  ($bits(data_t)      ),
-                .data_t     (data_t             ),
-                .MEM_DEPTH  (FIFO_SIZE          ),
-                .RAM_TYPE   (RAM_TYPE           ),
-                .DOUT_REG   (DOUT_REG           ),
-                .DEVICE     (DEVICE             ),
-                .SIMULATION (SIMULATION         ),
-                .DEBUG      (DEBUG              )
-
+                .PTR_BITS       (PTR_BITS       ),
+                .SIZE_BITS      (SIZE_BITS      ),
+                .size_t         (size_t         ),
+                .DATA_BITS      (DATA_BITS      ),
+                .data_t         (data_t         ),
+                .WR_SYNC_FF     (S_SYNC_FF      ),
+                .RD_SYNC_FF     (M_SYNC_FF      ),
+                .RAM_TYPE       (RAM_TYPE       ),
+                .DOUT_REG       (DOUT_REG       ),
+                .DEVICE         (DEVICE         ),
+                .SIMULATION     (SIMULATION     ),
+                .DEBUG          (DEBUG          )
             )
-        u_ram_simple_dualport
+        u_fifo_async
             (
-                .wr_clk      (s_clk             ),
-                .wr_en       (ram_wr_en         ),
-                .wr_addr     (ram_wr_addr       ),
-                .wr_din      (ram_wr_data       ),
+                .wr_reset       (s_reset        ),
+                .wr_clk         (s_clk          ),
+                .wr_cke         (s_cke          ),
+                .wr_en          (wr_en          ),
+                .wr_data        (wr_data        ),
+                .wr_full        (wr_full        ),
+                .wr_free_size   (wr_free_size   ),
 
-                .rd_clk      (m_clk             ),
-                .rd_en       (ram_rd_en         ),
-                .rd_regcke   (ram_rd_regcke     ),
-                .rd_addr     (ram_rd_addr       ),
-                .rd_dout     (ram_rd_data       )
-            );
-    
-
-    
-    // ---------------------------------
-    //  CDC FIFO pointer
-    // ---------------------------------
-    
-    // write
-    ptr_t       wr_wptr;
-    ptr_t       wr_rptr;
-
-    // read
-    ptr_t       rd_wptr;
-    ptr_t       rd_rptr;
-
-    jelly3_cdc_gray
-            #(
-                .DEST_SYNC_FF       (M_SYNC_FF      ),
-                .WIDTH              ($bits(ptr_t)   ),
-                .DEVICE             (DEVICE         ),
-                .SIMULATION         (SIMULATION     ),
-                .DEBUG              (DEBUG          )
-            )
-        jelly3_cdc_gray_w
-            (
-                .src_clk            (s_clk          ),
-                .src_in_bin         (wr_wptr        ),
-                .dest_clk           (m_clk          ),
-                .dest_out_bin       (rd_wptr        )
+                .rd_reset       (m_reset        ),
+                .rd_clk         (m_clk          ),
+                .rd_cke         (m_cke          ),
+                .rd_en          (rd_en          ),
+                .rd_regcke      (rd_regcke      ),
+                .rd_data        (rd_data        ),
+                .rd_empty       (rd_empty       ),
+                .rd_data_size   (rd_data_size   )
             );
 
-    jelly3_cdc_gray
+    // Write
+    assign wr_en       = s_valid && s_ready ;
+    assign wr_data     = s_data             ;
+    assign s_ready     = !wr_full           ;
+    assign s_free_size = wr_free_size       ;
+
+
+    // Read(FWFT)
+    jelly3_fifo_fwft_read
             #(
-                .DEST_SYNC_FF       (S_SYNC_FF     ),
-                .WIDTH              ($bits(ptr_t)   ),
-                .DEVICE             (DEVICE         ),
-                .SIMULATION         (SIMULATION     ),
-                .DEBUG              (DEBUG          )
+                .PTR_BITS       (PTR_BITS       ),
+                .FIFO_SIZE      (FIFO_SIZE      ),
+                .SIZE_BITS      (SIZE_BITS      ),
+                .size_t         (size_t         ),
+                .DATA_BITS      (DATA_BITS      ),
+                .data_t         (data_t         ),
+                .DOUT_REG       (DOUT_REG       ),
+                .DEVICE         (DEVICE         ),
+                .SIMULATION     (SIMULATION     ),
+                .DEBUG          (DEBUG          )
             )
-        jelly3_cdc_gray_r
+        u_fifo_fwft_read
             (
-                .src_clk            (m_clk          ),
-                .src_in_bin         (rd_rptr        ),
-                .dest_clk           (s_clk          ),
-                .dest_out_bin       (wr_rptr        )
+                .reset          (m_reset        ),
+                .clk            (m_clk          ),
+                .cke            (m_cke          ),
+                .rd_en          (rd_en          ),
+                .rd_regcke      (rd_regcke      ),
+                .rd_data        (rd_data        ),
+                .rd_empty       (rd_empty       ),
+                .rd_data_size   (rd_data_size   ),
+                .m_data         (m_data         ),
+                .m_valid        (m_valid        ),
+                .m_ready        (m_ready        ),
+                .m_data_size    (m_data_size    )
             );
 
-    
-    // ---------------------------------
-    //  Control
-    // ---------------------------------
-    
-    // write side
-    ptr_t   next_wr_wptr        ;
-    logic   wr_full,      next_wr_full        ;
-    size_t  wr_free_size, next_wr_free_size   ;
-    always_comb begin
-        next_wr_wptr      = wr_wptr     ;
-        next_wr_full      = wr_full     ;
-        next_wr_free_size = wr_free_size;
-        if ( ram_wr_en ) begin
-            next_wr_wptr = wr_wptr + 1'b1;
-        end
-        next_wr_full      = (next_wr_wptr[PTR_BITS] != wr_rptr[PTR_BITS]) && (next_wr_wptr[PTR_BITS-1:0] == wr_rptr[PTR_BITS-1:0]);
-        next_wr_free_size = ((wr_rptr - next_wr_wptr) + size_t'(FIFO_SIZE));
-    end
-    
-    always_ff @(posedge s_clk) begin
-        if ( s_reset ) begin
-            wr_wptr      <= 0   ;
-            wr_full      <= 1'b1;   // リセット期間中は書き込みできないのでfullとする
-            wr_free_size <= 0   ;
-        end
-        else if ( s_cke ) begin
-            wr_wptr      <= next_wr_wptr            ;
-            wr_full      <= next_wr_full            ;
-            wr_free_size <= next_wr_free_size       ;
-        end
-    end
-    
-    assign ram_wr_en   = s_cke & s_valid & s_ready  ;
-    assign ram_wr_addr = wr_wptr[ADDR_BITS-1:0]     ;
-    assign ram_wr_data = s_data                     ;
-    assign s_ready     = !wr_full                   ;
-    
-    
-    // read side
-    logic   rd0_valid           ;
-    logic   rd1_valid           ;
-    logic   rd2_valid           ;
-
-    logic   rd_empty            ;
-    size_t  rd_data_size        ;
-    ptr_t   next_rd_rptr        ;
-    logic   rd_empty    , next_rd_empty       ;
-    size_t  rd_data_size, next_rd_data_size   ;
-    always_comb begin
-        next_rd_rptr      = rd_rptr     ;
-        next_rd_empty     = rd_empty    ;
-        next_rd_data_size = rd_data_size;
-        if ( ram_rd_en ) begin
-            next_rd_rptr = rd_rptr + 1'b1;
-        end
-        next_rd_empty     = (rd_wptr == next_rd_rptr);
-        next_rd_data_size = (rd_wptr - next_rd_rptr);
-    end
-    
-    always_ff @ ( posedge rd_clk ) begin
-        if ( rd_reset ) begin
-            rd_rptr      <= 0   ;
-            rd_empty     <= 1'b1;
-            rd_data_size <= 0   ;
-        end
-        else begin
-            rd_rptr      <= next_rd_rptr        ;
-            rd_empty     <= next_rd_empty       ;
-            rd_data_size <= next_rd_data_size   ;
-        end
-    end
-    
-    assign ram_rd_en    = rd_en & ~rd_empty     ;
-    assign ram_rd_addr  = rd_rptr[ADDR_BITS-1:0];
-    assign rd_data      = ram_rd_data           ;
-    
 endmodule
 
 
