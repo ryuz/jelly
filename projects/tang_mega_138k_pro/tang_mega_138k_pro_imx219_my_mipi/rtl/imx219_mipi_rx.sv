@@ -231,10 +231,11 @@ module imx219_mipi_rx
             axi4s_rx_dphy.tuser  <= 1'b1;
             axi4s_rx_dphy.tdata  <= 'x  ;
             axi4s_rx_dphy.tvalid <= '0  ;
-        end else begin
+        end
+        else begin
             axi4s_rx_dphy.tuser  <= ~axi4s_rx_dphy.tvalid;
             axi4s_rx_dphy.tdata  <= {mipi_dphy_byte_d1, mipi_dphy_byte_d0};
-            axi4s_rx_dphy.tvalid <= mipi_dphy_byte_ready;
+            axi4s_rx_dphy.tvalid <= mipi_dphy_byte_ready && !(!axi4s_rx_dphy.tvalid && mipi_dphy_byte_d1==8'hb8 && mipi_dphy_byte_d0==8'hb8);
         end
     end
     assign axi4s_rx_dphy.tlast = (axi4s_rx_dphy.tvalid && ~mipi_dphy_byte_ready);
