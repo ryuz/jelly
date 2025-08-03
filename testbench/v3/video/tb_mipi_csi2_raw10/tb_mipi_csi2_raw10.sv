@@ -351,8 +351,8 @@ module tb_mipi_csi2_raw10();
                 .aclken         (1'b1               )
             );
 
-    jelly3_mipi_csi2_rx_byte_to_raw10
-        u_mipi_csi2_rx_byte_to_raw10
+    jelly3_mipi_csi2_rx_2byte_to_raw10
+        u_mipi_csi2_rx_2byte_to_raw10
             (
                 .s_axi4s        (axi4s_rx_packet.s  ),
                 .m_axi4s        (axi4s_rx_raw10.m   )

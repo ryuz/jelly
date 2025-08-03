@@ -321,20 +321,20 @@ module imx219_mipi_rx
             );
 
     // to RAW10
-    /*
-    jelly3_mipi_csi2_rx_byte_to_raw10
-        u_mipi_csi2_rx_byte_to_raw10
+    jelly3_mipi_csi2_rx_2byte_to_raw10
+        u_mipi_csi2_rx_2byte_to_raw10
             (
                 .s_axi4s        (axi4s_rx_packet.s  ),
                 .m_axi4s        (m_axi4s            )
             );
-    */
-
+    
+    /*
     assign m_axi4s.tuser  = axi4s_rx_packet.tuser;
     assign m_axi4s.tlast  = axi4s_rx_packet.tlast;
-    assign m_axi4s.tdata  = axi4s_rx_packet.tdata;
+    assign m_axi4s.tdata  = {axi4s_rx_packet.tdata, 2'b00};
     assign m_axi4s.tvalid = axi4s_rx_packet.tvalid;
     assign axi4s_rx_packet.tready = m_axi4s.tready;
+    */
 
 /*
     // MIPI CSI RX

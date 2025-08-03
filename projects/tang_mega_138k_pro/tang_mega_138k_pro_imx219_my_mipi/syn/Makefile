@@ -118,6 +118,7 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_fifo_sync.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_mipi_csi2_rx_packet_2lane.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_mipi_ecc24.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_mipi_csi2_rx_byte_to_raw10.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_mipi_csi2_rx_2byte_to_raw10.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_sync.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_async.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_fwft_read.sv
