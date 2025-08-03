@@ -129,7 +129,7 @@ module jelly3_stream_width_convert
         set_strb = orgn;
         for ( int i = 0; i < S_NUM; i++ ) begin
             if ( endian ) begin
-                set_strb[(BUF_NUM-1) - int'(position) + i] = strb[S_NUM-1 - i];
+                set_strb[(BUF_NUM-1) - (int'(position) + i)] = strb[S_NUM-1 - i];
             end
             else begin
                 set_strb[int'(position) + i] = strb[i];

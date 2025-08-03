@@ -76,7 +76,7 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <AoCore index="1" sample_clock="u_imx219_mipi_rx_cam0/mipi_dphy_rx_clk" trig_type="0" storage_depth="1024" window_num="1" capture_amount="1024" implementation="0" trigger_pos="0" module_name="tang_mega_138k_pro_imx219_stereo" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
+    <AoCore index="1" sample_clock="u_imx219_mipi_rx_cam0/mipi_dphy_rx_clk" trig_type="0" storage_depth="1024" window_num="1" capture_amount="1024" implementation="0" trigger_pos="16" module_name="tang_mega_138k_pro_imx219_stereo" force_trigger_by_falling_edge="false" capture_init_data_enabled="false">
         <SignalList>
             <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[15:0]">
                 <Signal>u_imx219_mipi_rx_cam0/mipi_dphy_d0ln_hsrxd[15]</Signal>
@@ -189,6 +189,72 @@
             <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_from3to1</Signal>
             <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_fromXto3</Signal>
             <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_dphy_from1toX</Signal>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[15:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[15]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[14]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[13]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[12]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[11]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[10]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[9]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[8]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[7]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[6]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[5]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[4]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[3]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[2]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_wc[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_csi_rx_vc[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_vc[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_vc[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_csi_rx_dt[5:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_dt[5]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_dt[4]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_dt[3]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_dt[2]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_dt[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_dt[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc[7:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc[7]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc[6]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc[5]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc[4]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc[3]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc[2]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_csi_rx_payload_dv[1:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload_dv[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload_dv[0]</Signal>
+            </Bus>
+            <Bus capture_enable="true" name="u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[15:0]">
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[15]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[14]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[13]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[12]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[11]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[10]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[9]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[8]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[7]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[6]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[5]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[4]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[3]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[2]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[1]</Signal>
+                <Signal>u_imx219_mipi_rx_cam0/mipi_csi_rx_payload[0]</Signal>
+            </Bus>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_csi_rx_sp_en</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_csi_rx_lp_en</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_csi_rx_lp_av_en</Signal>
+            <Signal capture_enable="true">u_imx219_mipi_rx_cam0/mipi_csi_rx_ecc_ok</Signal>
         </SignalList>
         <Triggers>
             <Trigger index="0">
@@ -234,5 +300,5 @@
             <Expression>M0</Expression>
         </Expressions>
     </AoCore>
-    <GAO_ID>1011000001110001</GAO_ID>
+    <GAO_ID>0001010110111101</GAO_ID>
 </GAO_CONFIG>

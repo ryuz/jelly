@@ -231,7 +231,7 @@ module tang_mega_138k_pro_imx219_stereo
                 .WB_ADR_WIDTH       (2                  ),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH       ),
                 .DIVIDER_WIDTH      (8                  ),
-                .DIVIDER_INIT       (54-1               ),  // 50MHz時 115200bps
+                .DIVIDER_INIT       (54-1               ),
                 .SIMULATION         (0                  ),
                 .DEBUG              (1                  )
             )
@@ -382,9 +382,17 @@ module tang_mega_138k_pro_imx219_stereo
     //  MIPI CSI2 RX
     // ---------------------------------
 
-    logic           cam0_fv     ;
-    logic           cam0_lv     ;
-    logic   [9:0]   cam0_pixel  ;
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1              ),
+                .DATA_BITS      (10             )
+            )
+        axi4s_cam0_rx
+            (
+                .aresetn        (~cam_reset     ),
+                .aclk           (cam_clk        ),
+                .aclken         (1'b1           )
+            );
 
     imx219_mipi_rx
         u_imx219_mipi_rx_cam0
@@ -396,16 +404,21 @@ module tang_mega_138k_pro_imx219_stereo
                 .mipi_data_p    (mipi0_data_p   ),
                 .mipi_data_n    (mipi0_data_n   ),
 
-                .out_clk        (cam_clk        ),
-                .out_fv         (cam0_fv        ),
-                .out_lv         (cam0_lv        ),
-                .out_pixel      (cam0_pixel     )
+                .m_axi4s        (axi4s_cam0_rx  )
             );
 
 
-    logic           cam1_fv     ;
-    logic           cam1_lv     ;
-    logic   [9:0]   cam1_pixel  ;
+    jelly3_axi4s_if
+            #(
+                .USER_BITS      (1              ),
+                .DATA_BITS      (10             )
+            )
+        axi4s_cam1_rx
+            (
+                .aresetn        (~cam_reset     ),
+                .aclk           (cam_clk        ),
+                .aclken         (1'b1           )
+            );
 
     imx219_mipi_rx
         u_imx219_mipi_rx_cam1
@@ -417,46 +430,8 @@ module tang_mega_138k_pro_imx219_stereo
                 .mipi_data_p    (mipi1_data_p   ),
                 .mipi_data_n    (mipi1_data_n   ),
 
-                .out_clk        (cam_clk        ),
-                .out_fv         (cam1_fv        ),
-                .out_lv         (cam1_lv        ),
-                .out_pixel      (cam1_pixel     )
+                .m_axi4s        (axi4s_cam1_rx  )
             );
-    
-
-    // to AXI4-Stream
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (10         ),
-                .DEBUG      ("false"    )
-            )
-        axi4s_cam0_src
-            (
-                .aresetn    (~cam_reset ),
-                .aclk       (cam_clk    ),
-                .aclken     (1'b1       )
-            );
-    
-    logic           cam0_ff_fv     ;
-    logic           cam0_ff_lv     ;
-    logic   [9:0]   cam0_ff_pixel  ;
-    always_ff @(posedge cam_clk) begin
-        cam0_ff_fv    <= cam0_fv    ;
-        cam0_ff_lv    <= cam0_lv    ;
-        cam0_ff_pixel <= cam0_pixel ;
-    end
-
-    always_ff @(posedge cam_clk) begin
-        if ( !cam0_ff_fv ) begin
-            axi4s_cam0_src.tuser <= 1'b1;
-        end
-        if ( axi4s_cam0_src.tvalid ) begin
-            axi4s_cam0_src.tuser <= 1'b0;
-        end
-        axi4s_cam0_src.tlast  <= !cam0_lv                   ;
-        axi4s_cam0_src.tdata  <= cam0_ff_pixel              ;
-        axi4s_cam0_src.tvalid <= cam0_ff_lv && cam0_ff_fv   ;
-    end
 
 
 
@@ -491,31 +466,31 @@ module tang_mega_138k_pro_imx219_stereo
 
     jelly2_ram_dualport
             #(
-                .ADDR_WIDTH     (MEM_ADDR_BITS  ),
-                .DATA_WIDTH     (10             ),
-                .WE_WIDTH       (1              ),
-                .DOUT_REGS0     (0              ),
-                .DOUT_REGS1     (1              ),
-                .MODE0          ("NORMAL"       ),
-                .MODE1          ("NORMAL"       )
+                .ADDR_WIDTH     (MEM_ADDR_BITS      ),
+                .DATA_WIDTH     (10                 ),
+                .WE_WIDTH       (1                  ),
+                .DOUT_REGS0     (0                  ),
+                .DOUT_REGS1     (1                  ),
+                .MODE0          ("NORMAL"           ),
+                .MODE1          ("NORMAL"           )
             )
         u_ram_dualport_cam0
             (
-                .port0_clk      (mem0_port0_clk       ),
-                .port0_en       (mem0_port0_en        ),
-                .port0_regcke   (mem0_port0_regcke    ),
-                .port0_we       (mem0_port0_we        ),
-                .port0_addr     (mem0_port0_addr      ),
-                .port0_din      (mem0_port0_din       ),
-                .port0_dout     (mem0_port0_dout      ),
+                .port0_clk      (mem0_port0_clk     ),
+                .port0_en       (mem0_port0_en      ),
+                .port0_regcke   (mem0_port0_regcke  ),
+                .port0_we       (mem0_port0_we      ),
+                .port0_addr     (mem0_port0_addr    ),
+                .port0_din      (mem0_port0_din     ),
+                .port0_dout     (mem0_port0_dout    ),
 
-                .port1_clk      (mem0_port1_clk       ),
-                .port1_en       (mem0_port1_en        ),
-                .port1_regcke   (mem0_port1_regcke    ),
-                .port1_we       (mem0_port1_we        ),
-                .port1_addr     (mem0_port1_addr      ),
-                .port1_din      (mem0_port1_din       ),
-                .port1_dout     (mem0_port1_dout      )
+                .port1_clk      (mem0_port1_clk     ),
+                .port1_en       (mem0_port1_en      ),
+                .port1_regcke   (mem0_port1_regcke  ),
+                .port1_we       (mem0_port1_we      ),
+                .port1_addr     (mem0_port1_addr    ),
+                .port1_din      (mem0_port1_din     ),
+                .port1_dout     (mem0_port1_dout    )
             );
 
     // Memory 1
@@ -564,53 +539,66 @@ module tang_mega_138k_pro_imx219_stereo
                 .port1_dout     (mem1_port1_dout      )
             );
 
-    logic       cam0_lv_prev;
-    cam_v_t     cam0_y;
-    cam_h_t     cam0_x;
-    always_ff @(posedge cam_clk) begin
-        cam0_lv_prev <= cam0_lv;
-        if ( cam0_fv == 1'b0 ) begin
-            cam0_y <= '0;
+    cam_v_t         cam0_y      ;
+    cam_h_t         cam0_x      ;
+    logic   [9:0]   cam0_data   ;
+    logic           cam0_valid  ;
+    always_ff @(posedge axi4s_cam0_rx.aclk) begin
+        if ( axi4s_cam0_rx.tvalid ) begin
+            cam0_x <= cam0_x + 1'b1;
+            if ( axi4s_cam0_rx.tuser[0] ) begin
+                cam0_x <= '0;
+                cam0_y <= '0;
+            end
+            if ( axi4s_cam0_rx.tlast ) begin
+                cam0_x <= '0;
+                cam0_y <= cam0_y + 1;
+            end
         end
-        if ( {cam0_lv_prev, cam0_lv} == 2'b10 ) begin
-            cam0_y <= cam0_y + 1;
-        end
-        cam0_x <= cam0_lv ? cam0_x + 1 : '0;
+        cam0_data  <= axi4s_cam0_rx.tdata   ;
+        cam0_valid <= axi4s_cam0_rx.tvalid  ;
     end
+    assign axi4s_cam0_rx.tready = 1'b1;
 
     assign mem0_port0_clk = cam_clk;
     always_ff @(posedge cam_clk) begin
-        mem0_port0_en     <= cam0_lv                                            ;
+        mem0_port0_en     <= cam0_valid                                         ;
         mem0_port0_regcke <= 1'b1                                               ;
         mem0_port0_we     <= (cam0_x < cam_h_t'(MEM_X_SIZE)) && (cam0_y < cam_v_t'(MEM_Y_SIZE));
         mem0_port0_addr   <= {cam0_y[MEM_Y_BITS-1:0], cam0_x[MEM_X_BITS-1:0]}   ;
-        mem0_port0_din    <= cam0_pixel[9:0]                                    ;
+        mem0_port0_din    <= cam0_data                                          ;
     end
 
-    logic       cam1_lv_prev;
-    cam_v_t     cam1_y;
-    cam_h_t     cam1_x;
-    always_ff @(posedge cam_clk) begin
-        cam1_lv_prev <= cam1_lv;
-        if ( cam1_fv == 1'b0 ) begin
-            cam1_y <= '0;
-        end
-        if ( {cam1_lv_prev, cam1_lv} == 2'b10 ) begin
-            cam1_y <= cam1_y + 1;
-        end
-        cam1_x <= cam1_lv ? cam1_x + 1 : '0;
-    end
 
-    assign mem1_port0_clk = cam_clk ;
+    cam_v_t         cam1_y      ;
+    cam_h_t         cam1_x      ;
+    logic   [9:0]   cam1_data   ;
+    logic           cam1_valid  ;
+    always_ff @(posedge axi4s_cam1_rx.aclk) begin
+        if ( axi4s_cam1_rx.tvalid ) begin
+            cam1_x <= cam1_x + 1'b1;
+            if ( axi4s_cam1_rx.tuser[0] ) begin
+                cam1_x <= '0;
+                cam1_y <= '0;
+            end
+            if ( axi4s_cam1_rx.tlast ) begin
+                cam1_x <= '0;
+                cam1_y <= cam1_y + 1;
+            end
+        end
+        cam1_data  <= axi4s_cam1_rx.tdata   ;
+        cam1_valid <= axi4s_cam1_rx.tvalid  ;
+    end
+    assign axi4s_cam1_rx.tready = 1'b1;
+
+    assign mem1_port0_clk = cam_clk;
     always_ff @(posedge cam_clk) begin
-        mem1_port0_en     <= cam1_lv                                            ;
+        mem1_port0_en     <= cam1_valid                                         ;
         mem1_port0_regcke <= 1'b1                                               ;
-        mem1_port0_we     <= (cam1_x < MEM_X_SIZE) && (cam1_y < MEM_Y_SIZE)     ;
+        mem1_port0_we     <= (cam1_x < cam_h_t'(MEM_X_SIZE)) && (cam1_y < cam_v_t'(MEM_Y_SIZE));
         mem1_port0_addr   <= {cam1_y[MEM_Y_BITS-1:0], cam1_x[MEM_X_BITS-1:0]}   ;
-        mem1_port0_din    <= cam1_pixel[9:0]                                    ;
+        mem1_port0_din    <= cam1_data                                          ;
     end
-
-
 
 
     // ---------------------------------
@@ -781,10 +769,10 @@ module tang_mega_138k_pro_imx219_stereo
     // RGB
     jelly3_axi4s_if
             #(
-                .DATA_BITS      (8*4        ),
+                .DATA_BITS      (10*4       ),
                 .DEBUG          ("false"    )
             )
-        axi4s_rgb
+        axi4s_rgb10
             (
                 .aresetn        (~dvi_reset ),
                 .aclk           (dvi_clk    ),
@@ -809,6 +797,7 @@ module tang_mega_138k_pro_imx219_stereo
     assign axi4l_peri.arvalid = 1'b0;
     assign axi4l_peri.rready  = 1'b0;
     
+    /*
     video_raw_to_rgb
             #(
                 .WIDTH_BITS     (DVI_H_BITS         ),
@@ -823,11 +812,19 @@ module tang_mega_138k_pro_imx219_stereo
                 .param_height   (DVI_HEIGHT         ),
 
                 .s_axi4s        (axi4s_raw.s        ),
-                .m_axi4s        (axi4s_rgb.m        ),
+                .m_axi4s        (axi4s_rgb10.m      ),
                 .s_axi4l        (axi4l_peri         )
             );
+    */
+    assign axi4s_rgb10.tuser             = axi4s_raw.tuser;
+    assign axi4s_rgb10.tlast             = axi4s_raw.tlast;
+    assign axi4s_rgb10.tdata[0*10 +: 10] = axi4s_raw.tdata;
+    assign axi4s_rgb10.tdata[1*10 +: 10] = axi4s_raw.tdata;
+    assign axi4s_rgb10.tdata[2*10 +: 10] = axi4s_raw.tdata;
+    assign axi4s_rgb10.tvalid            = axi4s_raw.tvalid;
+    assign axi4s_raw.tready = axi4s_rgb10.tready;
 
-    /*
+
     jelly3_axi4s_if
             #(
                 .DATA_BITS      (24         ),
@@ -847,7 +844,6 @@ module tang_mega_138k_pro_imx219_stereo
     assign axi4s_rgb.tdata[2*8 +: 8] = axi4s_rgb10.tdata[2*10+2 +: 8];
     assign axi4s_rgb.tvalid          = axi4s_rgb10.tvalid;
     assign axi4s_rgb10.tready = axi4s_rgb.tready;
-    */
 
     // FIFO
     jelly3_axi4s_if
