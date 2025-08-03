@@ -539,6 +539,7 @@ module tang_mega_138k_pro_imx219_stereo
                 .port1_dout     (mem1_port1_dout      )
             );
 
+    /*
     cam_v_t         cam0_y      ;
     cam_h_t         cam0_x      ;
     logic   [9:0]   cam0_data   ;
@@ -559,6 +560,30 @@ module tang_mega_138k_pro_imx219_stereo
         cam0_valid <= axi4s_cam0_rx.tvalid  ;
     end
     assign axi4s_cam0_rx.tready = 1'b1;
+    */
+    
+    logic           cam0_last   ;
+    cam_h_t         cam0_x      ;
+    cam_v_t         cam0_y      ;
+    logic   [9:0]   cam0_data   ;
+    logic           cam0_valid  ;
+    always_ff @(posedge axi4s_cam0_rx.aclk) begin
+        if ( axi4s_cam0_rx.tvalid ) begin
+            cam0_last <= axi4s_cam0_rx.tlast;
+            cam0_x    <= cam0_x + 1'b1;
+            if ( axi4s_cam0_rx.tuser[0] ) begin
+                cam0_x    <= '0;
+                cam0_y    <= '0;
+            end
+            else if ( cam0_last ) begin
+                cam0_x    <= '0;
+                cam0_y    <= cam0_y + 1;
+            end
+        end
+        cam0_data  <= axi4s_cam0_rx.tdata   ;
+        cam0_valid <= axi4s_cam0_rx.tvalid  ;
+    end
+    assign axi4s_cam0_rx.tready = 1'b1;
 
     assign mem0_port0_clk = cam_clk;
     always_ff @(posedge cam_clk) begin
@@ -570,20 +595,22 @@ module tang_mega_138k_pro_imx219_stereo
     end
 
 
+    logic           cam1_last   ;
     cam_v_t         cam1_y      ;
     cam_h_t         cam1_x      ;
     logic   [9:0]   cam1_data   ;
     logic           cam1_valid  ;
     always_ff @(posedge axi4s_cam1_rx.aclk) begin
         if ( axi4s_cam1_rx.tvalid ) begin
-            cam1_x <= cam1_x + 1'b1;
+            cam1_last <= axi4s_cam1_rx.tlast;
+            cam1_x    <= cam1_x + 1'b1;
             if ( axi4s_cam1_rx.tuser[0] ) begin
-                cam1_x <= '0;
-                cam1_y <= '0;
+                cam1_x    <= '0;
+                cam1_y    <= '0;
             end
-            if ( axi4s_cam1_rx.tlast ) begin
-                cam1_x <= '0;
-                cam1_y <= cam1_y + 1;
+            else if ( cam1_last ) begin
+                cam1_x    <= '0;
+                cam1_y    <= cam1_y + 1;
             end
         end
         cam1_data  <= axi4s_cam1_rx.tdata   ;
@@ -797,33 +824,34 @@ module tang_mega_138k_pro_imx219_stereo
     assign axi4l_peri.arvalid = 1'b0;
     assign axi4l_peri.rready  = 1'b0;
     
-    /*
-    video_raw_to_rgb
-            #(
-                .WIDTH_BITS     (DVI_H_BITS         ),
-                .HEIGHT_BITS    (DVI_V_BITS         ),
-                .M_CH_DEPTH     (4                  ),
-                .DEVICE         ("RTL"              )
-            )
-        u_video_raw_to_rgb
-            (
-                .in_update_req  (1'b1               ),
-                .param_width    (DVI_WIDTH          ),
-                .param_height   (DVI_HEIGHT         ),
+    if ( 0 ) begin : rgb
+        video_raw_to_rgb
+                #(
+                    .WIDTH_BITS     (DVI_H_BITS         ),
+                    .HEIGHT_BITS    (DVI_V_BITS         ),
+                    .M_CH_DEPTH     (4                  ),
+                    .DEVICE         ("RTL"              )
+                )
+            u_video_raw_to_rgb
+                (
+                    .in_update_req  (1'b1               ),
+                    .param_width    (DVI_WIDTH          ),
+                    .param_height   (DVI_HEIGHT         ),
 
-                .s_axi4s        (axi4s_raw.s        ),
-                .m_axi4s        (axi4s_rgb10.m      ),
-                .s_axi4l        (axi4l_peri         )
-            );
-    */
-    assign axi4s_rgb10.tuser             = axi4s_raw.tuser;
-    assign axi4s_rgb10.tlast             = axi4s_raw.tlast;
-    assign axi4s_rgb10.tdata[0*10 +: 10] = axi4s_raw.tdata;
-    assign axi4s_rgb10.tdata[1*10 +: 10] = axi4s_raw.tdata;
-    assign axi4s_rgb10.tdata[2*10 +: 10] = axi4s_raw.tdata;
-    assign axi4s_rgb10.tvalid            = axi4s_raw.tvalid;
-    assign axi4s_raw.tready = axi4s_rgb10.tready;
-
+                    .s_axi4s        (axi4s_raw.s        ),
+                    .m_axi4s        (axi4s_rgb10.m      ),
+                    .s_axi4l        (axi4l_peri         )
+                );
+    end
+    else begin : raw
+        assign axi4s_rgb10.tuser             = axi4s_raw.tuser;
+        assign axi4s_rgb10.tlast             = axi4s_raw.tlast;
+        assign axi4s_rgb10.tdata[0*10 +: 10] = axi4s_raw.tdata;
+        assign axi4s_rgb10.tdata[1*10 +: 10] = axi4s_raw.tdata;
+        assign axi4s_rgb10.tdata[2*10 +: 10] = axi4s_raw.tdata;
+        assign axi4s_rgb10.tvalid            = axi4s_raw.tvalid;
+        assign axi4s_raw.tready = axi4s_rgb10.tready;
+    end
 
     jelly3_axi4s_if
             #(
