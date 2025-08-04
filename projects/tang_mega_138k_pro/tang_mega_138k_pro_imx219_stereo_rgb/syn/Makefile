@@ -110,6 +110,11 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_pack.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_unpack.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_video_format_regularizer_core.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_ff.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_fifo.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_fifo_sync.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_sync.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_async.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_fwft_read.sv
 #VLOG_SOURCES += $(TOP_DIR)/rtl/v3/misc/jelly3_gamma_table.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/misc/jelly3_axi4s_debug_monitor.sv
 

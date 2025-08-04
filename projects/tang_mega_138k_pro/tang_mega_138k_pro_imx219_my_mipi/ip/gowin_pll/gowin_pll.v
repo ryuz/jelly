@@ -40,7 +40,7 @@ wire pll_rst;
         .LPFRES(lpfres)
     );
     defparam u_pll_init.CLK_PERIOD = 20;
-    defparam u_pll_init.MULTI_FAC = 16;
+    defparam u_pll_init.MULTI_FAC = 18;
 
 
 endmodule

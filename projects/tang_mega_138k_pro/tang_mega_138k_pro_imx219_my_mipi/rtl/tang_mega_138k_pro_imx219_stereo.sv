@@ -231,7 +231,8 @@ module tang_mega_138k_pro_imx219_stereo
                 .WB_ADR_WIDTH       (2                  ),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH       ),
                 .DIVIDER_WIDTH      (8                  ),
-                .DIVIDER_INIT       (54-1               ),
+//              .DIVIDER_INIT       (54-1               ),  // 115200bps@50MHz
+                .DIVIDER_INIT       (27-1               ),  // 115200bps@25MHz
                 .SIMULATION         (0                  ),
                 .DEBUG              (1                  )
             )
@@ -824,7 +825,7 @@ module tang_mega_138k_pro_imx219_stereo
     assign axi4l_peri.arvalid = 1'b0;
     assign axi4l_peri.rready  = 1'b0;
     
-    if ( 0 ) begin : rgb
+    if ( 1 ) begin : rgb
         video_raw_to_rgb
                 #(
                     .WIDTH_BITS     (DVI_H_BITS         ),

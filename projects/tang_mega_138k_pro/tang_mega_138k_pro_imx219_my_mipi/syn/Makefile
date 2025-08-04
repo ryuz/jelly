@@ -22,6 +22,7 @@ VLOG_SOURCES += $(RTL_DIR)/video_raw_to_rgb.sv
 VLOG_SOURCES += $(RTL_DIR)/axi4s_generate.sv
 VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
 VLOG_SOURCES += $(RTL_DIR)/pll_init.v
+VLOG_SOURCES += $(RTL_DIR)/gamma_table.sv
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll_mod.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi_vga/gowin_pll_dvi_vga.v

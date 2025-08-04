@@ -273,6 +273,59 @@ module video_raw_to_rgb
                 .m_mat          (img_clamp.m        )
             );
 
+    logic   [2:0][7:0]  img_clamp_gamma;
+    for ( genvar i = 0; i < 3; i++ ) begin : gamma_table
+        gamma_table
+            u_gamma_table
+                (
+                    .addr       (img_clamp.data[0][i][9:0]),
+                    .data       (img_clamp_gamma[i])
+                );
+    end
+
+    logic               gamma_row_first;
+    logic               gamma_row_last ;
+    logic               gamma_col_first;
+    logic               gamma_col_last ;
+    logic               gamma_de       ;
+    logic   [2:0][9:0]  gamma_data     ;
+    logic               gamma_user     ;
+    logic               gamma_valid    ;
+    always_ff @(posedge img_src.clk) begin
+        if ( img_src.reset ) begin
+            gamma_row_first <= 'x;
+            gamma_row_last  <= 'x;
+            gamma_col_first <= 'x;
+            gamma_col_last  <= 'x;
+            gamma_de        <= 'x;
+            gamma_data      <= 'x;
+            gamma_user      <= 'x;
+            gamma_valid     <= '0;
+        end
+        else if ( img_src.cke  ) begin
+            gamma_row_first <= img_clamp.row_first;
+            gamma_row_last  <= img_clamp.row_last ;
+            gamma_col_first <= img_clamp.col_first;
+            gamma_col_last  <= img_clamp.col_last ;
+            gamma_de        <= img_clamp.de       ;
+            gamma_data[0]   <= {img_clamp_gamma[0][7:0], 2'b00};
+            gamma_data[1]   <= {img_clamp_gamma[1][7:0], 2'b00};
+            gamma_data[2]   <= {img_clamp_gamma[2][7:0], 2'b00};
+            gamma_user      <= img_clamp.user     ;
+            gamma_valid     <= img_clamp.valid    ;
+        end
+    end
+
+    assign img_sink.row_first   = gamma_row_first;
+    assign img_sink.row_last    = gamma_row_last ;
+    assign img_sink.col_first   = gamma_col_first;
+    assign img_sink.col_last    = gamma_col_last ;
+    assign img_sink.de          = gamma_de       ;
+    assign img_sink.data        = gamma_data     ;
+    assign img_sink.user        = gamma_user     ;
+    assign img_sink.valid       = gamma_valid    ;
+
+/*
     assign img_sink.row_first   = img_clamp.row_first;
     assign img_sink.row_last    = img_clamp.row_last ;
     assign img_sink.col_first   = img_clamp.col_first;
@@ -281,7 +334,7 @@ module video_raw_to_rgb
     assign img_sink.data        = img_clamp.data     ;
     assign img_sink.user        = img_clamp.user     ;
     assign img_sink.valid       = img_clamp.valid    ;
-
+*/
 
 
     /*
