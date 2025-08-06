@@ -264,7 +264,7 @@ module tb_mipi_csi2_raw10();
             axi4s_rx_dphy.tvalid  <= dphy_tx_readyhs        ;
         end
     end
-    assign axi4s_rx_dphy.tlast = ~dphy_tx_validhs  ;
+    assign axi4s_rx_dphy.tlast = (axi4s_rx_dphy.tvalid && ~dphy_tx_readyhs);
 
     // rx_fifo
     jelly3_axi4s_if
