@@ -781,7 +781,7 @@ module tang_mega_138k_pro_imx219_stereo
     // RGB
     jelly3_axi4s_if
             #(
-                .DATA_BITS      (8*4        ),
+                .DATA_BITS      (3*8        ),
                 .DEBUG          ("false"    )
             )
         axi4s_rgb
@@ -813,7 +813,7 @@ module tang_mega_138k_pro_imx219_stereo
             #(
                 .WIDTH_BITS     (DVI_H_BITS         ),
                 .HEIGHT_BITS    (DVI_V_BITS         ),
-                .M_CH_DEPTH     (4                  ),
+                .M_CH_DEPTH     (3                  ),
                 .DEVICE         ("RTL"              )
             )
         u_video_raw_to_rgb

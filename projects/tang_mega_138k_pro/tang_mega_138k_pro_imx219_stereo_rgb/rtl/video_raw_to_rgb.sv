@@ -18,7 +18,7 @@ module video_raw_to_rgb
             parameter   int     HEIGHT_BITS = 12                        ,
             parameter   type    width_t     = logic [WIDTH_BITS-1:0]    ,
             parameter   type    height_t    = logic [HEIGHT_BITS-1:0]   ,
-            parameter   int     M_CH_DEPTH  = 4                         ,
+            parameter   int     M_CH_DEPTH  = 3                         ,
             parameter           DEVICE      = "RTL"                     
         )
         (
@@ -273,9 +273,11 @@ module video_raw_to_rgb
                 .m_mat          (img_clamp.m        )
             );
 
+
     // -------------------------------------
     //  Gamma Correction
     // -------------------------------------
+
     /*
     jelly3_mat_if
             #(
@@ -289,6 +291,37 @@ module video_raw_to_rgb
                 .cke            (img_src.cke        )
             );
 
+    img_gamma_correction
+        u_img_gamma_correction
+            (
+                .s_mat          (img_clamp.s  ),
+                .m_mat          (img_gamma.m  )
+            );
+
+    assign img_sink.row_first       = img_gamma.row_first;
+    assign img_sink.row_last        = img_gamma.row_last ;
+    assign img_sink.col_first       = img_gamma.col_first;
+    assign img_sink.col_last        = img_gamma.col_last ;
+    assign img_sink.de              = img_gamma.de       ;
+    assign img_sink.data            = img_gamma.data     ;
+    assign img_sink.user            = img_gamma.user     ;
+    assign img_sink.valid           = img_gamma.valid    ;
+    */
+
+    assign img_sink.row_first       = img_clamp.row_first;
+    assign img_sink.row_last        = img_clamp.row_last ;
+    assign img_sink.col_first       = img_clamp.col_first;
+    assign img_sink.col_last        = img_clamp.col_last ;
+    assign img_sink.de              = img_clamp.de       ;
+    assign img_sink.data[0][0][7:0] = img_clamp.data[0][0][9:2];
+    assign img_sink.data[0][1][7:0] = img_clamp.data[0][1][9:2];
+    assign img_sink.data[0][2][7:0] = img_clamp.data[0][2][9:2];
+    assign img_sink.user            = img_clamp.user     ;
+    assign img_sink.valid           = img_clamp.valid    ;
+    
+
+
+    /*
     jelly3_gamma_table
             #(
                 .N              (img_sink.CH_DEPTH  ),
@@ -339,16 +372,6 @@ module video_raw_to_rgb
     assign img_sink.valid       = img_gamma.valid    ;
     */
 
-    assign img_sink.row_first       = img_clamp.row_first;
-    assign img_sink.row_last        = img_clamp.row_last ;
-    assign img_sink.col_first       = img_clamp.col_first;
-    assign img_sink.col_last        = img_clamp.col_last ;
-    assign img_sink.de              = img_clamp.de       ;
-    assign img_sink.data[0][0][7:0] = img_clamp.data[0][0][9:2];
-    assign img_sink.data[0][1][7:0] = img_clamp.data[0][1][9:2];
-    assign img_sink.data[0][2][7:0] = img_clamp.data[0][2][9:2];
-    assign img_sink.user            = img_clamp.user     ;
-    assign img_sink.valid           = img_clamp.valid    ;
 
 
     /*
