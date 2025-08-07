@@ -142,7 +142,7 @@ module jelly3_mipi_csi2_rx_2byte_to_4raw10
     assign st1_ready = ~st2_pahse;
 
     assign m_axi4s.tuser  = st2_user                ;
-    assign m_axi4s.tlast  = st2_last & st2_pahse    ;
+    assign m_axi4s.tlast  = st2_last & ~st2_pahse   ;
     assign m_axi4s.tdata  = st2_raw10s[0]           ;
     assign m_axi4s.tvalid = st2_valid               ;
     assign st2_ready = m_axi4s.tready               ;
