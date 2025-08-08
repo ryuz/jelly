@@ -1,7 +1,6 @@
-
 DEVICE_NAME = GW5AST-LV138FPG676AES
 
-TOP_MODULE = tang_mega_138k_pro_imx219_stereo
+TOP_MODULE = tang_mega_138k_pro_imx219_stereo_jelly
 OUTPUT_BASE_NAME = $(TOP_MODULE)
 
 FS_FILE = impl/pnr/$(OUTPUT_BASE_NAME).fs
@@ -16,15 +15,14 @@ JELLY_TOP_DIR = $(TOP_DIR)
 
 CONSTRAIN_DIR = ../constrain
 
-VLOG_SOURCES  = $(RTL_DIR)/tang_mega_138k_pro_imx219_stereo.sv
+VLOG_SOURCES  = $(RTL_DIR)/tang_mega_138k_pro_imx219_stereo_jelly.sv
 VLOG_SOURCES += $(RTL_DIR)/jfive_simple_controller.sv
 VLOG_SOURCES += $(RTL_DIR)/imx219_mipi_rx.sv
 VLOG_SOURCES += $(RTL_DIR)/video_raw_to_rgb.sv
-VLOG_SOURCES += $(RTL_DIR)/img_gamma_correction.sv
-VLOG_SOURCES += $(RTL_DIR)/gamma_table.sv
 VLOG_SOURCES += $(RTL_DIR)/axi4s_generate.sv
 VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
 VLOG_SOURCES += $(RTL_DIR)/pll_init.v
+VLOG_SOURCES += $(RTL_DIR)/gamma_table.sv
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll_mod.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi_vga/gowin_pll_dvi_vga.v
@@ -32,8 +30,8 @@ VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi_vga/gowin_pll_dvi_vga_mod.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi_720p/gowin_pll_dvi_720p.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi_720p/gowin_pll_dvi_720p_mod.v
 VLOG_SOURCES += $(IP_DIR)/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v
-VLOG_SOURCES += $(IP_DIR)/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v
-VLOG_SOURCES += $(IP_DIR)/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v
+#VLOG_SOURCES += $(IP_DIR)/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v
+#VLOG_SOURCES += $(IP_DIR)/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_jfive_simple_core.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_register_file.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/jfive/jelly2_register_file_ram.sv
@@ -112,13 +110,22 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_pack.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_unpack.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_video_format_regularizer_core.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_ff.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/misc/jelly3_axi4s_debug_monitor.sv
+
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_reset.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_fifo.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_fifo_async.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_fifo_sync.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_mipi_csi2_rx_packet_2lane.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_mipi_ecc24.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_mipi_csi2_rx_byte_to_raw10.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_mipi_csi2_rx_2byte_to_4raw10.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_sync.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_async.sv
 VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_fwft_read.sv
-#VLOG_SOURCES += $(TOP_DIR)/rtl/v3/misc/jelly3_gamma_table.sv
-VLOG_SOURCES += $(TOP_DIR)/rtl/v3/misc/jelly3_axi4s_debug_monitor.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_width_convert.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/primitive/jelly3_cdc_gray.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/primitive/jelly3_cdc_array_single.sv
 
 #VLOG_SOURCES += $(JELLY_RTL_SOURCES)
 

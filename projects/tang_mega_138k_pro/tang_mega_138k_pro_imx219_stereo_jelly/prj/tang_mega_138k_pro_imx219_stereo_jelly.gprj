@@ -11,16 +11,16 @@
         <File path="../ip/gowin_pll_dvi_720p/gowin_pll_dvi_720p_mod.v" type="file.verilog" enable="1" />
         <File path="../ip/gowin_pll_dvi_vga/gowin_pll_dvi_vga.v" type="file.verilog" enable="1" />
         <File path="../ip/gowin_pll_dvi_vga/gowin_pll_dvi_vga_mod.v" type="file.verilog" enable="1" />
-        <File path="../ip/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v" type="file.verilog" enable="1" />
-        <File path="../ip/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v" type="file.verilog" enable="1" />
-        <File path="../rtl/tang_mega_138k_pro_imx219_stereo.sv" type="file.verilog" enable="1" />
-        <File path="../rtl/imx219_mipi_rx.sv" type="file.verilog" enable="1" />
+        <File path="../rtl/pll_init.v" type="file.verilog" enable="1" />
+        <File path="../rtl/tang_mega_138k_pro_imx219_stereo_jelly.sv" type="file.verilog" enable="1" />
         <File path="../rtl/axi4s_generate.sv" type="file.verilog" enable="1" />
         <File path="../rtl/clkgen_clkdiv.sv" type="file.verilog" enable="1" />
         <File path="../rtl/dvi_tx.sv" type="file.verilog" enable="1" />
+        <File path="../rtl/gamma_table.sv" type="file.verilog" enable="1" />
+        <File path="../rtl/imx219_mipi_rx.sv" type="file.verilog" enable="1" />
         <File path="../rtl/jfive_simple_controller.sv" type="file.verilog" enable="1" />
-        <File path="../rtl/video_raw_to_rgb.sv" type="file.verilog" enable="1" />
         <File path="../rtl/pll_init.v" type="file.verilog" enable="1" />
+        <File path="../rtl/video_raw_to_rgb.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v1/library/jelly_param_update_master.v" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v1/library/jelly_param_update_slave.v" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v1/library/jelly_pipeline_control.v" type="file.verilog" enable="1" />
@@ -88,25 +88,31 @@
         <File path="../../../../rtl/v3/image/jelly3_mat_if.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/image/jelly3_mat_to_axi4s.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_data_delay.sv" type="file.verilog" enable="1" />
-        <File path="../../../../rtl/v3/library/jelly3_fifo.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_fifo_async.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_fifo_fwft_read.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_fifo_sync.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_histry_buffer_mem.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_histry_buffer_mem_sdp.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_ram_simple_dualport.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v3/library/jelly3_reset.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_skid_buffer.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_stream_delay.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_stream_ff.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_stream_fifo.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_stream_fifo_async.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_stream_fifo_sync.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v3/library/jelly3_stream_width_convert.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/misc/jelly3_axi4s_debug_monitor.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v3/primitive/jelly3_cdc_array_single.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v3/primitive/jelly3_cdc_gray.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/primitive/jelly3_shift_register.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v3/video/jelly3_mipi_csi2_rx_2byte_to_raw10.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v3/video/jelly3_mipi_csi2_rx_packet_2lane.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v3/video/jelly3_mipi_ecc24.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/video/jelly3_video_format_regularizer_core.sv" type="file.verilog" enable="1" />
         <File path="../syn/jfive_tcm/impl/gwsynthesis/jfive_tcm.vg" type="file.netlist" enable="1" />
-        <File path="../constrain/tang_mega_138k_pro_imx219_stereo.cst" type="file.cst" enable="1" />
-        <File path="../constrain/tang_mega_138k_pro_imx219_stereo.sdc" type="file.sdc" enable="1" />
-        <File path="src/tang_mega_138k_pro_imx219_stereo.rao" type="file.gao" enable="1" />
+        <File path="../constrain/tang_mega_138k_pro_imx219_stereo_jelly.cst" type="file.cst" enable="1" />
+        <File path="../constrain/tang_mega_138k_pro_imx219_stereo_jelly.sdc" type="file.sdc" enable="1" />
+        <File path="src/tang_mega_138k_pro_imx219_stereo_jelly.rao" type="file.gao" enable="1" />
     </FileList>
 </Project>
