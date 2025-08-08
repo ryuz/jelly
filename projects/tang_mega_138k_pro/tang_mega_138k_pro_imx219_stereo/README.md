@@ -1,4 +1,4 @@
-# Tang Mega 138K Pro の IMX219 ステレオカメラお試し
+# Tang Mega 138K Pro の IMX219 ステレオカメラサンプル
 
 
 ## 概要
