@@ -575,7 +575,7 @@ module tang_mega_138k_pro_imx219_stereo
     always_ff @(posedge axi4s_cam0_rx.aclk) begin
         mem0_port0_en     <= cam0_valid                                         ;
         mem0_port0_regcke <= 1'b1                                               ;
-        mem0_port0_we     <= (cam0_x < cam_h_t'(MEM_X_SIZE)) && (cam0_y < cam_v_t'(MEM_Y_SIZE));
+        mem0_port0_we     <= (cam0_x < cam_h_t'(MEM_X_SIZE)/4) && (cam0_y < cam_v_t'(MEM_Y_SIZE));
         mem0_port0_addr   <= {cam0_y[MEM_Y_BITS-1:0], cam0_x[MEM_X_BITS-2-1:0]} ;
         mem0_port0_din    <= cam0_data                                          ;
     end
@@ -608,7 +608,7 @@ module tang_mega_138k_pro_imx219_stereo
     always_ff @(posedge axi4s_cam1_rx.aclk) begin
         mem1_port0_en     <= cam1_valid                                         ;
         mem1_port0_regcke <= 1'b1                                               ;
-        mem1_port0_we     <= (cam1_x < cam_h_t'(MEM_X_SIZE)) && (cam1_y < cam_v_t'(MEM_Y_SIZE));
+        mem1_port0_we     <= (cam1_x < cam_h_t'(MEM_X_SIZE)/4) && (cam1_y < cam_v_t'(MEM_Y_SIZE));
         mem1_port0_addr   <= {cam1_y[MEM_Y_BITS-1:0], cam1_x[MEM_X_BITS-2-1:0]} ;
         mem1_port0_din    <= cam1_data                                          ;
     end

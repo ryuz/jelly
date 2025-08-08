@@ -3,9 +3,7 @@ use std::{env, error::Error, fs::File, io::Write, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Rust以外のソースコード
-    let src_files = vec![
-        ["src/crt0.S", "crt0"],
-    ];
+    let src_files = vec![["src/crt0.S", "crt0"]];
 
     for name in src_files.into_iter() {
         Build::new()

@@ -3,10 +3,10 @@
 use core::fmt::{self, Write};
 
 const UART_BASE_ADDR: usize = 0x10000000; // UART
-const REG_UART_TX      :usize = UART_BASE_ADDR + 0x0 * 4;
-const REG_UART_RX      :usize = UART_BASE_ADDR + 0x0 * 4;
-const REG_UART_STATUS  :usize = UART_BASE_ADDR + 0x1 * 4;
-const REG_UART_DIVIDER :usize = UART_BASE_ADDR + 0x2 * 4;
+const REG_UART_TX: usize = UART_BASE_ADDR + 0x0 * 4;
+const REG_UART_RX: usize = UART_BASE_ADDR + 0x0 * 4;
+const REG_UART_STATUS: usize = UART_BASE_ADDR + 0x1 * 4;
+const REG_UART_DIVIDER: usize = UART_BASE_ADDR + 0x2 * 4;
 
 // レジスタ書き込み
 fn wrtie_reg(adr: usize, data: u32) {
@@ -38,7 +38,6 @@ pub fn uart_getc() -> u8 {
     while (read_reg(REG_UART_STATUS) & 0x1) == 0 {}
     read_reg(REG_UART_RX) as u8
 }
-
 
 #[macro_export]
 macro_rules! print {

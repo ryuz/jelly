@@ -7,7 +7,6 @@ use core::u32;
 use jelly_mem_access::*;
 use jelly_pac::i2c::*;
 
-
 // レジスタ定義
 const IMX219_MODEL_ID: u16 = 0x0000;
 const IMX219_MODEL_ID_0: u16 = 0x0000;
@@ -159,14 +158,12 @@ const IMX219_RESERVE_10: u16 = 0x031E;
 const IMX219_RESERVE_11: u16 = 0x031F;
 const IMX219_FLASH_STATUS: u16 = 0x0321;
 
-
 type I2cAccessor = PhysAccessor<u32, 0x10000200, 0x100>;
 
-const IMX219_DEVADR: u8 =     0x10;    // 7bit address
-
+const IMX219_DEVADR: u8 = 0x10; // 7bit address
 
 pub struct Imx219Control {
-    i2c: JellyI2c::<I2cAccessor>,
+    i2c: JellyI2c<I2cAccessor>,
 
     running: bool,
     binning_h: bool,
@@ -187,7 +184,6 @@ pub struct Imx219Control {
     ana_gain_global: u8,
     dig_gain_global: u16,
 }
-
 
 impl Imx219Control {
     pub fn new() -> Self {
@@ -284,14 +280,14 @@ impl Imx219Control {
     }
 
     pub fn start(&mut self) -> Result<(), &'static str> {
-//      self.check_open()?;
+        //      self.check_open()?;
         self.i2c_write_u8(IMX219_MODE_SEL, 0x01)?; // mode_select [4:0] 0: SW standby, 1: Streaming
         self.running = true;
         Ok(())
     }
 
     pub fn stop(&mut self) -> Result<(), &'static str> {
-//      self.check_open()?;
+        //      self.check_open()?;
         if self.running {
             self.i2c_write_u8(IMX219_MODE_SEL, 0x00)?; // mode_select [4:0] 0: SW standby, 1: Streaming
             self.running = false;
@@ -309,7 +305,7 @@ impl Imx219Control {
     }
 
     pub fn set_gain(&mut self, db: f64) -> Result<(), &'static str> {
-//      self.check_open()?;
+        //      self.check_open()?;
 
         let db = if db > 0.0 { db } else { 0.0 };
         let db = if db < 20.57 { db } else { 20.57 };
@@ -318,14 +314,14 @@ impl Imx219Control {
         self.i2c_write_u8(IMX219_ANA_GAIN_GLOBAL_A, self.ana_gain_global)?;
         Ok(())
     }
-    
-    pub fn get_gain(&mut self) -> Result<f64,  &'static str> {
+
+    pub fn get_gain(&mut self) -> Result<f64, &'static str> {
         let gain = 256.0 / (256.0 - self.ana_gain_global as f64);
         Ok(20.0 * libm::log10(gain))
     }
 
     pub fn set_digital_gain(&mut self, db: f64) -> Result<(), &'static str> {
-//      self.check_open()?;
+        //      self.check_open()?;
 
         let db = if db > 0.0 { db } else { 0.0 };
         let db = if db < 24.0 { db } else { 24.0 };
@@ -341,7 +337,7 @@ impl Imx219Control {
     }
 
     pub fn set_frame_rate(&mut self, fps: f64) -> Result<(), &'static str> {
-//      self.check_open()?;
+        //      self.check_open()?;
 
         let new_frm_length =
             ((2.0 * self.get_pixel_clock()?) / (self.line_length as f64 * fps)) as i32;
@@ -366,7 +362,7 @@ impl Imx219Control {
     }
 
     pub fn set_exposure_time(&mut self, exposure_time: f64) -> Result<(), &'static str> {
-//      self.check_open()?;
+        //      self.check_open()?;
 
         let new_coarse_integration_time =
             ((2.0 * self.get_pixel_clock()?) * exposure_time / self.line_length as f64) as u16;
@@ -424,7 +420,7 @@ impl Imx219Control {
         binning_h: bool,
         binning_v: bool,
     ) -> Result<(), &'static str> {
-//        self.check_open()?;
+        //        self.check_open()?;
 
         self.binning_h = binning_h;
         self.binning_v = binning_v;
@@ -496,7 +492,7 @@ impl Imx219Control {
     }
 
     pub fn set_flip(&mut self, flip_h: bool, flip_v: bool) -> Result<(), &'static str> {
-//      self.check_open()?;
+        //      self.check_open()?;
 
         self.flip_h = flip_h;
         self.flip_v = flip_v;
@@ -520,7 +516,7 @@ impl Imx219Control {
     }
 
     pub fn setup(&mut self) -> Result<(), &'static str> {
-//      self.check_open()?;
+        //      self.check_open()?;
 
         self.i2c_write_u8(IMX219_MODE_SEL, 0x00)?; // mode_select [4:0]  (0: SW standby, 1: Streaming)
 
@@ -585,7 +581,6 @@ impl Imx219Control {
         Ok(())
     }
 }
-
 
 fn cpu_wait(cnt: u32) {
     let mut v = 0;
