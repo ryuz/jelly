@@ -10,6 +10,8 @@ module imx219_mipi_rx
         )
         (
             input   var logic           in_reset    ,
+            output  var logic           out_reset   ,
+            output  var logic           out_clk     ,
 
             inout   tri logic           mipi_clk_p  ,   // 912MHz
             inout   tri logic           mipi_clk_n  ,
@@ -18,19 +20,7 @@ module imx219_mipi_rx
 
             jelly3_axi4s_if.m           m_axi4s     
         );
-
-    // ---------------------------------
-    //  parameters
-    // ---------------------------------
-/*
-    localparam  int     CAM_WIDTH  = 1280                   ;
-    localparam  int     CAM_HEIGHT = 720                    ;
-    localparam  int     CAM_H_BITS = $clog2(CAM_WIDTH )     ;
-    localparam  int     CAM_V_BITS = $clog2(CAM_HEIGHT)     ;
-    localparam  type    cam_h_t    = logic [CAM_H_BITS-1:0] ;
-    localparam  type    cam_v_t    = logic [CAM_V_BITS-1:0] ;
-*/
-
+    
     // ---------------------------------
     //  MIPI CSI2 RX
     // ---------------------------------
@@ -206,7 +196,10 @@ module imx219_mipi_rx
                 .out_reset          (dphy_reset     )
             );
     
+    assign out_reset = dphy_reset;
+    assign out_clk   = dphy_clk;
     
+
 
     // ----------------------------------------
     //  DPHY Recv
@@ -290,6 +283,7 @@ module imx219_mipi_rx
     //  to RAW10
     // ----------------------------------------
 
+    /*
     // rx_fifo
     jelly3_axi4s_if
             #(
@@ -302,12 +296,13 @@ module imx219_mipi_rx
                 .aclk           (dphy_clk           ),
                 .aclken         (1'b1               )
             );
-    
+    */
+
     jelly3_mipi_csi2_rx_2byte_to_4raw10
         u_mipi_csi2_rx_2byte_to_4raw10
             (
                 .s_axi4s        (axi4s_rx_packet.s  ),
-                .m_axi4s        (axi4s_rx_raw10.m   )
+                .m_axi4s        (m_axi4s            )
             );
 
 
@@ -334,7 +329,7 @@ module imx219_mipi_rx
                 .m_axi4s        (m_axi4s            )
             );
     */
-
+/*
     jelly3_axi4s_fifo
             #(
                 .ASYNC          (1                  ),
@@ -352,7 +347,7 @@ module imx219_mipi_rx
                 .s_free_size    (                   ),
                 .m_data_size    (                   )
             );
-    
+    */
 
 endmodule
 

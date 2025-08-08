@@ -70,14 +70,14 @@ module tang_mega_138k_pro_imx219_stereo
 
     logic   sys_lock    ;
     logic   sys_clk     ;
-    logic   cam_clk     ;
+//  logic   cam_clk     ;
     Gowin_PLL
         u_Gowin_PLL
             (
                 .init_clk           (in_clk50               ),
                 .clkin              (in_clk50               ),
                 .clkout0            (sys_clk                ),
-                .clkout1            (cam_clk                ),
+                .clkout1            (/*cam_clk*/            ),
                 .lock               (sys_lock               )
             );
 
@@ -94,7 +94,7 @@ module tang_mega_138k_pro_imx219_stereo
                 .in_reset           (~in_reset & sys_lock   ),
                 .out_reset          (sys_reset              )
             );
-
+    /*
     logic   cam_reset;
     jelly_reset
             #(
@@ -108,7 +108,7 @@ module tang_mega_138k_pro_imx219_stereo
                 .in_reset           (~in_reset & sys_lock   ),
                 .out_reset          (cam_reset              )
             );
-
+    */
 
     logic   dvi_clk     ;
     logic   dvi_clk_x5  ;
@@ -383,6 +383,8 @@ module tang_mega_138k_pro_imx219_stereo
     //  MIPI CSI2 RX
     // ---------------------------------
 
+    logic   cam0_reset  ;
+    logic   cam0_clk    ;
     jelly3_axi4s_if
             #(
                 .USER_BITS      (1              ),
@@ -390,8 +392,8 @@ module tang_mega_138k_pro_imx219_stereo
             )
         axi4s_cam0_rx
             (
-                .aresetn        (~cam_reset     ),
-                .aclk           (cam_clk        ),
+                .aresetn        (~cam0_reset    ),
+                .aclk           (cam0_clk       ),
                 .aclken         (1'b1           )
             );
 
@@ -399,6 +401,8 @@ module tang_mega_138k_pro_imx219_stereo
         u_imx219_mipi_rx_cam0
             (
                 .in_reset       (sys_reset      ),
+                .out_reset      (cam0_reset     ),
+                .out_clk        (cam0_clk       ),
 
                 .mipi_clk_p     (mipi0_clk_p    ),
                 .mipi_clk_n     (mipi0_clk_n    ),
@@ -409,6 +413,8 @@ module tang_mega_138k_pro_imx219_stereo
             );
 
 
+    logic   cam1_reset  ;
+    logic   cam1_clk    ;
     jelly3_axi4s_if
             #(
                 .USER_BITS      (1              ),
@@ -416,8 +422,8 @@ module tang_mega_138k_pro_imx219_stereo
             )
         axi4s_cam1_rx
             (
-                .aresetn        (~cam_reset     ),
-                .aclk           (cam_clk        ),
+                .aresetn        (~cam1_reset    ),
+                .aclk           (cam1_clk       ),
                 .aclken         (1'b1           )
             );
 
@@ -425,6 +431,8 @@ module tang_mega_138k_pro_imx219_stereo
         u_imx219_mipi_rx_cam1
             (
                 .in_reset       (sys_reset      ),
+                .out_reset      (cam1_reset     ),
+                .out_clk        (cam1_clk       ),
 
                 .mipi_clk_p     (mipi1_clk_p    ),
                 .mipi_clk_n     (mipi1_clk_n    ),
@@ -563,8 +571,8 @@ module tang_mega_138k_pro_imx219_stereo
     end
     assign axi4s_cam0_rx.tready = 1'b1;
 
-    assign mem0_port0_clk = cam_clk;
-    always_ff @(posedge cam_clk) begin
+    assign mem0_port0_clk = axi4s_cam0_rx.aclk;
+    always_ff @(posedge axi4s_cam0_rx.aclk) begin
         mem0_port0_en     <= cam0_valid                                         ;
         mem0_port0_regcke <= 1'b1                                               ;
         mem0_port0_we     <= (cam0_x < cam_h_t'(MEM_X_SIZE)) && (cam0_y < cam_v_t'(MEM_Y_SIZE));
@@ -596,8 +604,8 @@ module tang_mega_138k_pro_imx219_stereo
     end
     assign axi4s_cam1_rx.tready = 1'b1;
 
-    assign mem1_port0_clk = cam_clk;
-    always_ff @(posedge cam_clk) begin
+    assign mem1_port0_clk = axi4s_cam1_rx.aclk;
+    always_ff @(posedge axi4s_cam1_rx.aclk) begin
         mem1_port0_en     <= cam1_valid                                         ;
         mem1_port0_regcke <= 1'b1                                               ;
         mem1_port0_we     <= (cam1_x < cam_h_t'(MEM_X_SIZE)) && (cam1_y < cam_v_t'(MEM_Y_SIZE));
