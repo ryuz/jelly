@@ -914,7 +914,6 @@ module tang_mega_138k_pro_imx219_stereo
                 
                 .s_axi4s_tuser  (axi4s_dvi_fifo.tuser ),
                 .s_axi4s_tlast  (axi4s_dvi_fifo.tlast ),
-//              .s_axi4s_tdata  ({3{axi4s_dvi_fifo.tdata[9:2]}}),
                 .s_axi4s_tdata  (axi4s_dvi_fifo.tdata),
                 .s_axi4s_tvalid (axi4s_dvi_fifo.tvalid),
                 .s_axi4s_tready (axi4s_dvi_fifo.tready),
