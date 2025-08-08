@@ -132,8 +132,8 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v3/primitive/jelly3_cdc_array_single.sv
 VG_SOURCES    = ./jfive_tcm/impl/gwsynthesis/jfive_tcm.vg
 VLOG_SOURCES += $(VG_SOURCES)
 
-SDC_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_imx219_stereo.sdc
-CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_imx219_stereo.cst
+SDC_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_imx219_stereo_jelly.sdc
+CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_imx219_stereo_jelly.cst
 
 export USE_CPU_AS_GPIO = 1
 

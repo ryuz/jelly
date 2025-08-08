@@ -2,7 +2,7 @@
 //  Jelly  -- the soft-core processor system
 //   math
 //
-//                                 Copyright (C) 2008-2018 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2025 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ module video_raw_to_rgb
             parameter   int     HEIGHT_BITS = 12                        ,
             parameter   type    width_t     = logic [WIDTH_BITS-1:0]    ,
             parameter   type    height_t    = logic [HEIGHT_BITS-1:0]   ,
-            parameter   int     M_CH_DEPTH  = 4                         ,
+            parameter   int     M_CH_DEPTH  = 3                         ,
             parameter           DEVICE      = "RTL"                     
         )
         (
@@ -142,17 +142,6 @@ module video_raw_to_rgb
                 .s_mat          (img_sink.s         )
         );
     
-    /*
-    assign img_sink.row_first   = img_src.row_first;
-    assign img_sink.row_last    = img_src.row_last ;
-    assign img_sink.col_first   = img_src.col_first;
-    assign img_sink.col_last    = img_src.col_last ;
-    assign img_sink.de          = img_src.de       ;
-    assign img_sink.data        = img_src.data     ;
-    assign img_sink.user        = img_src.user     ;
-    assign img_sink.valid       = img_src.valid    ;
-    */
-
 
     // -------------------------------------
     //  Black Level Correction
@@ -220,11 +209,11 @@ module video_raw_to_rgb
     
     jelly3_img_demosaic_acpi
             #(
-                .CH_BITS            ($bits(ch_t)),
-                .ch_t               (ch_t       ),
-                .MAX_COLS           (2048       ),
-                .RAM_TYPE           ("block"    ),
-                .INIT_PARAM_PHASE   (2'b00      )
+                .CH_BITS            ($bits(ch_t)            ),
+                .ch_t               (ch_t                   ),
+                .MAX_COLS           (2048                   ),
+                .RAM_TYPE           ("block"                ),
+                .INIT_PARAM_PHASE   (2'b00                  )
             )
         u_img_demosaic_acpi
             (
@@ -234,23 +223,13 @@ module video_raw_to_rgb
                 .s_axi4l            (axi4l_dec[DEC_DEMOS].s )
             );
     
-//   assign img_sink.row_first   = img_demos.row_first;
-//   assign img_sink.row_last    = img_demos.row_last ;
-//   assign img_sink.col_first   = img_demos.col_first;
-//   assign img_sink.col_last    = img_demos.col_last ;
-//   assign img_sink.de          = img_demos.de       ;
-//   assign img_sink.data        = img_demos.data     ;
-//   assign img_sink.user        = img_demos.user     ;
-//   assign img_sink.valid       = img_demos.valid    ;
-
-
     // -------------------------------------
     //  clamp
     // -------------------------------------
 
     jelly3_mat_if
             #(
-                .CH_BITS        (img_sink.CH_BITS   ),
+                .CH_BITS        (img_src.CH_BITS    ),
                 .CH_DEPTH       (img_sink.CH_DEPTH  )
             )
          img_clamp
@@ -267,168 +246,80 @@ module video_raw_to_rgb
         u_mat_clamp_core
             (
                 .enable         (1'b1               ),
-                .min_value      (11'd0              ),
-                .max_value      (11'd1023           ),
+                .min_value      (ch_t'(0)           ),
+                .max_value      (ch_t'(1023)        ),
                 .s_mat          (img_demos.s        ),
                 .m_mat          (img_clamp.m        )
             );
 
-    logic   [2:0][7:0]  img_clamp_gamma;
-    for ( genvar i = 0; i < 3; i++ ) begin : gamma_table
-        gamma_table
-            u_gamma_table
-                (
-                    .addr       (img_clamp.data[0][i][9:0]),
-                    .data       (img_clamp_gamma[i])
-                );
-    end
 
-    logic               gamma_row_first;
-    logic               gamma_row_last ;
-    logic               gamma_col_first;
-    logic               gamma_col_last ;
-    logic               gamma_de       ;
-    logic   [2:0][9:0]  gamma_data     ;
-    logic               gamma_user     ;
-    logic               gamma_valid    ;
-    always_ff @(posedge img_src.clk) begin
-        if ( img_src.reset ) begin
-            gamma_row_first <= 'x;
-            gamma_row_last  <= 'x;
-            gamma_col_first <= 'x;
-            gamma_col_last  <= 'x;
-            gamma_de        <= 'x;
-            gamma_data      <= 'x;
-            gamma_user      <= 'x;
-            gamma_valid     <= '0;
+    // -------------------------------------
+    //  gamma correction
+    // -------------------------------------
+
+    if ( 1 ) begin : gamma
+        logic   [2:0][7:0]  img_clamp_gamma;
+        for ( genvar i = 0; i < 3; i++ ) begin : gamma_table
+            gamma_table
+                u_gamma_table
+                    (
+                        .addr       (img_clamp.data[0][i][9:0]),
+                        .data       (img_clamp_gamma[i])
+                    );
         end
-        else if ( img_src.cke  ) begin
-            gamma_row_first <= img_clamp.row_first;
-            gamma_row_last  <= img_clamp.row_last ;
-            gamma_col_first <= img_clamp.col_first;
-            gamma_col_last  <= img_clamp.col_last ;
-            gamma_de        <= img_clamp.de       ;
-            gamma_data[0]   <= {img_clamp_gamma[0][7:0], 2'b00};
-            gamma_data[1]   <= {img_clamp_gamma[1][7:0], 2'b00};
-            gamma_data[2]   <= {img_clamp_gamma[2][7:0], 2'b00};
-            gamma_user      <= img_clamp.user     ;
-            gamma_valid     <= img_clamp.valid    ;
+
+        logic               gamma_row_first;
+        logic               gamma_row_last ;
+        logic               gamma_col_first;
+        logic               gamma_col_last ;
+        logic               gamma_de       ;
+        logic   [2:0][7:0]  gamma_data     ;
+        logic               gamma_user     ;
+        logic               gamma_valid    ;
+        always_ff @(posedge img_src.clk) begin
+            if ( img_src.reset ) begin
+                gamma_row_first <= 'x;
+                gamma_row_last  <= 'x;
+                gamma_col_first <= 'x;
+                gamma_col_last  <= 'x;
+                gamma_de        <= 'x;
+                gamma_data      <= 'x;
+                gamma_user      <= 'x;
+                gamma_valid     <= '0;
+            end
+            else if ( img_src.cke  ) begin
+                gamma_row_first <= img_clamp.row_first  ;
+                gamma_row_last  <= img_clamp.row_last   ;
+                gamma_col_first <= img_clamp.col_first  ;
+                gamma_col_last  <= img_clamp.col_last   ;
+                gamma_de        <= img_clamp.de         ;
+                gamma_data      <= img_clamp_gamma      ;
+                gamma_user      <= img_clamp.user       ;
+                gamma_valid     <= img_clamp.valid      ;
+            end
         end
+
+        assign img_sink.row_first   = gamma_row_first;
+        assign img_sink.row_last    = gamma_row_last ;
+        assign img_sink.col_first   = gamma_col_first;
+        assign img_sink.col_last    = gamma_col_last ;
+        assign img_sink.de          = gamma_de       ;
+        assign img_sink.data        = gamma_data     ;
+        assign img_sink.user        = gamma_user     ;
+        assign img_sink.valid       = gamma_valid    ;
     end
-
-    assign img_sink.row_first   = gamma_row_first;
-    assign img_sink.row_last    = gamma_row_last ;
-    assign img_sink.col_first   = gamma_col_first;
-    assign img_sink.col_last    = gamma_col_last ;
-    assign img_sink.de          = gamma_de       ;
-    assign img_sink.data        = gamma_data     ;
-    assign img_sink.user        = gamma_user     ;
-    assign img_sink.valid       = gamma_valid    ;
-
-/*
-    assign img_sink.row_first   = img_clamp.row_first;
-    assign img_sink.row_last    = img_clamp.row_last ;
-    assign img_sink.col_first   = img_clamp.col_first;
-    assign img_sink.col_last    = img_clamp.col_last ;
-    assign img_sink.de          = img_clamp.de       ;
-    assign img_sink.data        = img_clamp.data     ;
-    assign img_sink.user        = img_clamp.user     ;
-    assign img_sink.valid       = img_clamp.valid    ;
-*/
-
-
-    /*
-    wire    [WB_DAT_WIDTH-1:0]          wb_colmat_dat_o;
-    wire                                wb_colmat_stb_i;
-    wire                                wb_colmat_ack_o;
-    
-    jelly2_img_color_matrix
-            #(
-                .USER_WIDTH             (TUSER_WIDTH+10),
-                .DATA_WIDTH             (DATA_WIDTH),
-                .INTERNAL_WIDTH         (DATA_WIDTH+2),
-                
-                .COEFF_INT_WIDTH        (9),
-                .COEFF_FRAC_WIDTH       (16),
-                .COEFF3_INT_WIDTH       (9),
-                .COEFF3_FRAC_WIDTH      (16),
-                .STATIC_COEFF           (1),
-                .DEVICE                 (DEVICE),
-                
-                .WB_ADR_WIDTH           (8),
-                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
-                
-                .INIT_PARAM_MATRIX00    (25'h010000),
-                .INIT_PARAM_MATRIX01    (25'h000000),
-                .INIT_PARAM_MATRIX02    (25'h000000),
-                .INIT_PARAM_MATRIX03    (25'h000000),
-                .INIT_PARAM_MATRIX10    (25'h000000),
-                .INIT_PARAM_MATRIX11    (25'h010000),
-                .INIT_PARAM_MATRIX12    (25'h000000),
-                .INIT_PARAM_MATRIX13    (25'h000000),
-                .INIT_PARAM_MATRIX20    (25'h000000),
-                .INIT_PARAM_MATRIX21    (25'h000000),
-                .INIT_PARAM_MATRIX22    (25'h010000),
-                .INIT_PARAM_MATRIX23    (25'h000000),
-                .INIT_PARAM_CLIP_MIN0   ({DATA_WIDTH{1'b0}}),
-                .INIT_PARAM_CLIP_MAX0   ({DATA_WIDTH{1'b1}}),
-                .INIT_PARAM_CLIP_MIN1   ({DATA_WIDTH{1'b0}}),
-                .INIT_PARAM_CLIP_MAX1   ({DATA_WIDTH{1'b1}}),
-                .INIT_PARAM_CLIP_MIN2   ({DATA_WIDTH{1'b0}}),
-                .INIT_PARAM_CLIP_MAX2   ({DATA_WIDTH{1'b1}})
-            )
-        i_img_color_matrix
-            (
-                .reset                  (reset),
-                .clk                    (clk),
-                .cke                    (cke),
-                
-                .in_update_req          (in_update_req),
-                
-                .s_wb_rst_i             (s_wb_rst_i),
-                .s_wb_clk_i             (s_wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i[7:0]),
-                .s_wb_dat_i             (s_wb_dat_i),
-                .s_wb_dat_o             (wb_colmat_dat_o),
-                .s_wb_we_i              (s_wb_we_i),
-                .s_wb_sel_i             (s_wb_sel_i),
-                .s_wb_stb_i             (wb_colmat_stb_i),
-                .s_wb_ack_o             (wb_colmat_ack_o),
-                
-                .s_img_row_first        (img_demos_row_first),
-                .s_img_row_last         (img_demos_row_last),
-                .s_img_col_first        (img_demos_col_first),
-                .s_img_col_last         (img_demos_col_last),
-                .s_img_de               (img_demos_de),
-                .s_img_user             ({img_demos_user, img_demos_raw}),
-                .s_img_color0           (img_demos_r),
-                .s_img_color1           (img_demos_g),
-                .s_img_color2           (img_demos_b),
-                .s_img_valid            (img_demos_valid),
-                
-                .m_img_row_first        (img_sink_row_first),
-                .m_img_row_last         (img_sink_row_last),
-                .m_img_col_first        (img_sink_col_first),
-                .m_img_col_last         (img_sink_col_last),
-                .m_img_de               (img_sink_de),
-                .m_img_user             ({img_sink_user, img_sink_data[DATA_WIDTH*3 +: DATA_WIDTH]}),
-                .m_img_color0           (img_sink_data[DATA_WIDTH*2 +: DATA_WIDTH]),
-                .m_img_color1           (img_sink_data[DATA_WIDTH*1 +: DATA_WIDTH]),
-                .m_img_color2           (img_sink_data[DATA_WIDTH*0 +: DATA_WIDTH]),
-                .m_img_valid            (img_sink_valid)
-            );
-    
-    assign wb_demos_stb_i  = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 0);
-    assign wb_colmat_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 1);
-    
-    assign s_wb_dat_o      = wb_demos_stb_i  ? wb_demos_dat_o  :
-                             wb_colmat_stb_i ? wb_colmat_dat_o :
-                             '0;
-    
-    assign s_wb_ack_o      = wb_demos_stb_i  ? wb_demos_ack_o  :
-                             wb_colmat_stb_i ? wb_colmat_ack_o :
-                             s_wb_stb_i;
-    */
+    else begin : no_gamma
+        assign img_sink.row_first   = img_clamp.row_first       ;
+        assign img_sink.row_last    = img_clamp.row_last        ;
+        assign img_sink.col_first   = img_clamp.col_first       ;
+        assign img_sink.col_last    = img_clamp.col_last        ;
+        assign img_sink.de          = img_clamp.de              ;
+        assign img_sink.data[0][0]  = img_clamp.data[0][0][9:2] ;
+        assign img_sink.data[0][1]  = img_clamp.data[0][1][9:2] ;
+        assign img_sink.data[0][2]  = img_clamp.data[0][2][9:2] ;
+        assign img_sink.user        = img_clamp.user            ;
+        assign img_sink.valid       = img_clamp.valid           ;
+    end
     
 endmodule
 

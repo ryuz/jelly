@@ -33,7 +33,6 @@ module tang_mega_138k_pro_imx219_stereo
             output  var logic   [2:0]   dvi_tx_data_p   ,
             output  var logic   [2:0]   dvi_tx_data_n   ,
 
-
 //          output  var logic   [7:0]   pmod0           ,
             output  var logic   [7:0]   pmod1           ,
             output  var logic   [7:0]   pmod2           ,
@@ -422,42 +421,6 @@ module tang_mega_138k_pro_imx219_stereo
                 .out_lv         (cam1_lv        ),
                 .out_pixel      (cam1_pixel     )
             );
-    
-    
-    // to AXI4-Stream
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (10         ),
-                .DEBUG      ("false"    )
-            )
-        axi4s_cam0_src
-            (
-                .aresetn    (~cam_reset ),
-                .aclk       (cam_clk    ),
-                .aclken     (1'b1       )
-            );
-    
-    logic           cam0_ff_fv     ;
-    logic           cam0_ff_lv     ;
-    logic   [9:0]   cam0_ff_pixel  ;
-    always_ff @(posedge cam_clk) begin
-        cam0_ff_fv    <= cam0_fv    ;
-        cam0_ff_lv    <= cam0_lv    ;
-        cam0_ff_pixel <= cam0_pixel ;
-    end
-
-    always_ff @(posedge cam_clk) begin
-        if ( !cam0_ff_fv ) begin
-            axi4s_cam0_src.tuser <= 1'b1;
-        end
-        if ( axi4s_cam0_src.tvalid ) begin
-            axi4s_cam0_src.tuser <= 1'b0;
-        end
-        axi4s_cam0_src.tlast  <= !cam0_lv                   ;
-        axi4s_cam0_src.tdata  <= cam0_ff_pixel              ;
-        axi4s_cam0_src.tvalid <= cam0_ff_lv && cam0_ff_fv   ;
-    end
-
 
 
     // ---------------------------------
@@ -827,28 +790,6 @@ module tang_mega_138k_pro_imx219_stereo
                 .s_axi4l        (axi4l_peri         )
             );
 
-    /*
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS      (24         ),
-                .DEBUG          ("false"    )
-            )
-        axi4s_rgb
-            (
-                .aresetn        (~dvi_reset ),
-                .aclk           (dvi_clk    ),
-                .aclken         (1'b1       )
-            );
-    
-    assign axi4s_rgb.tuser           = axi4s_rgb10.tuser;
-    assign axi4s_rgb.tlast           = axi4s_rgb10.tlast;
-    assign axi4s_rgb.tdata[0*8 +: 8] = axi4s_rgb10.tdata[0*10+2 +: 8];
-    assign axi4s_rgb.tdata[1*8 +: 8] = axi4s_rgb10.tdata[1*10+2 +: 8];
-    assign axi4s_rgb.tdata[2*8 +: 8] = axi4s_rgb10.tdata[2*10+2 +: 8];
-    assign axi4s_rgb.tvalid          = axi4s_rgb10.tvalid;
-    assign axi4s_rgb10.tready = axi4s_rgb.tready;
-    */
-
     // FIFO
     jelly3_axi4s_if
             #(
@@ -895,7 +836,6 @@ module tang_mega_138k_pro_imx219_stereo
                 
                 .s_axi4s_tuser  (axi4s_dvi_fifo.tuser ),
                 .s_axi4s_tlast  (axi4s_dvi_fifo.tlast ),
-//              .s_axi4s_tdata  ({3{axi4s_dvi_fifo.tdata[9:2]}}),
                 .s_axi4s_tdata  (axi4s_dvi_fifo.tdata),
                 .s_axi4s_tvalid (axi4s_dvi_fifo.tvalid),
                 .s_axi4s_tready (axi4s_dvi_fifo.tready),
@@ -966,18 +906,8 @@ module tang_mega_138k_pro_imx219_stereo
     assign led_n[4] = ~1'b0;
     assign led_n[5] = ~1'b0;
 
-    /*
-    assign led_n[0] = ~i2c_scl_i;
-    assign led_n[1] = ~i2c_scl_t;
-    assign led_n[2] = ~i2c_sda_i;
-    assign led_n[3] = ~mipi0_dphy_counter[24];
-    assign led_n[4] = ~counter[24];
-    assign led_n[5] = ~reset;
-    */
-
-    assign pmod1[7:0] = '0;//mipi0_dphy_d0ln_hsrxd[7:0];
+    assign pmod1[7:0] = '0;
     assign pmod2 = counter[15:8];
-
 
 endmodule
 

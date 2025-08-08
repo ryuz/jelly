@@ -791,10 +791,10 @@ module tang_mega_138k_pro_imx219_stereo_jelly
     // RGB
     jelly3_axi4s_if
             #(
-                .DATA_BITS      (10*4       ),
+                .DATA_BITS      (3*8        ),
                 .DEBUG          ("false"    )
             )
-        axi4s_rgb10
+        axi4s_rgb
             (
                 .aresetn        (~dvi_reset ),
                 .aclk           (dvi_clk    ),
@@ -824,7 +824,7 @@ module tang_mega_138k_pro_imx219_stereo_jelly
                 #(
                     .WIDTH_BITS     (DVI_H_BITS         ),
                     .HEIGHT_BITS    (DVI_V_BITS         ),
-                    .M_CH_DEPTH     (4                  ),
+                    .M_CH_DEPTH     (3                  ),
                     .DEVICE         ("RTL"              )
                 )
             u_video_raw_to_rgb
@@ -834,39 +834,19 @@ module tang_mega_138k_pro_imx219_stereo_jelly
                     .param_height   (DVI_HEIGHT         ),
 
                     .s_axi4s        (axi4s_raw.s        ),
-                    .m_axi4s        (axi4s_rgb10.m      ),
+                    .m_axi4s        (axi4s_rgb.m        ),
                     .s_axi4l        (axi4l_peri         )
                 );
     end
     else begin : raw
-        assign axi4s_rgb10.tuser             = axi4s_raw.tuser;
-        assign axi4s_rgb10.tlast             = axi4s_raw.tlast;
-        assign axi4s_rgb10.tdata[0*10 +: 10] = axi4s_raw.tdata;
-        assign axi4s_rgb10.tdata[1*10 +: 10] = axi4s_raw.tdata;
-        assign axi4s_rgb10.tdata[2*10 +: 10] = axi4s_raw.tdata;
-        assign axi4s_rgb10.tvalid            = axi4s_raw.tvalid;
-        assign axi4s_raw.tready = axi4s_rgb10.tready;
+        assign axi4s_rgb.tuser             = axi4s_raw.tuser;
+        assign axi4s_rgb.tlast             = axi4s_raw.tlast;
+        assign axi4s_rgb.tdata[0*8 +: 10]  =  axi4s_raw.tdata[0*10+2 +: 8];
+        assign axi4s_rgb.tdata[1*8 +: 10]  =  axi4s_raw.tdata[1*10+2 +: 8];
+        assign axi4s_rgb.tdata[2*8 +: 10]  =  axi4s_raw.tdata[2*10+2 +: 8];
+        assign axi4s_rgb.tvalid            = axi4s_raw.tvalid;
+        assign axi4s_raw.tready = axi4s_rgb.tready;
     end
-
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS      (24         ),
-                .DEBUG          ("false"    )
-            )
-        axi4s_rgb
-            (
-                .aresetn        (~dvi_reset ),
-                .aclk           (dvi_clk    ),
-                .aclken         (1'b1       )
-            );
-    
-    assign axi4s_rgb.tuser           = axi4s_rgb10.tuser;
-    assign axi4s_rgb.tlast           = axi4s_rgb10.tlast;
-    assign axi4s_rgb.tdata[0*8 +: 8] = axi4s_rgb10.tdata[0*10+2 +: 8];
-    assign axi4s_rgb.tdata[1*8 +: 8] = axi4s_rgb10.tdata[1*10+2 +: 8];
-    assign axi4s_rgb.tdata[2*8 +: 8] = axi4s_rgb10.tdata[2*10+2 +: 8];
-    assign axi4s_rgb.tvalid          = axi4s_rgb10.tvalid;
-    assign axi4s_rgb10.tready = axi4s_rgb.tready;
 
     // FIFO
     jelly3_axi4s_if
