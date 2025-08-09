@@ -233,7 +233,7 @@ impl Imx219Control {
     pub fn i2c_write_u8(&mut self, addr: u16, data: u8) -> Result<(), &'static str> {
         self.i2c_write(addr, &(data.to_be_bytes()))?;
         println!("i2c_u8  {:04x} <= {:02x}", addr, data);
-        println!("{:02x}", self.i2c_read_u8(addr)?);
+//      println!("readback => {:02x}", self.i2c_read_u8(addr)?);    // 読み返しテスト
         Ok(())
     }
 
@@ -246,7 +246,7 @@ impl Imx219Control {
     pub fn i2c_write_u16(&mut self, addr: u16, data: u16) -> Result<(), &'static str> {
         self.i2c_write(addr, &(data.to_be_bytes()))?;
         println!("i2c_u16 {:04x} <= {:04x}", addr, data);
-        println!("{:04x}", self.i2c_read_u16(addr)?);
+//      println!("readback => {:04x}", self.i2c_read_u16(addr)?);    // 読み返しテスト
         Ok(())
     }
 

@@ -112,12 +112,10 @@ pub unsafe extern "C" fn main() -> Result<(), &'static str> {
         imx219.set_digital_gain(d_gain)?;
         imx219.set_flip(flip_h, flip_v)?;
 
-    //  let id = imx219.get_model_id()?;
-    //  println!("model_id: 0x{:04x}", id);
-
         // カメラ設定完了
         imx219.setup()?;
     }
+    camera_select(0);
     println!("camera setup done");
 
     // コマンドプロンプト
