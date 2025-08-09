@@ -279,8 +279,8 @@ module jelly3_mipi_csi2_rx_packet_2lane
                 st1_lost   <= (st1_state != ST1_IDLE && st1_state != ST1_CRC);
             end
             
-            st1_crc_error <= st1_end && (st1_crc_sum != st1_crc);
-            st1_crc_valid <= st1_end;
+            st1_crc_error <= st1_valid && st1_end && (st1_crc_sum != st1_crc);
+            st1_crc_valid <= st1_valid && st1_end;
         end
     end
     
