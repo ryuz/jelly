@@ -1,6 +1,5 @@
 # Tang Mega 138K Pro の IMX219 ステレオカメラサンプル
 
-
 ## 概要
 
 コマンドラインから [Tang Mega 138K Pro Dock](https://wiki.sipeed.com/hardware/en/tang/tang-mega-138k/mega-138k-pro.html) で
@@ -19,11 +18,13 @@ RISC-V 用 Rust のセットアップについては [こちら](/projects/kv260
 
 ## 環境
 
-私は Windows 版の Gowin EDA を、WSL2 から利用しています。バージョンは Gowin_V1.9.11.02_SP1 を利用しています。
+私は Windows 版の Gowin EDA を、WSL2 から利用しています。
 
 焼き込みには Windows版の [openFPGALoader](https://github.com/trabucayre/openFPGALoader) を利用させて頂いています。
 
 WSLから Windows 版を利用しやすいようにパスの通ったところに下記のようなスクリプトを作っておいています。
+
+詳しくは[こちら](https://blog.rtc-lab.com/entry/2025/08/05/201839)をご覧ください。
 
 chmod +x などのコマンドで実行権限を与えてパスの通ったところにおいてください。
 
@@ -33,7 +34,7 @@ chmod +x などのコマンドで実行権限を与えてパスの通ったと�
 
 ```bash
 #!/usr/bin/bash
-/mnt/c/Gowin/Gowin_V1.9.11.02_SP1_x64/IDE/bin/gw_sh.exe $@
+/mnt/c/Gowin/Gowin_V1.9.11.03_x64/IDE/bin/gw_sh.exe $@
 ```
 
 ### openFPGALoader
@@ -55,7 +56,6 @@ make
 
 tclスクリプトは scripts/gowin_build.tcl にあり、Makefile 内の WSLENV の指定で、環境変数を WSL から Windows に渡しています。
 
-
 またこの際に、本合成に先だって jfive 以下の Rust プログラムのビルドなども行い、
 メモリ周りだけ個別 .vg ファイルに合成した後に、本合成で結合しています。
 
@@ -70,4 +70,30 @@ make run
 
 で、ダウンロード実行します。
 
-## 動作結果
+WSLから Windows 版の proglamable_cli を使いたい場合は、PROGRAMMER_CLI_OPTIONS 環境変数を自分の環境に合わせて設定した後に
+
+```
+make run_wsl
+```
+
+とすれば実行できるようにしています。
+
+
+### UARTコマンド
+
+TeraTerm などのターミナルソフトを使えば COMポートから UART 経由でコマンドが使えます。
+
+```
+help
+```
+
+と打ち込むと、コマンドヘルプが出ます。
+
+たとえば IMX219 のアナログゲインは 0x0157 番地なので
+
+```
+i2cw16 0x0157 100
+```
+
+などと打ち込めばゲイン調整ができます。
+
