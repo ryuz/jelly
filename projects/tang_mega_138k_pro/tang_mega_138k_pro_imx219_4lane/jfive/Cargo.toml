@@ -1,0 +1,13 @@
+[package]
+name = "jfive_sample"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+#jelly-mem_access = { path = "../../../../rust/mem_access", default-features=false}
+jelly-mem_access = { version="0.2.2", default-features=false }
+jelly-pac        = { path = "../../../../rust/pac",        default-features=false}
+libm = "0.2.1"
+
+[build-dependencies]
+cc = "1.2.19"
