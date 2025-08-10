@@ -200,7 +200,7 @@ ZynqMP ネタが増えてきたので[ZynqMPを理解しよう](https://zenn.dev
 - github : https://github.com/ryuz
 - web-site : https://ryuz88.sakura.ne.jp
 - zenn : https://zenn.dev/ryuz88
-- tech-blog : https://ryuz.hatenablog.com/
+- tech-blog : https://blog.rtc-lab.com/
 - blog : http://ryuz.txt-nifty.com
 - X(twitter) : https://x.com/ryuz88
 - facebook : https://www.facebook.com/ryuji.fuchikami
