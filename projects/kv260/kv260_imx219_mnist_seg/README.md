@@ -129,7 +129,7 @@ make
 ## 参考情報
 
 - 作者ブログ記事
-    - [LUT-NetworkによるFPGAでの手書き数字(MNIST)のセマンティックセグメンテーション再整理](https://ryuz.hatenablog.com/entry/2021/07/10/101220)
+    - [LUT-NetworkによるFPGAでの手書き数字(MNIST)のセマンティックセグメンテーション再整理](https://blog.rtc-lab.com/entry/2021/07/10/101220)
     - [Zybo Z7 への Raspberry Pi Camera V2 接続(MIPI CSI-2受信)](http://ryuz.txt-nifty.com/blog/2018/04/zybo-z7-raspber.html)
     - [Zybo Z7 への Raspberry Pi Camera V2 接続 (1000fps動作)](http://ryuz.txt-nifty.com/blog/2018/05/zybo-z7-raspber.html)
     - [LUT-Networkの蒸留とMobileNet風構成とセマンティックセグメンテーション](http://ryuz.txt-nifty.com/blog/2020/03/post-ac5a40.html)
