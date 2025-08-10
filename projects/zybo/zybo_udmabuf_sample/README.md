@@ -240,7 +240,7 @@ sudo rm /lib/firmware/zybo_z7_udmabuf_sample.bit.bin
 ここでアプロケーションを実行します。
 /dev 以下に uio や dmabuf に対応するデバイスがが追加されているはずなのでそれらを開いてアクセスすることができます。
 
-このやり方は[別の記事](https://ryuz.hatenablog.com/entry/2021/04/03/201054)で紹介しております。
+このやり方は[別の記事](https://blog.rtc-lab.com/entry/2021/04/03/201054)で紹介しております。
 
 詳しくは[main.cpp](https://github.com/ryuz/jelly/blob/master/projects/zybo_z7_udmabuf_sample/app/main.cpp)をお読みください。
 

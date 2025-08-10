@@ -5,7 +5,7 @@
 
 PL に RTOS(リアルタイムOS)機能を実装し、RPU(Cortex-R5) を試してみるサンプルです。
 
-コンセプトを記載したブログは[こちら](https://ryuz.hatenablog.com/entry/2021/11/23/111925)です。
+コンセプトを記載したブログは[こちら](https://blog.rtc-lab.com/entry/2021/11/23/111925)です。
 
 ITRON風のAPIを、PLのメモリ空間にメモリマップドレジスタとして配置して、タスクスケジューラの機能を実装しています。
 
@@ -30,7 +30,7 @@ RPUのTCMに収まるような小規模なリアルタイム制御など、タ�
 
 ZynqMP 環境でAPU(Cortex-R5)上で、[Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html)や、[Debian](https://qiita.com/ikwzm/items/a9adc5a7329b2eb36895)などが動く状態になっており、Rust インストール済みの想定です。
 
-また、[APUからRPUを認識](https://ryuz.hatenablog.com/entry/2022/05/04/100016)できるようになっている想定です。
+また、[APUからRPUを認識](https://blog.rtc-lab.com/entry/2022/05/04/100016)できるようになっている想定です。
 
 なお、ビルドもAPUで行ってしまう想定ですが、コンパイル自体はPCなどの別環境でも可能です。
 

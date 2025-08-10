@@ -5,9 +5,9 @@
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138
 //Device Version: B
-//Created Time: Sat Jun 21 09:36:50 2025
+//Created Time: Sun Jun 29 15:25:26 2025
 
-module Gowin_PLL_dvi_MOD (lock, clkout0, clkout1, clkin, reset, icpsel, lpfres, lpfcap);
+module Gowin_PLL_dvi_720p_MOD (lock, clkout0, clkout1, clkin, reset, icpsel, lpfres, lpfcap);
 
 output lock;
 output clkout0;
@@ -176,4 +176,4 @@ defparam PLL_inst.DYN_DT3_SEL = "FALSE";
 defparam PLL_inst.DYN_ICP_SEL = "TRUE";
 defparam PLL_inst.DYN_LPF_SEL = "TRUE";
 
-endmodule //Gowin_PLL_dvi_MOD
+endmodule //Gowin_PLL_dvi_720p_MOD

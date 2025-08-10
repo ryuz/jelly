@@ -19,12 +19,18 @@ CONSTRAIN_DIR = ../constrain
 VLOG_SOURCES  = $(RTL_DIR)/tang_mega_138k_pro_imx219_stereo.sv
 VLOG_SOURCES += $(RTL_DIR)/jfive_simple_controller.sv
 VLOG_SOURCES += $(RTL_DIR)/imx219_mipi_rx.sv
+VLOG_SOURCES += $(RTL_DIR)/video_raw_to_rgb.sv
+VLOG_SOURCES += $(RTL_DIR)/img_gamma_correction.sv
+VLOG_SOURCES += $(RTL_DIR)/gamma_table.sv
+VLOG_SOURCES += $(RTL_DIR)/axi4s_generate.sv
 VLOG_SOURCES += $(RTL_DIR)/dvi_tx.sv
 VLOG_SOURCES += $(RTL_DIR)/pll_init.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll.v
 VLOG_SOURCES += $(IP_DIR)/gowin_pll/gowin_pll_mod.v
-VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi/gowin_pll_dvi.v
-VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi/gowin_pll_dvi_mod.v
+VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi_vga/gowin_pll_dvi_vga.v
+VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi_vga/gowin_pll_dvi_vga_mod.v
+VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi_720p/gowin_pll_dvi_720p.v
+VLOG_SOURCES += $(IP_DIR)/gowin_pll_dvi_720p/gowin_pll_dvi_720p_mod.v
 VLOG_SOURCES += $(IP_DIR)/gowin_mipi_dphy_rx/gowin_mipi_dphy_rx.v
 VLOG_SOURCES += $(IP_DIR)/mipi_dsi_csi2_rx/mipi_dsi_csi2_rx.v
 VLOG_SOURCES += $(IP_DIR)/mipi_byte_to_pixel_converter/mipi_byte_to_pixel_converter.v
@@ -50,7 +56,70 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_reset.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/peripheral/jelly_i2c_core.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vsync_generator_core.v
+VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_vout_axi4s.v
 VLOG_SOURCES += $(TOP_DIR)/rtl/v1/video/jelly_dvi_tx_encode.v
+
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/bus/jelly3_axi4s_if.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/bus/jelly3_axi4l_if.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/bus/jelly3_axi4l_addr_decoder.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_histry_buffer_mem.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_histry_buffer_mem_sdp.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_ram_simple_dualport.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_delay.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_data_delay.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_skid_buffer.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/primitive/jelly3_shift_register.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_axi4s_mat.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_axi4s_to_mat.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_to_axi4s.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_black_level_calc.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_black_level_core.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_black_level.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_gaussian_calc.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_gaussian_core.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_gaussian.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_lk_sobel.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_lk.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_white_balance_core.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_bayer_white_balance.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_demosaic_acpi_core.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_demosaic_acpi_g_calc.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_demosaic_acpi_g_core.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_demosaic_acpi_rb_calc.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_demosaic_acpi_rb_core.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_demosaic_acpi.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_selector_core.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_img_selector.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_buf_blk.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_buf_col.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_buf_mem.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_buf_row.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_clamp_core.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_delay.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/image/jelly3_mat_if.sv
+
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_axi4s_img.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_axi4s_img_simple.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_axi4s_to_img_simple.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/image/jelly2_img_to_axi4s.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_param_update_master.v
+VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_param_update_slave.v
+
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/bus/jelly3_axi4s_fifo.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/bus/jelly2_axi4s_fifo.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_fifo_pack.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_pack.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v2/library/jelly2_func_unpack.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/video/jelly3_video_format_regularizer_core.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_ff.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_fifo.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_stream_fifo_sync.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_sync.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_async.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/library/jelly3_fifo_fwft_read.sv
+#VLOG_SOURCES += $(TOP_DIR)/rtl/v3/misc/jelly3_gamma_table.sv
+VLOG_SOURCES += $(TOP_DIR)/rtl/v3/misc/jelly3_axi4s_debug_monitor.sv
+
 #VLOG_SOURCES += $(JELLY_RTL_SOURCES)
 
 VG_SOURCES    = ./jfive_tcm/impl/gwsynthesis/jfive_tcm.vg
@@ -88,9 +157,12 @@ clean:
 	rm -fr impl
 	make -C ./jfive_tcm clean
 
+# openFPGAloader
 run: $(FS_FILE)
 	openFPGALoader $(FS_FILE)
 
+# WSL から Windows 版 programmer を使う場合
+# programmer_cli --scan-cable
+# で PROGRAMMER_CLI_OPTIONS に --location を指定しておく
 run_wsl: $(FS_FILE)
-#   programmer_cli --scan-cable
-	programmer_cli --device GW5AST-138C --run 2 --fsFile '$(shell wslpath -w $(FS_FILE))' --location 11585
+	programmer_cli --device GW5AST-138C --run 2 $(PROGRAMMER_CLI_OPTIONS) --fsFile '$(shell wslpath -w $(FS_FILE))'
