@@ -1,2 +1,2 @@
 学習済みRTLは以下から
-http://ryuz.txt-nifty.com/blog/2020/03/post-ac5a40.html
+https://rtc-lab.com/2020/03/09/lut-net-semantic-segmentation/

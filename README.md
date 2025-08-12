@@ -196,12 +196,11 @@ ZynqMP ネタが増えてきたので[ZynqMPを理解しよう](https://zenn.dev
 
 渕上 竜司(Ryuji Fuchikami)
 
-- e-mail : ryuji.fuchikami@nifty.com
+- e-mail : ryuz@rtc-lab.com
 - github : https://github.com/ryuz
-- web-site : https://ryuz88.sakura.ne.jp
+- web-site : https://rtc-lab.com/
 - zenn : https://zenn.dev/ryuz88
 - tech-blog : https://blog.rtc-lab.com/
-- blog : http://ryuz.txt-nifty.com
 - X(twitter) : https://x.com/ryuz88
 - facebook : https://www.facebook.com/ryuji.fuchikami
 - SpeakerDeck : https://speakerdeck.com/ryuz88
