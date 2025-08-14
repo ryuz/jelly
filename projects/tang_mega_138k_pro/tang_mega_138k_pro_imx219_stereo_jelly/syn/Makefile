@@ -171,5 +171,4 @@ run: $(FS_FILE)
 # programmer_cli --scan-cable
 # で PROGRAMMER_CLI_OPTIONS に --location を指定しておく
 run_wsl: $(FS_FILE)
-#	programmer_cli --device GW5AST-138C --run 2 $(PROGRAMMER_CLI_OPTIONS) --fsFile '$(shell wslpath -w $(FS_FILE))'
-	programmer_cli --device GW5AST-138C --run 2 --location 184897 --fsFile '$(shell wslpath -w $(FS_FILE))'
+	programmer_cli --device GW5AST-138C --run 2 $(PROGRAMMER_CLI_OPTIONS) --fsFile '$(shell wslpath -w $(FS_FILE))'
