@@ -121,8 +121,8 @@ make load
 ## 参考情報
 
 - 作者ブログ記事
-    - [Zybo Z7 への Raspberry Pi Camera V2 接続(MIPI CSI-2受信)](http://ryuz.txt-nifty.com/blog/2018/04/zybo-z7-raspber.html)
-    - [Zybo Z7 への Raspberry Pi Camera V2 接続 (1000fps動作)](http://ryuz.txt-nifty.com/blog/2018/05/zybo-z7-raspber.html)
+    - [Zybo Z7 への Raspberry Pi Camera V2 接続(MIPI CSI-2受信)](https://rtc-lab.com/2018/04/29/zybo-rpi-cam-rx/)
+    - [Zybo Z7 への Raspberry Pi Camera V2 接続 (1000fps動作)](https://rtc-lab.com/2018/05/06/zybo-rpi-cam-1000fps/)
 
 - [https://github.com/lvsoft/Sony-IMX219-Raspberry-Pi-V2-CMOS](https://github.com/lvsoft/Sony-IMX219-Raspberry-Pi-V2-CMOS)
     - Raspberry Pi Camera Module V2 の各種情報（IMX219のデータシートあり)

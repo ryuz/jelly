@@ -1,4 +1,4 @@
-module Gowin_PLL_dvi(
+module Gowin_PLL(
     clkin,
     init_clk,
     clkout0,
@@ -18,7 +18,7 @@ wire pll_lock;
 wire pll_rst;
 
 
-    Gowin_PLL_dvi_MOD u_pll(
+    Gowin_PLL_MOD u_pll(
         .clkout1(clkout1),
         .clkout0(clkout0),
         .lock(pll_lock),
@@ -40,7 +40,7 @@ wire pll_rst;
         .LPFRES(lpfres)
     );
     defparam u_pll_init.CLK_PERIOD = 20;
-    defparam u_pll_init.MULTI_FAC = 15;
+    defparam u_pll_init.MULTI_FAC = 18;
 
 
 endmodule

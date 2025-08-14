@@ -1,13 +1,13 @@
 //Copyright (C)2014-2025 Gowin Semiconductor Corporation.
 //All rights reserved.
 //File Title: IP file
-//Tool Version: V1.9.11.02 (64-bit)
+//Tool Version: V1.9.11.03 (64-bit)
 //Part Number: GW5AST-LV138FPG676AES
 //Device: GW5AST-138
 //Device Version: B
-//Created Time: Sat Jun 21 09:36:50 2025
+//Created Time: Sat Aug  9 19:31:44 2025
 
-module Gowin_PLL_dvi_MOD (lock, clkout0, clkout1, clkin, reset, icpsel, lpfres, lpfcap);
+module Gowin_PLL_dvi_vga_MOD (lock, clkout0, clkout1, clkin, reset, icpsel, lpfres, lpfcap);
 
 output lock;
 output clkout0;
@@ -84,8 +84,8 @@ PLL PLL_inst (
 defparam PLL_inst.FCLKIN = "50";
 defparam PLL_inst.IDIV_SEL = 1;
 defparam PLL_inst.FBDIV_SEL = 1;
-defparam PLL_inst.ODIV0_SEL = 10;
-defparam PLL_inst.ODIV1_SEL = 2;
+defparam PLL_inst.ODIV0_SEL = 30;
+defparam PLL_inst.ODIV1_SEL = 6;
 defparam PLL_inst.ODIV2_SEL = 8;
 defparam PLL_inst.ODIV3_SEL = 8;
 defparam PLL_inst.ODIV4_SEL = 8;
@@ -176,4 +176,4 @@ defparam PLL_inst.DYN_DT3_SEL = "FALSE";
 defparam PLL_inst.DYN_ICP_SEL = "TRUE";
 defparam PLL_inst.DYN_LPF_SEL = "TRUE";
 
-endmodule //Gowin_PLL_dvi_MOD
+endmodule //Gowin_PLL_dvi_vga_MOD

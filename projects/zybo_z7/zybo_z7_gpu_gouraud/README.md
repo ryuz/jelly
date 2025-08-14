@@ -96,9 +96,9 @@ make unload
 ## 参考情報
 
 - 作者ブログ記事
-    - [低遅延リアルタイムGPUのFPGA実装](http://ryuz.txt-nifty.com/blog/2018/01/gpufpga-b600.html)
-    - [低遅延リアルタイムGPUでZテスト](http://ryuz.txt-nifty.com/blog/2018/02/gpuz-9fcb.html)
-    - [RealTime-GPU テクスチャマップ編](http://ryuz.txt-nifty.com/blog/2018/02/realtime-gpu-dd.html)
+    - [低遅延リアルタイムGPUのFPGA実装](https://rtc-lab.com/2018/01/28/low-delay-realtime-gpu/)
+    - [低遅延リアルタイムGPUでZテスト](https://rtc-lab.com/2018/02/04/low-delay-realtime-gpu-z-trest/)
+    - [RealTime-GPU テクスチャマップ編](https://rtc-lab.com/2018/02/12/realtime-gpu-texture-map/)
 
 - [Digital Visual InterfaceDVI](http://www.cs.unc.edu/Research/stc/FAQs/Video/dvi_spec-V1_0.pdf)
 
