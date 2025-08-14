@@ -33,7 +33,6 @@ module tang_mega_138k_pro_imx219_stereo
             output  var logic   [2:0]   dvi_tx_data_p   ,
             output  var logic   [2:0]   dvi_tx_data_n   ,
 
-
 //          output  var logic   [7:0]   pmod0           ,
             output  var logic   [7:0]   pmod1           ,
             output  var logic   [7:0]   pmod2           ,
@@ -46,19 +45,22 @@ module tang_mega_138k_pro_imx219_stereo
     //  parameters
     // ---------------------------------
 
-    localparam  int     CAM_WIDTH  = 1280                   ;
-    localparam  int     CAM_HEIGHT = 720                    ;
-    localparam  int     CAM_H_BITS = $clog2(CAM_WIDTH )     ;
-    localparam  int     CAM_V_BITS = $clog2(CAM_HEIGHT)     ;
+    localparam  int     CAM_H_BITS = 14                     ;
+    localparam  int     CAM_V_BITS = 13                     ;
     localparam  type    cam_h_t    = logic [CAM_H_BITS-1:0] ;
     localparam  type    cam_v_t    = logic [CAM_V_BITS-1:0] ;
+    localparam  cam_h_t CAM_WIDTH  = 640;//1280                   ;
+    localparam  cam_v_t CAM_HEIGHT = 480;//720                    ;
 
-    localparam  int     DVI_WIDTH  = 1280                   ;
-    localparam  int     DVI_HEIGHT = 720                    ;
-    localparam  int     DVI_H_BITS = $clog2(DVI_WIDTH )     ;
-    localparam  int     DVI_V_BITS = $clog2(DVI_HEIGHT)     ;
+
+    localparam  int     DVI_H_BITS = 13                     ;
+    localparam  int     DVI_V_BITS = 12                     ;
     localparam  type    dvi_h_t    = logic [DVI_H_BITS-1:0] ;
     localparam  type    dvi_v_t    = logic [DVI_V_BITS-1:0] ;
+//  localparam  int     DVI_WIDTH  = 1280                   ;
+//  localparam  int     DVI_HEIGHT = 720                    ;
+    localparam  dvi_h_t DVI_WIDTH  = 640                    ;
+    localparam  dvi_v_t DVI_HEIGHT = 480                    ;
 
 
     // ---------------------------------
@@ -110,15 +112,28 @@ module tang_mega_138k_pro_imx219_stereo
     logic   dvi_clk     ;
     logic   dvi_clk_x5  ;
     logic   dvi_lock    ;
-    Gowin_PLL_dvi
-        u_Gowin_PLL_dvi
-            (
-                .init_clk           (in_clk50               ),
-                .clkin              (in_clk50               ),
-                .clkout0            (dvi_clk                ),
-                .clkout1            (dvi_clk_x5             ),
-                .lock               (dvi_lock               )
-            );
+    if ( DVI_HEIGHT == 720 ) begin : pll_dvi_720p
+        Gowin_PLL_dvi_720p
+            u_Gowin_PLL_dvi
+                (
+                    .init_clk           (in_clk50               ),
+                    .clkin              (in_clk50               ),
+                    .clkout0            (dvi_clk                ),
+                    .clkout1            (dvi_clk_x5             ),
+                    .lock               (dvi_lock               )
+                );
+    end
+    else begin : pll_dvi_vga
+        Gowin_PLL_dvi_vga
+            u_Gowin_PLL_dvi
+                (
+                    .init_clk           (in_clk50               ),
+                    .clkin              (in_clk50               ),
+                    .clkout0            (dvi_clk                ),
+                    .clkout1            (dvi_clk_x5             ),
+                    .lock               (dvi_lock               )
+                );
+    end
 
     logic   dvi_reset;
     jelly_reset
@@ -215,7 +230,7 @@ module tang_mega_138k_pro_imx219_stereo
                 .WB_ADR_WIDTH       (2                  ),
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH       ),
                 .DIVIDER_WIDTH      (8                  ),
-                .DIVIDER_INIT       (54-1               ),
+                .DIVIDER_INIT       (54-1               ),  // 50MHz時 115200bps
                 .SIMULATION         (0                  ),
                 .DEBUG              (1                  )
             )
@@ -406,33 +421,41 @@ module tang_mega_138k_pro_imx219_stereo
                 .out_lv         (cam1_lv        ),
                 .out_pixel      (cam1_pixel     )
             );
-    
 
 
     // ---------------------------------
     //  RAM
     // ---------------------------------
 
+    localparam  cam_h_t MEM_X_SIZE    = 256;
+    localparam  cam_v_t MEM_Y_SIZE    = 256;
+    localparam  int     MEM_X_BITS    = $clog2(MEM_X_SIZE);
+    localparam  int     MEM_Y_BITS    = $clog2(MEM_Y_SIZE);
+    localparam  int     MEM_ADDR_BITS = MEM_Y_BITS + MEM_X_BITS;
+    localparam  type    mem_addr_t    = logic [MEM_ADDR_BITS-1:0];
+
+
+    // Memory 0
     logic               mem0_port0_clk    ;
     logic               mem0_port0_en     ;
     logic               mem0_port0_regcke ;
     logic               mem0_port0_we     ;
-    logic   [15:0]      mem0_port0_addr   ;
-    logic   [7:0]       mem0_port0_din    ;
-    logic   [7:0]       mem0_port0_dout   ;
+    mem_addr_t          mem0_port0_addr   ;
+    logic   [9:0]       mem0_port0_din    ;
+    logic   [9:0]       mem0_port0_dout   ;
 
     logic               mem0_port1_clk    ;
     logic               mem0_port1_en     ;
     logic               mem0_port1_regcke ;
     logic               mem0_port1_we     ;
-    logic   [15:0]      mem0_port1_addr   ;
-    logic   [7:0]       mem0_port1_din    ;
-    logic   [7:0]       mem0_port1_dout   ;
+    mem_addr_t          mem0_port1_addr   ;
+    logic   [9:0]       mem0_port1_din    ;
+    logic   [9:0]       mem0_port1_dout   ;
 
     jelly2_ram_dualport
             #(
-                .ADDR_WIDTH     (16             ),
-                .DATA_WIDTH     (8              ),
+                .ADDR_WIDTH     (MEM_ADDR_BITS  ),
+                .DATA_WIDTH     (10             ),
                 .WE_WIDTH       (1              ),
                 .DOUT_REGS0     (0              ),
                 .DOUT_REGS1     (1              ),
@@ -458,60 +481,27 @@ module tang_mega_138k_pro_imx219_stereo
                 .port1_dout     (mem0_port1_dout      )
             );
 
-    
-    logic           cam0_lv_prev;
-    logic   [13:0]  cam0_y;
-    logic   [13:0]  cam0_x;
-    always_ff @(posedge cam_clk) begin
-        cam0_lv_prev <= cam0_lv;
-        if ( cam0_fv == 1'b0 ) begin
-            cam0_y <= '0;
-        end
-        if ( {cam0_lv_prev, cam0_lv} == 2'b10 ) begin
-            cam0_y <= cam0_y + 1;
-        end
-        cam0_x <= cam0_lv ? cam0_x + 1 : '0;
-    end
-
-    /*
-    assign mem0_port0_clk    = cam_clk                              ;
-    assign mem0_port0_en     = cam0_lv                              ;
-    assign mem0_port0_regcke = 1'b1                                 ;
-    assign mem0_port0_we     = (cam0_x < 256) && (cam0_y < 256)     ;
-    assign mem0_port0_addr   = {cam0_y[7:0], cam0_x[7:0]}           ;
-    assign mem0_port0_din    = cam0_pixel[9:2]                      ;
-    */
-
-    assign mem0_port0_clk = cam_clk;
-    always_ff @(posedge cam_clk) begin
-        mem0_port0_en     <= cam0_lv                              ;
-        mem0_port0_regcke <= 1'b1                                 ;
-        mem0_port0_we     <= (cam0_x < 256) && (cam0_y < 256)     ;
-        mem0_port0_addr   <= {cam0_y[7:0], cam0_x[7:0]}           ;
-        mem0_port0_din    <= cam0_pixel[9:2]                      ;
-    end
-
-
+    // Memory 1
     logic               mem1_port0_clk    ;
     logic               mem1_port0_en     ;
     logic               mem1_port0_regcke ;
     logic               mem1_port0_we     ;
-    logic   [15:0]      mem1_port0_addr   ;
-    logic   [7:0]       mem1_port0_din    ;
-    logic   [7:0]       mem1_port0_dout   ;
+    mem_addr_t          mem1_port0_addr   ;
+    logic   [9:0]       mem1_port0_din    ;
+    logic   [9:0]       mem1_port0_dout   ;
 
     logic               mem1_port1_clk    ;
     logic               mem1_port1_en     ;
     logic               mem1_port1_regcke ;
     logic               mem1_port1_we     ;
-    logic   [15:0]      mem1_port1_addr   ;
-    logic   [7:0]       mem1_port1_din    ;
-    logic   [7:0]       mem1_port1_dout   ;
+    mem_addr_t          mem1_port1_addr   ;
+    logic   [9:0]       mem1_port1_din    ;
+    logic   [9:0]       mem1_port1_dout   ;
 
     jelly2_ram_dualport
             #(
-                .ADDR_WIDTH     (16             ),
-                .DATA_WIDTH     (8              ),
+                .ADDR_WIDTH     (MEM_ADDR_BITS  ),
+                .DATA_WIDTH     (10             ),
                 .WE_WIDTH       (1              ),
                 .DOUT_REGS0     (0              ),
                 .DOUT_REGS1     (1              ),
@@ -537,9 +527,32 @@ module tang_mega_138k_pro_imx219_stereo
                 .port1_dout     (mem1_port1_dout      )
             );
 
-    logic           cam1_lv_prev;
-    logic   [13:0]  cam1_y;
-    logic   [13:0]  cam1_x;
+    logic       cam0_lv_prev;
+    cam_v_t     cam0_y;
+    cam_h_t     cam0_x;
+    always_ff @(posedge cam_clk) begin
+        cam0_lv_prev <= cam0_lv;
+        if ( cam0_fv == 1'b0 ) begin
+            cam0_y <= '0;
+        end
+        if ( {cam0_lv_prev, cam0_lv} == 2'b10 ) begin
+            cam0_y <= cam0_y + 1;
+        end
+        cam0_x <= cam0_lv ? cam0_x + 1 : '0;
+    end
+
+    assign mem0_port0_clk = cam_clk;
+    always_ff @(posedge cam_clk) begin
+        mem0_port0_en     <= cam0_lv                                            ;
+        mem0_port0_regcke <= 1'b1                                               ;
+        mem0_port0_we     <= (cam0_x < cam_h_t'(MEM_X_SIZE)) && (cam0_y < cam_v_t'(MEM_Y_SIZE));
+        mem0_port0_addr   <= {cam0_y[MEM_Y_BITS-1:0], cam0_x[MEM_X_BITS-1:0]}   ;
+        mem0_port0_din    <= cam0_pixel[9:0]                                    ;
+    end
+
+    logic       cam1_lv_prev;
+    cam_v_t     cam1_y;
+    cam_h_t     cam1_x;
     always_ff @(posedge cam_clk) begin
         cam1_lv_prev <= cam1_lv;
         if ( cam1_fv == 1'b0 ) begin
@@ -551,23 +564,15 @@ module tang_mega_138k_pro_imx219_stereo
         cam1_x <= cam1_lv ? cam1_x + 1 : '0;
     end
 
-    /*
-    assign mem1_port0_clk    = cam_clk                              ;
-    assign mem1_port0_en     = cam1_lv                              ;
-    assign mem1_port0_regcke = 1'b1                                 ;
-    assign mem1_port0_we     = (cam1_x < 256) && (cam1_y < 256)     ;
-    assign mem1_port0_addr   = {cam1_y[7:0], cam1_x[7:0]}           ;
-    assign mem1_port0_din    = cam1_pixel[9:2]                      ;
-    */
-
     assign mem1_port0_clk = cam_clk ;
     always_ff @(posedge cam_clk) begin
-        mem1_port0_en     <= cam1_lv                              ;
-        mem1_port0_regcke <= 1'b1                                 ;
-        mem1_port0_we     <= (cam1_x < 256) && (cam1_y < 256)     ;
-        mem1_port0_addr   <= {cam1_y[7:0], cam1_x[7:0]}           ;
-        mem1_port0_din    <= cam1_pixel[9:2]                      ;
+        mem1_port0_en     <= cam1_lv                                            ;
+        mem1_port0_regcke <= 1'b1                                               ;
+        mem1_port0_we     <= (cam1_x < MEM_X_SIZE) && (cam1_y < MEM_Y_SIZE)     ;
+        mem1_port0_addr   <= {cam1_y[MEM_Y_BITS-1:0], cam1_x[MEM_X_BITS-1:0]}   ;
+        mem1_port0_din    <= cam1_pixel[9:0]                                    ;
     end
+
 
 
 
@@ -575,95 +580,278 @@ module tang_mega_138k_pro_imx219_stereo
     //  DVI output
     // ---------------------------------
 
+    dvi_h_t     vsync_param_htotal      ;
+    dvi_h_t     vsync_param_hdisp_start ;
+    dvi_h_t     vsync_param_hdisp_end   ;
+    dvi_h_t     vsync_param_hsync_start ;
+    dvi_h_t     vsync_param_hsync_end   ;
+    logic       vsync_param_hsync_pol   ;
+    dvi_v_t     vsync_param_vtotal      ;
+    dvi_v_t     vsync_param_vdisp_start ;
+    dvi_v_t     vsync_param_vdisp_end   ;
+    dvi_v_t     vsync_param_vsync_start ;
+    dvi_v_t     vsync_param_vsync_end   ;
+    logic       vsync_param_vsync_pol   ;
+
+    always_comb begin
+        if ( DVI_HEIGHT == 720 ) begin
+            vsync_param_htotal      = dvi_h_t'(1650);
+            vsync_param_hdisp_start = dvi_h_t'(   0);
+            vsync_param_hdisp_end   = dvi_h_t'(1280);
+            vsync_param_hsync_start = dvi_h_t'(1390);
+            vsync_param_hsync_end   = dvi_h_t'(1430);
+            vsync_param_hsync_pol   = 1'b1    ;
+            vsync_param_vtotal      = dvi_v_t'( 750);
+            vsync_param_vdisp_start = dvi_v_t'(   0);
+            vsync_param_vdisp_end   = dvi_v_t'( 720);
+            vsync_param_vsync_start = dvi_v_t'( 725);
+            vsync_param_vsync_end   = dvi_v_t'( 730);
+            vsync_param_vsync_pol   = 1'b1    ;
+        end
+       else begin
+            vsync_param_htotal      = dvi_h_t'(96 + 16 + 640 + 48);
+            vsync_param_hdisp_start = dvi_h_t'(96 + 16           );
+            vsync_param_hdisp_end   = dvi_h_t'(96 + 16 + 640     );
+            vsync_param_hsync_start = dvi_h_t'(0                 );
+            vsync_param_hsync_end   = dvi_h_t'(96                );
+            vsync_param_hsync_pol   = 1'b0;
+            vsync_param_vtotal      = dvi_v_t'(2 + 10 + 480 + 33 );
+            vsync_param_vdisp_start = dvi_v_t'(2 + 10            );
+            vsync_param_vdisp_end   = dvi_v_t'(2 + 10 + 480      );
+            vsync_param_vsync_start = dvi_v_t'(0                 );
+            vsync_param_vsync_end   = dvi_v_t'(2                 );
+            vsync_param_vsync_pol   = 1'b0;
+       end
+    end
+
+
     // generate video sync
     logic                           syncgen_vsync;
     logic                           syncgen_hsync;
     logic                           syncgen_de;
     jelly_vsync_generator_core
             #(
-                .H_COUNTER_WIDTH    (DVI_H_BITS     ),
-                .V_COUNTER_WIDTH    (DVI_V_BITS     )
+                .H_COUNTER_WIDTH    (DVI_H_BITS             ),
+                .V_COUNTER_WIDTH    (DVI_V_BITS             )
             )
         u_vsync_generator_core
             (
-                .reset              (dvi_reset      ),
-                .clk                (dvi_clk        ),
+                .reset              (dvi_reset              ),
+                .clk                (dvi_clk                ),
                 
-                .ctl_enable         (1'b1           ),
-                .ctl_busy           (               ),
+                .ctl_enable         (1'b1                   ),
+                .ctl_busy           (                       ),
                 
-                .param_htotal       (11'd1650       ),
-                .param_hdisp_start  (11'd0          ),
-                .param_hdisp_end    (11'd1280       ),
-                .param_hsync_start  (11'd1390       ),
-                .param_hsync_end    (11'd1430       ),
-                .param_hsync_pol    (1'b1           ),
-                .param_vtotal       (10'd750        ),
-                .param_vdisp_start  (10'd0          ),
-                .param_vdisp_end    (10'd720        ),
-                .param_vsync_start  (10'd725        ),
-                .param_vsync_end    (10'd730        ),
-                .param_vsync_pol    (1'b1           ),
-                
-                .out_vsync          (syncgen_vsync  ),
-                .out_hsync          (syncgen_hsync  ),
-                .out_de             (syncgen_de     )
+                .param_htotal       (vsync_param_htotal     ),
+                .param_hdisp_start  (vsync_param_hdisp_start),
+                .param_hdisp_end    (vsync_param_hdisp_end  ),
+                .param_hsync_start  (vsync_param_hsync_start),
+                .param_hsync_end    (vsync_param_hsync_end  ),
+                .param_hsync_pol    (vsync_param_hsync_pol  ),
+                .param_vtotal       (vsync_param_vtotal     ),
+                .param_vdisp_start  (vsync_param_vdisp_start),
+                .param_vdisp_end    (vsync_param_vdisp_end  ),
+                .param_vsync_start  (vsync_param_vsync_start),
+                .param_vsync_end    (vsync_param_vsync_end  ),
+                .param_vsync_pol    (vsync_param_vsync_pol  ),
+
+                .out_vsync          (syncgen_vsync          ),
+                .out_hsync          (syncgen_hsync          ),
+                .out_de             (syncgen_de             )
         );
 
 
+    // generate AXI4-Stream
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS      (10         ),
+                .DEBUG          ("false"    )
+            )
+        axi4s_raw
+            (
+                .aresetn        (~dvi_reset ),
+                .aclk           (dvi_clk    ),
+                .aclken         (1'b1       )
+            );
 
-    // 適当にパターンを作る
-    logic       prev_de     ;
-    dvi_h_t     syncgen_x   ;
-    dvi_v_t     syncgen_y   ;
+    logic           gen_mem_en;
+    dvi_h_t         gen_mem_x;
+    dvi_v_t         gen_mem_y;
+    logic   [9:0]   gen_mem_rdata;
+    axi4s_generate
+            #(
+                .X_BITS         (DVI_H_BITS     ),
+                .Y_BITS         (DVI_V_BITS     ),
+                .DATA_BITS      (10             )
+            )
+        u_axi4s_generate
+            (
+                .param_width    (DVI_WIDTH      ),
+                .param_height   (DVI_HEIGHT     ),
+                
+                .mem_en         (gen_mem_en     ),
+                .mem_addrx      (gen_mem_x      ),
+                .mem_addry      (gen_mem_y      ),
+                .mem_rdata      (gen_mem_rdata  ),
+
+                .m_axi4s        (axi4s_raw.m    )
+            );
+
+    localparam DVI_CAM0_X    = ((DVI_WIDTH / 2) - dvi_h_t'(MEM_X_SIZE)) / 2;
+    localparam DVI_CAM0_Y    = (DVI_HEIGHT      - dvi_v_t'(MEM_Y_SIZE)) / 2;
+    localparam DVI_CAM1_X    = ((DVI_WIDTH / 2) - dvi_h_t'(MEM_X_SIZE)) / 2 + (DVI_WIDTH / 2);
+    localparam DVI_CAM1_Y    = (DVI_HEIGHT      - dvi_v_t'(MEM_Y_SIZE)) / 2;
+
+    dvi_h_t     mem0_x, mem1_x;
+    dvi_v_t     mem0_y, mem1_y;
+    assign mem0_x = gen_mem_x - DVI_CAM0_X;
+    assign mem0_y = gen_mem_y - DVI_CAM0_Y;
+    assign mem1_x = gen_mem_x - DVI_CAM1_X;
+    assign mem1_y = gen_mem_y - DVI_CAM1_Y;
+
+    assign mem0_port1_clk    = dvi_clk                                                  ;
+    assign mem0_port1_en     = gen_mem_en                                               ;
+    assign mem0_port1_regcke = gen_mem_en                                               ;
+    assign mem0_port1_we     = 1'b0                                                     ;
+    assign mem0_port1_addr   = {mem0_y[MEM_X_BITS-1:0], mem0_x[MEM_X_BITS-1:0]}   ;
+    assign mem0_port1_din    = '0                                                       ;
+
+    assign mem1_port1_clk    = dvi_clk                                                  ;
+    assign mem1_port1_en     = gen_mem_en                                               ;
+    assign mem1_port1_regcke = gen_mem_en                                               ;
+    assign mem1_port1_we     = 1'b0                                                     ;
+    assign mem1_port1_addr   = {mem1_y[MEM_X_BITS-1:0], mem1_x[MEM_X_BITS-1:0]}   ;
+    assign mem1_port1_din    = '0                                                       ;
+
+    logic       mem_st0_sel0;
+    logic       mem_st0_sel1;
+    logic       mem_st1_sel0;
+    logic       mem_st1_sel1;
     always_ff @(posedge dvi_clk) begin
-        prev_de <= syncgen_de;
-        if ( syncgen_vsync == 1'b1 ) begin
-            syncgen_y <= 0;
-        end
-        else if ( {prev_de, syncgen_de} == 2'b10 ) begin
-            syncgen_y <= syncgen_y + 1;
-        end
+       mem_st0_sel0 <= mem0_x >= 0 && mem0_x < dvi_h_t'(MEM_X_SIZE)
+                    && mem0_y >= 0 && mem0_y < dvi_v_t'(MEM_Y_SIZE);
+       mem_st0_sel1 <= mem1_x >= 0 && mem1_x < dvi_h_t'(MEM_X_SIZE)
+                    && mem1_y >= 0 && mem1_y < dvi_v_t'(MEM_Y_SIZE);
 
-        if ( syncgen_hsync == 1'b1 ) begin
-            syncgen_x <= 0;
-        end
-        else if ( syncgen_de ) begin
-            syncgen_x <= syncgen_x + 1;
-        end
+       mem_st1_sel0 <= mem_st0_sel0;
+       mem_st1_sel1 <= mem_st0_sel1;
     end
+
+    assign gen_mem_rdata     = mem_st1_sel0 ? mem0_port1_dout :
+                               mem_st1_sel1 ? mem1_port1_dout : '0;
+
+
+    // RGB
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS      (3*8        ),
+                .DEBUG          ("false"    )
+            )
+        axi4s_rgb
+            (
+                .aresetn        (~dvi_reset ),
+                .aclk           (dvi_clk    ),
+                .aclken         (1'b1       )
+            );
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS      (32         ),
+                .DATA_BITS      (32         )
+            )
+        axi4l_peri
+            (
+                .aresetn        (~sys_reset ),
+                .aclk           (sys_clk    ),
+                .aclken         (1'b1       )
+            );
     
-    logic   [7:0]   xy;
-    assign xy  = 8'(syncgen_x + syncgen_y);
-    logic   [23:0]  syncgen_rgb;
-    assign syncgen_rgb = {xy, syncgen_y[7:0], syncgen_x[7:0]};
+    assign axi4l_peri.awvalid = 1'b0;
+    assign axi4l_peri.wvalid  = 1'b0;
+    assign axi4l_peri.bready  = 1'b0;
+    assign axi4l_peri.arvalid = 1'b0;
+    assign axi4l_peri.rready  = 1'b0;
+    
+    video_raw_to_rgb
+            #(
+                .WIDTH_BITS     (DVI_H_BITS         ),
+                .HEIGHT_BITS    (DVI_V_BITS         ),
+                .M_CH_DEPTH     (3                  ),
+                .DEVICE         ("RTL"              )
+            )
+        u_video_raw_to_rgb
+            (
+                .in_update_req  (1'b1               ),
+                .param_width    (DVI_WIDTH          ),
+                .param_height   (DVI_HEIGHT         ),
+
+                .s_axi4s        (axi4s_raw.s        ),
+                .m_axi4s        (axi4s_rgb.m        ),
+                .s_axi4l        (axi4l_peri         )
+            );
+
+    // FIFO
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS      (24         ),
+                .DEBUG          ("false"    )
+            )
+        axi4s_dvi_fifo
+            (
+                .aresetn        (~dvi_reset ),
+                .aclk           (dvi_clk    ),
+                .aclken         (1'b1       )
+            );
+
+    jelly3_axi4s_fifo
+            #(
+                .ASYNC          (0                  ),
+                .PTR_BITS       (9                  ),
+                .RAM_TYPE       ("block"            ),
+                .DOUT_REG       (1                  ),
+                .S_REG          (1                  ),
+                .M_REG          (1                  )
+            )
+        u_axi4s_fifo
+            (
+                .s_axi4s        (axi4s_rgb.s        ),
+                .m_axi4s        (axi4s_dvi_fifo.m   ),
+                .s_free_size    (                   ),
+                .m_data_size    (                   )
+            );
 
 
-    assign mem0_port1_clk    = dvi_clk                            ;
-    assign mem0_port1_en     = 1'b1                               ;
-    assign mem0_port1_regcke = 1'b1                               ;
-    assign mem0_port1_we     = 1'b0                               ;
-    assign mem0_port1_addr   = {syncgen_y[7:0], syncgen_x[7:0]}   ;
-    assign mem0_port1_din    = '0                                 ;
+    logic           dvitx_vsync ;
+    logic           dvitx_hsync ;
+    logic           dvitx_de    ;
+    logic   [23:0]  dvitx_data  ;
+    jelly_vout_axi4s
+            #(
+                .WIDTH          (24                 )
+            )
+        u_vout_axi4s
+            (
+                .reset          (dvi_reset          ),
+                .clk            (dvi_clk            ),
+                
+                .s_axi4s_tuser  (axi4s_dvi_fifo.tuser ),
+                .s_axi4s_tlast  (axi4s_dvi_fifo.tlast ),
+                .s_axi4s_tdata  (axi4s_dvi_fifo.tdata),
+                .s_axi4s_tvalid (axi4s_dvi_fifo.tvalid),
+                .s_axi4s_tready (axi4s_dvi_fifo.tready),
+                
+                .in_vsync       (syncgen_vsync      ),
+                .in_hsync       (syncgen_hsync      ),
+                .in_de          (syncgen_de         ),
+                .in_data        ('0                 ),
+                .in_ctl         ('0                 ),
 
-    assign mem1_port1_clk    = dvi_clk                            ;
-    assign mem1_port1_en     = 1'b1                               ;
-    assign mem1_port1_regcke = 1'b1                               ;
-    assign mem1_port1_we     = 1'b0                               ;
-    assign mem1_port1_addr   = {syncgen_y[7:0], syncgen_x[7:0]}   ;
-    assign mem1_port1_din    = '0                                 ;
-
-
-    logic   [1:0]   syncgen_vsync_ff;
-    logic   [1:0]   syncgen_hsync_ff;
-    logic   [1:0]   syncgen_de_ff   ;
-    logic   [1:0]   syncgen_sel_ff  ;
-    always_ff @(posedge dvi_clk) begin
-        syncgen_vsync_ff <= {syncgen_vsync_ff[0:0], syncgen_vsync};
-        syncgen_hsync_ff <= {syncgen_hsync_ff[0:0], syncgen_hsync};
-        syncgen_de_ff    <= {syncgen_de_ff   [0:0], syncgen_de   };
-        syncgen_sel_ff   <= {syncgen_sel_ff  [0:0], syncgen_x[8] };
-    end
+                .out_vsync      (dvitx_vsync        ),
+                .out_hsync      (dvitx_hsync        ),
+                .out_de         (dvitx_de           ),
+                .out_data       (dvitx_data         ),
+                .out_ctl        (                   )
+            );
 
 
     // DVI TX
@@ -674,11 +862,10 @@ module tang_mega_138k_pro_imx219_stereo
                 .clk            (dvi_clk        ),
                 .clk_x5         (dvi_clk_x5     ),
 
-                .in_vsync       (syncgen_vsync_ff[1]  ),
-                .in_hsync       (syncgen_hsync_ff[1]  ),
-                .in_de          (syncgen_de_ff   [1]     ),
-//              .in_data        (syncgen_rgb    ),
-                .in_data        (syncgen_sel_ff[1] ? {3{mem0_port1_dout}} : {3{mem1_port1_dout}}),
+                .in_vsync       (dvitx_vsync    ),
+                .in_hsync       (dvitx_hsync    ),
+                .in_de          (dvitx_de       ),
+                .in_data        (dvitx_data     ),
                 .in_ctl         ('0             ),
 
                 .out_clk_p      (dvi_tx_clk_p   ),
@@ -702,11 +889,6 @@ module tang_mega_138k_pro_imx219_stereo
         end
     end
 
-//    logic   [24:0]  mipi0_dphy_counter = '0;
-//    always_ff @(posedge mipi0_dphy_rx_clk) begin
-//        mipi0_dphy_counter <= mipi0_dphy_counter + 1;
-//    end
-
 
     logic   [25:0]  dvi_clk1_counter = '0;
     logic   [25:0]  dvi_clk5_counter = '0;
@@ -724,18 +906,8 @@ module tang_mega_138k_pro_imx219_stereo
     assign led_n[4] = ~1'b0;
     assign led_n[5] = ~1'b0;
 
-    /*
-    assign led_n[0] = ~i2c_scl_i;
-    assign led_n[1] = ~i2c_scl_t;
-    assign led_n[2] = ~i2c_sda_i;
-    assign led_n[3] = ~mipi0_dphy_counter[24];
-    assign led_n[4] = ~counter[24];
-    assign led_n[5] = ~reset;
-    */
-
-    assign pmod1[7:0] = '0;//mipi0_dphy_d0ln_hsrxd[7:0];
+    assign pmod1[7:0] = '0;
     assign pmod2 = counter[15:8];
-
 
 endmodule
 

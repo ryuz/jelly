@@ -226,7 +226,7 @@ interface jelly3_axi4l_if
             input   rready      
         );
 
-
+`ifdef __SIMULATION__
 // awaddr
 property prop_awaddr_valid  ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awaddr); endproperty
 property prop_awaddr_stable ; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awaddr); endproperty
@@ -304,7 +304,7 @@ ASSERT_RRESP_STABLE : assert property(prop_rresp_stable );
 // rvalid
 property prop_rvalid_stable ; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rvalid ); endproperty
 ASSERT_RVALID_STABLE : assert property(prop_rvalid_stable );
-
+`endif
 
 
 // コマンド発行数と応答数が乖離しないこと

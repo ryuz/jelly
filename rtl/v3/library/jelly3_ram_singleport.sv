@@ -29,7 +29,10 @@ module jelly3_ram_singleport
             parameter   data_t  FILLMEM_DATA = '0                           ,
             parameter   bit     READMEMB     = 1'b0                         ,
             parameter   bit     READMEMH     = 1'b0                         ,
-            parameter           READMEM_FILE = ""                           
+            parameter           READMEM_FILE = ""                           ,
+            parameter           DEVICE       = "RTL"                        ,
+            parameter           SIMULATION   = "false"                      ,
+            parameter           DEBUG        = "false"                      
         )
         (
             input   var logic       clk     ,
