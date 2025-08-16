@@ -2,12 +2,14 @@ syntax = "proto3";
 package rtcl_p3s7_control;
 
 service RtclP3s7Control {
-      rpc WriteReg (WriteRegRequest) returns (BoolResponse);
-      rpc ReadReg (ReadRegRequest) returns (ReadRegResponse);
-      rpc WriteS7Reg (WriteRegRequest) returns (BoolResponse);
-      rpc ReadS7Reg (ReadRegRequest) returns (ReadRegResponse);
-      rpc WriteP3Reg (WriteRegRequest) returns (BoolResponse);
-      rpc ReadP3Reg (ReadRegRequest) returns (ReadRegResponse);
+      rpc WriteSysReg (WriteRegRequest) returns (BoolResponse);
+      rpc ReadSysReg (ReadRegRequest) returns (ReadRegResponse);
+      rpc WriteTimgenReg (WriteRegRequest) returns (BoolResponse);
+      rpc ReadTimgenReg (ReadRegRequest) returns (ReadRegResponse);
+      rpc WriteCamReg (WriteRegRequest) returns (BoolResponse);
+      rpc ReadCamReg (ReadRegRequest) returns (ReadRegResponse);
+      rpc WriteSensorReg (WriteRegRequest) returns (BoolResponse);
+      rpc ReadSensorReg (ReadRegRequest) returns (ReadRegResponse);
       rpc RecordImage (RecordImageRequest) returns (BoolResponse);
       rpc ReadImage (ReadImageRequest) returns (ReadImageResponse);
 }

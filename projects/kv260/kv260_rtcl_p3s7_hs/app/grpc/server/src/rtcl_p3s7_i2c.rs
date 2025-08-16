@@ -1,11 +1,6 @@
 
-
-//use jelly_lib::linux_i2c::LinuxI2c;
 use std::error::Error;
-
 use jelly_lib::{i2c_access::I2cAccess, linux_i2c::LinuxI2c};
-//use jelly_mem_access::*;
-//use jelly_pac::video_dma_control::VideoDmaControl;
 
 pub struct RtclP3s7I2c {
     i2c: LinuxI2c,
@@ -19,7 +14,7 @@ impl RtclP3s7I2c {
     }
 
     /// Write a 16-bit register on the Spartan-7
-    pub fn write_s7_reg(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
+    pub fn write_cam_reg(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
         let addr = (addr << 1) | 1;
         let buf: [u8; 4] = [
             ((addr >> 8) & 0xff) as u8,
@@ -32,7 +27,7 @@ impl RtclP3s7I2c {
     }
 
     /// Read a 16-bit register on the Spartan-7
-    pub fn read_s7_reg(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
+    pub fn read_cam_reg(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
         let addr = addr << 1;
         let wbuf: [u8; 4] = [((addr >> 8) & 0xff) as u8, ((addr >> 0) & 0xff) as u8, 0, 0];
         self.i2c.write(&wbuf)?;
@@ -42,14 +37,14 @@ impl RtclP3s7I2c {
     }
 
     /// Write a 16-bit register on the PYTHON300 SPI
-    pub fn write_p3_spi(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
+    pub fn write_sensor_reg(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
         let addr = addr | (1 << 14);
-        self.write_s7_reg(addr, data)
+        self.write_cam_reg(addr, data)
     }
 
     /// Read a 16-bit register on the PYTHON300 SPI
-    pub fn read_p3_spi(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
+    pub fn read_sensor_reg(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
         let addr = addr | (1 << 14);
-        self.read_s7_reg(addr)
+        self.read_cam_reg(addr)
     }
 }

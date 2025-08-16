@@ -6,6 +6,12 @@ use jelly_pac::video_dma_control::VideoDmaControl;
 
 use crate::rtcl_p3s7_i2c::*;
 
+const BASE_ADDR_SYS      : usize = 0x00000000;
+const BASE_ADDR_TIMGEN   : usize = 0x00010000;
+const BASE_ADDR_FMTR     : usize = 0x00100000;
+const BASE_ADDR_WDMA_IMG : usize = 0x00210000;
+const BASE_ADDR_WDMA_BLK : usize = 0x00220000;
+
 const CAMREG_CORE_ID: u16 = 0x0000;
 const CAMREG_CORE_VERSION: u16 = 0x0001;
 const CAMREG_RECV_RESET: u16 = 0x0010;
@@ -63,13 +69,6 @@ impl RtclP3s7Mng {
         let i2c = RtclP3s7I2c::new("/dev/i2c-6")?;
         let uio = UioAccessor::<usize>::new_with_name("uio_pl_peri")?;
         let buf0 = UdmabufAccessor::<usize>::new("udmabuf-jelly-vram0", false)?;
-        /*
-        let reg_sys = uio.subclone(0x00000000, 0x400);
-        let reg_timgen = uio.subclone(0x00010000, 0x400);
-        let reg_fmtr = uio.subclone(0x00100000, 0x400);
-        let reg_wdma_img = uio.subclone(0x00210000, 0x400);
-        let reg_wdma_blk = uio.subclone(0x00220000, 0x400);
-        */
         Ok(RtclP3s7Mng {
             uio,
             buf0,
@@ -77,8 +76,44 @@ impl RtclP3s7Mng {
         })
     }
 
+    pub fn write_sys_reg(&mut self, addr: usize, data: usize) -> Result<(), Box<dyn Error>> {
+        unsafe{self.uio.write_reg(addr, data)};
+        Ok(())
+    }
+
+    pub fn read_sys_reg(&mut self, addr : usize) -> Result<usize, Box<dyn Error>> {
+        Ok(unsafe{self.uio.read_reg(addr)})
+    }
+
+    pub fn write_timgen_reg(&mut self, addr: usize, data: usize) -> Result<(), Box<dyn Error>> {
+        let reg_timgen = self.uio.subclone(BASE_ADDR_TIMGEN, 0x400);
+        unsafe{reg_timgen.write_reg(addr, data)};
+        Ok(())
+    }
+
+    pub fn read_timgen_reg(&mut self, addr : usize) -> Result<usize, Box<dyn Error>> {
+        let reg_timgen = self.uio.subclone(BASE_ADDR_TIMGEN, 0x400);
+        Ok(unsafe{reg_timgen.read_reg(addr)})
+    }
+
+    pub fn write_cam_reg(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
+        self.i2c.write_cam_reg(addr, data)
+    }
+
+    pub fn read_cam_reg(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
+        self.i2c.read_cam_reg(addr)
+    }
+
+    pub fn write_sensor_reg(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
+        self.i2c.write_sensor_reg(addr, data)
+    }
+
+    pub fn read_sensor_reg(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
+        self.i2c.read_sensor_reg(addr)
+    }
+
     pub fn record_image(&mut self, width: usize, height: usize, frames: usize) -> Result<(), Box<dyn Error>> {
-        let reg_fmtr = self.uio.subclone(0x00100000, 0x400);
+        let reg_fmtr = self.uio.subclone(BASE_ADDR_FMTR, 0x400);
         unsafe {
             reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
             reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 10000000);
@@ -91,7 +126,7 @@ impl RtclP3s7Mng {
         std::thread::sleep(std::time::Duration::from_micros(1000));
 
         // 1frame キャプチャ
-        let reg_wdma_img = self.uio.subclone(0x00210000, 0x400);
+        let reg_wdma_img = self.uio.subclone(BASE_ADDR_WDMA_IMG, 0x400);
         let mut vdmaw = VideoDmaControl::new(reg_wdma_img, 2, 2, Some(usleep)).unwrap();
         vdmaw.oneshot(
             self.buf0.phys_addr(),
@@ -119,31 +154,6 @@ impl RtclP3s7Mng {
             self.buf0.copy_to_::<u8>(addr, buf.as_mut_ptr(), size);
         }
         Ok(buf)
-    }
-
-    pub fn write_reg(&mut self, addr: usize, data: usize) -> Result<(), Box<dyn Error>> {
-        unsafe{self.uio.write_reg(addr, data)};
-        Ok(())
-    }
-
-    pub fn read_reg(&mut self, addr : usize) -> Result<usize, Box<dyn Error>> {
-        Ok(unsafe{self.uio.read_reg(addr)})
-    }
-
-    pub fn write_s7_reg(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
-        self.i2c.write_s7_reg(addr, data)
-    }
-
-    pub fn read_s7_reg(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
-        self.i2c.read_s7_reg(addr)
-    }
-
-    pub fn write_p3_spi(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
-        self.i2c.write_p3_spi(addr, data)
-    }
-
-    pub fn read_p3_spi(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
-        self.i2c.read_p3_spi(addr)
     }
 }
 

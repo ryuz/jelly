@@ -24,38 +24,38 @@ pub struct RtclP3s7ControlService {
 
 #[tonic::async_trait]
 impl RtclP3s7Control for RtclP3s7ControlService {
-    async fn write_reg(&self, request: Request<WriteRegRequest>) -> Result<Response<BoolResponse>, Status> {
+    async fn write_sys_reg(&self, request: Request<WriteRegRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
         let mut mng = self.mng.lock().unwrap();
-        match mng.write_reg(req.addr as usize, req.data as usize) {
+        match mng.write_sys_reg(req.addr as usize, req.data as usize) {
             Ok(()) => {
                 if self.verbose >= 1 {
-                    println!("write_reg: addr={} data={}", req.addr, req.data);
+                    println!("write_sys_reg: addr={} data={}", req.addr, req.data);
                 }
                 Ok(Response::new(BoolResponse { result: true }))
             }
             Err(e) => {
                 if self.verbose >= 1 {
-                    eprintln!("write_s7_reg failed for addr {}: {}", req.addr, e);
+                    eprintln!("write_sys_reg failed for addr {}: {}", req.addr, e);
                 }
                 Ok(Response::new(BoolResponse { result: false }))
             }
         }
     }
 
-    async fn read_reg(&self, request: Request<ReadRegRequest>) -> Result<Response<ReadRegResponse>, Status> {
+    async fn read_sys_reg(&self, request: Request<ReadRegRequest>) -> Result<Response<ReadRegResponse>, Status> {
         let req = request.into_inner();
         let mut mng = self.mng.lock().unwrap();
-        match mng.read_reg(req.addr as usize) {
+        match mng.read_sys_reg(req.addr as usize) {
             Ok(data) => {
                 if self.verbose >= 1 {
-                    println!("read_reg: addr={}", req.addr);
+                    println!("read_sys_reg: addr={}", req.addr);
                 }
                 Ok(Response::new(ReadRegResponse { result: true, data: data as u64 }))
             }
             Err(e) => {
                 if self.verbose >= 1 {
-                    eprintln!("read_reg failed for addr {}: {}", req.addr, e);
+                    eprintln!("read_sys_reg failed for addr {}: {}", req.addr, e);
                 }
                 // On error return result=false and zero data
                 Ok(Response::new(ReadRegResponse { result: false, data: 0 }))
@@ -63,38 +63,38 @@ impl RtclP3s7Control for RtclP3s7ControlService {
         }
     }
 
-    async fn write_s7_reg(&self, request: Request<WriteRegRequest>) -> Result<Response<BoolResponse>, Status> {
+    async fn write_timgen_reg(&self, request: Request<WriteRegRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
         let mut mng = self.mng.lock().unwrap();
-        match mng.write_s7_reg(req.addr as u16, req.data as u16) {
+        match mng.write_timgen_reg(req.addr as usize, req.data as usize) {
             Ok(()) => {
                 if self.verbose >= 1 {
-                    println!("write_reg: addr={} data={}", req.addr, req.data);
+                    println!("write_timgen_reg: addr={} data={}", req.addr, req.data);
                 }
                 Ok(Response::new(BoolResponse { result: true }))
             }
             Err(e) => {
                 if self.verbose >= 1 {
-                    eprintln!("write_s7_reg failed for addr {}: {}", req.addr, e);
+                    eprintln!("write_timgen_reg failed for addr {}: {}", req.addr, e);
                 }
                 Ok(Response::new(BoolResponse { result: false }))
             }
         }
     }
 
-    async fn read_s7_reg(&self, request: Request<ReadRegRequest>) -> Result<Response<ReadRegResponse>, Status> {
+    async fn read_timgen_reg(&self, request: Request<ReadRegRequest>) -> Result<Response<ReadRegResponse>, Status> {
         let req = request.into_inner();
         let mut mng = self.mng.lock().unwrap();
-        match mng.read_s7_reg(req.addr as u16) {
+        match mng.read_timgen_reg(req.addr as usize) {
             Ok(data) => {
                 if self.verbose >= 1 {
-                    println!("read_reg: addr={}", req.addr);
+                    println!("read_timgen_reg: addr={}", req.addr);
                 }
                 Ok(Response::new(ReadRegResponse { result: true, data: data as u64 }))
             }
             Err(e) => {
                 if self.verbose >= 1 {
-                    eprintln!("read_reg failed for addr {}: {}", req.addr, e);
+                    eprintln!("read_timgen_reg failed for addr {}: {}", req.addr, e);
                 }
                 // On error return result=false and zero data
                 Ok(Response::new(ReadRegResponse { result: false, data: 0 }))
@@ -102,10 +102,10 @@ impl RtclP3s7Control for RtclP3s7ControlService {
         }
     }
 
-    async fn write_p3_reg(&self, request: Request<WriteRegRequest>) -> Result<Response<BoolResponse>, Status> {
+    async fn write_cam_reg(&self, request: Request<WriteRegRequest>) -> Result<Response<BoolResponse>, Status> {
         let req = request.into_inner();
         let mut mng = self.mng.lock().unwrap();
-        match mng.write_p3_spi(req.addr as u16, req.data as u16) {
+        match mng.write_cam_reg(req.addr as u16, req.data as u16) {
             Ok(()) => {
                 if self.verbose >= 1 {
                     println!("write_reg: addr={} data={}", req.addr, req.data);
@@ -121,19 +121,58 @@ impl RtclP3s7Control for RtclP3s7ControlService {
         }
     }
 
-    async fn read_p3_reg(&self, request: Request<ReadRegRequest>) -> Result<Response<ReadRegResponse>, Status> {
+    async fn read_cam_reg(&self, request: Request<ReadRegRequest>) -> Result<Response<ReadRegResponse>, Status> {
         let req = request.into_inner();
         let mut mng = self.mng.lock().unwrap();
-        match mng.read_p3_spi(req.addr as u16) {
+        match mng.read_cam_reg(req.addr as u16) {
             Ok(data) => {
                 if self.verbose >= 1 {
-                    println!("read_p3_reg: addr={} data=>{}", req.addr, data);
+                    println!("read_cam_reg: addr={}", req.addr);
                 }
                 Ok(Response::new(ReadRegResponse { result: true, data: data as u64 }))
             }
             Err(e) => {
                 if self.verbose >= 1 {
-                    eprintln!("read_p3_reg failed for addr {}: {}", req.addr, e);
+                    eprintln!("read_cam_reg failed for addr {}: {}", req.addr, e);
+                }
+                // On error return result=false and zero data
+                Ok(Response::new(ReadRegResponse { result: false, data: 0 }))
+            }
+        }
+    }
+
+    async fn write_sensor_reg(&self, request: Request<WriteRegRequest>) -> Result<Response<BoolResponse>, Status> {
+        let req = request.into_inner();
+        let mut mng = self.mng.lock().unwrap();
+        match mng.write_sensor_reg(req.addr as u16, req.data as u16) {
+            Ok(()) => {
+                if self.verbose >= 1 {
+                    println!("write_sensor_reg: addr={} data={}", req.addr, req.data);
+                }
+                Ok(Response::new(BoolResponse { result: true }))
+            }
+            Err(e) => {
+                if self.verbose >= 1 {
+                    eprintln!("write_sensor_reg failed for addr {}: {}", req.addr, e);
+                }
+                Ok(Response::new(BoolResponse { result: false }))
+            }
+        }
+    }
+
+    async fn read_sensor_reg(&self, request: Request<ReadRegRequest>) -> Result<Response<ReadRegResponse>, Status> {
+        let req = request.into_inner();
+        let mut mng = self.mng.lock().unwrap();
+        match mng.read_sensor_reg(req.addr as u16) {
+            Ok(data) => {
+                if self.verbose >= 1 {
+                    println!("read_sensor_reg: addr={} data=>{}", req.addr, data);
+                }
+                Ok(Response::new(ReadRegResponse { result: true, data: data as u64 }))
+            }
+            Err(e) => {
+                if self.verbose >= 1 {
+                    eprintln!("read_sensor_reg failed for addr {}: {}", req.addr, e);
                 }
                 // On error return result=false and zero data
                 Ok(Response::new(ReadRegResponse { result: false, data: 0 }))
@@ -185,7 +224,7 @@ impl RtclP3s7Control for RtclP3s7ControlService {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
-//  CAM_CTL.lock().unwrap().open()?;
+    println!("Starting RTCL P3S7 Control gRPC server...");
     let mng = Arc::new(Mutex::new(RtclP3s7Mng::new()?));
 
     let address = "0.0.0.0:50051".parse().unwrap();
@@ -198,8 +237,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_service(RtclP3s7ControlServer::new(rtcl_p3s7_control_service))
         .serve(address)
         .await?;
-
-//  CAM_CTL.lock().unwrap().close();
 
     Ok(())
 }
