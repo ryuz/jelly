@@ -7,7 +7,6 @@ use jelly_lib::{i2c_access::I2cAccess, linux_i2c::LinuxI2c};
 //use jelly_mem_access::*;
 //use jelly_pac::video_dma_control::VideoDmaControl;
 
-
 pub struct RtclP3s7I2c {
     i2c: LinuxI2c,
 }

@@ -2,13 +2,14 @@ syntax = "proto3";
 package rtcl_p3s7_control;
 
 service RtclP3s7Control {
-    rpc WriteReg (WriteRegRequest) returns (BoolResponse);
-//    rpc ReadReg (ReadRegRequest) returns (ReadRegResponse);
-//    rpc WriteS7Reg (WriteRegRequest) returns (BoolResponse);
-//    rpc ReadS7Reg (ReadRegRequest) returns (ReadRegResponse);
-//    rpc WriteP3Reg (WriteRegRequest) returns (BoolResponse);
-//    rpc ReadSP3eg (ReadRegRequest) returns (ReadRegResponse);
-//    rpc GetImage (GetImageRequest) returns (ImageResponse);
+      rpc WriteReg (WriteRegRequest) returns (BoolResponse);
+      rpc ReadReg (ReadRegRequest) returns (ReadRegResponse);
+      rpc WriteS7Reg (WriteRegRequest) returns (BoolResponse);
+      rpc ReadS7Reg (ReadRegRequest) returns (ReadRegResponse);
+      rpc WriteP3Reg (WriteRegRequest) returns (BoolResponse);
+      rpc ReadP3Reg (ReadRegRequest) returns (ReadRegResponse);
+      rpc RecordImage (RecordImageRequest) returns (BoolResponse);
+      rpc ReadImage (ReadImageRequest) returns (ReadImageResponse);
 }
 
 
@@ -30,15 +31,21 @@ message ReadRegRequest {
 
 message ReadRegResponse {
     bool result = 1;
-    int32 data = 2;
+    uint64 data = 2;
 }
 
-message GetImageRequest {
+message RecordImageRequest {
+    uint64 width = 1;
+    uint64 height = 2;
+    uint64 frames = 3;
+}
+
+message ReadImageRequest {
     uint64 addr = 1;
     uint64 size = 2;
 }
 
-message ImageResponse {
+message ReadImageResponse {
     bool result = 1;
     bytes image = 5;
 }
