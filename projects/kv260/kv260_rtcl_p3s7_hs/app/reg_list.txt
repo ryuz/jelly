@@ -11,7 +11,19 @@
 
 # AEC
 160 0x0010
+#160 0x0000
 
+# min_gain
+169 0x0800
+
+# max_gain
+171 0x700d
+
+# gain_configuration0
+204 0x3fe3
+
+# digital_gain_configuration0
+205 0x0080
 
 
 #257  300
@@ -60,14 +72,16 @@
 
 # delay_configuration  xsm_delay
 193 0x3900
-#193 0x0f00
+#193 0x1f00
 
 # ZNROT
 #192 0x0001
 
 192 0x0045
 
-#192 0x0045
+# slavemode 
+#192 0x0075
+192 0x0265
 
 
 # AFE bias
