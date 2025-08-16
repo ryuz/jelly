@@ -35,6 +35,7 @@ export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/kv260_rtcl_p3s7_hs.sv
+SOURCES += $(PRJ_DIR)/rtl/timing_generator.sv
 SOURCES += $(PRJ_DIR)/rtl/rtcl_p3s7_hs_dphy_recv.sv
 SOURCES += $(PRJ_DIR)/rtl/rtcl_p3s7_hs_cnv_axi4s.sv
 SOURCES += $(JELLY_RTL_SOURCES)
@@ -50,7 +51,7 @@ export BD_SCRIPTS
 
 # constrains
 CONSTRAINS  = ../../constrain/top.xdc
-CONSTRAINS += ../../constrain/debug.xdc
+#CONSTRAINS += ../../constrain/debug.xdc
 export CONSTRAINS
 
 

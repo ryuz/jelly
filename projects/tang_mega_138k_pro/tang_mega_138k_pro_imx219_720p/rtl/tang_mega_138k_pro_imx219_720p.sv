@@ -496,6 +496,7 @@ module tang_mega_138k_pro_imx219_720p
         else if (mipi0_dphy_hsrx_cnt>0)     mipi0_dphy_hsrx_cnt <= mipi0_dphy_hsrx_cnt - 6'd1;
     end
 
+    logic mipi0_dphy_byte_ready2;
     always_ff @(posedge mipi0_dphy_rx_clk) begin
         mipi0_dphy_lp0_reg_0   <= mipi0_dphy_di_lprx0;
         mipi0_dphy_lp0_reg_1   <= mipi0_dphy_lp0_reg_0;
@@ -504,6 +505,7 @@ module tang_mega_138k_pro_imx219_720p
         mipi0_dphy_byte_ready  <= mipi0_dphy_hsrx_en_msk & mipi0_dphy_hsrxd_vld[0];
         mipi0_dphy_byte_d0     <= mipi0_dphy_d0ln_hsrxd[7:0];
         mipi0_dphy_byte_d1     <= mipi0_dphy_d1ln_hsrxd[7:0];
+        mipi0_dphy_byte_ready2 <= mipi0_dphy_byte_ready;
     end
     assign mipi0_dphy_hsrx_odten = {(mipi0_dphy_di_lprx1==0), (mipi0_dphy_di_lprx0==0)} & {2{mipi0_dphy_odt_en_msk}};
 

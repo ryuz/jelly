@@ -24,7 +24,7 @@ module rtcl_p3s7_hs
             output  var logic           python_mosi             ,
             input   var logic           python_miso             ,
             output  var logic           python_sck              ,
-            input   var logic   [2:0]   python_trigger          ,
+            output  var logic   [2:0]   python_trigger          ,
             input   var logic   [1:0]   python_monitor          ,
             input   var logic           python_clk_p            ,
             input   var logic           python_clk_n            ,
@@ -34,7 +34,7 @@ module rtcl_p3s7_hs
             input   var logic           python_sync_n           ,
 
             input   var logic           mipi_reset_n            ,
-            input   var logic           mipi_clk                ,
+            input   var logic           mipi_gpio               ,
             inout   tri logic           mipi_scl                ,
             inout   tri logic           mipi_sda                ,
             output  var logic           mipi_clk_lp_p           ,
@@ -484,6 +484,10 @@ module rtcl_p3s7_hs
                 .spi_miso       (python_miso    )
             );
 
+    // Trigger
+    assign python_trigger[0] = mipi_gpio    ; // Trigger 0
+    assign python_trigger[1] = 1'b0         ; // Trigger 1
+    assign python_trigger[2] = 1'b0         ; // Trigger 2
 
     // Receiver(ISERDES)
                                 logic                       python_reset    ;

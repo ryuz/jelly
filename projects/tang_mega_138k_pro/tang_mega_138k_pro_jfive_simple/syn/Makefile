@@ -46,8 +46,8 @@ VLOG_SOURCES += $(TOP_DIR)/rtl/v1/library/jelly_pipeline_control.v
 VG_SOURCES    = ./jfive_tcm/impl/gwsynthesis/jfive_tcm.vg
 VLOG_SOURCES += $(VG_SOURCES)
 
-CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.sdc
-CST_SOURCES += $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.cst
+SDC_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.sdc
+CST_SOURCES  = $(CONSTRAIN_DIR)/tang_mega_138k_pro_jfive_simple.cst
 
 export USE_CPU_AS_GPIO = 1
 
@@ -76,8 +76,12 @@ clean:
 	rm -fr impl
 	make -C ./jfive_tcm clean
 
+# openFPGAloader
 run: $(FS_FILE)
 	openFPGALoader $(FS_FILE)
 
-#run2:
-#	programmer_cli --device GW1NSR-4C --run 2 --fsFile $(TARGET).fs --location `programmer_cli --scan-cable | grep -oP 'USB location:\K\d+'`
+# WSL から Windows 版 programmer を使う場合
+# programmer_cli --scan-cable
+# で PROGRAMMER_CLI_OPTIONS に --location を指定しておく
+run_wsl: $(FS_FILE)
+	programmer_cli --device GW5AST-138C --run 2 $(PROGRAMMER_CLI_OPTIONS) --fsFile '$(shell wslpath -w $(FS_FILE))'

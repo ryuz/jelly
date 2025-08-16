@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2020 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2025 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -204,7 +204,7 @@ module jelly3_fifo_async
             rd_empty     <= 1'b1;
             rd_data_size <= 0   ;
         end
-        else begin
+        else if ( rd_cke ) begin
             rd_rptr      <= next_rd_rptr        ;
             rd_empty     <= next_rd_empty       ;
             rd_data_size <= next_rd_data_size   ;

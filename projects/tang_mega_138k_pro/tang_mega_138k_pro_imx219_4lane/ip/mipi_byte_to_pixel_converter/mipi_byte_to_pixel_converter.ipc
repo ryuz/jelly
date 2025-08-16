@@ -1,0 +1,23 @@
+[General]
+ipc_version=4
+file=mipi_byte_to_pixel_converter
+module=MIPI_Byte_to_Pixel_Converter_Top
+target_device=gw5ast138b-002
+type=mipi_byte_to_pixel_converter
+version=1.0
+
+[Config]
+16_1=false
+8_1=true
+CSI-2=true
+DSI=false
+DSI_Video_Mode=Non-burst Mode with Sync Pulses
+Data_Type="RAW-10, 6'h2B"
+Enable%20Debug%20Signals=false
+LANG=0
+Number_of_Delayed_Pixel_Clock_Cycles_for_HSync=0
+Number_of_HSync_Pulses_VSync_is_Active=1
+Number_of_Pixel_Clock_Cycles_HSync_is_Active=2
+Number_of_Pixels_Per_Clock=4
+Number_of_TX_Lanes=4
+Synthesis_tool=GowinSynthesis

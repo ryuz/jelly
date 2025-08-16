@@ -7,23 +7,26 @@
 
 module kv260_rtcl_p3s7_hs
         #(
-            parameter   int     WIDTH_BITS  = 16    ,
-            parameter   int     HEIGHT_BITS = 16    ,
-            parameter   int     IMG_WIDTH   = 64    ,
-            parameter   int     IMG_HEIGHT  = 64    ,
-            parameter           DEBUG       = "true"
+            parameter   int         WIDTH_BITS  = 11                        ,
+            parameter   type        width_t     = logic [WIDTH_BITS-1:0]    ,
+            parameter   int         HEIGHT_BITS = 10                        ,
+            parameter   type        height_t    = logic [HEIGHT_BITS-1:0]   ,
+            parameter   width_t     IMG_WIDTH   = 640                       ,
+            parameter   height_t    IMG_HEIGHT  = 480                       ,
+            parameter               DEBUG       = "true"                    
         )
         (
-            input   var logic           cam_clk_p,
-            input   var logic           cam_clk_n,
-            input   var logic   [1:0]   cam_data_p,
-            input   var logic   [1:0]   cam_data_n,
-            inout   tri logic           cam_scl,
-            inout   tri logic           cam_sda,
-            output  var logic           cam_enable,
+            input   var logic           cam_clk_p   ,
+            input   var logic           cam_clk_n   ,
+            input   var logic   [1:0]   cam_data_p  ,
+            input   var logic   [1:0]   cam_data_n  ,
+            inout   tri logic           cam_scl     ,
+            inout   tri logic           cam_sda     ,
+            output  var logic           cam_enable  ,
+            output  var logic           cam_gpio    ,
             
-            output  var logic           fan_en,
-            output  var logic   [7:0]   pmod
+            output  var logic           fan_en      ,
+            output  var logic   [7:0]   pmod        
         );
     
 
@@ -191,12 +194,12 @@ module kv260_rtcl_p3s7_hs
     //  Address decoder
     // ----------------------------------------
 
-    localparam DEC_SYS  = 0;
-    localparam DEC_FMTR  = 1;
-    localparam DEC_RGB   = 2;
-    localparam DEC_WDMA  = 3;
-
-    localparam DEC_NUM   = 4;
+    localparam DEC_SYS   = 0;
+    localparam DEC_TGEN  = 1;
+    localparam DEC_FMTR  = 2;
+    localparam DEC_RGB   = 3;
+    localparam DEC_WDMA  = 4;
+    localparam DEC_NUM   = 5;
 
     jelly3_axi4l_if
             #(
@@ -212,15 +215,10 @@ module kv260_rtcl_p3s7_hs
     
     // address map
     assign {axi4l_dec[DEC_SYS ].addr_base, axi4l_dec[DEC_SYS ].addr_high} = {40'ha000_0000, 40'ha000_ffff};
+    assign {axi4l_dec[DEC_TGEN].addr_base, axi4l_dec[DEC_TGEN].addr_high} = {40'ha001_0000, 40'ha001_ffff};
     assign {axi4l_dec[DEC_FMTR].addr_base, axi4l_dec[DEC_FMTR].addr_high} = {40'ha010_0000, 40'ha010_ffff};
     assign {axi4l_dec[DEC_RGB ].addr_base, axi4l_dec[DEC_RGB ].addr_high} = {40'ha012_0000, 40'ha012_ffff};
     assign {axi4l_dec[DEC_WDMA].addr_base, axi4l_dec[DEC_WDMA].addr_high} = {40'ha021_0000, 40'ha021_ffff};
-
-//    assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h000);   // 0x80000000-0x8000ffff
-//    assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h010);   // 0x80100000-0x8010ffff
-//    assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h012);   // 0x80120000-0x8012ffff
-//    assign wb_sel_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h013);   // 0x80130000-0x8013ffff
-//    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h021);   // 0x80210000-0x8021ffff
 
     jelly3_axi4l_addr_decoder
             #(
@@ -238,17 +236,29 @@ module kv260_rtcl_p3s7_hs
     // ----------------------------------------
     //  System Control
     // ----------------------------------------
-    
-    (* MARK_DEBUG=DEBUG *)  logic                       reg_sw_reset        ;
-    (* MARK_DEBUG=DEBUG *)  logic                       reg_cam_enable      ;
-    (* MARK_DEBUG=DEBUG *)  logic   [7:0]               reg_csi_data_type   ;
-    (* MARK_DEBUG=DEBUG *)  logic                       reg_dphy_init_done  ;
-                            logic   [31:0]              reg_fps_count       ;
-                            logic   [31:0]              reg_frame_count     ;
-                            logic   [WIDTH_BITS-1:0]    reg_image_width     ;
-                            logic   [HEIGHT_BITS-1:0]   reg_image_height    ;
-                            logic   [11:0]              reg_black_width     ;
-                            logic   [11:0]              reg_black_height    ;
+
+    localparam  SYSREG_ID             = 4'h0;
+    localparam  SYSREG_SW_RESET       = 4'h1;
+    localparam  SYSREG_CAM_ENABLE     = 4'h2;
+    localparam  SYSREG_CSI_DATA_TYPE  = 4'h3;
+    localparam  SYSREG_DPHY_INIT_DONE = 4'h4;
+    localparam  SYSREG_FPS_COUNT      = 4'h6;
+    localparam  SYSREG_FRAME_COUNT    = 4'h7;
+    localparam  SYSREG_IMG_WIDTH      = 4'h8;
+    localparam  SYSREG_IMG_HEIGHT     = 4'h9;
+    localparam  SYSREG_BLK_WIDTH      = 4'ha;
+    localparam  SYSREG_BLK_HEIGHT     = 4'hb;
+
+    (* MARK_DEBUG=DEBUG *)  logic               reg_sw_reset        ;
+    (* MARK_DEBUG=DEBUG *)  logic               reg_cam_enable      ;
+    (* MARK_DEBUG=DEBUG *)  logic   [7:0]       reg_csi_data_type   ;
+    (* MARK_DEBUG=DEBUG *)  logic               reg_dphy_init_done  ;
+                            logic   [31:0]      reg_fps_count       ;
+                            logic   [31:0]      reg_frame_count     ;
+                            width_t             reg_image_width     ;
+                            height_t            reg_image_height    ;
+                            width_t             reg_black_width     ;
+                            height_t            reg_black_height    ;
     always_ff @(posedge axi4l_dec[DEC_SYS].aclk) begin
         if ( ~axi4l_dec[DEC_SYS].aresetn ) begin
             axi4l_dec[DEC_SYS].bvalid <= 1'b0   ;
@@ -272,13 +282,13 @@ module kv260_rtcl_p3s7_hs
                     && axi4l_dec[DEC_SYS].wvalid && axi4l_dec[DEC_SYS].wready
                     && axi4l_dec[DEC_SYS].wstrb[0] ) begin
                 case ( axi4l_dec[DEC_SYS].awaddr[6:3] )
-                1:  reg_sw_reset      <=  1'(axi4l_dec[DEC_SYS].wdata);
-                2:  reg_cam_enable    <=  1'(axi4l_dec[DEC_SYS].wdata);
-                3:  reg_csi_data_type <=  8'(axi4l_dec[DEC_SYS].wdata);
-                8:  reg_image_width   <= 12'(axi4l_dec[DEC_SYS].wdata);
-                9:  reg_image_height  <= 12'(axi4l_dec[DEC_SYS].wdata);
-                10: reg_black_width   <= 12'(axi4l_dec[DEC_SYS].wdata);
-                11: reg_black_height  <= 12'(axi4l_dec[DEC_SYS].wdata);
+                SYSREG_SW_RESET     :   reg_sw_reset      <=         1'(axi4l_dec[DEC_SYS].wdata);
+                SYSREG_CAM_ENABLE   :   reg_cam_enable    <=         1'(axi4l_dec[DEC_SYS].wdata);
+                SYSREG_CSI_DATA_TYPE:   reg_csi_data_type <=         8'(axi4l_dec[DEC_SYS].wdata);
+                SYSREG_IMG_WIDTH    :   reg_image_width   <=   width_t'(axi4l_dec[DEC_SYS].wdata);
+                SYSREG_IMG_HEIGHT   :   reg_image_height  <=  height_t'(axi4l_dec[DEC_SYS].wdata);
+                SYSREG_BLK_WIDTH    :   reg_black_width   <=   width_t'(axi4l_dec[DEC_SYS].wdata);
+                SYSREG_BLK_HEIGHT   :   reg_black_height  <=  height_t'(axi4l_dec[DEC_SYS].wdata);
                 default:;
                 endcase
                 axi4l_dec[DEC_SYS].bvalid <= 1'b1;
@@ -291,17 +301,17 @@ module kv260_rtcl_p3s7_hs
             end
             if ( axi4l_dec[DEC_SYS].arvalid && axi4l_dec[DEC_SYS].arready ) begin
                 case ( axi4l_dec[DEC_SYS].araddr[6:3] )
-                0:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(32'h01234567)      ;
-                1:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_sw_reset)      ;
-                2:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_cam_enable)    ;
-                3:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_csi_data_type) ;
-                4:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_dphy_init_done);
-                6:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_fps_count)     ;
-                7:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_frame_count)   ;
-                8:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_image_width)   ;
-                9:          axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_image_height)  ;
-                10:         axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_black_width)   ;
-                11:         axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_black_height)  ;
+                SYSREG_ID            :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(32'h01234567)      ;
+                SYSREG_SW_RESET      :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_sw_reset)      ;
+                SYSREG_CAM_ENABLE    :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_cam_enable)    ;
+                SYSREG_CSI_DATA_TYPE :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_csi_data_type) ;
+                SYSREG_DPHY_INIT_DONE:  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_dphy_init_done);
+                SYSREG_FPS_COUNT     :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_fps_count)     ;
+                SYSREG_FRAME_COUNT   :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_frame_count)   ;
+                SYSREG_IMG_WIDTH     :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_image_width)   ;
+                SYSREG_IMG_HEIGHT    :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_image_height)  ;
+                SYSREG_BLK_WIDTH     :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_black_width)   ;
+                SYSREG_BLK_HEIGHT    :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_black_height)  ;
                 default:    axi4l_dec[DEC_SYS].rdata  <= '0    ;
                 endcase
                 axi4l_dec[DEC_SYS].rvalid <= 1'b1;
@@ -317,139 +327,158 @@ module kv260_rtcl_p3s7_hs
     assign cam_enable = reg_cam_enable;
 
 
+
+    // ----------------------------------------
+    //  Timing Generator
+    // ----------------------------------------
+
+    timing_generator
+            #(
+                .TIMER_BITS             (     32),
+                .REGADR_BITS            (      8),
+                .INIT_CTL_CONTROL       (  2'b11),
+                .INIT_PARAM_PERIOD      ( 100000),  // 1ms  (100MHz)
+                .INIT_PARAM_TRIG0_START (      1),
+                .INIT_PARAM_TRIG0_END   (  90000),
+                .INIT_PARAM_TRIG0_POL   (      0)
+            )
+        u_timing_generator
+            (
+                .s_axi4l                (axi4l_dec[DEC_TGEN].s  ),
+                .out_trig0              (cam_gpio               )
+            );
+
+
     // ----------------------------------------
     //  MIPI D-PHY RX
     // ----------------------------------------
     
-    (* KEEP = "true" *)
-    logic               rxbyteclkhs;
-    logic               clkoutphy_out;
-    logic               pll_lock_out;
-    logic               system_rst_out;
-    logic               init_done;
+    (* KEEP = "true" *)     logic           rxbyteclkhs         ;
+                            logic           clkoutphy_out       ;
+                            logic           pll_lock_out        ;
+                            logic           system_rst_out      ;
+                            logic           init_done           ;
     
-    logic               cl_rxclkactivehs;
-    logic               cl_stopstate;
-    logic               cl_enable         = 1;
-    logic               cl_rxulpsclknot;
-    logic               cl_ulpsactivenot;
+                            logic           cl_rxclkactivehs    ;
+                            logic           cl_stopstate        ;
+                            logic           cl_enable           ;
+                            logic           cl_rxulpsclknot     ;
+                            logic           cl_ulpsactivenot    ;
     
-    (* mark_debug=DEBUG *)  logic   [7:0]       dl0_rxdatahs;
-    (* mark_debug=DEBUG *)  logic               dl0_rxvalidhs;
-    (* mark_debug=DEBUG *)  logic               dl0_rxactivehs;
-    (* mark_debug=DEBUG *)  logic               dl0_rxsynchs;
+    (* mark_debug=DEBUG *)  logic   [7:0]   dl0_rxdatahs        ;
+    (* mark_debug=DEBUG *)  logic           dl0_rxvalidhs       ;
+    (* mark_debug=DEBUG *)  logic           dl0_rxactivehs      ;
+    (* mark_debug=DEBUG *)  logic           dl0_rxsynchs        ;
+                            logic           dl0_forcerxmode     ;
+                            logic           dl0_stopstate       ;
+                            logic           dl0_enable          ;
+                            logic           dl0_ulpsactivenot   ;
+                            logic           dl0_rxclkesc        ;
+                            logic           dl0_rxlpdtesc       ;
+                            logic           dl0_rxulpsesc       ;
+                            logic   [3:0]   dl0_rxtriggeresc    ;
+                            logic   [7:0]   dl0_rxdataesc       ;
+                            logic           dl0_rxvalidesc      ;
+                            logic           dl0_errsoths        ;
+                            logic           dl0_errsotsynchs    ;
+                            logic           dl0_erresc          ;
+                            logic           dl0_errsyncesc      ;
+                            logic           dl0_errcontrol      ;
     
-    logic               dl0_forcerxmode   = 0;
-    logic               dl0_stopstate;
-    logic               dl0_enable        = 1;
-    logic               dl0_ulpsactivenot;
-    
-    logic               dl0_rxclkesc;
-    logic               dl0_rxlpdtesc;
-    logic               dl0_rxulpsesc;
-    logic   [3:0]       dl0_rxtriggeresc;
-    logic   [7:0]       dl0_rxdataesc;
-    logic               dl0_rxvalidesc;
-    
-    logic               dl0_errsoths;
-    logic               dl0_errsotsynchs;
-    logic               dl0_erresc;
-    logic               dl0_errsyncesc;
-    logic               dl0_errcontrol;
-    
-    (* mark_debug=DEBUG *)  logic   [7:0]       dl1_rxdatahs;
-    (* mark_debug=DEBUG *)  logic               dl1_rxvalidhs;
-    (* mark_debug=DEBUG *)  logic               dl1_rxactivehs;
-    (* mark_debug=DEBUG *)  logic               dl1_rxsynchs;
-    
-    logic               dl1_forcerxmode   = 0;
-    logic               dl1_stopstate;
-    logic               dl1_enable        = 1;
-    logic               dl1_ulpsactivenot;
-    
-    logic               dl1_rxclkesc;
-    logic               dl1_rxlpdtesc;
-    logic               dl1_rxulpsesc;
-    logic   [3:0]       dl1_rxtriggeresc;
-    logic   [7:0]       dl1_rxdataesc;
-    logic               dl1_rxvalidesc;
-    
-    logic               dl1_errsoths;
-    logic               dl1_errsotsynchs;
-    logic               dl1_erresc;
-    logic               dl1_errsyncesc;
-    logic               dl1_errcontrol;
+    (* mark_debug=DEBUG *)  logic   [7:0]   dl1_rxdatahs        ;
+    (* mark_debug=DEBUG *)  logic           dl1_rxvalidhs       ;
+    (* mark_debug=DEBUG *)  logic           dl1_rxactivehs      ;
+    (* mark_debug=DEBUG *)  logic           dl1_rxsynchs        ;
+                            logic           dl1_forcerxmode     ;
+                            logic           dl1_stopstate       ;
+                            logic           dl1_enable          ;
+                            logic           dl1_ulpsactivenot   ;
+                            logic           dl1_rxclkesc        ;
+                            logic           dl1_rxlpdtesc       ;
+                            logic           dl1_rxulpsesc       ;
+                            logic   [3:0]   dl1_rxtriggeresc    ;
+                            logic   [7:0]   dl1_rxdataesc       ;
+                            logic           dl1_rxvalidesc      ;
+                            logic           dl1_errsoths        ;
+                            logic           dl1_errsotsynchs    ;
+                            logic           dl1_erresc          ;
+                            logic           dl1_errsyncesc      ;
+                            logic           dl1_errcontrol      ;
     
     mipi_dphy_cam
         u_mipi_dphy_cam
             (
-                .core_clk           (sys_clk200),
+                .core_clk           (sys_clk200         ),
                 .core_rst           (sys_reset | reg_sw_reset),
-                .rxbyteclkhs        (rxbyteclkhs),
+                .rxbyteclkhs        (rxbyteclkhs        ),
                 
-                .clkoutphy_out      (clkoutphy_out),
-                .pll_lock_out       (pll_lock_out),
-                .system_rst_out     (system_rst_out),
-                .init_done          (init_done),
+                .clkoutphy_out      (clkoutphy_out      ),
+                .pll_lock_out       (pll_lock_out       ),
+                .system_rst_out     (system_rst_out     ),
+                .init_done          (init_done          ),
                 
-                .cl_rxclkactivehs   (cl_rxclkactivehs),
-                .cl_stopstate       (cl_stopstate),
-                .cl_enable          (cl_enable),
-                .cl_rxulpsclknot    (cl_rxulpsclknot),
-                .cl_ulpsactivenot   (cl_ulpsactivenot),
+                .cl_rxclkactivehs   (cl_rxclkactivehs   ),
+                .cl_stopstate       (cl_stopstate       ),
+                .cl_enable          (cl_enable          ),
+                .cl_rxulpsclknot    (cl_rxulpsclknot    ),
+                .cl_ulpsactivenot   (cl_ulpsactivenot   ),
                 
-                .dl0_rxdatahs       (dl0_rxdatahs),
-                .dl0_rxvalidhs      (dl0_rxvalidhs),
-                .dl0_rxactivehs     (dl0_rxactivehs),
-                .dl0_rxsynchs       (dl0_rxsynchs),
+                .dl0_rxdatahs       (dl0_rxdatahs       ),
+                .dl0_rxvalidhs      (dl0_rxvalidhs      ),
+                .dl0_rxactivehs     (dl0_rxactivehs     ),
+                .dl0_rxsynchs       (dl0_rxsynchs       ),
+                .dl0_forcerxmode    (dl0_forcerxmode    ),
+                .dl0_stopstate      (dl0_stopstate      ),
+                .dl0_enable         (dl0_enable         ),
+                .dl0_ulpsactivenot  (dl0_ulpsactivenot  ),
+                .dl0_rxclkesc       (dl0_rxclkesc       ),
+                .dl0_rxlpdtesc      (dl0_rxlpdtesc      ),
+                .dl0_rxulpsesc      (dl0_rxulpsesc      ),
+                .dl0_rxtriggeresc   (dl0_rxtriggeresc   ),
+                .dl0_rxdataesc      (dl0_rxdataesc      ),
+                .dl0_rxvalidesc     (dl0_rxvalidesc     ),
+                .dl0_errsoths       (dl0_errsoths       ),
+                .dl0_errsotsynchs   (dl0_errsotsynchs   ),
+                .dl0_erresc         (dl0_erresc         ),
+                .dl0_errsyncesc     (dl0_errsyncesc     ),
+                .dl0_errcontrol     (dl0_errcontrol     ),
                 
-                .dl0_forcerxmode    (dl0_forcerxmode),
-                .dl0_stopstate      (dl0_stopstate),
-                .dl0_enable         (dl0_enable),
-                .dl0_ulpsactivenot  (dl0_ulpsactivenot),
+                .dl1_rxdatahs       (dl1_rxdatahs       ),
+                .dl1_rxvalidhs      (dl1_rxvalidhs      ),
+                .dl1_rxactivehs     (dl1_rxactivehs     ),
+                .dl1_rxsynchs       (dl1_rxsynchs       ),
+                .dl1_forcerxmode    (dl1_forcerxmode    ),
+                .dl1_stopstate      (dl1_stopstate      ),
+                .dl1_enable         (dl1_enable         ),
+                .dl1_ulpsactivenot  (dl1_ulpsactivenot  ),
+                .dl1_rxclkesc       (dl1_rxclkesc       ),
+                .dl1_rxlpdtesc      (dl1_rxlpdtesc      ),
+                .dl1_rxulpsesc      (dl1_rxulpsesc      ),
+                .dl1_rxtriggeresc   (dl1_rxtriggeresc   ),
+                .dl1_rxdataesc      (dl1_rxdataesc      ),
+                .dl1_rxvalidesc     (dl1_rxvalidesc     ),
+                .dl1_errsoths       (dl1_errsoths       ),
+                .dl1_errsotsynchs   (dl1_errsotsynchs   ),
+                .dl1_erresc         (dl1_erresc         ),
+                .dl1_errsyncesc     (dl1_errsyncesc     ),
+                .dl1_errcontrol     (dl1_errcontrol     ),
                 
-                .dl0_rxclkesc       (dl0_rxclkesc),
-                .dl0_rxlpdtesc      (dl0_rxlpdtesc),
-                .dl0_rxulpsesc      (dl0_rxulpsesc),
-                .dl0_rxtriggeresc   (dl0_rxtriggeresc),
-                .dl0_rxdataesc      (dl0_rxdataesc),
-                .dl0_rxvalidesc     (dl0_rxvalidesc),
-                
-                .dl0_errsoths       (dl0_errsoths),
-                .dl0_errsotsynchs   (dl0_errsotsynchs),
-                .dl0_erresc         (dl0_erresc),
-                .dl0_errsyncesc     (dl0_errsyncesc),
-                .dl0_errcontrol     (dl0_errcontrol),
-                
-                .dl1_rxdatahs       (dl1_rxdatahs),
-                .dl1_rxvalidhs      (dl1_rxvalidhs),
-                .dl1_rxactivehs     (dl1_rxactivehs),
-                .dl1_rxsynchs       (dl1_rxsynchs),
-                
-                .dl1_forcerxmode    (dl1_forcerxmode),
-                .dl1_stopstate      (dl1_stopstate),
-                .dl1_enable         (dl1_enable),
-                .dl1_ulpsactivenot  (dl1_ulpsactivenot),
-                
-                .dl1_rxclkesc       (dl1_rxclkesc),
-                .dl1_rxlpdtesc      (dl1_rxlpdtesc),
-                .dl1_rxulpsesc      (dl1_rxulpsesc),
-                .dl1_rxtriggeresc   (dl1_rxtriggeresc),
-                .dl1_rxdataesc      (dl1_rxdataesc),
-                .dl1_rxvalidesc     (dl1_rxvalidesc),
-                
-                .dl1_errsoths       (dl1_errsoths),
-                .dl1_errsotsynchs   (dl1_errsotsynchs),
-                .dl1_erresc         (dl1_erresc),
-                .dl1_errsyncesc     (dl1_errsyncesc),
-                .dl1_errcontrol     (dl1_errcontrol),
-                
-                .clk_rxp            (cam_clk_p),
-                .clk_rxn            (cam_clk_n),
-                .data_rxp           (cam_data_p),
-                .data_rxn           (cam_data_n)
+                .clk_rxp            (cam_clk_p          ),
+                .clk_rxn            (cam_clk_n          ),
+                .data_rxp           (cam_data_p         ),
+                .data_rxn           (cam_data_n         )
            );
 
+    assign cl_enable         = 1'b1;
+    assign dl0_forcerxmode   = 1'b0;
+    assign dl0_enable        = 1'b1;
+    assign dl1_forcerxmode   = 1'b0;
+    assign dl1_enable        = 1'b1;
+    always_ff @(posedge axi4l_dec[DEC_SYS].aclk) begin
+        reg_dphy_init_done <= init_done;
+    end
+
+    /*
     (* mark_debug=DEBUG *)  logic   dbg_sys_reset       ;
     (* mark_debug=DEBUG *)  logic   dbg_reg_sw_reset    ;
     (* mark_debug=DEBUG *)  logic   dbg_pll_lock_out    ;
@@ -463,12 +492,10 @@ module kv260_rtcl_p3s7_hs
         dbg_system_rst_out <= system_rst_out;
         dbg_init_done      <= init_done     ;
     end
+    */
 
-
-    always_ff @(posedge axi4l_dec[DEC_SYS].aclk) begin
-        reg_dphy_init_done <= init_done;
-    end
     
+
     wire logic  dphy_clk   = rxbyteclkhs;
     wire logic  dphy_reset = system_rst_out;
 
@@ -484,10 +511,10 @@ module kv260_rtcl_p3s7_hs
 
     jelly3_axi4s_if
             #(
-                .USE_LAST       (1                  ),
-                .USE_USER       (2                  ),
+                .USE_LAST       (1'b1               ),
+                .USE_USER       (1'b1               ),
                 .DATA_BITS      (10                 ),
-                .USER_BITS      (2                  ),
+                .USER_BITS      (1                  ),
                 .DEBUG          ("true"             )
             )
         axi4s_black
@@ -499,10 +526,10 @@ module kv260_rtcl_p3s7_hs
 
     jelly3_axi4s_if
             #(
-                .USE_LAST       (1                  ),
-                .USE_USER       (2                  ),
+                .USE_LAST       (1'b1               ),
+                .USE_USER       (1'b1               ),
                 .DATA_BITS      (10                 ),
-                .USER_BITS      (2                  ),
+                .USER_BITS      (1                  ),
                 .DEBUG          ("true"             )
             )
         axi4s_image
@@ -514,6 +541,8 @@ module kv260_rtcl_p3s7_hs
 
     rtcl_p3s7_hs_dphy_recv
             #(
+                .X_BITS             ($bits(width_t)     ),
+                .Y_BITS             ($bits(height_t)    ),
                 .CHANNELS           (1                  ),
                 .RAW_BITS           (10                 ),
                 .DPHY_LANES         (2                  ),
@@ -657,23 +686,22 @@ module kv260_rtcl_p3s7_hs
                 .ASYNC          (0          ),
                 .PTR_BITS       (9          ),
                 .RAM_TYPE       ("block"    ),
-                .LOW_DEALY      (0          ),
                 .DOUT_REG       (1          ),
                 .S_REG          (1          ),
                 .M_REG          (1          )
             )
         u_axi4s_fifo
             (
-                .s_axi4s        (axi4s_fmtr.s),
-                .m_axi4s        (axi4s_fifo.m),
-                .s_free_count   (),
-                .m_data_count   ()
+                .s_axi4s        (axi4s_fmtr.s   ),
+                .m_axi4s        (axi4s_fifo.m   ),
+                .s_free_size    (               ),
+                .m_data_size    (               )
             );
 
     // DMA write
     jelly3_axi4s_if
             #(
-                .DATA_BITS  (32     ),
+                .DATA_BITS  (16     ),
                 .DEBUG      (DEBUG  )
             )
         axi4s_wdma
@@ -746,7 +774,7 @@ module kv260_rtcl_p3s7_hs
 
     assign axi4s_wdma.tuser  = axi4s_fifo.tuser ;
     assign axi4s_wdma.tlast  = axi4s_fifo.tlast ;
-    assign axi4s_wdma.tdata  = axi4s_fifo.tdata ;
+    assign axi4s_wdma.tdata  = 32'(axi4s_fifo.tdata) ;
     assign axi4s_wdma.tvalid = axi4s_fifo.tvalid;
     assign axi4s_fifo.tready = axi4s_wdma.tready;
 
@@ -770,7 +798,7 @@ module kv260_rtcl_p3s7_hs
                 .INIT_PARAM_H_SIZE      (14'(IMG_WIDTH-1)       ),
                 .INIT_PARAM_V_SIZE      (14'(IMG_HEIGHT-1)      ),
                 .INIT_PARAM_LINE_STEP   (16'd8192               ),
-                .INIT_PARAM_F_SIZE      (8'd0                   ),
+                .INIT_PARAM_F_SIZE      (14'd0                  ),
                 .INIT_PARAM_FRAME_STEP  (32'(IMG_HEIGHT*8192)   ),
                 .INIT_SKIP_EN           (1'b1                   ),
                 .INIT_DETECT_FIRST      (3'b010                 ),

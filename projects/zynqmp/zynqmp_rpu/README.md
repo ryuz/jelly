@@ -19,7 +19,7 @@ Ultra96V2(Debian) と Kria K260(Ubuntu) の2つの環境で確認しており、
 
 [認定Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html) 環境にて APU上で Linux が動いている想定です。
 
-また DeviceTree を編集して [APUからRPUを認識](https://ryuz.hatenablog.com/entry/2022/05/04/100016)できるようになっている想定です。
+また DeviceTree を編集して [APUからRPUを認識](https://blog.rtc-lab.com/entry/2022/05/04/100016)できるようになっている想定です。
 
 
 ### クロスコンパイラインストール
