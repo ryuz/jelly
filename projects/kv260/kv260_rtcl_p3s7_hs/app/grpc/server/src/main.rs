@@ -108,13 +108,13 @@ impl RtclP3s7Control for RtclP3s7ControlService {
         match mng.write_cam_reg(req.addr as u16, req.data as u16) {
             Ok(()) => {
                 if self.verbose >= 1 {
-                    println!("write_reg: addr={} data={}", req.addr, req.data);
+                    println!("write_cam_reg: addr={} data={}", req.addr, req.data);
                 }
                 Ok(Response::new(BoolResponse { result: true }))
             }
             Err(e) => {
                 if self.verbose >= 1 {
-                    eprintln!("write_s7_reg failed for addr {}: {}", req.addr, e);
+                    eprintln!("write_cam_reg failed for addr {}: {}", req.addr, e);
                 }
                 Ok(Response::new(BoolResponse { result: false }))
             }
