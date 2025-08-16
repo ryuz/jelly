@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
     // 受信側 DPHY リセット
     reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
 
-    // カメラ板初期化
+    // カメラ基板初期化
     reg_sys.WriteReg(SYSREG_CAM_ENABLE, 0);     // センサー電源OFF
     cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);  // 受信側 DPHY リセット
     cmd_write(i2c, CAMREG_DPHY_SYS_RESET , 1);  // 受信側 DPHY リセット
