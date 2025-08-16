@@ -84,7 +84,20 @@ module kv260_rtcl_p3s7_hs
                 .aclk       (axi4_mem_aclk          ),
                 .aclken     (1'b1                   )
             );
-    
+
+    jelly3_axi4_if
+            #(
+                .ID_BITS    (AXI4_MEM_ID_BITS       ),
+                .ADDR_BITS  (AXI4_MEM_ADDR_BITS     ),
+                .DATA_BITS  (AXI4_MEM_DATA_BITS     )
+            )
+        axi4_mem1
+            (
+                .aresetn    (axi4_mem_aresetn       ),
+                .aclk       (axi4_mem_aclk          ),
+                .aclken     (1'b1                   )
+            );
+
     design_1
         u_design_1
             (
@@ -167,10 +180,51 @@ module kv260_rtcl_p3s7_hs
                 .s_axi4_mem0_rdata      (axi4_mem0.rdata    ),
                 .s_axi4_mem0_rlast      (axi4_mem0.rlast    ),
                 .s_axi4_mem0_rvalid     (axi4_mem0.rvalid   ),
-                .s_axi4_mem0_rready     (axi4_mem0.rready   )
+                .s_axi4_mem0_rready     (axi4_mem0.rready   ),
+
+                .s_axi4_mem1_awid       (axi4_mem1.awid     ),
+                .s_axi4_mem1_awuser     (                   ),
+                .s_axi4_mem1_awaddr     (axi4_mem1.awaddr   ),
+                .s_axi4_mem1_awburst    (axi4_mem1.awburst  ),
+                .s_axi4_mem1_awcache    (axi4_mem1.awcache  ),
+                .s_axi4_mem1_awlen      (axi4_mem1.awlen    ),
+                .s_axi4_mem1_awlock     (axi4_mem1.awlock   ),
+                .s_axi4_mem1_awprot     (axi4_mem1.awprot   ),
+                .s_axi4_mem1_awqos      (axi4_mem1.awqos    ),
+    //          .s_axi4_mem1_awregion   (axi4_mem1.awregion ),
+                .s_axi4_mem1_awsize     (axi4_mem1.awsize   ),
+                .s_axi4_mem1_awvalid    (axi4_mem1.awvalid  ),
+                .s_axi4_mem1_awready    (axi4_mem1.awready  ),
+                .s_axi4_mem1_wstrb      (axi4_mem1.wstrb    ),
+                .s_axi4_mem1_wdata      (axi4_mem1.wdata    ),
+                .s_axi4_mem1_wlast      (axi4_mem1.wlast    ),
+                .s_axi4_mem1_wvalid     (axi4_mem1.wvalid   ),
+                .s_axi4_mem1_wready     (axi4_mem1.wready   ),
+                .s_axi4_mem1_bid        (axi4_mem1.bid      ),
+                .s_axi4_mem1_bresp      (axi4_mem1.bresp    ),
+                .s_axi4_mem1_bvalid     (axi4_mem1.bvalid   ),
+                .s_axi4_mem1_bready     (axi4_mem1.bready   ),
+                .s_axi4_mem1_aruser     (                   ),
+                .s_axi4_mem1_araddr     (axi4_mem1.araddr   ),
+                .s_axi4_mem1_arburst    (axi4_mem1.arburst  ),
+                .s_axi4_mem1_arcache    (axi4_mem1.arcache  ),
+                .s_axi4_mem1_arid       (axi4_mem1.arid     ),
+                .s_axi4_mem1_arlen      (axi4_mem1.arlen    ),
+                .s_axi4_mem1_arlock     (axi4_mem1.arlock   ),
+                .s_axi4_mem1_arprot     (axi4_mem1.arprot   ),
+                .s_axi4_mem1_arqos      (axi4_mem1.arqos    ),
+    //          .s_axi4_mem1_arregion   (axi4_mem1.arregion ),
+                .s_axi4_mem1_arsize     (axi4_mem1.arsize   ),
+                .s_axi4_mem1_arvalid    (axi4_mem1.arvalid  ),
+                .s_axi4_mem1_arready    (axi4_mem1.arready  ),
+                .s_axi4_mem1_rid        (axi4_mem1.rid      ),
+                .s_axi4_mem1_rresp      (axi4_mem1.rresp    ),
+                .s_axi4_mem1_rdata      (axi4_mem1.rdata    ),
+                .s_axi4_mem1_rlast      (axi4_mem1.rlast    ),
+                .s_axi4_mem1_rvalid     (axi4_mem1.rvalid   ),
+                .s_axi4_mem1_rready     (axi4_mem1.rready   )
             );
     
-
     // I2C
     IOBUF
         u_iobuf_i2c0_scl
@@ -194,12 +248,13 @@ module kv260_rtcl_p3s7_hs
     //  Address decoder
     // ----------------------------------------
 
-    localparam DEC_SYS   = 0;
-    localparam DEC_TGEN  = 1;
-    localparam DEC_FMTR  = 2;
-    localparam DEC_RGB   = 3;
-    localparam DEC_WDMA  = 4;
-    localparam DEC_NUM   = 5;
+    localparam DEC_SYS    = 0;
+    localparam DEC_TGEN   = 1;
+    localparam DEC_FMTR   = 2;
+    localparam DEC_RGB    = 3;
+    localparam DEC_WDMA   = 4;
+    localparam DEC_WDMABL = 5;
+    localparam DEC_NUM    = 6;
 
     jelly3_axi4l_if
             #(
@@ -214,11 +269,12 @@ module kv260_rtcl_p3s7_hs
             );
     
     // address map
-    assign {axi4l_dec[DEC_SYS ].addr_base, axi4l_dec[DEC_SYS ].addr_high} = {40'ha000_0000, 40'ha000_ffff};
-    assign {axi4l_dec[DEC_TGEN].addr_base, axi4l_dec[DEC_TGEN].addr_high} = {40'ha001_0000, 40'ha001_ffff};
-    assign {axi4l_dec[DEC_FMTR].addr_base, axi4l_dec[DEC_FMTR].addr_high} = {40'ha010_0000, 40'ha010_ffff};
-    assign {axi4l_dec[DEC_RGB ].addr_base, axi4l_dec[DEC_RGB ].addr_high} = {40'ha012_0000, 40'ha012_ffff};
-    assign {axi4l_dec[DEC_WDMA].addr_base, axi4l_dec[DEC_WDMA].addr_high} = {40'ha021_0000, 40'ha021_ffff};
+    assign {axi4l_dec[DEC_SYS   ].addr_base, axi4l_dec[DEC_SYS   ].addr_high} = {40'ha000_0000, 40'ha000_ffff};
+    assign {axi4l_dec[DEC_TGEN  ].addr_base, axi4l_dec[DEC_TGEN  ].addr_high} = {40'ha001_0000, 40'ha001_ffff};
+    assign {axi4l_dec[DEC_FMTR  ].addr_base, axi4l_dec[DEC_FMTR  ].addr_high} = {40'ha010_0000, 40'ha010_ffff};
+    assign {axi4l_dec[DEC_RGB   ].addr_base, axi4l_dec[DEC_RGB   ].addr_high} = {40'ha012_0000, 40'ha012_ffff};
+    assign {axi4l_dec[DEC_WDMA  ].addr_base, axi4l_dec[DEC_WDMA  ].addr_high} = {40'ha021_0000, 40'ha021_ffff};
+    assign {axi4l_dec[DEC_WDMABL].addr_base, axi4l_dec[DEC_WDMABL].addr_high} = {40'ha022_0000, 40'ha022_ffff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -592,8 +648,6 @@ module kv260_rtcl_p3s7_hs
                 .out_f          (                       )
             );
     */
-    assign axi4s_black.tready = 1'b1;
-//  assign axi4s_image.tready = 1'b1;
 
     
     // format regularizer
@@ -711,70 +765,9 @@ module kv260_rtcl_p3s7_hs
                 .aclken     (1'b1             )
             );
 
-    /*
-    always_comb begin
-        axi4s_wdma.tdata = '0;
-        case ( reg_fmt_select )
-        3'd0: // 8bit BGRx
-            begin
-                axi4s_wdma.tdata[8*0 +: 8] = axi4s_fifo.tdata[10*0+2 +: 8]; // B
-                axi4s_wdma.tdata[8*1 +: 8] = axi4s_fifo.tdata[10*1+2 +: 8]; // G
-                axi4s_wdma.tdata[8*2 +: 8] = axi4s_fifo.tdata[10*2+2 +: 8]; // R
-                axi4s_wdma.tdata[8*3 +: 8] = axi4s_fifo.tdata[10*3+2 +: 8]; // Raw
-            end
-        3'd1: // 8bit RGBx
-            begin
-                axi4s_wdma.tdata[8*0 +: 8] = axi4s_fifo.tdata[10*2+2 +: 8]; // R
-                axi4s_wdma.tdata[8*1 +: 8] = axi4s_fifo.tdata[10*1+2 +: 8]; // G
-                axi4s_wdma.tdata[8*2 +: 8] = axi4s_fifo.tdata[10*0+2 +: 8]; // B
-                axi4s_wdma.tdata[8*3 +: 8] = axi4s_fifo.tdata[10*3+2 +: 8]; // Raw
-            end
-        3'd2: // 10bit Raw
-            begin
-                axi4s_wdma.tdata[9:0] = axi4s_fifo.tdata[39:30]; // Raw 10bit
-            end
-        3'd3: // 16bit Raw
-            begin
-                axi4s_wdma.tdata[15:0] = {axi4s_fifo.tdata[39:30], axi4s_fifo.tdata[39:34]}; // Raw 16bit
-            end
-        3'd4: // 32bit B10G10R10
-            begin
-                axi4s_wdma.tdata[10*0 +: 10] = axi4s_fifo.tdata[10*0 +: 10]; // B
-                axi4s_wdma.tdata[10*1 +: 10] = axi4s_fifo.tdata[10*1 +: 10]; // G
-                axi4s_wdma.tdata[10*2 +: 10] = axi4s_fifo.tdata[10*2 +: 10]; // R
-            end
-        3'd5: // 32bit R10G10B10
-            begin
-                axi4s_wdma.tdata[10*0 +: 10] = axi4s_fifo.tdata[10*2 +: 10]; // R
-                axi4s_wdma.tdata[10*1 +: 10] = axi4s_fifo.tdata[10*1 +: 10]; // G
-                axi4s_wdma.tdata[10*2 +: 10] = axi4s_fifo.tdata[10*0 +: 10]; // B
-            end
-        default: ;
-        endcase
-    end
-
     assign axi4s_wdma.tuser  = axi4s_fifo.tuser ;
     assign axi4s_wdma.tlast  = axi4s_fifo.tlast ;
-//  assign axi4s_wdma.tdata  = 32'(axi4s_fifo.tdata);
-//  assign axi4s_wdma.tdata[8*0 +: 8] = axi4s_fifo.tdata[10*0+2 +: 8];
-//  assign axi4s_wdma.tdata[8*1 +: 8] = axi4s_fifo.tdata[10*1+2 +: 8];
-//  assign axi4s_wdma.tdata[8*2 +: 8] = axi4s_fifo.tdata[10*2+2 +: 8];
-//  assign axi4s_wdma.tdata[8*3 +: 8] = axi4s_fifo.tdata[10*3+2 +: 8];
-    assign axi4s_wdma.tvalid = axi4s_fifo.tvalid;
-    assign axi4s_fifo.tready = axi4s_wdma.tready;
-    */
-
-    /*
-    assign axi4s_wdma.tuser  = axi4s_fmtr.tuser ;
-    assign axi4s_wdma.tlast  = axi4s_fmtr.tlast ;
-    assign axi4s_wdma.tdata  = axi4s_fmtr.tdata ;
-    assign axi4s_wdma.tvalid = axi4s_fmtr.tvalid;
-    assign axi4s_fmtr.tready = axi4s_wdma.tready;
-    */
-
-    assign axi4s_wdma.tuser  = axi4s_fifo.tuser ;
-    assign axi4s_wdma.tlast  = axi4s_fifo.tlast ;
-    assign axi4s_wdma.tdata  = 32'(axi4s_fifo.tdata) ;
+    assign axi4s_wdma.tdata  = 16'(axi4s_fifo.tdata) ;
     assign axi4s_wdma.tvalid = axi4s_fifo.tvalid;
     assign axi4s_fifo.tready = axi4s_wdma.tready;
 
@@ -829,20 +822,92 @@ module kv260_rtcl_p3s7_hs
                 .buffer_release         (                       ),
                 .buffer_addr            ('0                     )
             );
-    
+
+    // DMA write black
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS  (16     ),
+                .DEBUG      (DEBUG  )
+            )
+        axi4s_wdma_blk
+            (
+                .aresetn    (axi4s_cam_aresetn),
+                .aclk       (axi4s_cam_aclk   ),
+                .aclken     (1'b1             )
+            );
+
+    assign axi4s_wdma_blk.tuser  = axi4s_black.tuser        ;
+    assign axi4s_wdma_blk.tlast  = axi4s_black.tlast        ;
+    assign axi4s_wdma_blk.tdata  = 16'(axi4s_black.tdata)   ;
+    assign axi4s_wdma_blk.tvalid = axi4s_black.tvalid       ;
+    assign axi4s_black.tready = axi4s_wdma_blk.tready;
+
+    jelly3_dma_video_write
+            #(
+                .AXI4L_ASYNC            (1                      ),
+                .AXI4S_ASYNC            (1                      ),
+                .ADDR_BITS              (AXI4_MEM_ADDR_BITS     ),
+                .INDEX_BITS             (1                      ),
+                .SIZE_OFFSET            (1'b1                   ),
+                .H_SIZE_BITS            (14                     ),
+                .V_SIZE_BITS            (14                     ),
+                .F_SIZE_BITS            (14                     ),
+                .LINE_STEP_BITS         (16                     ),
+                .FRAME_STEP_BITS        (32                     ),
+                
+                .INIT_CTL_CONTROL       (4'b0000                ),
+                .INIT_IRQ_ENABLE        (1'b0                   ),
+                .INIT_PARAM_ADDR        (0                      ),
+                .INIT_PARAM_AWLEN_MAX   (8'd255                 ),
+                .INIT_PARAM_H_SIZE      (14'(IMG_WIDTH-1)       ),
+                .INIT_PARAM_V_SIZE      (14'(IMG_HEIGHT-1)      ),
+                .INIT_PARAM_LINE_STEP   (16'd8192               ),
+                .INIT_PARAM_F_SIZE      (14'd0                  ),
+                .INIT_PARAM_FRAME_STEP  (32'(IMG_HEIGHT*8192)   ),
+                .INIT_SKIP_EN           (1'b1                   ),
+                .INIT_DETECT_FIRST      (3'b010                 ),
+                .INIT_DETECT_LAST       (3'b001                 ),
+                .INIT_PADDING_EN        (1'b1                   ),
+                .INIT_PADDING_DATA      (10'd0                  ),
+                
+                .BYPASS_GATE            (0                      ),
+                .BYPASS_ALIGN           (0                      ),
+                .DETECTOR_ENABLE        (1                      ),
+                .ALLOW_UNALIGNED        (1                      ), // (0),
+                .CAPACITY_BITS          (32                     ),
+                
+                .WFIFO_PTR_BITS         (9                      ),
+                .WFIFO_RAM_TYPE         ("block"                )
+            )
+        u_dma_video_write_bl
+            (
+                .endian                 (1'b0                   ),
+
+                .s_axi4s                (axi4s_wdma_blk.s       ),
+                .m_axi4                 (axi4_mem1.mw           ),
+
+                .s_axi4l                (axi4l_dec[DEC_WDMABL].s),
+                .out_irq                (                       ),
+                
+                .buffer_request         (                       ),
+                .buffer_release         (                       ),
+                .buffer_addr            ('0                     )
+            );
+
+
     // read は未使用
-    assign axi4_mem0.arid     = 0;
-    assign axi4_mem0.araddr   = 0;
-    assign axi4_mem0.arburst  = 0;
-    assign axi4_mem0.arcache  = 0;
-    assign axi4_mem0.arlen    = 0;
-    assign axi4_mem0.arlock   = 0;
-    assign axi4_mem0.arprot   = 0;
-    assign axi4_mem0.arqos    = 0;
-    assign axi4_mem0.arregion = 0;
-    assign axi4_mem0.arsize   = 0;
-    assign axi4_mem0.arvalid  = 0;
-    assign axi4_mem0.rready   = 0;
+    assign axi4_mem1.arid     = 0;
+    assign axi4_mem1.araddr   = 0;
+    assign axi4_mem1.arburst  = 0;
+    assign axi4_mem1.arcache  = 0;
+    assign axi4_mem1.arlen    = 0;
+    assign axi4_mem1.arlock   = 0;
+    assign axi4_mem1.arprot   = 0;
+    assign axi4_mem1.arqos    = 0;
+    assign axi4_mem1.arregion = 0;
+    assign axi4_mem1.arsize   = 0;
+    assign axi4_mem1.arvalid  = 0;
+    assign axi4_mem1.rready   = 0;
     
     
     
