@@ -57,6 +57,16 @@ void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 #define SYSREG_BLACK_WIDTH      0x000a
 #define SYSREG_BLACK_HEIGHT     0x000b
 
+#define TIMGENREG_CORE_ID               0x00
+#define TIMGENREG_CORE_VERSION          0x01
+#define TIMGENREG_CTL_CONTROL           0x04
+#define TIMGENREG_CTL_STATUS            0x05
+#define TIMGENREG_CTL_TIMER             0x08
+#define TIMGENREG_PARAM_PERIOD          0x10
+#define TIMGENREG_PARAM_TRIG0_START     0x20
+#define TIMGENREG_PARAM_TRIG0_END       0x21
+#define TIMGENREG_PARAM_TRIG0_POL       0x22
+
 
 int main(int argc, char *argv[])
 {
@@ -90,13 +100,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    auto reg_sys   = uio_acc.GetAccessor(0x00000000);
+    auto reg_sys    = uio_acc.GetAccessor(0x00000000);
+    auto reg_timgen = uio_acc.GetAccessor(0x00010000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
 #if 1
     std::cout << "CORE ID" << std::endl;
     std::cout << std::hex << reg_sys.ReadReg(SYSREG_ID) << std::endl;
+    std::cout << std::hex << reg_timgen.ReadReg(TIMGENREG_CORE_ID) << std::endl;
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
 //  std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
 //  std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
@@ -237,7 +249,8 @@ int main(int argc, char *argv[])
     spi_change(i2c, 192, 0x1);
 
 
-    jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
+//  jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
+    jelly::VideoDmaControl vdmaw(reg_wdma, 2, 2, true);
 
     // video input start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
@@ -251,31 +264,22 @@ int main(int argc, char *argv[])
 
     int black_level = 0;
     int soft_gain   = 10;
+    int timgen_period = 99999;
+    int trig0_start   = 10;
+    int trig0_end     = 90000;
+
     cv::imshow("img", cv::Mat::zeros(480, 640, CV_8UC3));
     cv::createTrackbar("bl",   "img", nullptr, 1024);
     cv::setTrackbarPos("bl",   "img", black_level);
     cv::createTrackbar("sg",   "img", nullptr, 100);
     cv::setTrackbarPos("sg",   "img", soft_gain);
 
-    /*
-    cv::createTrackbar("scale",    "img", nullptr, 4);
-    cv::setTrackbarMin("scale",    "img", 1);
-    cv::setTrackbarPos("scale",    "img", view_scale);
-    cv::createTrackbar("fps",      "img", nullptr, 1000);
-    cv::setTrackbarMin("fps",      "img", 5);
-    cv::setTrackbarPos("fps",      "img", frame_rate);
-    cv::createTrackbar("exposure", "img", nullptr, 1000);
-    cv::setTrackbarMin("exposure", "img", 1);
-    cv::setTrackbarPos("exposure", "img", exposure);
-    cv::createTrackbar("a_gain",   "img", nullptr, 20);
-    cv::setTrackbarPos("a_gain",   "img", a_gain);
-    cv::createTrackbar("d_gain",   "img", nullptr, 24);
-    cv::setTrackbarPos("d_gain",   "img", d_gain);
-    cv::createTrackbar("bayer" ,   "img", nullptr, 3);
-    cv::setTrackbarPos("bayer",    "img", bayer_phase);
-    cv::createTrackbar("fmtsel",   "img", nullptr, 3);
-    cv::setTrackbarPos("fmtsel",   "img", fmtsel);
-    */
+    cv::createTrackbar("peri", "img", nullptr, 100000);
+    cv::setTrackbarPos("peri", "img", timgen_period);
+    cv::createTrackbar("ts",   "img", nullptr,  99999);
+    cv::setTrackbarPos("ts",   "img", trig0_start);
+    cv::createTrackbar("te",   "img", nullptr,  99999);
+    cv::setTrackbarPos("te",   "img", trig0_end);
 
 //  vdmaw.SetBufferAddr(dmabuf_phys_adr);
 //  vdmaw.SetImageSize(width, height);
@@ -288,11 +292,20 @@ int main(int argc, char *argv[])
 
         black_level  = cv::getTrackbarPos("bl", "img");
         soft_gain    = cv::getTrackbarPos("sg", "img");
+        timgen_period = cv::getTrackbarPos("peri", "img");
+        trig0_start  = cv::getTrackbarPos("ts", "img");
+        trig0_end    = cv::getTrackbarPos("te", "img");
+
+        reg_timgen.WriteReg(TIMGENREG_PARAM_PERIOD,      timgen_period);
+        reg_timgen.WriteReg(TIMGENREG_PARAM_TRIG0_START, trig0_start);
+        reg_timgen.WriteReg(TIMGENREG_PARAM_TRIG0_END,   trig0_end);
 
         // 画像読み込み
         vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
-        cv::Mat img(height, width, CV_32S);
-        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
+//      cv::Mat img(height, width, CV_32S);
+//      udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
+        cv::Mat img(height, width, CV_16U);
+        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 2);
         
         // 並び替えを行う
         cv::Mat img_u16(height, width, CV_16U);
@@ -302,7 +315,7 @@ int main(int argc, char *argv[])
                 xx = (xx & 0x8) ? (xx ^ 0x7) : xx;
                 xx = ((xx & 0xfff8) | ((xx & 0x6) >> 1) | ((xx & 0x1) << 2));
                 if ( !swap ) { xx = x; }
-                img_u16.at<std::uint16_t>(y, x) = img.at<std::int32_t>(y, xx);
+                img_u16.at<std::uint16_t>(y, x) = img.at<std::int16_t>(y, xx);
             }
         }
         
