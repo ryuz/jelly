@@ -701,7 +701,7 @@ module kv260_rtcl_p3s7_hs
     // DMA write
     jelly3_axi4s_if
             #(
-                .DATA_BITS  (32     ),
+                .DATA_BITS  (16     ),
                 .DEBUG      (DEBUG  )
             )
         axi4s_wdma
