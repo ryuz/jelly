@@ -84,11 +84,10 @@ class RtclP3s7Client:
         return res.data
 
     def write_sensor_reg(self, addr, data):
-        # sensor register access uses the same RPC as camera regs on the server
-        self.stub.WriteCamReg(rtcl_p3s7_control_pb2.WriteRegRequest(addr=addr, data=data))
+        self.stub.WriteSensorReg(rtcl_p3s7_control_pb2.WriteRegRequest(addr=addr, data=data))
 
     def read_sensor_reg(self, addr):
-        res = self.stub.ReadCamReg(rtcl_p3s7_control_pb2.ReadRegRequest(addr=addr))
+        res = self.stub.ReadSensorReg(rtcl_p3s7_control_pb2.ReadRegRequest(addr=addr))
         return res.data
 
     def record_image(self, width, height, frames):
