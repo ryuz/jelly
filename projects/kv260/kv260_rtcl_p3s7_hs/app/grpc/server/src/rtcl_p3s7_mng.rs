@@ -139,6 +139,7 @@ impl RtclP3s7Mng {
             0,
             Some(100000),
         )?;
+        std::thread::sleep(std::time::Duration::from_micros(1000));
 
         unsafe {
             reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x0);
