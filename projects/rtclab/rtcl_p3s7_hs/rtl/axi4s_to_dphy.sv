@@ -47,7 +47,6 @@ module axi4s_to_dphy
                 .ASYNC          (1                  ),
                 .PTR_BITS       (9                  ),
                 .RAM_TYPE       ("block"            ),
-                .LOW_DEALY      (0                  ),
                 .DOUT_REG       (1                  ),
                 .S_REG          (1                  ),
                 .M_REG          (1                  )
@@ -56,8 +55,8 @@ module axi4s_to_dphy
             (
                 .s_axi4s        (s_axi4s            ),
                 .m_axi4s        (axi4s_fifo         ),
-                .s_free_count   (                   ),
-                .m_data_count   (                   )
+                .s_free_size    (                   ),
+                .m_data_size    (                   )
             );
 
     // パケットタイプ

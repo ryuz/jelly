@@ -287,10 +287,10 @@ module jelly3_video_format_regularizer_core
             
             
             // data
-            reg_tuser  <= sig_x_first && sig_y_first;
-            reg_tlast  <= sig_x_last;
-            reg_tdata  <= (reg_fill_h || reg_fill_v || reg_frame_timeout) ? reg_param_fill : in_tdata;
-            reg_tvalid <= sig_valid;
+            reg_tuser[0] <= sig_x_first && sig_y_first;
+            reg_tlast    <= sig_x_last;
+            reg_tdata    <= (reg_fill_h || reg_fill_v || reg_frame_timeout) ? reg_param_fill : in_tdata;
+            reg_tvalid   <= sig_valid;
         end
     end
     
