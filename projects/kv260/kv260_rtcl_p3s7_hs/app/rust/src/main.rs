@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use std::error::Error;
+use std::io::Write;
 //use std::thread;
 //use std::time::Duration;
 
@@ -40,8 +41,36 @@ const TIMGENREG_PARAM_TRIG0_START: usize = 0x0020;
 const TIMGENREG_PARAM_TRIG0_END: usize = 0x0021;
 const TIMGENREG_PARAM_TRIG0_POL: usize = 0x0022;
 
+// Video format regularizer
+const REG_VIDEO_FMTREG_CORE_ID: usize = 0x00;
+const REG_VIDEO_FMTREG_CORE_VERSION: usize = 0x01;
+const REG_VIDEO_FMTREG_CTL_CONTROL: usize = 0x04;
+const REG_VIDEO_FMTREG_CTL_STATUS: usize = 0x05;
+const REG_VIDEO_FMTREG_CTL_INDEX: usize = 0x07;
+const REG_VIDEO_FMTREG_CTL_SKIP: usize = 0x08;
+const REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN: usize = 0x0a;
+const REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT: usize = 0x0b;
+const REG_VIDEO_FMTREG_PARAM_WIDTH: usize = 0x10;
+const REG_VIDEO_FMTREG_PARAM_HEIGHT: usize = 0x11;
+const REG_VIDEO_FMTREG_PARAM_FILL: usize = 0x12;
+const REG_VIDEO_FMTREG_PARAM_TIMEOUT: usize = 0x13;
+
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("Hello, world!");
+    // mmap udmabuf
+    let udmabuf_device_name = "udmabuf-jelly-vram0";
+    println!("\nudmabuf open");
+    let udmabuf_acc =
+        UdmabufAccessor::<usize>::new(udmabuf_device_name, false).expect("Failed to open udmabuf");
+    println!(
+        "{} phys addr : 0x{:x}",
+        udmabuf_device_name,
+        udmabuf_acc.phys_addr()
+    );
+    println!(
+        "{} size      : 0x{:x}",
+        udmabuf_device_name,
+        udmabuf_acc.size()
+    );
 
     // UIO
     println!("\nuio open");
@@ -113,13 +142,124 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("KV260 DPHY RX init_done = 0".into());
     }
 
+    // イメージセンサー起動
     let width = 256;
     let height = 256;
+
+    /// ここから
+    // set image size (UIO registers expect usize)
+    unsafe {
+        reg_sys.write_reg(SYSREG_IMAGE_WIDTH, width as usize)
+    };
+    unsafe { reg_sys.write_reg(SYSREG_IMAGE_HEIGHT, height as usize) };
+
+    // センサー起動: use the Python300 SPI via the `cam` helper
+    cam.write_p3_spi(16, 0x0003)?; // power_down  0:pwd_n, 1:PLL enable, 2: PLL Bypass
+    cam.write_p3_spi(32, 0x0007)?; // config0 (10bit mode)
+    cam.write_p3_spi(8, 0x0000)?; // pll_soft_reset, pll_lock_soft_reset
+    cam.write_p3_spi(9, 0x0000)?; // cgen_soft_reset
+    cam.write_p3_spi(34, 0x0001)?; // config0 Logic General Enable Configuration
+    cam.write_p3_spi(40, 0x0007)?; // image_core_config0
+    cam.write_p3_spi(48, 0x0001)?; // AFE Power down
+    cam.write_p3_spi(64, 0x0001)?; // Bias Power Down Configuration
+    cam.write_p3_spi(72, 0x2227)?; // Charge Pump
+    cam.write_p3_spi(112, 0x0007)?; // Serializers/LVDS/IO
+    cam.write_p3_spi(10, 0x0000)?; // soft_reset_analog
+
+    // ROI and address calculations (use signed ints for arithmetic)
+    let width_i = width as i32;
+    let height_i = height as i32;
+    let roi_x = ((672 - width_i) / 2) & !0x0f; // align to 16
+    let roi_y = ((512 - height_i) / 2) & !0x01; // align to 2
+
+    let x_start = roi_x / 8;
+    let x_end = x_start + width_i / 8 - 1;
+    let y_start = roi_y;
+    let y_end = y_start + height_i - 1;
+
+    cam.write_p3_spi(256, ((x_end << 8) | (x_start & 0xff)) as u16)?; // x_end<<8 | x_start
+    cam.write_p3_spi(257, (y_start & 0xffff) as u16)?; // y_start
+    cam.write_p3_spi(258, (y_end & 0xffff) as u16)?; // y_end
+
+    // ストップしてトレーニングへ
+    cam.write_p3_spi(192, 0x0)?; // stop / training pattern
+    std::thread::sleep(std::time::Duration::from_micros(1000));
+
+    // reset/align on receiver side (Spartan-7 registers)
+    cam.write_s7_reg(CAMREG_RECV_RESET, 1)?;
+    cam.write_s7_reg(CAMREG_ALIGN_RESET, 1)?;
+    std::thread::sleep(std::time::Duration::from_micros(1000));
+    cam.write_s7_reg(CAMREG_RECV_RESET, 0)?;
+    std::thread::sleep(std::time::Duration::from_micros(1000));
+    cam.write_s7_reg(CAMREG_ALIGN_RESET, 0)?;
+    std::thread::sleep(std::time::Duration::from_micros(1000));
+
+    let cam_calib_status = cam.read_s7_reg(CAMREG_ALIGN_STATUS)?;
+    if cam_calib_status != 0x01 {
+        eprintln!(
+            "!!ERROR!! CAM calibration is not done.  status = {}",
+            cam_calib_status
+        );
+        return Err("CAM calibration is not done".into());
+    }
+
+    // 動作開始
+    cam.write_p3_spi(192, 0x1)?;
+
+    let mut vdmaw = VideoDmaControl::new(reg_wdma_img, 2, 2, Some(usleep)).unwrap();
+    // video input start
+    unsafe {
+        reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
+        reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 10000000);
+        reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_WIDTH, width);
+        reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_HEIGHT, height);
+        reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_FILL, 0x000);
+        reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 100000);
+        reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
+    }
+    std::thread::sleep(std::time::Duration::from_micros(1000));
+
+    // 1frame キャプチャ
+    vdmaw.oneshot(
+        udmabuf_acc.phys_addr(),
+        width as i32,
+        height as i32,
+        1,
+        0,
+        0,
+        0,
+        0,
+        Some(100000),
+    )?;
+    let mut buf = vec![0u16; (width * height) as usize];
+    unsafe {
+        udmabuf_acc.copy_to_::<u16>(0, buf.as_mut_ptr(), (width * height) as usize);
+    }
+
+    // PGM形式で保存
+    let pgm_header = format!(
+        "P2\n{} {}\n1023\n",
+        width, height
+    );
+    let mut pgm_file = std::fs::File::create("output.pgm")
+        .expect("Failed to create output.pgm");
+    pgm_file
+        .write_all(pgm_header.as_bytes())
+        .expect("Failed to write PGM header");
+    for pixel in buf {
+        pgm_file
+            .write_all(format!("{}\n", pixel).as_bytes())
+            .expect("Failed to write pixel data");
+    }
 
     // カメラOFF
     unsafe { reg_sys.write_reg(SYSREG_CAM_ENABLE, 0) };
     std::thread::sleep(std::time::Duration::from_millis(10));
     Ok(())
+}
+
+fn usleep() {
+    std::thread::sleep(std::time::Duration::from_micros(1));
 }
 
 struct RtclP3s7Cmd {
@@ -133,6 +273,7 @@ impl RtclP3s7Cmd {
         })
     }
 
+    /// Write a 16-bit register on the Spartan-7
     pub fn write_s7_reg(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
         let addr = (addr << 1) | 1;
         let buf: [u8; 4] = [
@@ -145,6 +286,7 @@ impl RtclP3s7Cmd {
         Ok(())
     }
 
+    /// Read a 16-bit register on the Spartan-7
     pub fn read_s7_reg(&mut self, addr: u16) -> Result<u16, Box<dyn Error>> {
         let addr = (addr << 1);
         let wbuf: [u8; 4] = [((addr >> 8) & 0xff) as u8, ((addr >> 0) & 0xff) as u8, 0, 0];
@@ -154,11 +296,13 @@ impl RtclP3s7Cmd {
         Ok(rbuf[0] as u16 | ((rbuf[1] as u16) << 8))
     }
 
+    /// Write a 16-bit register on the PYTHON300 SPI
     pub fn write_p3_spi(&mut self, addr: u16, data: u16) -> Result<(), Box<dyn Error>> {
         let addr = addr | (1 << 14);
         self.write_s7_reg(addr, data)
     }
 
+    /// Read a 16-bit register on the PYTHON300 SPI
     pub fn read_p3_spi(&mut self, addr: u16, data: u16) -> Result<(u16), Box<dyn Error>> {
         let addr = addr | (1 << 14);
         self.read_s7_reg(addr)
