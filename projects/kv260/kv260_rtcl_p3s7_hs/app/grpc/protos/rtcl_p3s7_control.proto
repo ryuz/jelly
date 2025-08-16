@@ -1,0 +1,45 @@
+syntax = "proto3";
+package rtcl_p3s7_control;
+
+service RtclP3s7Control {
+    rpc WriteReg (WriteRegRequest) returns (BoolResponse);
+//    rpc ReadReg (ReadRegRequest) returns (ReadRegResponse);
+//    rpc WriteS7Reg (WriteRegRequest) returns (BoolResponse);
+//    rpc ReadS7Reg (ReadRegRequest) returns (ReadRegResponse);
+//    rpc WriteP3Reg (WriteRegRequest) returns (BoolResponse);
+//    rpc ReadSP3eg (ReadRegRequest) returns (ReadRegResponse);
+//    rpc GetImage (GetImageRequest) returns (ImageResponse);
+}
+
+
+message Empty {
+}
+
+message BoolResponse {
+    bool result = 1;
+}
+
+message WriteRegRequest {
+    uint64 addr = 1;
+    uint64 data = 2;
+}
+
+message ReadRegRequest {
+    uint64 addr = 1;
+}
+
+message ReadRegResponse {
+    bool result = 1;
+    int32 data = 2;
+}
+
+message GetImageRequest {
+    uint64 addr = 1;
+    uint64 size = 2;
+}
+
+message ImageResponse {
+    bool result = 1;
+    bytes image = 5;
+}
+
