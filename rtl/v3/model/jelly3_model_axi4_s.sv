@@ -129,7 +129,7 @@ module jelly3_model_axi4_s
     jelly3_stream_fifo_sync
             #(
                 .PTR_BITS           (AW_FIFO_PTR_BITS                                                       ),
-                .DATA_BITS          ($bits({s_axi4.awid, s_axi4.awaddr, s_axi4.awlen, s_axi4.awsize})       )
+                .DATA_BITS          ($bits({axi4_fifo_awid, axi4_fifo_awaddr, axi4_fifo_awlen, axi4_fifo_awsize}))
             )
         u_stream_fifo_sync_aw
             (
@@ -155,7 +155,7 @@ module jelly3_model_axi4_s
     jelly3_stream_fifo_sync
             #(
                 .PTR_BITS          (W_FIFO_PTR_BITS                                     ),
-                .DATA_BITS         ($bits({s_axi4.wdata, s_axi4.wstrb, s_axi4.wlast})   )
+                .DATA_BITS         ($bits({axi4_wdata, axi4_wstrb, axi4_wlast})         )
             )
         u_stream_fifo_sync_w
             (
