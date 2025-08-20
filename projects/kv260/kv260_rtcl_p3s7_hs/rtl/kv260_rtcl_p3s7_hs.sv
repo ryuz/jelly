@@ -388,6 +388,8 @@ module kv260_rtcl_p3s7_hs
     //  Timing Generator
     // ----------------------------------------
 
+    logic   [31:0]       timegen_frames;
+
     timing_generator
             #(
                 .TIMER_BITS             (     32),
@@ -401,7 +403,8 @@ module kv260_rtcl_p3s7_hs
         u_timing_generator
             (
                 .s_axi4l                (axi4l_dec[DEC_TGEN].s  ),
-                .out_trig0              (cam_gpio               )
+                .out_trig0              (cam_gpio               ),
+                .out_frames             (timegen_frames         )
             );
 
 
@@ -986,6 +989,7 @@ module kv260_rtcl_p3s7_hs
     end
 
     // pmod
+    /*
     assign pmod[0] = reg_counter_rxbyteclkhs[25];
     assign pmod[1] = axi4s_image.tvalid;
     assign pmod[2] = axi4s_black.tvalid;
@@ -996,6 +1000,9 @@ module kv260_rtcl_p3s7_hs
     assign pmod[4] = cam_enable;
     assign pmod[5] = reg_frame_count[7];
     assign pmod[7:6] = reg_counter_clk100[9:8];
+    */
+
+    assign pmod[7:0] = timegen_frames[7:0];
     
     
     // Debug
