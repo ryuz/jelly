@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//                                 Copyright (C) 2008-2024 by Ryuji Fuchikami
+//                                 Copyright (C) 2008-2025 by Ryuji Fuchikami
 //                                 https://github.com/ryuz/jelly.git
 // ---------------------------------------------------------------------------
 
@@ -12,9 +12,11 @@
 
 module jelly3_axi4l_register
     #(
-        parameter   int                             NUM  = 4,
-        parameter   int                             BITS = 32,
-        parameter   logic   [NUM-1:0][BITS-1:0]     INIT = '0
+        parameter   int                             NUM        = 4  ,
+        parameter   int                             BITS       = 32 ,
+        parameter   logic   [NUM-1:0][BITS-1:0]     INIT       = '0 ,
+        parameter   bit                             READ_ONLY  = 0  ,
+        parameter   bit                             WRITE_ONLY = 0  
     )
     (
         jelly3_axi4l_if.s                       s_axi4l,
@@ -77,7 +79,9 @@ module jelly3_axi4l_register
                 bvalid <= 0;
             end
             if ( s_axi4l.awvalid && s_axi4l.awready ) begin
-                reg_data[reg_waddr] <= reg_data_t'(write_mask(axi_data_t'(reg_data[reg_waddr]), s_axi4l.wdata, s_axi4l.wstrb));
+                if ( !READ_ONLY ) begin
+                    reg_data[reg_waddr] <= reg_data_t'(write_mask(axi_data_t'(reg_data[reg_waddr]), s_axi4l.wdata, s_axi4l.wstrb));
+                end
                 bvalid <= 1'b1;
             end
         end
@@ -103,7 +107,9 @@ module jelly3_axi4l_register
                 rvalid <= 1'b0;
             end
             if ( s_axi4l.arvalid && s_axi4l.arready ) begin
-                rdata  <= reg_data[reg_raddr];
+                if ( !WRITE_ONLY ) begin
+                    rdata  <= reg_data[reg_raddr];
+                end
                 rvalid <= 1'b1;
             end
         end
