@@ -75,6 +75,12 @@
                 device-name = "udmabuf-jelly-vram0";
                 size = <0x0 0x10000000>;
             };
+            udmabuf5 {
+                compatible = "ikwzm,u-dma-buf";
+                device-name = "udmabuf-jelly-vram1";
+                size = <0x0 0x1000000>;
+            };
+
         };
     }; 
 
@@ -104,5 +110,4 @@
             };
         };
     };
-    
 };

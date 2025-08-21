@@ -61,6 +61,7 @@ const REG_VIDEO_FMTREG_PARAM_TIMEOUT: usize = 0x13;
 pub struct RtclP3s7Mng {
     uio: UioAccessor::<usize>,
     buf0 : UdmabufAccessor::<usize>,
+    buf1 : UdmabufAccessor::<usize>,
     i2c: RtclP3s7I2c,
 }
 
@@ -69,9 +70,11 @@ impl RtclP3s7Mng {
         let i2c = RtclP3s7I2c::new("/dev/i2c-6")?;
         let uio = UioAccessor::<usize>::new_with_name("uio_pl_peri")?;
         let buf0 = UdmabufAccessor::<usize>::new("udmabuf-jelly-vram0", false)?;
+        let buf1 = UdmabufAccessor::<usize>::new("udmabuf-jelly-vram1", false)?;
         Ok(RtclP3s7Mng {
             uio,
             buf0,
+            buf1,
             i2c,
         })
     }
@@ -153,6 +156,35 @@ impl RtclP3s7Mng {
         let mut buf = vec![0u8; size as usize];
         unsafe {
             self.buf0.copy_to_::<u8>(addr, buf.as_mut_ptr(), size);
+        }
+        Ok(buf)
+    }
+
+
+    pub fn record_black(&mut self, width: usize, height: usize, frames: usize) -> Result<(), Box<dyn Error>> {
+        // 1frame キャプチャ
+        let reg_wdma_blk = self.uio.subclone(BASE_ADDR_WDMA_BLK, 0x400);
+        let mut vdmaw = VideoDmaControl::new(reg_wdma_blk, 2, 2, Some(usleep)).unwrap();
+        vdmaw.oneshot(
+            self.buf1.phys_addr(),
+            width as i32,
+            height as i32,
+            frames as i32,
+            0,
+            0,
+            0,
+            0,
+            Some(100000),
+        )?;
+        std::thread::sleep(std::time::Duration::from_micros(1000));
+
+        Ok(())
+    }
+
+    pub fn read_black(&mut self, addr: usize, size: usize) -> Result<Vec<u8>, Box<dyn Error>> {
+        let mut buf = vec![0u8; size as usize];
+        unsafe {
+            self.buf1.copy_to_::<u8>(addr, buf.as_mut_ptr(), size);
         }
         Ok(buf)
     }

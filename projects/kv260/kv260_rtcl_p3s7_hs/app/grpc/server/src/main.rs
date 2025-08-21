@@ -218,6 +218,45 @@ impl RtclP3s7Control for RtclP3s7ControlService {
             }
         }
     }
+
+    async fn record_black(&self, request: Request<RecordImageRequest>) -> Result<Response<BoolResponse>, Status> {
+        let req = request.into_inner();
+        let mut mng = self.mng.lock().unwrap();
+        match mng.record_black(req.width as usize, req.height as usize, req.frames as usize) {
+            Ok(()) => {
+                if self.verbose >= 1 {
+                    println!("record_black: width={} height={} frames={}", req.width, req.height, req.frames);
+                }
+                Ok(Response::new(BoolResponse { result: true }))
+            }
+            Err(e) => {
+                if self.verbose >= 1 {
+                    eprintln!("record_black failed: {}", e);
+                }
+                Ok(Response::new(BoolResponse { result: false }))
+            }
+        }
+    }
+
+    async fn read_black(&self, request: Request<ReadImageRequest>) -> Result<Response<ReadImageResponse>, Status> {
+        let req = request.into_inner();
+        let mut mng = self.mng.lock().unwrap();
+        match mng.read_black(req.addr as usize, req.size as usize) {
+            Ok(buf) => {
+                if self.verbose >= 1 {
+                    println!("read_black: addr={} size={}", req.addr, req.size);
+                }
+                Ok(Response::new(ReadImageResponse { result: true, image: buf }))
+            }
+            Err(e) => {
+                if self.verbose >= 1 {
+                    eprintln!("read_black failed: {}", e);
+                }
+                // On error return empty data
+                Ok(Response::new(ReadImageResponse { result: false, image: vec![] }))
+            }
+        }
+    }
 }
 
 

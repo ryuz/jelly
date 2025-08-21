@@ -12,6 +12,8 @@ service RtclP3s7Control {
       rpc ReadSensorReg (ReadRegRequest) returns (ReadRegResponse);
       rpc RecordImage (RecordImageRequest) returns (BoolResponse);
       rpc ReadImage (ReadImageRequest) returns (ReadImageResponse);
+      rpc RecordBlack (RecordImageRequest) returns (BoolResponse);
+      rpc ReadBlack (ReadImageRequest) returns (ReadImageResponse);
 }
 
 
