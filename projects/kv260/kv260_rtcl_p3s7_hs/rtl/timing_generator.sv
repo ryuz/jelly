@@ -18,6 +18,8 @@ module timing_generator
             parameter                   CORE_VERSION           = 32'h0001_0000          ,
             parameter   int             TIMER_BITS             = 32                     ,
             parameter   type            timer_t                = logic [TIMER_BITS-1:0] ,
+            parameter   int             FRAMES_BITS            = 32                     ,
+            parameter   type            frames_t               = logic [FRAMES_BITS-1:0],
             parameter   int             REGADR_BITS            = 8                      ,
             parameter   type            regadr_t               = logic [REGADR_BITS-1:0],
 
@@ -28,9 +30,10 @@ module timing_generator
             parameter   bit             INIT_PARAM_TRIG0_POL   =      0                 
         )
         (
-            jelly3_axi4l_if.s                   s_axi4l,
+            jelly3_axi4l_if.s           s_axi4l     ,
 
-            output  var logic                   out_trig0
+            output  var logic           out_trig0   ,
+            output  var frames_t        out_frames
         );
     
     // -------------------------------------
@@ -60,6 +63,7 @@ module timing_generator
     logic           busy                    ;
     timer_t         timer                   ;
     timer_t         period                  ;
+    frames_t        frames                  ;
     logic           trig0_pulse             ;
     timer_t         trig0_start             ;
     timer_t         trig0_end               ;
@@ -88,6 +92,7 @@ module timing_generator
     always_ff @(posedge s_axi4l.aclk) begin
         if ( ~s_axi4l.aresetn ) begin
             busy                  <= 1'b0                   ;
+            frames                <= frames_t'(0)           ;
             period                <= INIT_PARAM_PERIOD      ;
             timer                 <= timer_t'(0)            ;
             trig0_pulse           <= 1'b0                   ;
@@ -105,8 +110,9 @@ module timing_generator
             if ( busy ) begin
                 timer <= timer + 1;
                 if ( timer >= period ) begin
-                    busy  <= reg_ctl_control[0] ;
-                    timer <= timer_t'(0)        ;
+                    busy   <= reg_ctl_control[0] ;
+                    frames <= frames + 1         ;
+                    timer  <= timer_t'(0)        ;
                     if ( reg_ctl_control[1] ) begin
                         // parameter update
                         period      <= reg_param_period     ;
@@ -205,7 +211,8 @@ module timing_generator
     
 
     // output
-    assign out_trig0 = trig0_pulse ^ reg_param_trig0_pol;
+    assign out_trig0  = trig0_pulse ^ reg_param_trig0_pol;
+    assign out_frames = frames;
 
     
 endmodule
