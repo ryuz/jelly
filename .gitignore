@@ -5,6 +5,7 @@
 !.python-version
 !.vitis-version
 !.cargo
+!.readthedocs.yaml
 
 # private file
 _*
