@@ -4,7 +4,7 @@
 <!-- Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.                   -->
 <!-- Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.   -->
 
-<Project Product="Vivado" Version="7" Minor="65" Path="/home/ryuji/git-work/jelly_rtcl/projects/rtclab/rtcl_p3s7_hs/syn/vivado2023.2/rtcl_p3s7_hs.xpr">
+<Project Product="Vivado" Version="7" Minor="65" Path="/home/ryuji/git-work/jelly_rtcl/projects/rtcl_p3s7/rtcl_p3s7_hs/syn/vivado2023.2/rtcl_p3s7_hs.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="6342f623816e4d64a90fedb5d89b4eba"/>

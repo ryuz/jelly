@@ -96,3 +96,10 @@ class RtclP3s7Client:
     def read_image(self, addr, size):
         res = self.stub.ReadImage(rtcl_p3s7_control_pb2.ReadImageRequest(addr=addr, size=size))
         return res.image
+
+    def record_black(self, width, height, frames):
+        self.stub.RecordBlack(rtcl_p3s7_control_pb2.RecordImageRequest(width=width, height=height, frames=frames))
+
+    def read_black(self, addr, size):
+        res = self.stub.ReadBlack(rtcl_p3s7_control_pb2.ReadImageRequest(addr=addr, size=size))
+        return res.image

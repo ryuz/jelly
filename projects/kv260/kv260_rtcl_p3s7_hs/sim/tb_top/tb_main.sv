@@ -43,8 +43,11 @@ module tb_main
 
     parameter   int     WIDTH_BITS  = 16    ;
     parameter   int     HEIGHT_BITS = 16    ;
-    parameter   int     IMG_WIDTH   = 64    ;
+    parameter   int     IMG_WIDTH   = 640   ;
     parameter   int     IMG_HEIGHT  = 64    ;
+
+    assign img_width  = IMG_WIDTH;
+    assign img_height = IMG_WIDTH;
 
     kv260_rtcl_p3s7_hs
             #(
@@ -107,6 +110,41 @@ module tb_main
     always_comb force u_top.u_design_1.axi4l_peri_arvalid = s_axi4l_peri_arvalid;
     always_comb force u_top.u_design_1.axi4l_peri_rready  = s_axi4l_peri_rready ;
 
+
+    // -----------------------------
+    //  RTCL-P3S7
+    // -----------------------------
+
+    tb_rtcl_p3s7_hs
+        u_rtcl_p3s7_hs
+            ();
+
+    logic               rxreseths   ;
+    logic               rxbyteclkhs ;
+    logic   [1:0][7:0]  rxdatahs    ;
+    logic   [1:0]       rxvalidhs   ;
+    logic   [1:0]       rxactivehs  ;
+    logic   [1:0]       rxsynchs    ;
+
+    assign rxreseths   = u_rtcl_p3s7_hs.rxreseths  ;
+    assign rxbyteclkhs = u_rtcl_p3s7_hs.rxbyteclkhs;
+    assign rxdatahs    = u_rtcl_p3s7_hs.rxdatahs   ;
+    assign rxvalidhs   = u_rtcl_p3s7_hs.rxvalidhs  ;
+    assign rxactivehs  = u_rtcl_p3s7_hs.rxactivehs ;
+    assign rxsynchs    = u_rtcl_p3s7_hs.rxsynchs   ;
+
+    initial begin
+        force u_top.system_rst_out = rxreseths;
+        force u_top.rxbyteclkhs    = rxbyteclkhs;
+        force u_top.dl0_rxdatahs   = rxdatahs[0];
+        force u_top.dl1_rxdatahs   = rxdatahs[1];
+        force u_top.dl0_rxactivehs = rxactivehs[0];
+        force u_top.dl1_rxactivehs = rxactivehs[1];
+        force u_top.dl0_rxsynchs   = rxsynchs[0];
+        force u_top.dl1_rxsynchs   = rxsynchs[1];
+        force u_top.dl0_rxvalidhs  = rxactivehs[0] & ~rxsynchs[0];
+        force u_top.dl1_rxvalidhs  = rxactivehs[1] & ~rxsynchs[1];
+    end
 
 endmodule
 

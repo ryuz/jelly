@@ -683,13 +683,16 @@ module rtcl_p3s7_hs
     assign led[0] = sensor_pwr_enable;
 //  assign led[1] = mipi_enable;
 //  assign led[1] = sensor_pgood;
-    assign led[1] = python_clk_counter[24];
+    assign led[1] = python_clk_counter[24] & sensor_pwr_enable;
 
-    assign pmod[0] = python_frame_toggle;
-//  assign pmod[7:1] = clk50_counter[15:9];
-    assign pmod[1] = clk50_counter[8];
-    assign pmod[2] = clk72_counter[8];
-    assign pmod[7:3] = '0;
+    assign pmod[0] = python_monitor[0]      ;
+    assign pmod[1] = python_monitor[1]      ;
+    assign pmod[2] = python_trigger[0]      ;
+    assign pmod[3] = axi4s_recv.tvalid      ;
+    assign pmod[4] = python_frame_toggle    ;
+    assign pmod[5] = dphy_dl0_txrequesths   ;
+    assign pmod[6] = dphy_dl0_txreadyhs     ;
+    assign pmod[7] = '0;
 
 
     // --------------------------------

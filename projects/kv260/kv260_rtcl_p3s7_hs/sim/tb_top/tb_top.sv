@@ -102,13 +102,23 @@ module tb_top();
     localparam type axi4l_addr_t = logic [axi4l_peri.ADDR_BITS-1:0];
     localparam type axi4l_data_t = logic [axi4l_peri.DATA_BITS-1:0];
 
-    localparam  axi4l_addr_t    ADR_GPIO   = axi4l_addr_t'(40'ha000_0000);
+    localparam  axi4l_addr_t    ADR_SYS    = axi4l_addr_t'(40'ha000_0000);
     localparam  axi4l_addr_t    ADR_TGEN   = axi4l_addr_t'(40'ha001_0000);
     localparam  axi4l_addr_t    ADR_FMTR   = axi4l_addr_t'(40'ha010_0000);
-    localparam  axi4l_addr_t    ADR_WDMA   = axi4l_addr_t'(40'ha021_0000);
-    localparam  axi4l_addr_t    ADR_WB     = axi4l_addr_t'(40'ha012_1000);
-    localparam  axi4l_addr_t    ADR_DEMOS  = axi4l_addr_t'(40'ha012_2000);
-    localparam  axi4l_addr_t    ADR_COLMAT = axi4l_addr_t'(40'ha012_4000);
+    localparam  axi4l_addr_t    ADR_WDMA0  = axi4l_addr_t'(40'ha021_0000);
+    localparam  axi4l_addr_t    ADR_WDMA1  = axi4l_addr_t'(40'ha022_0000);
+
+    localparam  SYSREG_ID             = 4'h0;
+    localparam  SYSREG_SW_RESET       = 4'h1;
+    localparam  SYSREG_CAM_ENABLE     = 4'h2;
+    localparam  SYSREG_CSI_DATA_TYPE  = 4'h3;
+    localparam  SYSREG_DPHY_INIT_DONE = 4'h4;
+    localparam  SYSREG_FPS_COUNT      = 4'h6;
+    localparam  SYSREG_FRAME_COUNT    = 4'h7;
+    localparam  SYSREG_IMG_WIDTH      = 4'h8;
+    localparam  SYSREG_IMG_HEIGHT     = 4'h9;
+    localparam  SYSREG_BLK_WIDTH      = 4'ha;
+    localparam  SYSREG_BLK_HEIGHT     = 4'hb;
 
     jelly3_axi4l_accessor
             #(
@@ -131,48 +141,71 @@ module tb_top();
         
         #(RATE100*200);
         $display("start");
-        u_axi4l.read_reg(ADR_GPIO, 0, rdata);
-        u_axi4l.read_reg(ADR_GPIO, 7, rdata);
-        u_axi4l.read_reg(ADR_GPIO, 8, rdata);
-        u_axi4l.read_reg(ADR_GPIO, 9, rdata);
-        u_axi4l.read_reg(ADR_GPIO,10, rdata);
-        u_axi4l.write_reg(ADR_GPIO, 8, 64, 8'hff);
-        u_axi4l.write_reg(ADR_GPIO, 9, 32, 8'hff);
-        u_axi4l.read_reg(ADR_GPIO, 8, rdata);
-        u_axi4l.read_reg(ADR_GPIO, 9, rdata);
+        u_axi4l.read_reg(ADR_SYS, 0, rdata);
+        u_axi4l.read_reg(ADR_SYS, 7, rdata);
+        u_axi4l.read_reg(ADR_SYS, 8, rdata);
+        u_axi4l.read_reg(ADR_SYS, 9, rdata);
+        u_axi4l.read_reg(ADR_SYS,10, rdata);
+//      u_axi4l.write_reg(ADR_SYS, 8, 64, 8'hff);
+//      u_axi4l.write_reg(ADR_SYS, 9, 32, 8'hff);
+        u_axi4l.read_reg(ADR_SYS, 8, rdata);
+        u_axi4l.read_reg(ADR_SYS, 9, rdata);
 
         u_axi4l.read_reg(ADR_TGEN, 0, rdata);
 
 //      #(RATE100*200);
         $display("fmtr");
-        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_WIDTH     , axi4l_data_t'(64 ), 8'hff);
-        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_HEIGHT    , axi4l_data_t'(32 ), 8'hff);
+        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_WIDTH     , axi4l_data_t'(sim_img_width ), 8'hff);
+        u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_HEIGHT    , axi4l_data_t'(sim_img_height), 8'hff);
 //      u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_PARAM_TIMEOUT   , axi4l_data_t'(1000          ), 8'hff);
 //      u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT , axi4l_data_t'(100000        ), 8'hff);
         u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, axi4l_data_t'(1             ), 8'hff);
         u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_CONTROL     , axi4l_data_t'(1             ), 8'hff);
         u_axi4l.read_reg (ADR_FMTR, `REG_VIDEO_FMTREG_CTL_STATUS      , rdata);
 
-        $display("set write DMA");
-        u_axi4l.read_reg (ADR_WDMA, `REG_VDMA_WRITE_CORE_ID         , rdata);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_ADDR      , axi4l_data_t'(64'h0000a00                   ), 8'hff);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_LINE_STEP , axi4l_data_t'(sim_img_width*4               ), 8'hff);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_H_SIZE    , axi4l_data_t'(sim_img_width-1               ), 8'hff);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_V_SIZE    , axi4l_data_t'(sim_img_height-1              ), 8'hff);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_FRAME_STEP, axi4l_data_t'(sim_img_height*sim_img_width*4), 8'hff);
-        u_axi4l.write_reg(ADR_WDMA, `REG_VDMA_WRITE_PARAM_F_SIZE    , axi4l_data_t'(1-1                           ), 8'hff);
+        #100000;
+        for ( int i = 0; i < 3; i++ ) begin
+            $display("set write DMA1");
+            u_axi4l.read_reg (ADR_WDMA1, `REG_VDMA_WRITE_CORE_ID         , rdata);
+            u_axi4l.write_reg(ADR_WDMA1, `REG_VDMA_WRITE_PARAM_ADDR      , axi4l_data_t'(64'h0000000          ), 8'hff);
+            u_axi4l.write_reg(ADR_WDMA1, `REG_VDMA_WRITE_PARAM_LINE_STEP , axi4l_data_t'(1280*2               ), 8'hff);
+            u_axi4l.write_reg(ADR_WDMA1, `REG_VDMA_WRITE_PARAM_H_SIZE    , axi4l_data_t'(1280-1               ), 8'hff);
+            u_axi4l.write_reg(ADR_WDMA1, `REG_VDMA_WRITE_PARAM_V_SIZE    , axi4l_data_t'(1-1                  ), 8'hff);
+            u_axi4l.write_reg(ADR_WDMA1, `REG_VDMA_WRITE_PARAM_FRAME_STEP, axi4l_data_t'(1*1280*2             ), 8'hff);
+            u_axi4l.write_reg(ADR_WDMA1, `REG_VDMA_WRITE_PARAM_F_SIZE    , axi4l_data_t'(1-1                  ), 8'hff);
+            u_axi4l.write_reg(ADR_WDMA1, `REG_VDMA_WRITE_CTL_CONTROL     , axi4l_data_t'(7                    ), 8'hff);  // oneshot & update & enable
+            do begin
+                u_axi4l.read_reg (ADR_WDMA1, `REG_VDMA_WRITE_CTL_STATUS, rdata);
+                #10000;
+            end while ( rdata != 0);
+        end
+        #1000
+        $finish;
+
+        $display("set write DMA0");
+        u_axi4l.read_reg (ADR_WDMA0, `REG_VDMA_WRITE_CORE_ID         , rdata);
+        u_axi4l.write_reg(ADR_WDMA0, `REG_VDMA_WRITE_PARAM_ADDR      , axi4l_data_t'(64'h0000a00                   ), 8'hff);
+        u_axi4l.write_reg(ADR_WDMA0, `REG_VDMA_WRITE_PARAM_LINE_STEP , axi4l_data_t'(sim_img_width*2               ), 8'hff);
+        u_axi4l.write_reg(ADR_WDMA0, `REG_VDMA_WRITE_PARAM_H_SIZE    , axi4l_data_t'(sim_img_width-1               ), 8'hff);
+        u_axi4l.write_reg(ADR_WDMA0, `REG_VDMA_WRITE_PARAM_V_SIZE    , axi4l_data_t'(sim_img_height-1              ), 8'hff);
+        u_axi4l.write_reg(ADR_WDMA0, `REG_VDMA_WRITE_PARAM_FRAME_STEP, axi4l_data_t'(sim_img_height*sim_img_width*4), 8'hff);
+        u_axi4l.write_reg(ADR_WDMA0, `REG_VDMA_WRITE_PARAM_F_SIZE    , axi4l_data_t'(1-1                           ), 8'hff);
 
         
         $display("start");
-        u_axi4l.write_reg(ADR_WDMA, int'(`REG_VDMA_WRITE_CTL_CONTROL)     , 3                             , 8'hff);  // update & enable
+        u_axi4l.write_reg(ADR_WDMA0, int'(`REG_VDMA_WRITE_CTL_CONTROL)     , 3                             , 8'hff);  // update & enable
         
        
-        #10000000
+        #2000000
         $display("stop");
-        u_axi4l.write_reg(ADR_WDMA, int'(`REG_VDMA_WRITE_CTL_CONTROL)     , 0                             , 8'hff);  // update & enable
+        u_axi4l.write_reg(ADR_WDMA0, int'(`REG_VDMA_WRITE_CTL_CONTROL)     , 0                             , 8'hff);  // update & enable
         #1000
 
+
+
+        u_axi4l.read_reg (ADR_WDMA1, `REG_VDMA_WRITE_CTL_STATUS, rdata);
         #1000000
+        u_axi4l.read_reg (ADR_WDMA1, `REG_VDMA_WRITE_CTL_STATUS, rdata);
         $finish();
     end
 

@@ -248,13 +248,12 @@ module kv260_rtcl_p3s7_hs
     //  Address decoder
     // ----------------------------------------
 
-    localparam DEC_SYS    = 0;
-    localparam DEC_TGEN   = 1;
-    localparam DEC_FMTR   = 2;
-    localparam DEC_RGB    = 3;
-    localparam DEC_WDMA   = 4;
-    localparam DEC_WDMABL = 5;
-    localparam DEC_NUM    = 6;
+    localparam DEC_SYS      = 0;
+    localparam DEC_TGEN     = 1;
+    localparam DEC_FMTR     = 2;
+    localparam DEC_WDMA_IMG = 3;
+    localparam DEC_WDMA_BLK = 4;
+    localparam DEC_NUM      = 5;
 
     jelly3_axi4l_if
             #(
@@ -269,12 +268,12 @@ module kv260_rtcl_p3s7_hs
             );
     
     // address map
-    assign {axi4l_dec[DEC_SYS   ].addr_base, axi4l_dec[DEC_SYS   ].addr_high} = {40'ha000_0000, 40'ha000_ffff};
-    assign {axi4l_dec[DEC_TGEN  ].addr_base, axi4l_dec[DEC_TGEN  ].addr_high} = {40'ha001_0000, 40'ha001_ffff};
-    assign {axi4l_dec[DEC_FMTR  ].addr_base, axi4l_dec[DEC_FMTR  ].addr_high} = {40'ha010_0000, 40'ha010_ffff};
-    assign {axi4l_dec[DEC_RGB   ].addr_base, axi4l_dec[DEC_RGB   ].addr_high} = {40'ha012_0000, 40'ha012_ffff};
-    assign {axi4l_dec[DEC_WDMA  ].addr_base, axi4l_dec[DEC_WDMA  ].addr_high} = {40'ha021_0000, 40'ha021_ffff};
-    assign {axi4l_dec[DEC_WDMABL].addr_base, axi4l_dec[DEC_WDMABL].addr_high} = {40'ha022_0000, 40'ha022_ffff};
+    assign {axi4l_dec[DEC_SYS     ].addr_base, axi4l_dec[DEC_SYS     ].addr_high} = {40'ha000_0000, 40'ha000_ffff};
+    assign {axi4l_dec[DEC_TGEN    ].addr_base, axi4l_dec[DEC_TGEN    ].addr_high} = {40'ha001_0000, 40'ha001_ffff};
+    assign {axi4l_dec[DEC_FMTR    ].addr_base, axi4l_dec[DEC_FMTR    ].addr_high} = {40'ha010_0000, 40'ha010_ffff};
+//  assign {axi4l_dec[DEC_RGB     ].addr_base, axi4l_dec[DEC_RGB     ].addr_high} = {40'ha012_0000, 40'ha012_ffff};
+    assign {axi4l_dec[DEC_WDMA_IMG].addr_base, axi4l_dec[DEC_WDMA_IMG].addr_high} = {40'ha021_0000, 40'ha021_ffff};
+    assign {axi4l_dec[DEC_WDMA_BLK].addr_base, axi4l_dec[DEC_WDMA_BLK].addr_high} = {40'ha022_0000, 40'ha022_ffff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -326,7 +325,7 @@ module kv260_rtcl_p3s7_hs
             reg_csi_data_type <= 8'h2b      ;
             reg_image_width   <= IMG_WIDTH  ;
             reg_image_height  <= IMG_HEIGHT ;
-            reg_black_width   <= 1284       ;
+            reg_black_width   <= 1280       ;
             reg_black_height  <=    1       ;
         end
         else begin
@@ -576,7 +575,7 @@ module kv260_rtcl_p3s7_hs
                 .USER_BITS      (1                  ),
                 .DEBUG          ("true"             )
             )
-        axi4s_black
+        axi4s_blk
             (
                 .aresetn        (axi4s_cam_aresetn  ),
                 .aclk           (axi4s_cam_aclk     ),
@@ -591,7 +590,7 @@ module kv260_rtcl_p3s7_hs
                 .USER_BITS      (1                  ),
                 .DEBUG          ("true"             )
             )
-        axi4s_image
+        axi4s_img
             (
                 .aresetn        (axi4s_cam_aresetn  ),
                 .aclk           (axi4s_cam_aclk     ),
@@ -622,8 +621,8 @@ module kv260_rtcl_p3s7_hs
                                     }),
                 .dphy_valid         (dl0_rxvalidhs      ),
 
-                .m_axi4s_black      (axi4s_black        ),
-                .m_axi4s_image      (axi4s_image        )
+                .m_axi4s_black      (axi4s_blk          ),
+                .m_axi4s_image      (axi4s_img          )
             );
     
     /*
@@ -684,7 +683,7 @@ module kv260_rtcl_p3s7_hs
             )
         u_video_format_regularizer
             (
-                .s_axi4s                (axi4s_image.s          ),
+                .s_axi4s                (axi4s_img.s            ),
                 .m_axi4s                (axi4s_fmtr.m           ),
                 .s_axi4l                (axi4l_dec[DEC_FMTR].s  ),
                 .out_param_width        (fmtr_param_width       ),
@@ -759,20 +758,20 @@ module kv260_rtcl_p3s7_hs
     jelly3_axi4s_if
             #(
                 .DATA_BITS  (16     ),
-                .DEBUG      (DEBUG  )
+                .DEBUG      ("true" )
             )
-        axi4s_wdma
+        axi4s_wdma_img
             (
                 .aresetn    (axi4s_cam_aresetn),
                 .aclk       (axi4s_cam_aclk   ),
                 .aclken     (1'b1             )
             );
 
-    assign axi4s_wdma.tuser  = axi4s_fifo.tuser ;
-    assign axi4s_wdma.tlast  = axi4s_fifo.tlast ;
-    assign axi4s_wdma.tdata  = 16'(axi4s_fifo.tdata) ;
-    assign axi4s_wdma.tvalid = axi4s_fifo.tvalid;
-    assign axi4s_fifo.tready = axi4s_wdma.tready;
+    assign axi4s_wdma_img.tuser  = axi4s_fifo.tuser ;
+    assign axi4s_wdma_img.tlast  = axi4s_fifo.tlast ;
+    assign axi4s_wdma_img.tdata  = 16'(axi4s_fifo.tdata) ;
+    assign axi4s_wdma_img.tvalid = axi4s_fifo.tvalid;
+    assign axi4s_fifo.tready = axi4s_wdma_img.tready;
 
     jelly3_dma_video_write
             #(
@@ -811,14 +810,14 @@ module kv260_rtcl_p3s7_hs
                 .WFIFO_PTR_BITS         (9                      ),
                 .WFIFO_RAM_TYPE         ("block"                )
             )
-        u_dma_video_write
+        u_dma_video_write_img
             (
                 .endian                 (1'b0                   ),
 
-                .s_axi4s                (axi4s_wdma.s           ),
+                .s_axi4s                (axi4s_wdma_img.s       ),
                 .m_axi4                 (axi4_mem0.mw           ),
 
-                .s_axi4l                (axi4l_dec[DEC_WDMA].s  ),
+                .s_axi4l                (axi4l_dec[DEC_WDMA_IMG].s),
                 .out_irq                (                       ),
                 
                 .buffer_request         (                       ),
@@ -830,7 +829,7 @@ module kv260_rtcl_p3s7_hs
     jelly3_axi4s_if
             #(
                 .DATA_BITS  (16     ),
-                .DEBUG      (DEBUG  )
+                .DEBUG      ("true" )
             )
         axi4s_wdma_blk
             (
@@ -839,11 +838,11 @@ module kv260_rtcl_p3s7_hs
                 .aclken     (1'b1             )
             );
 
-    assign axi4s_wdma_blk.tuser  = axi4s_black.tuser        ;
-    assign axi4s_wdma_blk.tlast  = axi4s_black.tlast        ;
-    assign axi4s_wdma_blk.tdata  = 16'(axi4s_black.tdata)   ;
-    assign axi4s_wdma_blk.tvalid = axi4s_black.tvalid       ;
-    assign axi4s_black.tready = axi4s_wdma_blk.tready;
+    assign axi4s_wdma_blk.tuser  = axi4s_blk.tuser        ;
+    assign axi4s_wdma_blk.tlast  = axi4s_blk.tlast        ;
+    assign axi4s_wdma_blk.tdata  = 16'(axi4s_blk.tdata)   ;
+    assign axi4s_wdma_blk.tvalid = axi4s_blk.tvalid       ;
+    assign axi4s_blk.tready = axi4s_wdma_blk.tready;
 
     jelly3_dma_video_write
             #(
@@ -882,14 +881,14 @@ module kv260_rtcl_p3s7_hs
                 .WFIFO_PTR_BITS         (9                      ),
                 .WFIFO_RAM_TYPE         ("block"                )
             )
-        u_dma_video_write_bl
+        u_dma_video_write_blk
             (
                 .endian                 (1'b0                   ),
 
                 .s_axi4s                (axi4s_wdma_blk.s       ),
                 .m_axi4                 (axi4_mem1.mw           ),
 
-                .s_axi4l                (axi4l_dec[DEC_WDMABL].s),
+                .s_axi4l                (axi4l_dec[DEC_WDMA_BLK].s),
                 .out_irq                (                       ),
                 
                 .buffer_request         (                       ),
@@ -932,7 +931,7 @@ module kv260_rtcl_p3s7_hs
     
     logic   frame_toggle = 0;
     always_ff @(posedge axi4s_cam_aclk) begin
-        if ( axi4s_image.tuser[0] && axi4s_image.tvalid && axi4s_image.tready ) begin
+        if ( axi4s_img.tuser[0] && axi4s_img.tvalid && axi4s_img.tready ) begin
             frame_toggle <= ~frame_toggle;
         end
     end
@@ -976,7 +975,7 @@ module kv260_rtcl_p3s7_hs
     (* mark_debug = "true" *) logic   [31:0]  mon_frame_count;
     always_ff @(posedge axi4s_cam_aclk) begin
         mon_frame_rate_count <= mon_frame_rate_count + 1;
-        if ( axi4s_image.tuser[0] && axi4s_image.tvalid ) begin
+        if ( axi4s_img.tuser[0] && axi4s_img.tvalid ) begin
             mon_frame_rate_value <= mon_frame_rate_count;
             mon_frame_rate_count <= '0;
             mon_frame_count      <= mon_frame_count + 1;

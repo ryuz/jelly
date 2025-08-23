@@ -2,15 +2,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module tb_top();
-    
-    initial begin
-        $dumpfile("tb_top.vcd");
-        $dumpvars(0, tb_top);
-        
-    #100_000_000
-        $finish;
-    end
+module tb_rtcl_p3s7_hs();
     
     // ---------------------------------
     //  reset and clock
@@ -18,11 +10,8 @@ module tb_top();
 
     localparam RATE50  = 1000.0/50.00;
     localparam RATE72  = 1000.0/72.00;
-//  localparam RATE720 = 1000.0/720.00;
     localparam RATE360 = 1000.0/360.00;
-//  localparam RATE180 = 1000.0/180.00;
     localparam RATE250 = 1000.0/250.00;
-//  localparam RATE500 = 1000.0/500.00;
     
     logic       reset = 1'b1;
     initial #8000 reset = 1'b0;
@@ -36,14 +25,8 @@ module tb_top();
     logic       clk360 = 1'b1;
     initial forever #(RATE360/2.0) clk360 = ~clk360;
 
-//  logic       clk180 = 1'b1;
-//  initial forever #(RATE180/2.0) clk180 = ~clk180;
-
     logic       clk250 = 1'b1;
     initial forever #(RATE250/2.0) clk250 = ~clk250;
-
-//  logic       clk500 = 1'b1;
-//  initial forever #(RATE500/2.0) clk500 = ~clk500;
 
     localparam RATE_DPHY = 1000.0/156.25;
     logic       clk_dphy = 1'b1;
