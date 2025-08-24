@@ -163,8 +163,8 @@ module tb_top();
         u_axi4l.write_reg(ADR_FMTR, `REG_VIDEO_FMTREG_CTL_CONTROL     , axi4l_data_t'(1             ), 8'hff);
         u_axi4l.read_reg (ADR_FMTR, `REG_VIDEO_FMTREG_CTL_STATUS      , rdata);
 
-        #100000;
-        for ( int i = 0; i < 3; i++ ) begin
+        #100000
+        for ( int i = 0; i < 15; i++ ) begin
             $display("set write DMA1");
             u_axi4l.read_reg (ADR_WDMA1, `REG_VDMA_WRITE_CORE_ID         , rdata);
             u_axi4l.write_reg(ADR_WDMA1, `REG_VDMA_WRITE_PARAM_ADDR      , axi4l_data_t'(64'h0000000          ), 8'hff);
@@ -178,6 +178,7 @@ module tb_top();
                 u_axi4l.read_reg (ADR_WDMA1, `REG_VDMA_WRITE_CTL_STATUS, rdata);
                 #10000;
             end while ( rdata != 0);
+        #100000;
         end
         #1000
         $finish;

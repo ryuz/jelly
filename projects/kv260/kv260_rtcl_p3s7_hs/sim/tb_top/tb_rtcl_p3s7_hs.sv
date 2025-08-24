@@ -273,7 +273,7 @@ module tb_rtcl_p3s7_hs();
             rxvalidhs   <= '0;
         end
         else begin
-            rxdatahs    <= {u_top.dphy_dl1_txdatahs,  u_top.dphy_dl0_txdatahs  };
+            rxdatahs    <= u_top.dphy_dl0_txrequesths ? {u_top.dphy_dl1_txdatahs,  u_top.dphy_dl0_txdatahs  } : '1;
             rxvalidhs   <= {u_top.dphy_dl1_txreadyhs, u_top.dphy_dl0_txreadyhs };
         end
     end

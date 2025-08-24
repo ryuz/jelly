@@ -91,9 +91,14 @@ module mipi_dphy_0
        output    [C_DPHY_LANES -1:0]    data_lp_txn
    );
 
+    localparam RDY_DELAY = 5;
+    logic   [RDY_DELAY-1:0] dl0_rdydly = '0;
+    logic   [RDY_DELAY-1:0] dl1_rdydly = '0;
     always_ff @(posedge txbyteclkhs_in) begin
-        dl0_txreadyhs <= dl0_txrequesths;
-        dl1_txreadyhs <= dl1_txrequesths;
+        dl0_rdydly    <= RDY_DELAY'({dl0_rdydly, dl0_txrequesths});
+        dl0_txreadyhs <= dl0_rdydly[RDY_DELAY-1];
+        dl1_rdydly    <= RDY_DELAY'({dl1_rdydly, dl1_txrequesths});
+        dl1_txreadyhs <= dl1_rdydly[RDY_DELAY-1];
     end
 
     int     counter;
