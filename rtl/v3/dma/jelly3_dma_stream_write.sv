@@ -251,8 +251,8 @@ module jelly3_dma_stream_write
     
     
     // registers
-    logic   [3:0]                   reg_ctl_control;    // bit[0]:enable, bit[1]:update, bit[2]:oneshot, bit[3]:auto_addr
-    logic   [0:0]                   reg_ctl_status;
+    (* mark_debug = "true" *)    logic   [3:0]                   reg_ctl_control;    // bit[0]:enable, bit[1]:update, bit[2]:oneshot, bit[3]:auto_addr
+    (* mark_debug = "true" *)    logic   [0:0]                   reg_ctl_status;
     logic   [INDEX_BITS-1:0]        reg_ctl_index;
     logic   [0:0]                   reg_irq_enable;
     logic   [0:0]                   reg_irq_status;
@@ -309,8 +309,8 @@ module jelly3_dma_stream_write
     logic   [AWLEN9_BITS-1:0]       reg_shadow_awlen9;
     logic   [AWSTEP9_BITS-1:0]      reg_shadow_awstep9;
     
-    logic                           sig_start;
-    logic                           sig_end;
+    (* mark_debug = "true" *)    logic                           sig_start;
+    (* mark_debug = "true" *)    logic                           sig_end;
     assign sig_start = !reg_ctl_status && reg_ctl_control[0];
     
     logic   [AWADDR_BITS-1:0]       reg_awaddr;
@@ -651,8 +651,8 @@ module jelly3_dma_stream_write
     
     
     (* ASYNC_REG = "true" *)    reg         reg_wskip_ff0, reg_wskip_ff1;
-    always_ff @(posedge s_axi4l.aclk ) begin
-        if ( ~s_axi4l.aresetn ) begin
+    always_ff @(posedge s_axi4s.aclk ) begin
+        if ( ~s_axi4s.aresetn ) begin
             reg_wskip_ff0 <= 1'b0;
             reg_wskip_ff1 <= 1'b0;
         end
@@ -774,7 +774,7 @@ module jelly3_dma_stream_write
                 .BACK_S_REGS            (BACK_S_REG                 ),
                 .BACK_M_REGS            (BACK_M_REG                 )
             )
-        i_axi4_write_nd
+        u_axi4_write_nd
             (
                 .endian                 (endian                     ),
                 

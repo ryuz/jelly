@@ -170,6 +170,12 @@ module jelly2_axi4_write_nd
             output  var logic                           m_axi4_bready
         );
     
+    (* MARK_DEBUG = "true" *)  wire   [S_WDATA_WIDTH-1:0]     dbg_s_wdata   = s_wdata  ;
+    (* MARK_DEBUG = "true" *)  wire   [S_WSTRB_WIDTH-1:0]     dbg_s_wstrb   = s_wstrb  ;
+    (* MARK_DEBUG = "true" *)  wire   [N-1:0]                 dbg_s_wfirst  = s_wfirst ;
+    (* MARK_DEBUG = "true" *)  wire   [N-1:0]                 dbg_s_wlast   = s_wlast  ;
+    (* MARK_DEBUG = "true" *)  wire                           dbg_s_wvalid  = s_wvalid ;
+    (* MARK_DEBUG = "true" *)  wire                           dbg_s_wready  = s_wready ;
     
     // ---------------------------------------------
     //  N-Dimension addressing
@@ -353,15 +359,14 @@ module jelly2_axi4_write_nd
     // ---------------------------------------------
     
     // write
-    logic   [S_WDATA_WIDTH-1:0]     write_wdata;
-    logic   [S_WSTRB_WIDTH-1:0]     write_wstrb;
-    logic   [N-1:0]                 write_wfirst;
-    logic   [N-1:0]                 write_wlast;
-    logic                           write_wvalid;
-    logic                           write_wready;
-    
-    logic                           write_bvalid;
-    logic                           write_bready;
+    (* MARK_DEBUG="true" *) logic   [S_WDATA_WIDTH-1:0]     write_wdata;
+    (* MARK_DEBUG="true" *) logic   [S_WSTRB_WIDTH-1:0]     write_wstrb;
+    (* MARK_DEBUG="true" *) logic   [N-1:0]                 write_wfirst;
+    (* MARK_DEBUG="true" *) logic   [N-1:0]                 write_wlast;
+    (* MARK_DEBUG="true" *) logic                           write_wvalid;
+    (* MARK_DEBUG="true" *) logic                           write_wready;
+    (* MARK_DEBUG="true" *) logic                           write_bvalid;
+    (* MARK_DEBUG="true" *) logic                           write_bready;
     
     jelly2_axi4_write
         #(

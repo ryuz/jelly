@@ -77,18 +77,58 @@ module jelly2_stream_gate
             input   wire                        s_permit_valid,
             output  wire                        s_permit_ready
         );
-    
+
+    (* MARK_DEBUG="true" *) wire                        dbg_skip           = skip          ;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             dbg_detect_first   = detect_first  ;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             dbg_detect_last    = detect_last   ;
+    (* MARK_DEBUG="true" *) wire                        dbg_padding_en     = padding_en    ;
+    (* MARK_DEBUG="true" *) wire    [DATA_WIDTH-1:0]    dbg_padding_data   = padding_data  ;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             dbg_s_first        = s_first       ;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             dbg_s_last         = s_last        ;
+    (* MARK_DEBUG="true" *) wire    [DATA_WIDTH-1:0]    dbg_s_data         = s_data        ;
+    (* MARK_DEBUG="true" *) wire                        dbg_s_valid        = s_valid       ;
+    (* MARK_DEBUG="true" *) wire                        dbg_s_ready        = s_ready       ;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             dbg_m_first        = m_first       ;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             dbg_m_last         = m_last        ;
+    (* MARK_DEBUG="true" *) wire    [DATA_WIDTH-1:0]    dbg_m_data         = m_data        ;
+    (* MARK_DEBUG="true" *) wire    [USER_BITS-1:0]     dbg_m_user         = m_user        ;
+    (* MARK_DEBUG="true" *) wire                        dbg_m_valid        = m_valid       ;
+    (* MARK_DEBUG="true" *) wire                        dbg_m_ready        = m_ready       ;
+    (* MARK_DEBUG="true" *) wire                        dbg_s_permit_reset = s_permit_reset;
+    (* MARK_DEBUG="true" *) wire                        dbg_s_permit_clk   = s_permit_clk  ;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             dbg_s_permit_first = s_permit_first;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             dbg_s_permit_last  = s_permit_last ;
+    (* MARK_DEBUG="true" *) wire    [LEN_WIDTH-1:0]     dbg_s_permit_len   = s_permit_len  ;
+    (* MARK_DEBUG="true" *) wire    [USER_BITS-1:0]     dbg_s_permit_user  = s_permit_user ;
+    (* MARK_DEBUG="true" *) wire                        dbg_s_permit_valid = s_permit_valid;
+    (* MARK_DEBUG="true" *) wire                        dbg_s_permit_ready = s_permit_ready;
+
+    logic [13:0]  s_count;
+    always_ff @(posedge clk) begin
+        if ( s_valid && s_ready ) begin
+            if ( s_first ) begin
+                s_count <= '0;
+            end
+            else begin
+                s_count <= s_count + 1;
+            end
+        end
+    end
     
     // clock convert
-    wire    [N-1:0]             fifo_s_permit_first;
-    wire    [N-1:0]             fifo_s_permit_last;
-    wire    [LEN_WIDTH-1:0]     fifo_s_permit_len;
-    wire    [USER_BITS-1:0]     fifo_s_permit_user;
-    wire                        fifo_s_permit_valid;
-    wire                        fifo_s_permit_ready;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             fifo_s_permit_first;
+    (* MARK_DEBUG="true" *) wire    [N-1:0]             fifo_s_permit_last;
+    (* MARK_DEBUG="true" *) wire    [LEN_WIDTH-1:0]     fifo_s_permit_len;
+    (* MARK_DEBUG="true" *) wire    [USER_BITS-1:0]     fifo_s_permit_user;
+    (* MARK_DEBUG="true" *) wire                        fifo_s_permit_valid;
+    (* MARK_DEBUG="true" *) wire                        fifo_s_permit_ready;
     
     generate
     if ( !BYPASS || (BYPASS_COMBINE && ASYNC) ) begin : blk_async_fifo
+        logic   [N-1:0]         fifo_s_permit_first_tmp;
+        logic   [N-1:0]         fifo_s_permit_last_tmp;
+        logic   [LEN_WIDTH-1:0] fifo_s_permit_len_tmp;
+        logic   [USER_BITS-1:0] fifo_s_permit_user_tmp;
         // verilator lint_off PINMISSING
         jelly2_fifo_pack
                 #(
@@ -120,14 +160,18 @@ module jelly2_stream_gate
                     .m_reset            (reset),
                     .m_clk              (clk),
                     .m_cke              (1'b1),
-                    .m_data0            (fifo_s_permit_first),
-                    .m_data1            (fifo_s_permit_last),
-                    .m_data2            (fifo_s_permit_len),
-                    .m_data3            (fifo_s_permit_user),
+                    .m_data0            (fifo_s_permit_first_tmp),
+                    .m_data1            (fifo_s_permit_last_tmp),
+                    .m_data2            (fifo_s_permit_len_tmp),
+                    .m_data3            (fifo_s_permit_user_tmp),
                     .m_valid            (fifo_s_permit_valid),
                     .m_ready            (fifo_s_permit_ready & cke)
                 );
         // verilator lint_on PINMISSING
+        assign  fifo_s_permit_first = fifo_s_permit_valid ? fifo_s_permit_first_tmp : '0;
+        assign  fifo_s_permit_last  = fifo_s_permit_valid ? fifo_s_permit_last_tmp  : '0;
+        assign  fifo_s_permit_len   = fifo_s_permit_valid ? fifo_s_permit_len_tmp   : '0;
+        assign  fifo_s_permit_user  = fifo_s_permit_valid ? fifo_s_permit_user_tmp  : '0;
     end
     else begin : blk_sync
         assign fifo_s_permit_first = s_permit_first;
@@ -153,24 +197,24 @@ module jelly2_stream_gate
     end
     else begin : blk_gate
         // parameter
-        wire                        param_skip         = skip;
-        wire    [N-1:0]             param_detect_first = DETECTOR_ENABLE ? detect_first : {N{1'b0}};
-        wire    [N-1:0]             param_detect_last  = DETECTOR_ENABLE ? detect_last  : {N{1'b0}};
-        wire                        param_padding_en   = DETECTOR_ENABLE ? padding_en   : 1'b0;
+        (* MARK_DEBUG="true" *) wire                        param_skip         = skip;
+        (* MARK_DEBUG="true" *) wire    [N-1:0]             param_detect_first = DETECTOR_ENABLE ? detect_first : {N{1'b0}};
+        (* MARK_DEBUG="true" *) wire    [N-1:0]             param_detect_last  = DETECTOR_ENABLE ? detect_last  : {N{1'b0}};
+        (* MARK_DEBUG="true" *) wire                        param_padding_en   = DETECTOR_ENABLE ? padding_en   : 1'b0;
         
         // insert FF
-        wire    [N-1:0]             ff_s_first;
-        wire    [N-1:0]             ff_s_last;
-        wire    [DATA_WIDTH-1:0]    ff_s_data;
-        wire                        ff_s_valid;
-        wire                        ff_s_ready;
+        (* MARK_DEBUG="true" *) wire    [N-1:0]             ff_s_first;
+        (* MARK_DEBUG="true" *) wire    [N-1:0]             ff_s_last;
+        (* MARK_DEBUG="true" *) wire    [DATA_WIDTH-1:0]    ff_s_data;
+        (* MARK_DEBUG="true" *) wire                        ff_s_valid;
+        (* MARK_DEBUG="true" *) wire                        ff_s_ready;
         
-        wire    [N-1:0]             ff_m_first;
-        wire    [N-1:0]             ff_m_last;
-        wire    [DATA_WIDTH-1:0]    ff_m_data;
-        wire    [USER_BITS-1:0]     ff_m_user;
-        wire                        ff_m_valid;
-        wire                        ff_m_ready;
+        (* MARK_DEBUG="true" *) wire    [N-1:0]             ff_m_first;
+        (* MARK_DEBUG="true" *) wire    [N-1:0]             ff_m_last;
+        (* MARK_DEBUG="true" *) wire    [DATA_WIDTH-1:0]    ff_m_data;
+        (* MARK_DEBUG="true" *) wire    [USER_BITS-1:0]     ff_m_user;
+        (* MARK_DEBUG="true" *) wire                        ff_m_valid;
+        (* MARK_DEBUG="true" *) wire                        ff_m_ready;
         
         // verilator lint_off PINMISSING
         jelly2_data_ff_pack
@@ -249,16 +293,16 @@ module jelly2_stream_gate
         end
         
         // flag detect
-        wire    [N-1:0]     sig_s_first = ({N{ff_s_valid}} & ff_s_first & param_detect_first) | reg_auto_first;
-        wire    [N-1:0]     sig_s_last  = ({N{ff_s_valid}} & ff_s_last  & param_detect_last);
+        (* MARK_DEBUG="true" *) wire    [N-1:0]     sig_s_first = ({N{ff_s_valid}} & ff_s_first & param_detect_first) | reg_auto_first;
+        (* MARK_DEBUG="true" *) wire    [N-1:0]     sig_s_last  = ({N{ff_s_valid}} & ff_s_last  & param_detect_last);
         
-        wire    [N-1:0]     param_detect_first2 = (param_detect_first | (detect_last & AUTO_FIRST));
+        (* MARK_DEBUG="true" *) wire    [N-1:0]     param_detect_first2 = (param_detect_first | (detect_last & AUTO_FIRST));
         
         
         // len count
-        reg                     reg_busy;
-        reg     [LEN_WIDTH-1:0] reg_len;
-        reg                     reg_end;
+        (* MARK_DEBUG="true" *) reg                     reg_busy;
+        (* MARK_DEBUG="true" *) reg     [LEN_WIDTH-1:0] reg_len;
+        (* MARK_DEBUG="true" *) reg                     reg_end;
         always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_busy <= 1'b0;
@@ -286,13 +330,13 @@ module jelly2_stream_gate
             end
         end
         
-        wire    sig_start = !reg_busy;
-        wire    sig_end   = (!reg_busy && (fifo_s_permit_len == (LEN_WIDTH'(1) - LEN_WIDTH'(LEN_OFFSET)))) || (reg_busy && reg_end);
+        (* MARK_DEBUG="true" *) wire    sig_start = !reg_busy;
+        (* MARK_DEBUG="true" *) wire    sig_end   = (!reg_busy && (fifo_s_permit_len == (LEN_WIDTH'(1) - LEN_WIDTH'(LEN_OFFSET)))) || (reg_busy && reg_end);
         
-        wire    sig_start_overflow  = DETECTOR_ENABLE && sig_start && |(param_detect_first2 & fifo_s_permit_first & ~sig_s_first); // 期待するfirstが来ていない(データ余り)
-        wire    sig_start_underflow = DETECTOR_ENABLE && sig_start && |(param_detect_first2 & ~fifo_s_permit_first & sig_s_first); // 期待するより先のfirstが来ている(データ不足)
+        (* MARK_DEBUG="true" *) wire    sig_start_overflow  = DETECTOR_ENABLE && sig_start && |(param_detect_first2 &  fifo_s_permit_first & ~sig_s_first); // 期待するfirstが来ていない(データ余り)
+        (* MARK_DEBUG="true" *) wire    sig_start_underflow = DETECTOR_ENABLE && sig_start && |(param_detect_first2 & ~fifo_s_permit_first & sig_s_first); // 期待するより先のfirstが来ている(データ不足)
         
-        reg                     reg_underflow;
+        (* MARK_DEBUG="true" *) reg                     reg_underflow;
         always_ff @(posedge clk) begin
             if ( reset ) begin
                 reg_underflow <= 1'b0;
@@ -312,8 +356,8 @@ module jelly2_stream_gate
             end
         end
         
-        wire    sig_skip    = sig_start_overflow;
-        wire    sig_padding = padding_en && (sig_start_underflow || reg_underflow);
+        (* MARK_DEBUG="true" *) wire    sig_skip    = sig_start_overflow;
+        (* MARK_DEBUG="true" *) wire    sig_padding = padding_en && (sig_start_underflow || reg_underflow);
         
         
         assign fifo_s_permit_ready = (ff_m_valid && ff_m_ready && sig_end);
@@ -325,6 +369,111 @@ module jelly2_stream_gate
         assign ff_m_data  = sig_padding ? padding_data      : ff_s_data;
         assign ff_m_user  = fifo_s_permit_user;
         assign ff_m_valid = fifo_s_permit_valid && ((ff_s_valid && !sig_skip) || sig_padding);
+
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_ff_s_first         ;
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_ff_s_last          ;
+        (* MARK_DEBUG="true" *) logic    [DATA_WIDTH-1:0]   dbg2_ff_s_data          ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_ff_s_valid         ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_ff_s_ready         ;
+
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_ff_m_first          ;
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_ff_m_last           ;
+        (* MARK_DEBUG="true" *) logic    [DATA_WIDTH-1:0]   dbg2_ff_m_data           ;
+        (* MARK_DEBUG="true" *) logic    [USER_BITS-1:0]    dbg2_ff_m_user           ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_ff_m_valid          ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_ff_m_ready          ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_sig_skip            ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_sig_padding         ;
+
+        (* MARK_DEBUG="true" *) logic                       dbg2_skip               ;
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_detect_first       ;
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_detect_last        ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_padding_en         ;
+        (* MARK_DEBUG="true" *) logic    [DATA_WIDTH-1:0]   dbg2_padding_data       ;
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_sig_s_first        ;
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_sig_s_last         ;
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_param_detect_first2;
+        (* MARK_DEBUG="true" *) logic    [N-1:0]            dbg2_param_detect_first ;
+        
+        ////
+        (* MARK_DEBUG="true" *) logic                       dbg2_sig_start              ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_sig_end                ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_sig_start_overflow     ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_sig_start_underflow    ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_reg_underflow          ;
+
+        (* MARK_DEBUG="true" *) logic                       dbg2_reg_busy               ;
+        (* MARK_DEBUG="true" *) logic    [LEN_WIDTH-1:0]    dbg2_reg_len                ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_reg_end                ;
+
+        (* MARK_DEBUG="true" *) logic  [N-1:0]              dbg2_s_first                ;
+        (* MARK_DEBUG="true" *) logic  [N-1:0]              dbg2_s_last                 ;
+        (* MARK_DEBUG="true" *) logic  [DATA_WIDTH-1:0]     dbg2_s_data                 ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_s_valid                ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_s_ready                ;
+        (* MARK_DEBUG="true" *) logic [13:0]                dbg2_s_count                ;
+
+        (* MARK_DEBUG="true" *) logic   [N-1:0]             dbg2_fifo_s_permit_first    ;
+        (* MARK_DEBUG="true" *) logic   [N-1:0]             dbg2_fifo_s_permit_last     ;
+        (* MARK_DEBUG="true" *) logic   [LEN_WIDTH-1:0]     dbg2_fifo_s_permit_len      ;
+        (* MARK_DEBUG="true" *) logic   [USER_BITS-1:0]     dbg2_fifo_s_permit_user     ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_fifo_s_permit_valid    ;
+        (* MARK_DEBUG="true" *) logic                       dbg2_fifo_s_permit_ready    ;
+
+        always_ff @(posedge clk) begin
+            dbg2_ff_s_first          <= ff_s_first          ;
+            dbg2_ff_s_last           <= ff_s_last           ;
+            dbg2_ff_s_data           <= ff_s_data           ;
+            dbg2_ff_s_valid          <= ff_s_valid          ;
+            dbg2_ff_s_ready          <= ff_s_ready          ;
+
+            dbg2_ff_m_first          <= ff_m_first         ;
+            dbg2_ff_m_last           <= ff_m_last          ;
+            dbg2_ff_m_data           <= ff_m_data          ;
+            dbg2_ff_m_user           <= ff_m_user          ;
+            dbg2_ff_m_valid          <= ff_m_valid         ;
+            dbg2_ff_m_ready          <= ff_m_ready         ;
+            dbg2_sig_skip            <= sig_skip           ;
+            dbg2_sig_padding         <= sig_padding        ;
+
+            dbg2_skip                <= skip               ;
+            dbg2_detect_first        <= detect_first       ;
+            dbg2_detect_last         <= detect_last        ;
+            dbg2_padding_en          <= padding_en         ;
+            dbg2_padding_data        <= padding_data       ;
+            dbg2_sig_s_first         <= sig_s_first        ;
+            dbg2_sig_s_last          <= sig_s_last         ;
+            dbg2_param_detect_first2 <= param_detect_first2;
+            dbg2_param_detect_first  <= param_detect_first ;
+
+            dbg2_s_first             <= s_first;
+            dbg2_s_last              <= s_last ;
+            dbg2_s_data              <= s_data ;
+            dbg2_s_valid             <= s_valid;
+            dbg2_s_ready             <= s_ready;
+            dbg2_s_count             <= s_count;
+
+            dbg2_sig_start           <= sig_start           ;
+            dbg2_sig_end             <= sig_end             ;
+            dbg2_sig_start_overflow  <= sig_start_overflow  ;
+            dbg2_sig_start_underflow <= sig_start_underflow ;
+            dbg2_reg_underflow       <= reg_underflow       ;
+            dbg2_reg_busy            <= reg_busy            ;
+            dbg2_reg_len             <= reg_len             ;
+            dbg2_reg_end             <= reg_end             ;
+            dbg2_s_first             <= s_first             ;
+            dbg2_s_last              <= s_last              ;
+            dbg2_s_data              <= s_data              ;
+            dbg2_s_valid             <= s_valid             ;
+            dbg2_s_ready             <= s_ready             ;
+            dbg2_s_count             <= s_count             ;
+            dbg2_fifo_s_permit_first <= fifo_s_permit_first ;
+            dbg2_fifo_s_permit_last  <= fifo_s_permit_last  ;
+            dbg2_fifo_s_permit_len   <= fifo_s_permit_len   ;
+            dbg2_fifo_s_permit_user  <= fifo_s_permit_user  ;
+            dbg2_fifo_s_permit_valid <= fifo_s_permit_valid ;
+            dbg2_fifo_s_permit_ready <= fifo_s_permit_ready ;
+        end
     end
     endgenerate
     

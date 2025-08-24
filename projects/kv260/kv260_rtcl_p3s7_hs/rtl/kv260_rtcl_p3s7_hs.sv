@@ -53,12 +53,11 @@ module kv260_rtcl_p3s7_hs
     logic       axi4_mem_aclk       ;
 
     (* MARK_DEBUG=DEBUG *)  logic       i2c0_scl_i  ;
-    (* MARK_DEBUG=DEBUG *)  logic       i2c0_scl_o  ;
+                            logic       i2c0_scl_o  ;
     (* MARK_DEBUG=DEBUG *)  logic       i2c0_scl_t  ;
     (* MARK_DEBUG=DEBUG *)  logic       i2c0_sda_i  ;
-    (* MARK_DEBUG=DEBUG *)  logic       i2c0_sda_o  ;
+                            logic       i2c0_sda_o  ;
     (* MARK_DEBUG=DEBUG *)  logic       i2c0_sda_t  ;
-
 
     jelly3_axi4l_if
             #(
@@ -838,10 +837,17 @@ module kv260_rtcl_p3s7_hs
                 .aclken     (1'b1             )
             );
 
+    // 末尾にゴミが付くバグ強制再現
+    logic bug_valid;
+    always_ff @(posedge axi4s_cam_aclk) begin
+        bug_valid <= axi4s_blk.tvalid && axi4s_blk.tlast;
+    end
+
     assign axi4s_wdma_blk.tuser  = axi4s_blk.tuser        ;
     assign axi4s_wdma_blk.tlast  = axi4s_blk.tlast        ;
     assign axi4s_wdma_blk.tdata  = 16'(axi4s_blk.tdata)   ;
-    assign axi4s_wdma_blk.tvalid = axi4s_blk.tvalid       ;
+    assign axi4s_wdma_blk.tstrb = '1;
+    assign axi4s_wdma_blk.tvalid = axi4s_blk.tvalid || bug_valid      ;
     assign axi4s_blk.tready = axi4s_wdma_blk.tready;
 
     jelly3_dma_video_write
@@ -861,11 +867,11 @@ module kv260_rtcl_p3s7_hs
                 .INIT_IRQ_ENABLE        (1'b0                   ),
                 .INIT_PARAM_ADDR        (0                      ),
                 .INIT_PARAM_AWLEN_MAX   (8'd255                 ),
-                .INIT_PARAM_H_SIZE      (14'(IMG_WIDTH-1)       ),
-                .INIT_PARAM_V_SIZE      (14'(IMG_HEIGHT-1)      ),
+                .INIT_PARAM_H_SIZE      (14'(1280-1)            ),
+                .INIT_PARAM_V_SIZE      (14'(1-1)               ),
                 .INIT_PARAM_LINE_STEP   (16'd8192               ),
                 .INIT_PARAM_F_SIZE      (14'd0                  ),
-                .INIT_PARAM_FRAME_STEP  (32'(IMG_HEIGHT*8192)   ),
+                .INIT_PARAM_FRAME_STEP  (32'(1*8192)            ),
                 .INIT_SKIP_EN           (1'b1                   ),
                 .INIT_DETECT_FIRST      (3'b010                 ),
                 .INIT_DETECT_LAST       (3'b001                 ),

@@ -39,11 +39,11 @@ module rtcl_p3s7_hs_dphy_recv
 
 
     // DPHY Receive
-    logic                           rx_first    ;
-    logic                           rx_last     ;
-    logic   [7:0]                   rx_type     ;
-    logic   [DPHY_LANES-1:0][7:0]   rx_data     ;
-    logic                           rx_valid    ;
+    (* mark_debug = "true" *)  logic                           rx_first    ;
+    (* mark_debug = "true" *)  logic                           rx_last     ;
+    (* mark_debug = "true" *)  logic   [7:0]                   rx_type     ;
+    (* mark_debug = "true" *)  logic   [DPHY_LANES-1:0][7:0]   rx_data     ;
+    (* mark_debug = "true" *)  logic                           rx_valid    ;
     always_ff @(posedge dphy_clk) begin
         if ( dphy_reset ) begin
             rx_first <= 1'b0    ;
@@ -81,12 +81,12 @@ module rtcl_p3s7_hs_dphy_recv
 
 
     // FIFO
-    logic                           fifo_first    ;
-    logic                           fifo_last     ;
-    logic                           fifo_black    ;
-    logic   [DPHY_LANES-1:0][7:0]   fifo_data     ;
-    logic                           fifo_valid    ;
-    logic                           fifo_ready    ;
+    (* mark_debug = "true" *)  logic                           fifo_first    ;
+    (* mark_debug = "true" *)  logic                           fifo_last     ;
+    (* mark_debug = "true" *)  logic                           fifo_black    ;
+    (* mark_debug = "true" *)  logic   [DPHY_LANES-1:0][7:0]   fifo_data     ;
+    (* mark_debug = "true" *)  logic                           fifo_valid    ;
+    (* mark_debug = "true" *)  logic                           fifo_ready    ;
     jelly2_fifo_async_fwtf
             #(
                 .DATA_WIDTH     (3 + $bits(rx_data) ),
@@ -127,11 +127,11 @@ module rtcl_p3s7_hs_dphy_recv
     
     // width convert
     localparam  type    raw_t = logic [RAW_BITS-1:0];
-    logic                   conv_first    ;
-    logic                   conv_last     ;
-    logic                   conv_black    ;
-    raw_t   [CHANNELS-1:0]  conv_data     ;
-    logic                   conv_valid    ;
+    (* mark_debug = "true" *)  logic                   conv_first    ;
+    (* mark_debug = "true" *)  logic                   conv_last     ;
+    (* mark_debug = "true" *)  logic                   conv_black    ;
+    (* mark_debug = "true" *)  raw_t   [CHANNELS-1:0]  conv_data     ;
+    (* mark_debug = "true" *)  logic                   conv_valid    ;
     jelly2_stream_width_convert
             #(
                 .UNIT_WIDTH         (2                      ),
