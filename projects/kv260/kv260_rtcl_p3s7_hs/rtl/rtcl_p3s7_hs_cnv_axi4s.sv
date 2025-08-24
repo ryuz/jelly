@@ -94,7 +94,7 @@ module rtcl_p3s7_hs_cnv_axi4s
     assign m_axi4s.tuser  = m_axi4s.USER_BITS'({(frame_end & line_last), frame_start});
     assign m_axi4s.tlast  = line_last    ;
     assign m_axi4s.tdata  = data         ;
-    assign m_axi4s.tvalid = valid        ;
+    assign m_axi4s.tvalid = valid & busy ;
 
 endmodule
 
