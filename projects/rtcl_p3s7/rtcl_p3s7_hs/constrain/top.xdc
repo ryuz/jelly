@@ -2,7 +2,7 @@
 
 # Clock
 create_clock -period 20.000 -name in_clk50 -waveform {0.000 10.000} [get_ports in_clk50]
-create_clock -period 13.888 -name in_clk72 -waveform {0.000  6.944} [get_ports in_clk72]
+create_clock -period 13.888 -name in_clk72 -waveform {0.000 6.944} [get_ports in_clk72]
 
 # 720Mbps (360MHz)
 create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports python_clk_p]
@@ -17,13 +17,7 @@ create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports
 # clk_out1_clk_mipi_core : 200.00MHz  5.000ns
 # dphy_clk               : 156.25MHz  6.400ns
 
-set_clock_groups -asynchronous -group {in_clk50} \
-                               -group {in_clk72} \
-                               -group {python_clk_p} \
-                               -group {python_clk} \
-                               -group {dphy_clk} \
-                               -group {clk_out1_clk_mipi_core} \
-
+set_clock_groups -asynchronous -group in_clk50 -group in_clk72 -group python_clk_p -group python_clk -group dphy_clk -group clk_out1_clk_mipi_core
 # clock
 set_property PACKAGE_PIN H4 [get_ports in_clk50]
 set_property IOSTANDARD LVCMOS18 [get_ports in_clk50]
@@ -63,7 +57,7 @@ set_property PACKAGE_PIN N11 [get_ports mipi_sda]
 set_property IOSTANDARD LVCMOS33 [get_ports mipi_reset_n]
 set_property PULLTYPE PULLDOWN [get_ports mipi_reset_n]
 set_property IOSTANDARD LVCMOS33 [get_ports mipi_gpio]
-set_property IOSTANDARD LVCMOS33 [get_ports mipi_clk]
+set_property IOSTANDARD LVCMOS33 [get_ports mipi_gpio]
 set_property IOSTANDARD LVCMOS33 [get_ports mipi_scl]
 set_property IOSTANDARD LVCMOS33 [get_ports mipi_sda]
 
@@ -185,5 +179,6 @@ set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports python_sync_n]
 # set_property IOSTANDARD LVCMOS18 [get_ports {mipi_data_lp_n[1]}]
 # set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports {mipi_data_hs_p[1]}]
 # set_property IOSTANDARD DIFF_HSTL_II_18 [get_ports {mipi_data_hs_n[1]}]
+
 
 
