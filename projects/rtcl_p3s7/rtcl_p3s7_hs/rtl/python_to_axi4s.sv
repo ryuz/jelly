@@ -45,18 +45,24 @@ module python_to_axi4s
     logic   id          ;
     logic   line_end    ;
     logic   frame_end   ;
+    logic   frame_enable;
     always_ff @(posedge m_axi4s.aclk) begin
         if ( ~m_axi4s.aresetn ) begin
-            busy      <= 1'b0;
-            line_end  <= '0;
-            frame_end <= '0;
-            id        <= '0;
+            busy           <= 1'b0;
+            line_end       <= '0;
+            frame_end      <= '0;
+            frame_enable   <= 1'b0;
+            id             <= '0;
             m_axi4s.tuser  <= '0;
             m_axi4s.tlast  <= 1'bx;
             m_axi4s.tdata  <= 'x;
             m_axi4s.tvalid <= 1'b0;
         end
         else begin
+            if ( m_axi4s.tvalid && m_axi4s.tready && m_axi4s.tuser[1] ) begin   // frame end
+                frame_enable <= 1'b0;
+            end
+
             if ( m_axi4s.tready ) begin
                 m_axi4s.tvalid <= 1'b0;
             end
@@ -72,13 +78,14 @@ module python_to_axi4s
 
                 m_axi4s.tuser[2:0] <= '0                    ;
                 m_axi4s.tlast      <= frame_end || line_end ;
-                m_axi4s.tuser[1]   <= frame_end || (m_axi4s.tuser[3] && line_end);            ;
+                m_axi4s.tuser[1]   <= frame_end;// || (m_axi4s.tuser[3] && line_end);            ;
                 m_axi4s.tdata      <= s_data                ;
                 m_axi4s.tvalid     <= busy & !(m_axi4s.tvalid && m_axi4s.tlast );
                 if ( s_sync == 10'h2aa ) begin   // Frame Start
                     busy             <= 1'b1;
                     id               <= 1'b1;
-                    m_axi4s.tuser[0] <= 1'b1;
+                    frame_enable     <= 1'b1;
+                    m_axi4s.tuser[0] <= ~frame_enable;
                     m_axi4s.tvalid   <= 1'b1;
                 end
                 if ( s_sync == 10'h0aa ) begin   // Line Start
@@ -90,6 +97,7 @@ module python_to_axi4s
                 if ( s_sync == 10'h22a ) begin   // Black Start
                     busy             <= 1'b1;
                     id               <= 1'b1;
+                    frame_enable     <= 1'b1;
                     m_axi4s.tuser[0] <= 1'b1;
                     m_axi4s.tuser[3] <= 1'b1;
                     m_axi4s.tvalid   <= 1'b1;

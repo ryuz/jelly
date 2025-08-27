@@ -64,11 +64,12 @@ module axi4s_to_dphy
 
     // packet_type[3:0]: 1011 (magic number)
     // packet_type[4]  : 0: 8bit,  1: 10bit
-    // packet_type[5]  : 0: image, 1: black
+    // packet_type[5]  : 0 (reserve)
     // packet_type[6]  : 0 (reserve)
     // packet_type[7]  : 0 (reserve)
     packet_type_t   packet_type   ;
-    assign packet_type = {2'b00, s_axi4s.tuser[3], 1'b1, 4'b1011};
+//  assign packet_type = {2'b00, axi4s_fifo.tuser[3], 1'b1, 4'b1011};
+    assign packet_type = {3'b000, 1'b1, 4'b1011};
 
 
     raw_t   [CHANNELS-1:0]    conv_data   ;
@@ -77,12 +78,43 @@ module axi4s_to_dphy
     packet_type_t             conv_user   ;
     logic                     conv_valid  ;
     logic                     conv_ready  ;
+    /*
     assign conv_data    = axi4s_fifo.tvalid ? axi4s_fifo.tdata   : '0;
     assign conv_first   = axi4s_fifo.tvalid ? axi4s_fifo.tuser[0]: '0;  // frame_start
     assign conv_last    = axi4s_fifo.tvalid ? axi4s_fifo.tuser[1]: '0;  // frame_end
     assign conv_user    = axi4s_fifo.tvalid ? packet_type        : '0;
     assign conv_valid   = 1'b1;  // always valid
-    assign axi4s_fifo.tready = conv_ready;
+    assign axi4s_fifo.tready = !conv_valid || conv_ready;
+    */
+    always_ff @(posedge dphy_clk) begin
+        if ( dphy_reset ) begin
+            conv_data  <= 'x;
+            conv_first <= 'x;
+            conv_last  <= 'x;
+            conv_user  <= 'x;
+            conv_valid <= 1'b0;
+        end
+        else begin
+            if ( axi4s_fifo.tready ) begin
+            conv_data  <= axi4s_fifo.tvalid ? axi4s_fifo.tdata   : '0;
+            conv_first <= axi4s_fifo.tvalid ? axi4s_fifo.tuser[0]: '0;  // frame_start
+            conv_last  <= axi4s_fifo.tvalid ? axi4s_fifo.tuser[1]: '0;  // frame_end
+            conv_user  <= axi4s_fifo.tvalid ? packet_type        : '0;
+            conv_valid <= 1'b1;  // always valid
+            end
+        end
+    end
+    assign axi4s_fifo.tready = !conv_valid || conv_ready;
+
+    // debug
+    raw_t   conv_data0   ;
+    raw_t   conv_data1   ;
+    raw_t   conv_data2   ;
+    raw_t   conv_data3   ;
+    assign conv_data0 = conv_data[0];
+    assign conv_data1 = conv_data[1];
+    assign conv_data2 = conv_data[2];
+    assign conv_data3 = conv_data[3];
 
     jelly3_axi4s_if
             #(

@@ -207,6 +207,8 @@ module tb_top();
         u_axi4l.read_reg (ADR_WDMA1, `REG_VDMA_WRITE_CTL_STATUS, rdata);
         #1000000
         u_axi4l.read_reg (ADR_WDMA1, `REG_VDMA_WRITE_CTL_STATUS, rdata);
+        
+        #2000000
         $finish();
     end
 

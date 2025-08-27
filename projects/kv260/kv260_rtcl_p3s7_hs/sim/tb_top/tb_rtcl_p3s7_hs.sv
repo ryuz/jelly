@@ -461,7 +461,7 @@ module tb_rtcl_p3s7_hs();
         cmd_read(REGADR_CORE_ID     , rdata);
         cmd_read(REGADR_CORE_VERSION, rdata);
 
-        #500000;
+        #5000000;
         $finish();
     end;
 

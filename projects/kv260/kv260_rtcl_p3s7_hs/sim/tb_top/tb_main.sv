@@ -46,8 +46,8 @@ module tb_main
     parameter   int     IMG_WIDTH   = 640   ;
     parameter   int     IMG_HEIGHT  = 64    ;
 
-    assign img_width  = IMG_WIDTH;
-    assign img_height = IMG_WIDTH;
+    assign img_width  = IMG_WIDTH   ;
+    assign img_height = IMG_HEIGHT  ;
 
     kv260_rtcl_p3s7_hs
             #(
