@@ -68,7 +68,7 @@ module jelly3_shift_register
                         );
             end
         end
-        else begin
+        else begin : srlc32e
             logic   [4:0]   a;
             assign a = 5'(addr);
             for ( genvar i = 0; i < $bits(data_t); i++ ) begin : srlc32e
