@@ -79,11 +79,11 @@ module jelly2_fifo_read_fwtf
     assign rd_en   = stage_cke[0];
     
     generate
-    if ( DOUT_REGS ) begin
+    if ( DOUT_REGS ) begin : blk_dout_reg
         assign rd_regcke = stage_cke[1];
         assign m_count   = rd_count + COUNT_WIDTH'(m_valid) + COUNT_WIDTH'(buffered) + COUNT_WIDTH'(stage_valid[0]) + COUNT_WIDTH'(stage_valid[1]);
     end
-    else begin
+    else begin : bypass_dout_reg
         assign rd_regcke = 1'b0;
         assign m_count   = rd_count + COUNT_WIDTH'(m_valid) + COUNT_WIDTH'(buffered) + COUNT_WIDTH'(stage_valid[0]);
     end
