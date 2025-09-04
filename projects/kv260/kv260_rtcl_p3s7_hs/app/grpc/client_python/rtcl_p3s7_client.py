@@ -37,8 +37,8 @@ SYSREG_FPS_COUNT            = 0x0006
 SYSREG_FRAME_COUNT          = 0x0007
 SYSREG_IMAGE_WIDTH          = 0x0008
 SYSREG_IMAGE_HEIGHT         = 0x0009
-SYSREG_BLres_WIDTH          = 0x000a
-SYSREG_BLres_HEIGHT         = 0x000b
+SYSREG_BLACK_WIDTH          = 0x000a
+SYSREG_BLACK_HEIGHT         = 0x000b
 
 TIMGENREG_CORE_ID           = 0x0000
 TIMGENREG_CORE_VERSION      = 0x0001
@@ -58,7 +58,7 @@ class RtclP3s7Client:
     as module-level functions in `rtcl_p3s7_control.py`.
     """
 
-    def __init__(self, address='10.72.141.82:50051'):
+    def __init__(self, address='192.168.16.1:50051'):
         self.channel = grpc.insecure_channel(address)
         self.stub = rtcl_p3s7_control_pb2_grpc.RtclP3s7ControlStub(self.channel)
 

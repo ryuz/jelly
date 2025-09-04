@@ -76,8 +76,8 @@ module tb_top();
     logic           python_sync_p       ;
     logic           python_sync_n       ;
     
-    logic           mipi_reset_n        ;
-    logic           mipi_gpio           ;
+    logic           mipi_gpio0          ;
+    logic           mipi_gpio1          ;
     wire            mipi_scl            ;
     wire            mipi_sda            ;
     logic           mipi_clk_lp_p       ;
@@ -124,8 +124,8 @@ module tb_top();
                 .python_sync_p          ,
                 .python_sync_n          ,
 
-                .mipi_reset_n           ,
-                .mipi_gpio              ,
+                .mipi_gpio0             ,
+                .mipi_gpio1             ,
                 .mipi_scl               ,
                 .mipi_sda               ,
                 .mipi_clk_lp_p          ,
@@ -137,6 +137,8 @@ module tb_top();
                 .mipi_data_hs_p         ,
                 .mipi_data_hs_n         
             );
+    
+    assign mipi_gpio0 = ~reset;
 
     // monitor
     wire    [3:0]  axi4s_recv_tuser  = u_top.axi4s_recv.tuser;
@@ -446,6 +448,8 @@ module tb_top();
 
     localparam  REGADR_CORE_ID         = 15'h0000;
     localparam  REGADR_CORE_VERSION    = 15'h0001;
+    localparam  REGADR_SENSOR_ENABLE   = 15'h0004;
+    localparam  REGADR_SENSOR_READY    = 15'h0008;
     localparam  REGADR_RECV_RESET      = 15'h0010;
     localparam  REGADR_ALIGN_RESET     = 15'h0020;
     localparam  REGADR_ALIGN_PATTERN   = 15'h0022;
@@ -462,6 +466,9 @@ module tb_top();
         logic [15:0] rdata;
 
         #10000; // wait for reset
+        cmd_write(REGADR_SENSOR_ENABLE  , 16'h0001);
+
+        #10000; // wait for ready
         cmd_write(REGADR_DPHY_CORE_RESET, 16'h0000);
         cmd_write(REGADR_DPHY_SYS_RESET , 16'h0000);
         cmd_write(REGADR_RECV_RESET     , 16'h0000);
@@ -479,6 +486,8 @@ module tb_top();
         cmd_read(REGADR_CORE_VERSION, rdata);
 
         #500000;
+        cmd_write(REGADR_SENSOR_ENABLE  , 16'h0000);
+        #100000;
         $finish();
     end;
 

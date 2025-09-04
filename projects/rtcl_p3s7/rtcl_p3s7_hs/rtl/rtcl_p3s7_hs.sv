@@ -33,8 +33,8 @@ module rtcl_p3s7_hs
             input   var logic           python_sync_p           ,
             input   var logic           python_sync_n           ,
 
-            input   var logic           mipi_reset_n            ,
-            input   var logic           mipi_gpio               ,
+            input   var logic           mipi_gpio0              ,
+            input   var logic           mipi_gpio1              ,
             inout   tri logic           mipi_scl                ,
             inout   tri logic           mipi_sda                ,
             output  var logic           mipi_clk_lp_p           ,
@@ -67,15 +67,40 @@ module rtcl_p3s7_hs
                 .O  (clk72      )
             );
 
-    // 初期リセット生成
-    logic   [7:0]   reset_counter = '0;
-    logic           reset = 1'b1;
-    always_ff @(posedge clk72) begin
-        if ( reset_counter == '1 ) begin
-            reset <= 1'b0;
+
+    logic in_reset_n;
+    assign in_reset_n = mipi_gpio0;
+
+    // リセット同期化
+    (* ASYNC_REG = "true" *)
+    logic    [1:0]   ff_reset_n = 2'b00;
+    logic            reset_n;
+    always_ff @(posedge clk72 or negedge in_reset_n) begin
+        if ( ~in_reset_n ) begin
+            ff_reset_n <= 2'b00;
         end
         else begin
-            reset_counter <= reset_counter + 1;
+            ff_reset_n[0] <= 1'b1;
+            ff_reset_n[1] <= ff_reset_n[0];
+        end
+    end
+    assign reset_n = ff_reset_n[1];
+
+    // リセット期間
+    logic           reset = 1'b1;
+    logic   [7:0]   reset_counter = '0;
+    always_ff @(posedge clk72) begin
+        if  ( ~reset_n ) begin
+            reset <= 1'b0;
+            reset_counter <= '0;
+        end
+        else begin
+            if ( reset_counter == '1 ) begin
+                reset <= 1'b0;
+            end
+            else begin
+                reset_counter <= reset_counter + 1;
+            end
         end
     end
 
@@ -119,24 +144,6 @@ module rtcl_p3s7_hs
             );
 
     
-    // -------------------------------------
-    //  MIPI GPIO
-    // -------------------------------------
-
-    logic  mipi_enable;
-    always_ff @(posedge clk72 or negedge mipi_reset_n) begin
-        if ( !mipi_reset_n ) begin
-            mipi_enable <= 1'b0;
-        end
-        else begin
-            mipi_enable <= 1'b1;
-        end
-    end
-
-    logic sensor_pwr_enable;
-    assign sensor_pwr_enable = mipi_enable;
-
-
     // -------------------------------------
     //  MIPI I2C
     // -------------------------------------
@@ -250,6 +257,8 @@ module rtcl_p3s7_hs
 
 
     // controller
+                                logic           ctl_sensor_enable   ;
+                                logic           ctl_sensor_ready    ;
                                 logic           ctl_recv_reset      ;
                                 logic           ctl_align_reset     ;
                                 logic   [9:0]   ctl_align_pattern   ;
@@ -275,6 +284,8 @@ module rtcl_p3s7_hs
             (
                 .s_axi4l                (axi4l                  ),
 
+                .out_sensor_enable      (ctl_sensor_enable      ),
+                .in_sensor_ready        (ctl_sensor_ready       ),
                 .out_recv_reset         (ctl_recv_reset         ),
                 .out_align_reset        (ctl_align_reset        ),
                 .out_align_pattern      (ctl_align_pattern      ),
@@ -445,6 +456,21 @@ module rtcl_p3s7_hs
     localparam  type    raw10_t  = logic [9:0]  ;
     localparam  type    sync10_t = logic [9:0]  ;
 
+    // -------------------------------------
+    //  MIPI GPIO
+    // -------------------------------------
+
+    // pwr enable
+    logic sensor_pwr_enable = 1'b0;
+    always_ff @(posedge clk72 ) begin
+        if ( ~reset_n ) begin
+            sensor_pwr_enable <= 1'b0;
+        end
+        else begin
+            sensor_pwr_enable <= ctl_sensor_enable;
+        end
+    end
+
     // Sensor Power Management
     logic sensor_ready;
     sensor_pwr_mng
@@ -463,6 +489,7 @@ module rtcl_p3s7_hs
                 .python_reset_n     (python_reset_n        ),
                 .python_clk_pll     (python_clk_pll        )
             );
+    assign ctl_sensor_ready = sensor_ready;
 
     python_spi
         u_python_spi
@@ -485,7 +512,7 @@ module rtcl_p3s7_hs
             );
 
     // Trigger
-    assign python_trigger[0] = mipi_gpio    ; // Trigger 0
+    assign python_trigger[0] = mipi_gpio1   ; // Trigger 0
     assign python_trigger[1] = 1'b0         ; // Trigger 1
     assign python_trigger[2] = 1'b0         ; // Trigger 2
 

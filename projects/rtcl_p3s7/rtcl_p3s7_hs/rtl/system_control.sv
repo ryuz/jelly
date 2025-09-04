@@ -16,6 +16,7 @@ module system_control
   
             parameter                   CORE_ID              = 16'h527a                 ,
             parameter                   CORE_VERSION         = 16'h0100                 ,
+            parameter   bit             INIT_SENSOR_ENABLE   = 1'b0                     ,
             parameter   bit             INIT_RECV_RESET      = 1'b1                     ,
             parameter   bit             INIT_ALIGN_RESET     = 1'b1                     ,
             parameter   bit [9:0]       INIT_ALIGN_PATTERN   = 10'h3a6                  ,
@@ -29,6 +30,8 @@ module system_control
         (
             jelly3_axi4l_if.s           s_axi4l             ,
 
+            output  var logic           out_sensor_enable   ,
+            input   var logic           in_sensor_ready     ,
             output  var logic           out_recv_reset      ,
             output  var logic           out_align_reset     ,
             output  var logic   [9:0]   out_align_pattern   ,
@@ -56,6 +59,8 @@ module system_control
     // register address offset
     localparam  regadr_t REGADR_CORE_ID             = regadr_t'('h00);
     localparam  regadr_t REGADR_CORE_VERSION        = regadr_t'('h01);
+    localparam  regadr_t REGADR_SENSOR_ENABLE       = regadr_t'('h04);
+    localparam  regadr_t REGADR_SENSOR_READY        = regadr_t'('h08);
     localparam  regadr_t REGADR_RECV_RESET          = regadr_t'('h10);
     localparam  regadr_t REGADR_ALIGN_RESET         = regadr_t'('h20);
     localparam  regadr_t REGADR_ALIGN_PATTERN       = regadr_t'('h22);
@@ -69,6 +74,8 @@ module system_control
     localparam  regadr_t REGADR_DPHY_INIT_DONE      = regadr_t'('h88);
 
     // registers
+    logic           reg_sensor_enable   ;
+    logic           reg_sensor_ready    ;
     logic           reg_recv_reset      ;
     logic           reg_align_reset     ;
     logic   [9:0]   reg_align_pattern   ;
@@ -82,6 +89,7 @@ module system_control
     logic           reg_dphy_init_done  ;
 
     always_ff @(posedge s_axi4l.aclk) begin
+        reg_sensor_ready   <= in_sensor_ready;
         reg_align_status   <= {in_align_error, in_align_done};
         reg_dphy_init_done <= in_dphy_init_done;
     end
@@ -103,6 +111,7 @@ module system_control
 
     always_ff @(posedge s_axi4l.aclk) begin
         if ( ~s_axi4l.aresetn ) begin
+            reg_sensor_enable   <= INIT_SENSOR_ENABLE   ;
             reg_recv_reset      <= INIT_RECV_RESET      ;
             reg_align_reset     <= INIT_ALIGN_RESET     ;
             reg_align_pattern   <= INIT_ALIGN_PATTERN   ;
@@ -117,6 +126,7 @@ module system_control
             // write
             if ( s_axi4l.awvalid && s_axi4l.awready && s_axi4l.wvalid && s_axi4l.wready ) begin
                 case ( regadr_write )
+                REGADR_SENSOR_ENABLE        : reg_sensor_enable   <=  1'(write_mask(axi4l_data_t'(reg_sensor_enable  ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_RECV_RESET         :   reg_recv_reset      <=  1'(write_mask(axi4l_data_t'(reg_recv_reset     ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_ALIGN_RESET        :   reg_align_reset     <=  1'(write_mask(axi4l_data_t'(reg_align_reset    ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_ALIGN_PATTERN      :   reg_align_pattern   <= 10'(write_mask(axi4l_data_t'(reg_align_pattern  ), s_axi4l.wdata, s_axi4l.wstrb));
@@ -161,6 +171,8 @@ module system_control
             case ( regadr_read )
             REGADR_CORE_ID          :   s_axi4l.rdata <= axi4l_data_t'(CORE_ID             );
             REGADR_CORE_VERSION     :   s_axi4l.rdata <= axi4l_data_t'(CORE_VERSION        );
+            REGADR_SENSOR_ENABLE    :   s_axi4l.rdata <= axi4l_data_t'(reg_sensor_enable   );
+            REGADR_SENSOR_READY     :   s_axi4l.rdata <= axi4l_data_t'(reg_sensor_ready    );
             REGADR_RECV_RESET       :   s_axi4l.rdata <= axi4l_data_t'(reg_recv_reset      );
             REGADR_ALIGN_RESET      :   s_axi4l.rdata <= axi4l_data_t'(reg_align_reset     );
             REGADR_ALIGN_PATTERN    :   s_axi4l.rdata <= axi4l_data_t'(reg_align_pattern   );
@@ -197,6 +209,7 @@ module system_control
 
 
     // output
+    assign  out_sensor_enable   = reg_sensor_enable     ;
     assign  out_recv_reset      = reg_recv_reset        ;
     assign  out_align_reset     = reg_align_reset       ;
     assign  out_align_pattern   = reg_align_pattern     ;

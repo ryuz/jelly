@@ -5,10 +5,10 @@
 
 module axi4s_to_dphy
         #(
-            parameter   int     CHANNELS       = 4                          ,
-            parameter   int     RAW_BITS       = 10                         ,
-            parameter   int     DPHY_LANES     = 2                          ,
-            parameter           DEBUG          = "false"                    
+            parameter   int     CHANNELS       = 4                      ,
+            parameter   int     RAW_BITS       = 10                     ,
+            parameter   int     DPHY_LANES     = 2                      ,
+            parameter           DEBUG          = "false"                
         )
         (
             jelly3_axi4s_if.s                           s_axi4s         ,
