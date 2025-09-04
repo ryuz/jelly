@@ -119,16 +119,16 @@ impl RtclP3s7Mng {
         let reg_fmtr = self.uio.subclone(BASE_ADDR_FMTR, 0x400);
         unsafe {
             reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN, 1);
-            reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 10000000);
+            reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT, 20000000);
             reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_WIDTH, width);
             reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_HEIGHT, height);
             reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_FILL, 0x000);
-            reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 100000);
+            reg_fmtr.write_reg(REG_VIDEO_FMTREG_PARAM_TIMEOUT, 200000);
             reg_fmtr.write_reg(REG_VIDEO_FMTREG_CTL_CONTROL, 0x03);
         }
         std::thread::sleep(std::time::Duration::from_micros(1000));
 
-        // 1frame キャプチャ
+        // ワンショットキャプチャ
         let reg_wdma_img = self.uio.subclone(BASE_ADDR_WDMA_IMG, 0x400);
         let mut vdmaw = VideoDmaControl::new(reg_wdma_img, 2, 2, Some(usleep)).unwrap();
         vdmaw.oneshot(
@@ -162,7 +162,13 @@ impl RtclP3s7Mng {
 
 
     pub fn record_black(&mut self, width: usize, height: usize, frames: usize) -> Result<(), Box<dyn Error>> {
-        // 1frame キャプチャ
+        unsafe {
+            let size = width*height*2*frames;
+            let buf = vec![0u8; size];
+            self.buf0.copy_from_::<u8>(buf.as_ptr(), 0, size);
+        }
+
+        // ワンショットキャプチャ
         let reg_wdma_blk = self.uio.subclone(BASE_ADDR_WDMA_BLK, 0x400);
         let mut vdmaw = VideoDmaControl::new(reg_wdma_blk, 2, 2, Some(usleep)).unwrap();
         vdmaw.oneshot(

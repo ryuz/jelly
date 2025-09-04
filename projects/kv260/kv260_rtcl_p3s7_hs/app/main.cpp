@@ -37,6 +37,8 @@ void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 
 #define CAMREG_CORE_ID          0x0000
 #define CAMREG_CORE_VERSION     0x0001
+#define CAMREG_SENSOR_ENABLE    0x0004
+#define CAMREG_SENSOR_READY     0x0008
 #define CAMREG_RECV_RESET       0x0010
 #define CAMREG_ALIGN_RESET      0x0020
 #define CAMREG_ALIGN_PATTERN    0x0022
@@ -92,6 +94,8 @@ int main(int argc, char *argv[])
     width  = std::max(width, 16);
     height = std::max(height, 1);
 
+    // set signal
+    signal(SIGINT, signal_handler);
 
     // mmap uio
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
@@ -103,7 +107,8 @@ int main(int argc, char *argv[])
     auto reg_sys    = uio_acc.GetAccessor(0x00000000);
     auto reg_timgen = uio_acc.GetAccessor(0x00010000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
-    auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
+    auto reg_wdma0  = uio_acc.GetAccessor(0x00210000);
+    auto reg_wdma1  = uio_acc.GetAccessor(0x00220000);
     
 #if 1
     std::cout << "CORE ID" << std::endl;
@@ -112,22 +117,36 @@ int main(int argc, char *argv[])
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
 //  std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
 //  std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_wdma0.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_wdma1.ReadReg(0) << std::endl;
 #endif
 
-    // mmap udmabuf
-    jelly::UdmabufAccessor udmabuf_acc("udmabuf-jelly-vram0");
-    if ( !udmabuf_acc.IsMapped() ) {
+    // mmap udmabuf0
+    jelly::UdmabufAccessor udmabuf0_acc("udmabuf-jelly-vram0");
+    if ( !udmabuf0_acc.IsMapped() ) {
+        std::cout << "udmabuf0 mmap error" << std::endl;
+        return 1;
+    }
+    auto dmabuf0_phys_adr = udmabuf0_acc.GetPhysAddr();
+    auto dmabuf0_mem_size = udmabuf0_acc.GetSize();
+    std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf0_phys_adr << std::endl;
+    std::cout << "udmabuf0 size      : " << std::dec << dmabuf0_mem_size << std::endl;
+
+    int rec_frames = dmabuf0_mem_size / (width * height * 2);
+    std::cout << "udmabuf0 rec_frames : " << rec_frames << std::endl;
+
+
+    // mmap udmabuf1
+    jelly::UdmabufAccessor udmabuf1_acc("udmabuf-jelly-vram1");
+    if ( !udmabuf1_acc.IsMapped() ) {
         std::cout << "udmabuf mmap error" << std::endl;
         return 1;
     }
-    auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
-    auto dmabuf_mem_size = udmabuf_acc.GetSize();
-    std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
-    std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
+    auto dmabuf1_phys_adr = udmabuf1_acc.GetPhysAddr();
+    auto dmabuf1_mem_size = udmabuf1_acc.GetSize();
+    std::cout << "udmabuf1 phys addr : 0x" << std::hex << dmabuf1_phys_adr << std::endl;
+    std::cout << "udmabuf1 size      : " << std::dec << dmabuf1_mem_size << std::endl;
 
-    int rec_frames = dmabuf_mem_size / (width * height * 4);
-    std::cout << "udmabuf0 rec_frames : " << rec_frames << std::endl;
 
     jelly::I2cAccessor i2c;
     i2c.Open("/dev/i2c-6", 0x10);
@@ -136,12 +155,17 @@ int main(int argc, char *argv[])
     std::cout << "CORE_ID      : " << std::hex << cmd_read(i2c, CAMREG_CORE_ID        ) << std::endl;
     std::cout << "CORE_VERSION : " << std::hex << cmd_read(i2c, CAMREG_CORE_VERSION   ) << std::endl;
 
+    // カメラモジュールリセット
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 0);
+    usleep(1000);
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1);
+    usleep(1000);
 
     // 受信側 DPHY リセット
     reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
 
     // カメラ基板初期化
-    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 0);     // センサー電源OFF
+    cmd_write(i2c, CAMREG_SENSOR_ENABLE  , 0);     // センサー電源OFF
     cmd_write(i2c, CAMREG_DPHY_CORE_RESET, 1);  // 受信側 DPHY リセット
     cmd_write(i2c, CAMREG_DPHY_SYS_RESET , 1);  // 受信側 DPHY リセット
     usleep(100000);
@@ -153,7 +177,8 @@ int main(int argc, char *argv[])
     reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 0);
 
     // センサー電源ON
-    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1);
+//  reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1);
+    cmd_write(i2c, CAMREG_SENSOR_ENABLE, 1);     // センサー電源OFF
     usleep(500000);
 
     // センサー基板 DPHY-TX リセット解除
@@ -183,6 +208,9 @@ int main(int argc, char *argv[])
 //  int height = 160; // 416        ;
     reg_sys.WriteReg(SYSREG_IMAGE_WIDTH,  width);
     reg_sys.WriteReg(SYSREG_IMAGE_HEIGHT, height);
+    reg_sys.WriteReg(SYSREG_BLACK_WIDTH,  1280);
+    reg_sys.WriteReg(SYSREG_BLACK_HEIGHT, 1);
+
 
 
 //    cmd_write(i2c, CAMREG_TRIM_X_START ,     0);
@@ -215,7 +243,7 @@ int main(int argc, char *argv[])
 //  spi_change(i2c, 256, (20-1)<<8);  // ROI x_start  x_end
 //  spi_change(i2c, 256, (128/2-1)<<8);  // ROI x_start  x_end
 //  int pix = 640;
-    int pix = 256;
+//  int pix = 256;
 
     int roi_x = ((672 -  width) / 2) & ~0x0f; // 16の倍数
     int roi_y = ((512 - height) / 2) & ~0x01; // 2の倍数
@@ -249,16 +277,18 @@ int main(int argc, char *argv[])
     spi_change(i2c, 192, 0x1);
 
 
-//  jelly::VideoDmaControl vdmaw(reg_wdma, 4, 4, true);
-    jelly::VideoDmaControl vdmaw(reg_wdma, 2, 2, true);
+    jelly::VideoDmaControl vdmaw0(reg_wdma0, 2, 2, true);
+    jelly::VideoDmaControl vdmaw1(reg_wdma1, 2, 2, true);
+
+//  height -= 1;
 
     // video input start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   20000000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,      height);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x000);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     1000000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
 
@@ -301,11 +331,11 @@ int main(int argc, char *argv[])
         reg_timgen.WriteReg(TIMGENREG_PARAM_TRIG0_END,   trig0_end);
 
         // 画像読み込み
-        vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
+        vdmaw0.Oneshot(dmabuf0_phys_adr, width, height, 1);
 //      cv::Mat img(height, width, CV_32S);
-//      udmabuf_acc.MemCopyTo(img.data, 0, width * height * 4);
+//      udmabuf0_acc.MemCopyTo(img.data, 0, width * height * 4);
         cv::Mat img(height, width, CV_16U);
-        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 2);
+        udmabuf0_acc.MemCopyTo(img.data, 0, width * height * 2);
         
         // 並び替えを行う
         cv::Mat img_u16(height, width, CV_16U);
@@ -347,11 +377,11 @@ int main(int argc, char *argv[])
 
 #if 0
         // キャプチャ
-        vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
+        vdmaw0.Oneshot(dmabuf0_phys_adr, width, height, 1);
 
         if ( 1 ) {
             cv::Mat img_raw = cv::Mat(height, width, CV_8UC4);
-            udmabuf_acc.MemCopyTo(img_raw.data, 0, width * height * 4);
+            udmabuf0_acc.MemCopyTo(img_raw.data, 0, width * height * 4);
             std::vector<cv::Mat> planes;
             cv::split(img_raw, planes);
             cv::imshow("plane0", planes[0]);
@@ -369,7 +399,18 @@ int main(int argc, char *argv[])
 
         // ユーザー操作
         switch ( key ) {
-        case 'p':
+            case 'b':
+                // Black読み込み
+                printf("REG_VDMA_WRITE_ID          : %d\n", (int)reg_wdma1.ReadReg(REG_VDMA_WRITE_CORE_ID));
+                printf("REG_VDMA_WRITE_CTL_CONTROL : %d\n", (int)reg_wdma1.ReadReg(REG_VDMA_WRITE_CTL_CONTROL));
+                printf("REG_VDMA_WRITE_CTL_STATUS  : %d\n", (int)reg_wdma1.ReadReg(REG_VDMA_WRITE_CTL_STATUS));
+                vdmaw1.Oneshot(dmabuf1_phys_adr, 1280, 2, 1);
+                printf("REG_VDMA_WRITE_ID          : %d\n", (int)reg_wdma1.ReadReg(REG_VDMA_WRITE_CORE_ID));
+                printf("REG_VDMA_WRITE_CTL_CONTROL : %d\n", (int)reg_wdma1.ReadReg(REG_VDMA_WRITE_CTL_CONTROL));
+                printf("REG_VDMA_WRITE_CTL_STATUS  : %d\n", (int)reg_wdma1.ReadReg(REG_VDMA_WRITE_CTL_STATUS));
+                break;
+
+            case 'p':
             {
                 std::cout << "SYSREG_ID           : 0x" << std::hex << reg_sys.ReadReg(SYSREG_ID)  << std::endl;
                 std::cout << "SYSREG_IMAGE_WIDTH  : " << std::dec << reg_sys.ReadReg(SYSREG_IMAGE_WIDTH)  << std::endl;
@@ -393,12 +434,12 @@ int main(int argc, char *argv[])
 
         case 'r':   // record
             // 画像読み込み
-            vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frames);
+            vdmaw0.Oneshot(dmabuf0_phys_adr, width, height, rec_frames);
             
             for ( int i = 0; i < rec_frames; i++ ) {
                 // 画像読み込み
                 cv::Mat img(height, width, CV_32S);
-                udmabuf_acc.MemCopyTo(img.data, width * height * 4 * i, width * height * 4);
+                udmabuf0_acc.MemCopyTo(img.data, width * height * 4 * i, width * height * 4);
         
                 // 並び替えを行う
                 cv::Mat img_u16(height, width, CV_16U);
