@@ -268,7 +268,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let address = "0.0.0.0:50051".parse().unwrap();
     let rtcl_p3s7_control_service = RtclP3s7ControlService{
-        verbose: 1,
+        verbose: 0,
         mng: mng,
     };
 

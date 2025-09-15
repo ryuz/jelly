@@ -128,7 +128,7 @@ impl RtclP3s7Mng {
         }
         std::thread::sleep(std::time::Duration::from_micros(1000));
 
-        // 1frame キャプチャ
+        // ワンショットキャプチャ
         let reg_wdma_img = self.uio.subclone(BASE_ADDR_WDMA_IMG, 0x400);
         let mut vdmaw = VideoDmaControl::new(reg_wdma_img, 2, 2, Some(usleep)).unwrap();
         vdmaw.oneshot(

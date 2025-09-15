@@ -624,12 +624,6 @@ module kv260_rtcl_p3s7_hs
                 .m_axi4s_image      (axi4s_img          )
             );
     
-    jelly3_axi4s_debug_monitor
-        u_axi4s_debug_monitor
-            (
-                .mon_axi4s          (axi4s_img          )
-            );
-
     /*
     jelly3_video_pattern_generator
             #(
