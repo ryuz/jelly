@@ -1,0 +1,94 @@
+#199 0x255
+
+#247 0xfff0 # gain
+#247 0x0000 # gain
+
+# gain
+#204 0x01e3
+#205 0x0080
+204 0x1fe3
+205 0x0080
+
+# AEC
+160 0x0010
+#160 0x0000
+
+# min_gain
+169 0x0800
+
+# max_gain
+171 0x700d
+
+# gain_configuration0
+204 0x3fe3
+
+# digital_gain_configuration0
+205 0x0080
+
+
+#257  300
+
+#199  0x0100
+#200  0x0200
+#201  0x0400
+
+# ROI-0
+#256  0x3f00
+#256  0x9f00
+#257  0
+#258  1023
+#258  511
+
+# black lines
+#197 0x0102
+197 0x0102
+#197 0x0108
+
+# blackcal
+128 0x4108
+129 0x0000
+
+# mult_timer  14.705ns  68Mz
+#199 1000
+199 530
+
+# fr_length
+#200 2000
+200 100
+#200 0
+
+# exposure
+201 99
+
+
+# 30fps
+#199 718
+#200 3333
+#201 3000
+
+
+# integration_control
+#194 0x00e4
+
+# delay_configuration  xsm_delay
+193 0x3900
+#193 0x1f00
+
+# ZNROT
+#192 0x0001
+
+192 0x0045
+
+# slavemode 
+#192 0x0075
+192 0x0265
+
+
+# AFE bias
+#66 0x53c8
+#66 0x7fff
+#67 0x8888
+# adc_bias
+#69 0x0088
+
+#72 0x2237
