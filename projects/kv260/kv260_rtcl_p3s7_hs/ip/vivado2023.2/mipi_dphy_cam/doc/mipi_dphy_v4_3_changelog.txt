@@ -1,0 +1,298 @@
+2023.2:
+ * Version 4.3 (Rev. 8)
+ * Bug Fix: Incorporated updates from xapp1017 on del_mech signal in 7-series calibration logic
+ * Other: Rebrand to AMD copyright information
+ * Revision change in one or more subcores
+
+2023.1.2:
+ * Version 4.3 (Rev. 7)
+ * No changes
+
+2023.1.1:
+ * Version 4.3 (Rev. 7)
+ * Feature Enhancement: Increase line rate to 1.5Gbps/lane from 1.26Gbps/lane for XC and XA AU10/15P
+
+2023.1:
+ * Version 4.3 (Rev. 6)
+ * Feature Enhancement: Added External MMCM support for Line rates > 1500 and RX Mode
+ * Revision change in one or more subcores
+
+2022.2.2:
+ * Version 4.3 (Rev. 5)
+ * No changes
+
+2022.2.1:
+ * Version 4.3 (Rev. 5)
+ * No changes
+
+2022.2:
+ * Version 4.3 (Rev. 5)
+ * General: Corrected the Line Rate support for the SBVB Package devices
+ * Revision change in one or more subcores
+
+2022.1.2:
+ * Version 4.3 (Rev. 4)
+ * No changes
+
+2022.1.1:
+ * Version 4.3 (Rev. 4)
+ * No changes
+
+2022.1:
+ * Version 4.3 (Rev. 4)
+ * General: Repackaged to improve internal automation, no functional changes
+ * Revision change in one or more subcores
+
+2021.2.2:
+ * Version 4.3 (Rev. 3)
+ * No changes
+
+2021.2.1:
+ * Version 4.3 (Rev. 3)
+ * No changes
+
+2021.2:
+ * Version 4.3 (Rev. 3)
+ * General: Added support for Artix ultrascale plus devices
+ * Revision change in one or more subcores
+
+2021.1.1:
+ * Version 4.3 (Rev. 2)
+ * No changes
+
+2021.1:
+ * Version 4.3 (Rev. 2)
+ * Bug Fix: Fixed clock,data misalignment issue in Master mode for Versal families
+ * Feature Enhancement: IDELAY Tap Value setting in Fixed calibration mode using external ports for 7series devices
+ * Revision change in one or more subcores
+
+2020.3:
+ * Version 4.3 (Rev. 1)
+ * General: Improved internal datapaths
+ * Revision change in one or more subcores
+
+2020.2.2:
+ * Version 4.3
+ * No changes
+
+2020.2.1:
+ * Version 4.3
+ * No changes
+
+2020.2:
+ * Version 4.3
+ * Feature Enhancement: Allows higher line rate selection for 7series devices
+ * Revision change in one or more subcores
+
+2020.1.1:
+ * Version 4.2
+ * No changes
+
+2020.1:
+ * Version 4.2
+ * Feature Enhancement: Extended line-rate support up to 3.2Gbps
+ * Revision change in one or more subcores
+
+2019.2.2:
+ * Version 4.1 (Rev. 5)
+ * No changes
+
+2019.2.1:
+ * Version 4.1 (Rev. 5)
+ * No changes
+
+2019.2:
+ * Version 4.1 (Rev. 5)
+ * New Feature: MIPI D-PHY Splitter Bridge mode added. Allows to replicate incoming MIPI stream on to multiple output MIPI streams
+ * Feature Enhancement: Added MIPI D-PHY v2.0 Specification support with limited line-rate support
+ * Revision change in one or more subcores
+
+2019.1.3:
+ * Version 4.1 (Rev. 4)
+ * No changes
+
+2019.1.2:
+ * Version 4.1 (Rev. 4)
+ * No changes
+
+2019.1.1:
+ * Version 4.1 (Rev. 4)
+ * Feature Enhancement: Added MIPI D-PHY v1.2 Specification support
+
+2019.1:
+ * Version 4.1 (Rev. 3)
+ * General: Added support for Versal devices
+ * Revision change in one or more subcores
+
+2018.3.1:
+ * Version 4.1 (Rev. 2)
+ * No changes
+
+2018.3:
+ * Version 4.1 (Rev. 2)
+ * Feature Enhancement: Enhancement to 8 Lanes for MIPI D-PHY Rx configuration
+ * Revision change in one or more subcores
+
+2018.2:
+ * Version 4.1 (Rev. 1)
+ * Bug Fix: Minor bug fix for IP generation with some Spartan 7 parts
+ * Revision change in one or more subcores
+
+2018.1:
+ * Version 4.1
+ * Bug Fix: Fixed ULPS behavior
+ * Feature Enhancement: Dynamic IDELAY TAP value setting in Fixed Calibration mode of 7series MIPI D-PHY Rx configuration
+ * Feature Enhancement: Resetting the Bit-Slice FIFO for LP to HS Mode Transition
+ * Other: Added support for additional 7 series devices
+
+2017.4:
+ * Version 4.0 (Rev. 1)
+ * Bug Fix: Fixed treadyhs assertion across lanes in D-PHY Tx
+ * Bug Fix: HS_PREPARE duration fixed to be within specification limits for 7-Series MIPI D-PHY Tx with OBUFTDS enabled
+ * Feature Enhancement: Support for  Virtex7,Kintex7,Artix7,Zynq-7000 devices at Production status
+ * Other: Updated HSSIO DIFFERENTIAL_IO_TERMINATION parameter from NONE to TERM_NONE
+ * Revision change in one or more subcores
+
+2017.3:
+ * Version 4.0
+ * Port Change: Added cl_tst_clk_out, dl_tst_clk_out, cl_tst_clk_in and dl_tst_clk_in ports for 7-Series D-PHY TX IP configuration
+ * Port Change: Grouped *txp,*txn, *rxp, *rxn ports as *mipi_phy_if interface
+ * Bug Fix: Fixed ulpsactivenot deassertion for D-PHY RX IP configuration
+ * Bug Fix: Added BUFIO in 7-Series TX configuration
+ * Bug Fix: Removed tangling mmcm_lock_out port in D-PHY RX configuration
+ * Bug Fix: Updated IODELAY group name to change dynamically for 7-Series D-PHY RX IP configuration
+ * Bug Fix: Updated FIFO_WRCLK_OUT constraint for Ultrascale+ D-PHY RX configuration
+ * Bug Fix: Fixed High-Speed mode to Low-Power mode switching overshoot issue in 7-Series D-PHY TX IP with OBUFTDS configuration
+ * New Feature: Added board support for FMC LI-IMX274MIPI-FMC V1.0 on ZCU102 HPC0
+ * Revision change in one or more subcores
+
+2017.2:
+ * Version 3.1 (Rev. 1)
+ * Port Change: Added cl_txclkactivehs output port for D-PHY TX IP configuration
+ * Port Change: Added init_done output port to indicate D-PHY IP initialization completion
+ * Bug Fix: Fixed lane initialization status not getting reset when DPHY_EN bit of CONTROL register is deasserted
+ * Bug Fix: Added IOSTD constraints in example design for Ultrascale+ device IP configuration
+ * Bug Fix: Added cl_txclkactivehs output port to indicate HS clock output timing after cl_txrequesths assertion
+ * Bug Fix: Added init_done output port to indicate D-PHY IP initialization completion
+ * Bug Fix: Fixed T pin of OBUFTDS toggling during Low-Power period in 7-Series D-PHY TX IP configuration
+ * Bug Fix: Fixed hs_rx_timeout inadvertently triggering issue for 3-lane D-PHY RX IP configuration
+ * Bug Fix: Fixed tangling system_rst_out output port in 7-Series D-PHY TX IP configuration
+ * Revision change in one or more subcores
+
+2017.1:
+ * Version 3.1
+ * Port Change: Removed system_rst_in port from D-PHY RX IP configuration (See Product Guide PG202 "Port Descriptions" section for list of the ports.)
+ * Bug Fix: Removed system_rst_in port from D-PHY RX IP configuration
+ * Bug Fix: Added FIFO_RD_EN_CONTROL parameter of HSSIO IP sub-core in Ultrascale+ D-PHY RX IP configuration
+ * Bug Fix: Implemented T_WAKEUP timing parameter for D-PHY RX IP configuration
+ * Bug Fix: Added parameter to control HS_SETTLE timing parameter for D-PHY RX IP configuration
+ * Bug Fix: Updated 7-Series line rates
+ * Bug Fix: Added C_EN_HS_OBUFTDS parameter to control OBUFTDS instantiation for 7-Series D-PHY TX IP
+ * Bug Fix: Added C_INIT parameter to control T_INIT timing parameter
+ * Bug Fix: Updated default value of T_INIT parameter for D-PHY RX (slave) IP configuration from 500000 ns to 100000 ns
+ * Bug Fix: Fixed auto calibration mode data ordering for multi-lane 7-Series D-PHY RX (slave) IP configuration
+ * Other: High-Speed SelectIO v3.2 IP integration
+ * Other: Clocking Wizard v5.4 IP integration
+
+2016.4:
+ * Version 3.0 (Rev. 1)
+ * Port Change: Added clk_300m port for 7-Series Auto Calibration mode (See Product Guide PG202 "Port Descriptions" section for list of added ports.)
+ * Port Change: Updated 7-Series Calibration mode ports (See Product Guide PG202 "Port Descriptions" section for list of added ports.)
+ * Bug Fix: BUFG insertion on FIFO_WRCLK_OUT for HOLD time violations in D-PHY RX IP
+ * Bug Fix: Fixed Data Lane HS-RX TD-TERM-EN value for D-PHY RX Compliance Test 2.4.1
+ * Bug Fix: Fixed Clock Lane HS-RX TCLK-TERM-EN value for D-PHY RX Compliance Test 2.4.6
+ * Bug Fix: Updated the Auto Calibration mode with per-bit deskew for 7-Series D-PHY RX IP
+ * Bug Fix: Removed MMCM for Ultrascale+ D-PHY RX IP configuration and using constant 1500 MHz CLKOUTPHY for all line rates
+ * Revision change in one or more subcores
+
+2016.3:
+ * Version 3.0
+ * Port Change: Added new ports based on 7-Series support (See Product Guide PG202 "Port Descriptions" section for list of added ports.)
+ * Port Change: Added active_lanes_in[3:0] port for Active lane support (See Product Guide PG202 "Port Descriptions" section for list of added ports.)
+ * Bug Fix: Fixed SoT pattern logic detection in D-PHY RX IP
+ * New Feature: Added 7-Series family support
+ * New Feature: Added active lanes support in D-PHY TX
+ * Other: High-Speed SelectIO v3.1 IP integration
+ * Other: Revision change in one or more subcores
+ * Revision change in one or more subcores
+
+2016.2:
+ * Version 2.0 (Rev. 1)
+ * Fixed HS RX TIMEOUT parameter propagation for 3-lane D-PHY RX configuration
+ * Corrected the clkoutphy connection in D-PHY RX configuration
+ * Revision change in one or more subcores
+
+2016.1:
+ * Version 2.0
+ * Added GUI option to include or exclude shareable logic resources in the core
+ * Resource optimizations
+ * Latency improvements on MIPI D-PHY RX IP configurations
+ * Clocking architecture updates in MIPI D-PHY RX High-Speed datapath
+ * High-Speed Select IO IP integration
+ * Enhanced IO planner feature with more IO selection options
+ * rxvalidhs generation is updated such that it will not go Low in the middle of the HS data transfer
+ * Added GUI option to include or exclude HS and ESC TIMEOUT counters/registers
+ * enable signal from PPI is decoupled from lane initialization and de-assertion of enable will not affect lane initialization status
+ * IP top level ports will differ compare to mipi_dphy_1_0 IP due to Shared Logic feature
+
+2015.4.2:
+ * Version 1.0 (Rev. 1)
+ * No changes
+
+2015.4.1:
+ * Version 1.0 (Rev. 1)
+ * No changes
+
+2015.4:
+ * Version 1.0 (Rev. 1)
+ * Revision change in one or more subcores
+
+2015.3:
+ * Version 1.0
+ * Initial release
+ * IP revision number added to HDL module, library, and include file names, to support designs with both locked and upgraded IP instances
+
+(c) Copyright 2015 - 2023 Advanced Micro Devices, Inc. All rights reserved.
+
+This file contains confidential and proprietary information
+of AMD and is protected under U.S. and international copyright
+and other intellectual property laws.
+
+DISCLAIMER
+This disclaimer is not a license and does not grant any
+rights to the materials distributed herewith. Except as
+otherwise provided in a valid license issued to you by
+AMD, and to the maximum extent permitted by applicable
+law: (1) THESE MATERIALS ARE MADE AVAILABLE "AS IS" AND
+WITH ALL FAULTS, AND AMD HEREBY DISCLAIMS ALL WARRANTIES
+AND CONDITIONS, EXPRESS, IMPLIED, OR STATUTORY, INCLUDING
+BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, NON-
+INFRINGEMENT, OR FITNESS FOR ANY PARTICULAR PURPOSE; and
+(2) AMD shall not be liable (whether in contract or tort,
+including negligence, or under any other theory of
+liability) for any loss or damage of any kind or nature
+related to, arising under or in connection with these
+materials, including for any direct, or any indirect,
+special, incidental, or consequential loss or damage
+(including loss of data, profits, goodwill, or any type of
+loss or damage suffered as a result of any action brought
+by a third party) even if such damage or loss was
+reasonably foreseeable or AMD had been advised of the
+possibility of the same.
+
+CRITICAL APPLICATIONS
+AMD products are not designed or intended to be fail-
+safe, or for use in any application requiring fail-safe
+performance, such as life-support or safety devices or
+systems, Class III medical devices, nuclear facilities,
+applications related to the deployment of airbags, or any
+other applications that could lead to death, personal
+injury, or severe property or environmental damage
+(individually and collectively, "Critical
+Applications"). Customer assumes the sole risk and
+liability of any use of AMD products in Critical
+Applications, subject only to applicable laws and
+regulations governing limitations on product liability.
+
+THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
+PART OF THIS FILE AT ALL TIMES.
