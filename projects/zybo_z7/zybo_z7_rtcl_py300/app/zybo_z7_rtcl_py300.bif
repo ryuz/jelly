@@ -1,0 +1,5 @@
+all:
+{
+    zybo_z7_rtcl_py300.bit
+}
+
