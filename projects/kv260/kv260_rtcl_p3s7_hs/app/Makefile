@@ -30,6 +30,7 @@ clean:
 
 .PHONY: run
 run: $(TARGET) load
+	mkdir -p rec
 	./$(TARGET) $(RUN_OPT)
 
 .PHONY: run_rust
