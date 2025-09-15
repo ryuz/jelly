@@ -838,7 +838,7 @@ module kv260_imx219
                 .SIZE_OFFSET            (1'b1                   ),
                 .H_SIZE_BITS            (14                     ),
                 .V_SIZE_BITS            (14                     ),
-                .F_SIZE_BITS            (8                      ),
+                .F_SIZE_BITS            (12                     ),
                 .LINE_STEP_BITS         (16                     ),
                 .FRAME_STEP_BITS        (32                     ),
                 
@@ -849,7 +849,7 @@ module kv260_imx219
                 .INIT_PARAM_H_SIZE      (14'(IMG_WIDTH-1)       ),
                 .INIT_PARAM_V_SIZE      (14'(IMG_HEIGHT-1)      ),
                 .INIT_PARAM_LINE_STEP   (16'd8192               ),
-                .INIT_PARAM_F_SIZE      (8'd0                   ),
+                .INIT_PARAM_F_SIZE      (12'd0                  ),
                 .INIT_PARAM_FRAME_STEP  (32'(IMG_HEIGHT*8192)   ),
                 .INIT_SKIP_EN           (1'b1                   ),
                 .INIT_DETECT_FIRST      (3'b010                 ),

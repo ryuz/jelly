@@ -32,10 +32,10 @@ module jelly_data_delay
     integer     i;
     
     generate
-    if ( LATENCY == 0 ) begin
+    if ( LATENCY == 0 ) begin : bypass
         assign out_data = in_data;
     end
-    else begin
+    else begin : blk_delay
         reg     [LATENCY*DATA_WIDTH-1:0]    reg_data;
         always @(posedge clk) begin
             if ( reset ) begin

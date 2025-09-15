@@ -1,0 +1,11 @@
+===================================
+Configuration Memory information
+===================================
+File Format        MCS
+Interface          SPIX1
+Size               2M
+Start Address      0x00000000
+End Address        0x001FFFFF
+
+Addr1         Addr2         Date                    File(s)
+0x00000000    0x000838DB    Sep  6 13:45:13 2025    /home/ryuji/git-work/jelly_rtcl/projects/rtcl_p3s7/rtcl_p3s7_hs/syn/vivado2023.2/rtcl_p3s7_hs.runs/impl_1/rtcl_p3s7_hs.bit
