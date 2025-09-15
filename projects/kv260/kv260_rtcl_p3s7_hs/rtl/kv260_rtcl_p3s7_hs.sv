@@ -623,32 +623,12 @@ module kv260_rtcl_p3s7_hs
                 .m_axi4s_black      (axi4s_blk          ),
                 .m_axi4s_image      (axi4s_img          )
             );
-    
-    /*
-    jelly3_video_pattern_generator
-            #(
-                .X_BITS         (WIDTH_BITS             ),
-                .Y_BITS         (HEIGHT_BITS            ),
-                .F_BITS         (16                     ),
-                .BLOCK_BITS     (5                      )
-            )
-        u_video_pattern_generator
+
+    jelly3_axi4s_debug_monitor
+        u_axi4s_debug_monitor
             (
-                .enable         (1'b1                   ),
-                .busy           (                       ),
-
-                .param_pattern  (3'd0                   ),
-                .param_width    (reg_image_width        ),
-                .param_height   (reg_image_height       ),
-                .param_h_total  (reg_image_width  + 32  ),
-                .param_v_total  (reg_image_height + 16  ),
-
-                .m_axi4s        (axi4s_image            ),
-                .out_x          (                       ),
-                .out_y          (                       ),
-                .out_f          (                       )
+                .mon_axi4s       (axi4s_img.mon)
             );
-    */
 
     
     // format regularizer
@@ -689,40 +669,6 @@ module kv260_rtcl_p3s7_hs
                 .out_param_height       (fmtr_param_height      )
             );
     
-
-    /*
-    // 現像
-   jelly3_axi4s_if
-            #(
-                .DATA_BITS  (4*10               ),
-                .DEBUG      (DEBUG              )
-            )
-        axi4s_rgb
-            (
-                .aresetn    (axi4s_cam_aresetn  ),
-                .aclk       (axi4s_cam_aclk     ),
-                .aclken     (1'b1               )
-            );
-    
-    video_raw_to_rgb
-            #(
-                .WIDTH_BITS     (WIDTH_BITS         ),
-                .HEIGHT_BITS    (HEIGHT_BITS        ),
-                .DEVICE         ("RTL"              )
-            )
-        u_video_raw_to_rgb
-            (
-                .aclken         (1'b1               ), 
-                .in_update_req  (1'b1               ),
-                .param_width    (fmtr_param_width   ),
-                .param_height   (fmtr_param_height  ),
-
-                .s_axi4s        (axi4s_fmtr.s       ),
-                .m_axi4s        (axi4s_rgb.m        ),
-
-                .s_axi4l        (axi4l_dec[DEC_RGB].s)
-            );
-*/
 
     // FIFO
     jelly3_axi4s_if
@@ -837,20 +783,12 @@ module kv260_rtcl_p3s7_hs
                 .aclken     (1'b1             )
             );
 
-    // 末尾にゴミが付くバグ強制再現
-    /*
-    logic bug_valid;
-    always_ff @(posedge axi4s_cam_aclk) begin
-        bug_valid <= axi4s_blk.tvalid && axi4s_blk.tlast;
-    end
-    */
 
     assign axi4s_wdma_blk.tuser  = axi4s_blk.tuser        ;
     assign axi4s_wdma_blk.tlast  = axi4s_blk.tlast        ;
     assign axi4s_wdma_blk.tdata  = 16'(axi4s_blk.tdata)   ;
     assign axi4s_wdma_blk.tstrb = '1;
     assign axi4s_wdma_blk.tvalid = axi4s_blk.tvalid       ;
-//  assign axi4s_wdma_blk.tvalid = axi4s_blk.tvalid || bug_valid      ;
     assign axi4s_blk.tready = axi4s_wdma_blk.tready;
 
     jelly3_dma_video_write
