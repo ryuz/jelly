@@ -651,8 +651,8 @@ module jelly3_dma_stream_write
     
     
     (* ASYNC_REG = "true" *)    reg         reg_wskip_ff0, reg_wskip_ff1;
-    always_ff @(posedge s_axi4l.aclk ) begin
-        if ( ~s_axi4l.aresetn ) begin
+    always_ff @(posedge s_axi4s.aclk ) begin
+        if ( ~s_axi4s.aresetn ) begin
             reg_wskip_ff0 <= 1'b0;
             reg_wskip_ff1 <= 1'b0;
         end
@@ -774,7 +774,7 @@ module jelly3_dma_stream_write
                 .BACK_S_REGS            (BACK_S_REG                 ),
                 .BACK_M_REGS            (BACK_M_REG                 )
             )
-        i_axi4_write_nd
+        u_axi4_write_nd
             (
                 .endian                 (endian                     ),
                 

@@ -1,0 +1,14 @@
+===================================
+Configuration Memory information
+===================================
+File Format        MCS
+Interface          SPIX1
+Size               2M
+Start Address      0x00000000
+End Address        0x001FFFFF
+Checksum           0x17B0E481
+Fill Value         0xFF
+
+Addr1         Addr2         Date                    File(s)                                                                                                                                                       Checksum
+0x00000000    0x000838DB    Apr  3 21:21:38 2025    /home/ryuji/git-work/jelly/projects/pythont300_spartan7/rcl_p3s7_blinking_led/syn/vivado2023.2/rcl_p3s7_blinking_led.runs/impl_1/rcl_p3s7_blinking_led.bit    0x000187A5
+File Checksum Total                                                                                                                                                                                               0x000187A5

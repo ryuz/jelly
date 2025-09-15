@@ -18,7 +18,9 @@ backup/
 *.back
 Untitled.*
 * copy
+* copy *
 * copy.*
+* *
 *コピー
 *コピー.*
 *.tmp
@@ -44,6 +46,7 @@ Untitled.*
 *.dtb
 *.dtbo
 *.bit
+*.mcs
 *.ltx
 *.xsa
 
@@ -61,6 +64,7 @@ Untitled.*
 *.hier
 *.gtkw
 *.gtkwave
+*.ila
 
 # data file
 *.hex
@@ -127,6 +131,7 @@ veritak_command.txt
 *.xst
 *.xrpt
 *.jou
+*.prm
 *.log
 *.pb
 *.sdf
