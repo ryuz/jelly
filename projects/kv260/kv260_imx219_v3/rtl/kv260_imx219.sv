@@ -7,11 +7,13 @@
 
 module kv260_imx219
         #(
-            parameter   int     WIDTH_BITS  = 16,
-            parameter   int     HEIGHT_BITS = 16,
-            parameter   int     IMG_WIDTH   = 3280 / 2,
-            parameter   int     IMG_HEIGHT  = 2464 / 2,
-            parameter           DEBUG       = "true"
+            parameter   int     WIDTH_BITS  = 16                ,
+            parameter   int     HEIGHT_BITS = 16                ,
+            parameter   int     IMG_WIDTH   = 3280 / 2          ,
+            parameter   int     IMG_HEIGHT  = 2464 / 2          ,
+            parameter           DEVICE      = "ULTRASCALE_PLUS" ,
+            parameter           SIMULATION  = "false"           ,
+            parameter           DEBUG       = "true"           
         )
         (
             input   var logic           cam_clk_p,
@@ -31,11 +33,11 @@ module kv260_imx219
     //  Zynq UltraScale+ MPSoC block
     // ----------------------------------------
 
-    localparam  int     AXI4L_PERI_ADDR_BITS = 40;
-    localparam  int     AXI4L_PERI_DATA_BITS = 64;
-    localparam  int     AXI4_MEM_ID_BITS     = 6;
-    localparam  int     AXI4_MEM_ADDR_BITS   = 49;
-    localparam  int     AXI4_MEM_DATA_BITS   = 128;
+    localparam  int     AXI4L_PERI_ADDR_BITS = 40   ;
+    localparam  int     AXI4L_PERI_DATA_BITS = 64   ;
+    localparam  int     AXI4_MEM_ID_BITS     = 6    ;
+    localparam  int     AXI4_MEM_ADDR_BITS   = 49   ;
+    localparam  int     AXI4_MEM_DATA_BITS   = 128  ;
    
 
     logic       sys_reset           ;
@@ -300,7 +302,45 @@ module kv260_imx219
     // ----------------------------------------
     //  MIPI D-PHY RX
     // ----------------------------------------
+
+    logic axi4s_cam_aresetn;
+    logic axi4s_cam_aclk   ;
+    assign axi4s_cam_aresetn = ~sys_reset;
+    assign axi4s_cam_aclk    = sys_clk200;
+
+    jelly3_axi4s_if
+            #(
+                .DATA_BITS          (10                 ),
+                .DEBUG              (DEBUG              )
+            )
+        axi4s_csi2
+            (
+                .aresetn            (axi4s_cam_aresetn  ),
+                .aclk               (axi4s_cam_aclk     ),
+                .aclken             (1'b1               )
+            );
     
+    imx219_mipi_rx
+            #(
+                .DEVICE             (DEVICE             ),
+                .SIMULATION         (SIMULATION         ),
+                .DEBUG              (DEBUG              )
+            )
+        u_imx219_mipi_rx
+            (
+                .core_reset         (sys_reset | reg_sw_reset   ),
+                .core_clk           (sys_clk200                 ),
+
+                .param_data_type    (reg_csi_data_type  ),
+                .cam_clk_p          (cam_clk_p          ),
+                .cam_clk_n          (cam_clk_n          ),
+                .cam_data_p         (cam_data_p         ),
+                .cam_data_n         (cam_data_n         ),
+                .m_axi4s            (axi4s_csi2         )
+            );
+    
+
+    /*
     (* KEEP = "true" *)
     logic               rxbyteclkhs;
     logic               clkoutphy_out;
@@ -501,7 +541,7 @@ module kv260_imx219
                 .m_axi4s_tvalid     (axi4s_csi2.tvalid  ),
                 .m_axi4s_tready     (1'b1)  // (axi4s_csi2.tready)
             );
-    
+    */
     
     // format regularizer
     logic   [WIDTH_BITS-1:0]    fmtr_param_width;
@@ -710,20 +750,19 @@ module kv260_imx219
     
     jelly3_axi4s_fifo
             #(
-                .ASYNC          (0          ),
-                .PTR_BITS       (9          ),
-                .RAM_TYPE       ("block"    ),
-                .LOW_DEALY      (0          ),
-                .DOUT_REG       (1          ),
-                .S_REG          (1          ),
-                .M_REG          (1          )
+                .ASYNC          (0              ),
+                .PTR_BITS       (6              ),
+                .RAM_TYPE       ("block"        ),
+                .DOUT_REG       (1              ),
+                .S_REG          (1              ),
+                .M_REG          (1              )
             )
         u_axi4s_fifo
             (
-                .s_axi4s        (axi4s_rgb.s),
-                .m_axi4s        (axi4s_fifo.m),
-                .s_free_count   (),
-                .m_data_count   ()
+                .s_axi4s        (axi4s_rgb.s    ),
+                .m_axi4s        (axi4s_fifo.m   ),
+                .s_free_size    (               ),
+                .m_data_size    (               )
             );
 
     // DMA write
@@ -799,7 +838,7 @@ module kv260_imx219
                 .SIZE_OFFSET            (1'b1                   ),
                 .H_SIZE_BITS            (14                     ),
                 .V_SIZE_BITS            (14                     ),
-                .F_SIZE_BITS            (8                      ),
+                .F_SIZE_BITS            (12                     ),
                 .LINE_STEP_BITS         (16                     ),
                 .FRAME_STEP_BITS        (32                     ),
                 
@@ -810,7 +849,7 @@ module kv260_imx219
                 .INIT_PARAM_H_SIZE      (14'(IMG_WIDTH-1)       ),
                 .INIT_PARAM_V_SIZE      (14'(IMG_HEIGHT-1)      ),
                 .INIT_PARAM_LINE_STEP   (16'd8192               ),
-                .INIT_PARAM_F_SIZE      (8'd0                   ),
+                .INIT_PARAM_F_SIZE      (12'd0                  ),
                 .INIT_PARAM_FRAME_STEP  (32'(IMG_HEIGHT*8192)   ),
                 .INIT_SKIP_EN           (1'b1                   ),
                 .INIT_DETECT_FIRST      (3'b010                 ),
@@ -824,7 +863,7 @@ module kv260_imx219
                 .ALLOW_UNALIGNED        (1                      ), // (0),
                 .CAPACITY_BITS          (32                     ),
                 
-                .WFIFO_PTR_BITS         (9                      ),
+                .WFIFO_PTR_BITS         (8                      ),
                 .WFIFO_RAM_TYPE         ("block"                )
             )
         u_dma_video_write
@@ -862,8 +901,8 @@ module kv260_imx219
     //  Debug
     // ----------------------------------------
     
-    logic   [31:0]      reg_counter_rxbyteclkhs;
-    always_ff @(posedge rxbyteclkhs)   reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
+//  logic   [31:0]      reg_counter_rxbyteclkhs;
+//  always_ff @(posedge rxbyteclkhs)   reg_counter_rxbyteclkhs <= reg_counter_rxbyteclkhs + 1;
     
     logic   [31:0]      reg_counter_clk100;
     always_ff @(posedge sys_clk100)    reg_counter_clk100 <= reg_counter_clk100 + 1;
@@ -936,6 +975,7 @@ module kv260_imx219
     
     
     // Debug
+    /*
     (* mark_debug = "true" *)   logic               dbg_reset;
     (* mark_debug = "true" *)   logic   [7:0]       dbg0_rxdatahs;
     (* mark_debug = "true" *)   logic               dbg0_rxvalidhs;
@@ -956,6 +996,7 @@ module kv260_imx219
         dbg1_rxactivehs <= dl1_rxactivehs;
         dbg1_rxsynchs   <= dl1_rxsynchs;
     end
+    */
         
 endmodule
 

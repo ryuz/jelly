@@ -89,6 +89,8 @@ interface jelly3_mat_if
             input   valid       
         );
 
+
+`ifdef __SIMULATION__
 initial begin
     assert (DATA_BITS == CH_DEPTH * CH_BITS) else $fatal("DATA_BITS != CH_DEPTH * CH_BITS");
 end
@@ -107,6 +109,7 @@ if ( USE_DE ) begin
     property prop_valid_de; @(posedge clk) disable iff ( reset || !cke ) valid |-> !$isunknown(de ); endproperty
     ASSERT_VALID_DE : assert property(prop_valid_de);
 end
+`endif
 
 
 endinterface

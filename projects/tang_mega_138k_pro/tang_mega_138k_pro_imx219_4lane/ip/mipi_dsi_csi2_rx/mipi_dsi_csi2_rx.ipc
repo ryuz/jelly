@@ -1,0 +1,16 @@
+[General]
+ipc_version=4
+file=mipi_dsi_csi2_rx
+module=MIPI_DSI_CSI2_RX_Top
+target_device=gw5ast138b-002
+type=mipi_dsi_csi2_rx
+version=1.0
+
+[Config]
+CSI-2=true
+DSI=false
+LANG=0
+Mode_1_16=false
+Mode_1_8=true
+Number_of_RX_Lanes=4
+Synthesis_tool=GowinSynthesis

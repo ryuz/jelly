@@ -5,6 +5,7 @@
 !.python-version
 !.vitis-version
 !.cargo
+!.readthedocs.yaml
 
 # private file
 _*
@@ -17,7 +18,9 @@ backup/
 *.back
 Untitled.*
 * copy
+* copy *
 * copy.*
+* *
 *コピー
 *コピー.*
 *.tmp
@@ -43,6 +46,7 @@ Untitled.*
 *.dtb
 *.dtbo
 *.bit
+*.mcs
 *.ltx
 *.xsa
 
@@ -127,6 +131,7 @@ veritak_command.txt
 *.xst
 *.xrpt
 *.jou
+*.prm
 *.log
 *.pb
 *.sdf
