@@ -35,37 +35,39 @@ void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 
 
 
-#define CAMREG_CORE_ID          0x0000
-#define CAMREG_CORE_VERSION     0x0001
-#define CAMREG_RECV_RESET       0x0010
-#define CAMREG_ALIGN_RESET      0x0020
-#define CAMREG_ALIGN_PATTERN    0x0022
-#define CAMREG_ALIGN_STATUS     0x0028
-#define CAMREG_DPHY_CORE_RESET  0x0080
-#define CAMREG_DPHY_SYS_RESET   0x0081
-#define CAMREG_DPHY_INIT_DONE   0x0088
+#define CAMREG_CORE_ID              0x0000
+#define CAMREG_CORE_VERSION         0x0001
+#define CAMREG_SENSOR_ENABLE        0x0004
+#define CAMREG_SENSOR_READY         0x0008
+#define CAMREG_RECV_RESET           0x0010
+#define CAMREG_ALIGN_RESET          0x0020
+#define CAMREG_ALIGN_PATTERN        0x0022
+#define CAMREG_ALIGN_STATUS         0x0028
+#define CAMREG_DPHY_CORE_RESET      0x0080
+#define CAMREG_DPHY_SYS_RESET       0x0081
+#define CAMREG_DPHY_INIT_DONE       0x0088
 
-#define SYSREG_ID               0x0000
-#define SYSREG_DPHY_SW_RESET    0x0001
-#define SYSREG_CAM_ENABLE       0x0002
-#define SYSREG_CSI_DATA_TYPE    0x0003
-#define SYSREG_DPHY_INIT_DONE   0x0004
-#define SYSREG_FPS_COUNT        0x0006
-#define SYSREG_FRAME_COUNT      0x0007
-#define SYSREG_IMAGE_WIDTH      0x0008
-#define SYSREG_IMAGE_HEIGHT     0x0009
-#define SYSREG_BLACK_WIDTH      0x000a
-#define SYSREG_BLACK_HEIGHT     0x000b
+#define SYSREG_ID                   0x0000
+#define SYSREG_DPHY_SW_RESET        0x0001
+#define SYSREG_CAM_ENABLE           0x0002
+#define SYSREG_CSI_DATA_TYPE        0x0003
+#define SYSREG_DPHY_INIT_DONE       0x0004
+#define SYSREG_FPS_COUNT            0x0006
+#define SYSREG_FRAME_COUNT          0x0007
+#define SYSREG_IMAGE_WIDTH          0x0008
+#define SYSREG_IMAGE_HEIGHT         0x0009
+#define SYSREG_BLACK_WIDTH          0x000a
+#define SYSREG_BLACK_HEIGHT         0x000b
 
-#define TIMGENREG_CORE_ID               0x00
-#define TIMGENREG_CORE_VERSION          0x01
-#define TIMGENREG_CTL_CONTROL           0x04
-#define TIMGENREG_CTL_STATUS            0x05
-#define TIMGENREG_CTL_TIMER             0x08
-#define TIMGENREG_PARAM_PERIOD          0x10
-#define TIMGENREG_PARAM_TRIG0_START     0x20
-#define TIMGENREG_PARAM_TRIG0_END       0x21
-#define TIMGENREG_PARAM_TRIG0_POL       0x22
+#define TIMGENREG_CORE_ID           0x00
+#define TIMGENREG_CORE_VERSION      0x01
+#define TIMGENREG_CTL_CONTROL       0x04
+#define TIMGENREG_CTL_STATUS        0x05
+#define TIMGENREG_CTL_TIMER         0x08
+#define TIMGENREG_PARAM_PERIOD      0x10
+#define TIMGENREG_PARAM_TRIG0_START 0x20
+#define TIMGENREG_PARAM_TRIG0_END   0x21
+#define TIMGENREG_PARAM_TRIG0_POL   0x22
 
 
 int main(int argc, char *argv[])
@@ -92,6 +94,8 @@ int main(int argc, char *argv[])
     width  = std::max(width, 16);
     height = std::max(height, 1);
 
+    // set signal
+    signal(SIGINT, signal_handler);
 
     // mmap uio
     jelly::UioAccessor uio_acc("uio_pl_peri", 0x08000000);
@@ -100,31 +104,46 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // レジスタ確認
     auto reg_sys    = uio_acc.GetAccessor(0x00000000);
     auto reg_timgen = uio_acc.GetAccessor(0x00010000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
-    auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
+    auto reg_wdma0  = uio_acc.GetAccessor(0x00210000);
+    auto reg_wdma1  = uio_acc.GetAccessor(0x00220000);
     
+    // レジスタ確認
     std::cout << "CORE ID" << std::endl;
     std::cout << std::hex << reg_sys.ReadReg(SYSREG_ID) << std::endl;
     std::cout << std::hex << reg_timgen.ReadReg(TIMGENREG_CORE_ID) << std::endl;
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
-    std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_wdma0.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_wdma1.ReadReg(0) << std::endl;
 
-    // mmap udmabuf
-    jelly::UdmabufAccessor udmabuf_acc("udmabuf-jelly-vram0");
-    if ( !udmabuf_acc.IsMapped() ) {
+    // mmap udmabuf0
+    jelly::UdmabufAccessor udmabuf0_acc("udmabuf-jelly-vram0");
+    if ( !udmabuf0_acc.IsMapped() ) {
+        std::cout << "udmabuf0 mmap error" << std::endl;
+        return 1;
+    }
+    auto dmabuf0_phys_adr = udmabuf0_acc.GetPhysAddr();
+    auto dmabuf0_mem_size = udmabuf0_acc.GetSize();
+    std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf0_phys_adr << std::endl;
+    std::cout << "udmabuf0 size      : " << std::dec << dmabuf0_mem_size << std::endl;
+
+    int rec_frames = dmabuf0_mem_size / (width * height * 2);
+    std::cout << "udmabuf0 rec_frames : " << rec_frames << std::endl;
+
+
+    // mmap udmabuf1
+    jelly::UdmabufAccessor udmabuf1_acc("udmabuf-jelly-vram1");
+    if ( !udmabuf1_acc.IsMapped() ) {
         std::cout << "udmabuf mmap error" << std::endl;
         return 1;
     }
-    auto dmabuf_phys_adr = udmabuf_acc.GetPhysAddr();
-    auto dmabuf_mem_size = udmabuf_acc.GetSize();
-    std::cout << "udmabuf0 phys addr : 0x" << std::hex << dmabuf_phys_adr << std::endl;
-    std::cout << "udmabuf0 size      : " << std::dec << dmabuf_mem_size << std::endl;
+    auto dmabuf1_phys_adr = udmabuf1_acc.GetPhysAddr();
+    auto dmabuf1_mem_size = udmabuf1_acc.GetSize();
+    std::cout << "udmabuf1 phys addr : 0x" << std::hex << dmabuf1_phys_adr << std::endl;
+    std::cout << "udmabuf1 size      : " << std::dec << dmabuf1_mem_size << std::endl;
 
-    int rec_frames = dmabuf_mem_size / (width * height * 4);
-    std::cout << "udmabuf0 rec_frames : " << rec_frames << std::endl;
 
     jelly::I2cAccessor i2c;
     i2c.Open("/dev/i2c-6", 0x10);
@@ -133,12 +152,17 @@ int main(int argc, char *argv[])
     std::cout << "CORE_ID      : " << std::hex << i2c_read(i2c, CAMREG_CORE_ID        ) << std::endl;
     std::cout << "CORE_VERSION : " << std::hex << i2c_read(i2c, CAMREG_CORE_VERSION   ) << std::endl;
 
+    // カメラモジュールリセット
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 0);
+    usleep(1000);
+    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1);
+    usleep(1000);
 
     // 受信側 DPHY リセット
     reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
 
     // カメラ基板初期化
-    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 0);     // センサー電源OFF
+    i2c_write(i2c, CAMREG_SENSOR_ENABLE  , 0);  // センサー電源OFF
     i2c_write(i2c, CAMREG_DPHY_CORE_RESET, 1);  // 受信側 DPHY リセット
     i2c_write(i2c, CAMREG_DPHY_SYS_RESET , 1);  // 受信側 DPHY リセット
     usleep(100000);
@@ -147,7 +171,7 @@ int main(int argc, char *argv[])
     reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 0);
 
     // センサー電源ON
-    reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1);
+    i2c_write(i2c, CAMREG_SENSOR_ENABLE, 1);     // センサー電源ON
     usleep(500000);
 
     // センサー基板 DPHY-TX リセット解除
@@ -170,6 +194,8 @@ int main(int argc, char *argv[])
     // 受信画像サイズ設定
     reg_sys.WriteReg(SYSREG_IMAGE_WIDTH,  width);
     reg_sys.WriteReg(SYSREG_IMAGE_HEIGHT, height);
+    reg_sys.WriteReg(SYSREG_BLACK_WIDTH,  1280);
+    reg_sys.WriteReg(SYSREG_BLACK_HEIGHT, 1);
 
     // センサー起動    
     spi_change(i2c, 16, 0x0003);    // power_down  0:pwd_n, 1:PLL enable, 2: PLL Bypass
@@ -213,15 +239,16 @@ int main(int argc, char *argv[])
     spi_change(i2c, 192, 0x1);
 
     // Video DMA ドライバ生成
-    jelly::VideoDmaControl vdmaw(reg_wdma, 2, 2, true);
+    jelly::VideoDmaControl vdmaw0(reg_wdma0, 2, 2, true);
+    jelly::VideoDmaControl vdmaw1(reg_wdma1, 2, 2, true);
 
     // video input start
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMER_EN,  1);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   10000000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_FRM_TIMEOUT,   20000000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_WIDTH,       width);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_HEIGHT,      height);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_FILL,        0x000);
-    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     100000);
+    reg_fmtr.WriteReg(REG_VIDEO_FMTREG_PARAM_TIMEOUT,     1000000);
     reg_fmtr.WriteReg(REG_VIDEO_FMTREG_CTL_CONTROL,       0x03);
     usleep(100000);
 
@@ -260,9 +287,9 @@ int main(int argc, char *argv[])
         reg_timgen.WriteReg(TIMGENREG_PARAM_TRIG0_END,   trig0_end);
 
         // 画像読み込み
-        vdmaw.Oneshot(dmabuf_phys_adr, width, height, 1);
+        vdmaw0.Oneshot(dmabuf0_phys_adr, width, height, 1);
         cv::Mat img(height, width, CV_16U);
-        udmabuf_acc.MemCopyTo(img.data, 0, width * height * 2);
+        udmabuf0_acc.MemCopyTo(img.data, 0, width * height * 2);
         
         // ソフトウェアで並び替えを行う場合の処理
         cv::Mat img_u16(height, width, CV_16U);
@@ -298,7 +325,7 @@ int main(int argc, char *argv[])
 
         // ユーザー操作
         switch ( key ) {
-        case 'p':
+            case 'p':
             {
                 std::cout << "SYSREG_ID           : 0x" << std::hex << reg_sys.ReadReg(SYSREG_ID)  << std::endl;
                 std::cout << "SYSREG_IMAGE_WIDTH  : " << std::dec << reg_sys.ReadReg(SYSREG_IMAGE_WIDTH)  << std::endl;
@@ -322,12 +349,12 @@ int main(int argc, char *argv[])
 
         case 'r':   // record
             // 画像読み込み
-            vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frames);
+            vdmaw0.Oneshot(dmabuf0_phys_adr, width, height, rec_frames);
             
             for ( int i = 0; i < rec_frames; i++ ) {
                 // 画像読み込み
                 cv::Mat img(height, width, CV_32S);
-                udmabuf_acc.MemCopyTo(img.data, width * height * 4 * i, width * height * 4);
+                udmabuf0_acc.MemCopyTo(img.data, width * height * 4 * i, width * height * 4);
         
                 // 並び替えを行う
                 cv::Mat img_u16(height, width, CV_16U);
@@ -358,7 +385,6 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-
 // カメラ側 の Spartan-7 へ I2C 経由で書き込み
 void i2c_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) {
     addr <<= 1;
@@ -388,6 +414,7 @@ void spi_write(jelly::I2cAccessor &i2c, std::uint16_t addr, std::uint16_t data) 
     i2c_write(i2c, addr, data);
 }
 
+
 // PYTHONイメージセンサーの SPI から I2C 経由で読み込み
 std::uint16_t spi_read(jelly::I2cAccessor &i2c, std::uint16_t addr) {
     addr |= (1 << 14);
@@ -412,6 +439,7 @@ void reg_dump(jelly::I2cAccessor &i2c, const char *fname) {
     fclose(fp);
 }
 
+
 // 設定ファイルを読み込む
 void load_setting(jelly::I2cAccessor &i2c) {
     FILE* fp = fopen("reg_list.txt", "r");
@@ -435,5 +463,7 @@ void load_setting(jelly::I2cAccessor &i2c) {
     }
     fclose(fp);
 }
+
+
 
 // end of file
