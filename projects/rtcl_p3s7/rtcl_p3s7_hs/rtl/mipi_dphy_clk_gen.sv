@@ -8,6 +8,14 @@ module mipi_dphy_clk_gen
         input   var logic   reset               ,
         input   var logic   clk50               ,
 
+        jelly3_axi4l_if.s   s_axi4l_mmcm        ,
+//      jelly3_axi4l_if.s   s_axi4l_pll         ,
+
+        input   var logic   mmcm_rst            ,
+        input   var logic   mmcm_pwrdwn         ,
+        input   var logic   pll_rst             ,
+        input   var logic   pll_pwrdwn          ,
+
         output  var logic   core_reset          ,
         output  var logic   core_clk            ,
         output  var logic   system_reset        ,
@@ -40,21 +48,35 @@ module mipi_dphy_clk_gen
 
     logic    serial_clk         ;
     logic    serial_clk90       ;
+    logic    serial_clkesc      ;
     logic    serial_clkfb       ;
     logic    serial_clkfb_bufg  ;
     logic    serial_locked      ;
-    clk_mipi_serial
-        u_clk_mipi_serial
+//  clk_mipi_serial
+    mipi_dphy_clk_gen_serial
+        u_mipi_dphy_clk_gen_serial
             (
                 .reset              (reset              ),
                 .clk_in1            (clk50              ),
 
+                .s_axi4l            (s_axi4l_mmcm       ),
+
+                .mmcm_rst           (mmcm_rst           ),
+                .mmcm_pwrdwn        (mmcm_pwrdwn        ),
+
                 .clk_out1           (serial_clk         ),
                 .clk_out2           (serial_clk90       ),
-                .clk_out3           (txclkesc           ),
+                .clk_out3           (serial_clkesc      ),
                 .clkfb_out          (serial_clkfb       ),
                 .clkfb_in           (serial_clkfb_bufg  ),
                 .locked             (serial_locked      )
+            );
+
+    BUFG
+        u_bufg_txclkesc
+            (
+                .I                  (serial_clkesc      ),
+                .O                  (txclkesc           )
             );
 
     BUFG

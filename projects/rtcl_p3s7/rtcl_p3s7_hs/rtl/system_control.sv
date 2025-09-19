@@ -25,7 +25,9 @@ module system_control
             parameter   bit [7:0]       INIT_CSI_DATA_TYPE   = 8'h2b                    ,
             parameter   bit [15:0]      INIT_CSI_WC          = 16'(256*5/4)             ,
             parameter   bit             INIT_DPHY_CORE_RESET = 1'b1                     ,
-            parameter   bit             INIT_DPHY_SYS_RESET  = 1'b1                     
+            parameter   bit             INIT_DPHY_SYS_RESET  = 1'b1                     ,
+            parameter   bit [1:0]       INIT_MMCM_CONTROL    = 2'b00                    ,
+            parameter   bit [1:0]       INIT_PLL_CONTROL     = 2'b00                    
         )
         (
             jelly3_axi4l_if.s           s_axi4l             ,
@@ -43,7 +45,11 @@ module system_control
 //          output  var logic   [15:0]  out_csi_wc          ,
             output  var logic           out_dphy_core_reset ,
             output  var logic           out_dphy_sys_reset  ,
-            input   var logic           in_dphy_init_done   
+            input   var logic           in_dphy_init_done   ,
+            output  var logic           out_mmcm_rst        ,
+            output  var logic           out_mmcm_pwrdwn     ,
+            output  var logic           out_pll_rst         ,
+            output  var logic           out_pll_pwrdwn      
         );
     
     
@@ -72,6 +78,8 @@ module system_control
     localparam  regadr_t REGADR_DPHY_CORE_RESET     = regadr_t'('h80);
     localparam  regadr_t REGADR_DPHY_SYS_RESET      = regadr_t'('h81);
     localparam  regadr_t REGADR_DPHY_INIT_DONE      = regadr_t'('h88);
+    localparam  regadr_t REGADR_MMCM_CONTROL        = regadr_t'('ha0);
+    localparam  regadr_t REGADR_PLL_CONTROL         = regadr_t'('ha1);
 
     // registers
     logic           reg_sensor_enable   ;
@@ -87,6 +95,8 @@ module system_control
     logic           reg_dphy_core_reset ;
     logic           reg_dphy_sys_reset  ;
     logic           reg_dphy_init_done  ;
+    logic   [1:0]   reg_mmcm_control    ;
+    logic   [1:0]   reg_pll_control     ;
 
     always_ff @(posedge s_axi4l.aclk) begin
         reg_sensor_ready   <= in_sensor_ready;
@@ -121,8 +131,10 @@ module system_control
 //          reg_csi_wc          <= INIT_CSI_WC          ;
             reg_dphy_core_reset <= INIT_DPHY_CORE_RESET ;
             reg_dphy_sys_reset  <= INIT_DPHY_SYS_RESET  ;
+            reg_mmcm_control    <= INIT_MMCM_CONTROL    ;
+            reg_pll_control     <= INIT_PLL_CONTROL     ;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             // write
             if ( s_axi4l.awvalid && s_axi4l.awready && s_axi4l.wvalid && s_axi4l.wready ) begin
                 case ( regadr_write )
@@ -136,6 +148,8 @@ module system_control
 //              REGADR_CSI_WC             :   reg_csi_wc          <= 16'(write_mask(axi4l_data_t'(reg_csi_wc         ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_DPHY_CORE_RESET    :   reg_dphy_core_reset <=  1'(write_mask(axi4l_data_t'(reg_dphy_core_reset), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_DPHY_SYS_RESET     :   reg_dphy_sys_reset  <=  1'(write_mask(axi4l_data_t'(reg_dphy_sys_reset ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_MMCM_CONTROL       :   reg_mmcm_control    <=  2'(write_mask(axi4l_data_t'(reg_mmcm_control   ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PLL_CONTROL        :   reg_pll_control     <=  2'(write_mask(axi4l_data_t'(reg_pll_control    ), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
             end
@@ -150,7 +164,7 @@ module system_control
         if ( ~s_axi4l.aresetn ) begin
             s_axi4l.bvalid <= 0;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             if ( s_axi4l.bready ) begin
                 s_axi4l.bvalid <= 0;
             end
@@ -184,6 +198,8 @@ module system_control
             REGADR_DPHY_CORE_RESET  :   s_axi4l.rdata <= axi4l_data_t'(reg_dphy_core_reset );
             REGADR_DPHY_SYS_RESET   :   s_axi4l.rdata <= axi4l_data_t'(reg_dphy_sys_reset  );
             REGADR_DPHY_INIT_DONE   :   s_axi4l.rdata <= axi4l_data_t'(reg_dphy_init_done  );
+            REGADR_MMCM_CONTROL     :   s_axi4l.rdata <= axi4l_data_t'(reg_mmcm_control    );
+            REGADR_PLL_CONTROL      :   s_axi4l.rdata <= axi4l_data_t'(reg_pll_control     );
             default                 :   s_axi4l.rdata <= '0;
             endcase
         end
@@ -219,7 +235,11 @@ module system_control
 //  assign  out_csi_wc          = reg_csi_wc            ;
     assign  out_dphy_core_reset = reg_dphy_core_reset   ;
     assign  out_dphy_sys_reset  = reg_dphy_sys_reset    ;
-
+    assign  out_mmcm_rst        = reg_mmcm_control[0]   ;
+    assign  out_mmcm_pwrdwn     = reg_mmcm_control[1]   ;
+    assign  out_pll_rst         = reg_pll_control[0]    ;
+    assign  out_pll_pwrdwn      = reg_pll_control[1]    ;
+    
 endmodule
 
 

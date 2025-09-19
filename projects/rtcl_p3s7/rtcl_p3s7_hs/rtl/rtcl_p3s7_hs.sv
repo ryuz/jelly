@@ -47,9 +47,10 @@ module rtcl_p3s7_hs
             output  var logic   [1:0]   mipi_data_hs_n          
         );
 
-    // ---------------------------------
+    
+    // ----------------------------------------
     //  Clock and Reset
-    // ---------------------------------
+    // ----------------------------------------
 
     logic clk50;
     BUFG
@@ -104,49 +105,11 @@ module rtcl_p3s7_hs
         end
     end
 
-    // DPHY clock
-    logic   dphy_core_reset         ;
-    logic   dphy_core_clk           ;
-    logic   dphy_system_reset       ;
-//  logic   dphy_txhs_reset         ;
-    logic   dphy_clk                ;
-    logic   dphy_txclkesc           ;
-    logic   dphy_oserdes_clkdiv     ;
-    logic   dphy_oserdes_clk        ;
-    logic   dphy_oserdes_clk90      ;
-
-    mipi_dphy_clk_gen
-        u_mipi_dphy_clk_gen
-            (
-                .reset              (reset                  ),
-                .clk50              (clk50                  ),
-
-                .core_reset         (dphy_core_reset        ),
-                .core_clk           (dphy_core_clk          ),
-                .system_reset       (dphy_system_reset      ),
-//              .dphy_reset         (                       ),
-                .dphy_clk           (dphy_clk               ),
-                .txclkesc           (dphy_txclkesc          ),
-                .oserdes_clkdiv     (dphy_oserdes_clkdiv    ),
-                .oserdes_clk        (dphy_oserdes_clk       ),
-                .oserdes_clk90      (dphy_oserdes_clk90     )
-            );
 
 
-    logic       idelayctrl_rdy;
-    (* IODELAY_GROUP = "IODELAY_GRP_LVDS" *)
-    IDELAYCTRL
-        u_idleyctrl_lvds
-            (
-                .RDY        (idelayctrl_rdy     ),
-                .REFCLK     (dphy_core_clk      ),
-                .RST        (dphy_core_reset    )
-            );
-
-    
-    // -------------------------------------
+    // ----------------------------------------
     //  MIPI I2C
-    // -------------------------------------
+    // ----------------------------------------
 
     logic mipi_scl_i;
     logic mipi_scl_t;
@@ -206,9 +169,9 @@ module rtcl_p3s7_hs
             );
 
 
-    // -------------------------
-    //  I2C to SPI
-    // -------------------------
+    // ----------------------------------------
+    //  I2C to SPI and AXI4-Lite
+    // ----------------------------------------
 
     logic   [8:0]   spi_addr    ;
     logic           spi_we      ;
@@ -223,7 +186,7 @@ module rtcl_p3s7_hs
                 .ADDR_BITS      (15             ),
                 .DATA_BITS      (16             )
             )
-        axi4l
+        axi4l_host
             (
                 .aresetn        (~reset         ),
                 .aclk           (clk72          ),
@@ -252,11 +215,52 @@ module rtcl_p3s7_hs
                 .spi_rdata      (spi_rdata      ),
                 .spi_rvalid     (spi_rvalid     ),
 
-                .m_axi4l        (axi4l          )
+                .m_axi4l        (axi4l_host     )
             );
 
 
-    // controller
+    // ----------------------------------------
+    //  AXI4-Lite Address decoder
+    // ----------------------------------------
+
+    localparam DEC_CTL  = 0;
+    localparam DEC_MMCM = 1;
+//  localparam DEC_PLL  = 2;
+    localparam DEC_NUM  = 2;
+
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS      (15     ),
+                .DATA_BITS      (16     )
+            )
+        axi4l_dec [DEC_NUM]
+            (
+                .aresetn        (~reset ),
+                .aclk           (clk72  ),
+                .aclken         (1'b1   )
+            );
+    
+    // address map
+    assign {axi4l_dec[DEC_CTL ].addr_base, axi4l_dec[DEC_CTL ].addr_high} = {15'h0000, 15'h1fff};
+    assign {axi4l_dec[DEC_MMCM].addr_base, axi4l_dec[DEC_MMCM].addr_high} = {15'h2000, 15'h2fff};
+//  assign {axi4l_dec[DEC_PLL ].addr_base, axi4l_dec[DEC_PLL ].addr_high} = {15'h3000, 15'h3fff};
+
+    jelly3_axi4l_addr_decoder
+            #(
+                .NUM            (DEC_NUM    ),
+                .DEC_ADDR_BITS  (28         )
+            )
+        u_axi4l_addr_decoder
+            (
+                .s_axi4l        (axi4l_host ),
+                .m_axi4l        (axi4l_dec  )
+            );
+
+
+    // ----------------------------------------
+    //  System Controller
+    // ----------------------------------------
+
                                 logic           ctl_sensor_enable   ;
                                 logic           ctl_sensor_ready    ;
                                 logic           ctl_recv_reset      ;
@@ -267,6 +271,10 @@ module rtcl_p3s7_hs
                                 logic           ctl_dphy_core_reset ;
                                 logic           ctl_dphy_sys_reset  ;
                                 logic           ctl_dphy_init_done  ;
+                                logic           ctl_mmcm_rst        ;
+                                logic           ctl_mmcm_pwrdwn     ;
+                                logic           ctl_pll_rst         ;
+                                logic           ctl_pll_pwrdwn      ;
 
     system_control
             #(
@@ -282,7 +290,7 @@ module rtcl_p3s7_hs
             )
         u_system_control
             (
-                .s_axi4l                (axi4l                  ),
+                .s_axi4l                (axi4l_dec[DEC_CTL]     ),
 
                 .out_sensor_enable      (ctl_sensor_enable      ),
                 .in_sensor_ready        (ctl_sensor_ready       ),
@@ -293,11 +301,272 @@ module rtcl_p3s7_hs
                 .in_align_error         (ctl_align_error        ),
                 .out_dphy_core_reset    (ctl_dphy_core_reset    ),
                 .out_dphy_sys_reset     (ctl_dphy_sys_reset     ),
-                .in_dphy_init_done      (ctl_dphy_init_done     )
+                .in_dphy_init_done      (ctl_dphy_init_done     ),
+                .out_mmcm_rst           (ctl_mmcm_rst           ),
+                .out_mmcm_pwrdwn        (ctl_mmcm_pwrdwn        ),
+                .out_pll_rst            (ctl_pll_rst            ),
+                .out_pll_pwrdwn         (ctl_pll_pwrdwn         )
             );
     
 
+    // -------------------------------------
+    //  PYTHON300 Sensor
+    // -------------------------------------
 
+    // 4 LVDS RAW10
+    localparam  int     CHANNELS = 4            ;
+    localparam  type    raw10_t  = logic [9:0]  ;
+    localparam  type    sync10_t = logic [9:0]  ;
+
+
+
+    // -------------------------------------
+    //  Sensor Power Management
+    // -------------------------------------
+
+    // pwr enable
+    logic sensor_pwr_enable = 1'b0;
+    always_ff @(posedge clk72 ) begin
+        if ( ~reset_n ) begin
+            sensor_pwr_enable <= 1'b0;
+        end
+        else begin
+            sensor_pwr_enable <= ctl_sensor_enable;
+        end
+    end
+
+    // Power Manager
+    logic sensor_ready;
+    sensor_pwr_mng
+        u_sensor_pwr_mng
+            (
+                .reset              (reset                 ),
+                .clk72              (clk72                 ),
+                
+                .enable             (sensor_pwr_enable     ),
+                .ready              (sensor_ready          ),
+
+                .sensor_pwr_en_vdd18(sensor_pwr_en_vdd18   ),
+                .sensor_pwr_en_vdd33(sensor_pwr_en_vdd33   ),
+                .sensor_pwr_en_pix  (sensor_pwr_en_pix     ),
+                .sensor_pgood       (sensor_pgood          ),
+                .python_reset_n     (python_reset_n        ),
+                .python_clk_pll     (python_clk_pll        )
+            );
+    assign ctl_sensor_ready = sensor_ready;
+
+
+    // PYTHON Sensor SPI
+    python_spi
+        u_python_spi
+            (
+                .reset          (reset          ),
+                .clk            (clk72          ),
+
+                .s_addr         (spi_addr       ),
+                .s_we           (spi_we         ),
+                .s_wdata        (spi_wdata      ),
+                .s_valid        (spi_valid      ),
+                .s_ready        (spi_ready      ),
+                .m_rdata        (spi_rdata      ),
+                .m_rvalid       (spi_rvalid     ),
+
+                .spi_ss_n       (python_ss_n    ),
+                .spi_sck        (python_sck     ),
+                .spi_mosi       (python_mosi    ),
+                .spi_miso       (python_miso    )
+            );
+
+    // Trigger
+    assign python_trigger[0] = mipi_gpio1   ; // Trigger 0
+    assign python_trigger[1] = 1'b0         ; // Trigger 1
+    assign python_trigger[2] = 1'b0         ; // Trigger 2
+
+
+    // Receiver(ISERDES)
+                                logic                       python_reset    ;
+                                logic                       python_clk      ;
+    (* mark_debug = DEBUG *)    raw10_t   [CHANNELS-1:0]    python_rx_data  ;
+    (* mark_debug = DEBUG *)    sync10_t                    python_rx_sync  ;
+    (* mark_debug = DEBUG *)    logic                       bitslip         ;
+    python_receiver_10bit
+        u_python_receiver_10bit
+            (
+                .in_reset       (reset              ),
+                .in_clk_p       (python_clk_p       ),
+                .in_clk_n       (python_clk_n       ),
+                .in_data_p      (python_data_p      ),
+                .in_data_n      (python_data_n      ),
+                .in_sync_p      (python_sync_p      ),
+                .in_sync_n      (python_sync_n      ),
+                .sw_reset       (ctl_recv_reset     ),
+
+                .bitslip        (bitslip            ),
+                .out_reset      (python_reset       ),
+                .out_clk        (python_clk         ),
+                .out_data       (python_rx_data     ),
+                .out_sync       (python_rx_sync     )
+            );
+
+    // Alignment
+    (* MARK_DEBUG = DEBUG *)    raw10_t   [CHANNELS-1:0]    python_align_data   ;
+    (* MARK_DEBUG = DEBUG *)    sync10_t                    python_align_sync   ;
+    (* MARK_DEBUG = DEBUG *)    logic                       python_align_valid  ;
+    python_alignment
+            #(
+                .CHANNELS       (CHANNELS           ),
+                .DATA_BITS      ($bits(raw10_t)     ),
+                .SLIP_INTERVAL  (15                 )
+            )
+        u_python_alignment
+            (
+                .reset          (python_reset       ),
+                .clk            (python_clk         ),
+
+                .sw_reset       (ctl_align_reset    ),
+                
+                .pattern        (ctl_align_pattern  ),
+                .align_done     (ctl_align_done     ),
+                .align_error    (ctl_align_error    ),
+                
+                .bitslip        (bitslip            ),
+
+                .s_data         (python_rx_data     ),
+                .s_sync         (python_rx_sync     ),
+                .s_valid        (1'b1               ),
+
+                .m_data         (python_align_data  ),
+                .m_sync         (python_align_sync  ),
+                .m_valid        (python_align_valid )
+        );
+
+
+    // to AXI-Stream
+    localparam  AXI4S_TDATA_BITS = CHANNELS * $bits(raw10_t);
+    localparam  AXI4S_TUSER_BITS = 4;
+    jelly3_axi4s_if
+            #(
+                .USE_LAST       (1                  ),
+                .USE_USER       (1                  ),
+                .DATA_BITS      (AXI4S_TDATA_BITS   ),
+                .USER_BITS      (AXI4S_TUSER_BITS   ),
+                .DEBUG          (DEBUG              )
+            )
+        axi4s_recv
+            (
+                .aresetn        (~python_reset      ),
+                .aclk           (python_clk         ),
+                .aclken         (1'b1               )
+            );
+
+    python_to_axi4s
+        u_python_to_axi4s
+            (
+                .s_data         (python_align_data  ),
+                .s_sync         (python_align_sync  ),
+                .s_valid        (python_align_valid ),
+                .m_axi4s        (axi4s_recv         )
+            );
+
+    // pixel swap
+    jelly3_axi4s_if
+            #(
+                .USE_LAST       (1                  ),
+                .USE_USER       (1                  ),
+                .DATA_BITS      (AXI4S_TDATA_BITS   ),
+                .USER_BITS      (AXI4S_TUSER_BITS   ),
+                .DEBUG          (DEBUG              )
+            )
+        axi4s_swap
+            (
+                .aresetn        (~python_reset      ),
+                .aclk           (python_clk         ),
+                .aclken         (1'b1               )
+            );
+    
+    pixel_swap
+        u_pixel_swap
+            (
+                .s_axi4s        (axi4s_recv         ),
+                .m_axi4s        (axi4s_swap         )
+            );
+
+    // pixel clip
+    jelly3_axi4s_if
+            #(
+                .USE_LAST       (1                  ),
+                .USE_USER       (1                  ),
+                .DATA_BITS      (AXI4S_TDATA_BITS   ),
+                .USER_BITS      (AXI4S_TUSER_BITS   ),
+                .DEBUG          (DEBUG              )
+            )
+        axi4s_clip
+            (
+                .aresetn        (~python_reset      ),
+                .aclk           (python_clk         ),
+                .aclken         (1'b1               )
+            );
+    
+    pixel_clip
+        u_pixel_clip
+            (
+                .s_axi4s        (axi4s_swap.s        ),
+                .m_axi4s        (axi4s_clip.m        )
+            );
+
+
+
+    // -------------------------------------
+    //  DPHY clock
+    // -------------------------------------
+
+    logic   dphy_core_reset         ;
+    logic   dphy_core_clk           ;
+    logic   dphy_system_reset       ;
+//  logic   dphy_txhs_reset         ;
+    logic   dphy_clk                ;
+    logic   dphy_txclkesc           ;
+    logic   dphy_oserdes_clkdiv     ;
+    logic   dphy_oserdes_clk        ;
+    logic   dphy_oserdes_clk90      ;
+
+    mipi_dphy_clk_gen
+        u_mipi_dphy_clk_gen
+            (
+                .reset              (reset                  ),
+                .clk50              (clk50                  ),
+
+                .s_axi4l_mmcm       (axi4l_dec[DEC_MMCM]    ) ,
+//              .s_axi4l_pll        (axi4l_dec[DEC_PLL]     ) ,
+
+                .mmcm_rst           (ctl_mmcm_rst           ),
+                .mmcm_pwrdwn        (ctl_mmcm_pwrdwn        ),
+                .pll_rst            (ctl_pll_rst            ),
+                .pll_pwrdwn         (ctl_pll_pwrdwn         ),
+
+                .core_reset         (dphy_core_reset        ),
+                .core_clk           (dphy_core_clk          ),
+                .system_reset       (dphy_system_reset      ),
+//              .dphy_reset         (                       ),
+                .dphy_clk           (dphy_clk               ),
+                .txclkesc           (dphy_txclkesc          ),
+                .oserdes_clkdiv     (dphy_oserdes_clkdiv    ),
+                .oserdes_clk        (dphy_oserdes_clk       ),
+                .oserdes_clk90      (dphy_oserdes_clk90     )
+            );
+
+
+    logic       idelayctrl_rdy;
+    (* IODELAY_GROUP = "IODELAY_GRP_LVDS" *)
+    IDELAYCTRL
+        u_idleyctrl_lvds
+            (
+                .RDY        (idelayctrl_rdy     ),
+                .REFCLK     (dphy_core_clk      ),
+                .RST        (dphy_core_reset    )
+            );
+
+    
     // -------------------------------------
     //  MIPI DPHY
     // -------------------------------------
@@ -445,209 +714,13 @@ module rtcl_p3s7_hs
     assign dphy_dl1_txtriggeresc    = '0    ;
     assign dphy_dl1_txdataesc       = '0    ;
     assign dphy_dl1_txvalidesc      = '0    ;
-
-
-    // -------------------------------------
-    //  PYTHON300 Sensor
-    // -------------------------------------
-
-    // 4 LVDS RAW10
-    localparam  int     CHANNELS = 4            ;
-    localparam  type    raw10_t  = logic [9:0]  ;
-    localparam  type    sync10_t = logic [9:0]  ;
-
-    // -------------------------------------
-    //  MIPI GPIO
-    // -------------------------------------
-
-    // pwr enable
-    logic sensor_pwr_enable = 1'b0;
-    always_ff @(posedge clk72 ) begin
-        if ( ~reset_n ) begin
-            sensor_pwr_enable <= 1'b0;
-        end
-        else begin
-            sensor_pwr_enable <= ctl_sensor_enable;
-        end
-    end
-
-    // Sensor Power Management
-    logic sensor_ready;
-    sensor_pwr_mng
-        u_sensor_pwr_mng
-            (
-                .reset              (reset                 ),
-                .clk72              (clk72                 ),
-                
-                .enable             (sensor_pwr_enable     ),
-                .ready              (sensor_ready          ),
-
-                .sensor_pwr_en_vdd18(sensor_pwr_en_vdd18   ),
-                .sensor_pwr_en_vdd33(sensor_pwr_en_vdd33   ),
-                .sensor_pwr_en_pix  (sensor_pwr_en_pix     ),
-                .sensor_pgood       (sensor_pgood          ),
-                .python_reset_n     (python_reset_n        ),
-                .python_clk_pll     (python_clk_pll        )
-            );
-    assign ctl_sensor_ready = sensor_ready;
-
-    python_spi
-        u_python_spi
-            (
-                .reset          (reset          ),
-                .clk            (clk72          ),
-
-                .s_addr         (spi_addr       ),
-                .s_we           (spi_we         ),
-                .s_wdata        (spi_wdata      ),
-                .s_valid        (spi_valid      ),
-                .s_ready        (spi_ready      ),
-                .m_rdata        (spi_rdata      ),
-                .m_rvalid       (spi_rvalid     ),
-
-                .spi_ss_n       (python_ss_n    ),
-                .spi_sck        (python_sck     ),
-                .spi_mosi       (python_mosi    ),
-                .spi_miso       (python_miso    )
-            );
-
-    // Trigger
-    assign python_trigger[0] = mipi_gpio1   ; // Trigger 0
-    assign python_trigger[1] = 1'b0         ; // Trigger 1
-    assign python_trigger[2] = 1'b0         ; // Trigger 2
-
-    // Receiver(ISERDES)
-                                logic                       python_reset    ;
-                                logic                       python_clk      ;
-    (* mark_debug = DEBUG *)    raw10_t   [CHANNELS-1:0]    python_rx_data  ;
-    (* mark_debug = DEBUG *)    sync10_t                    python_rx_sync  ;
-    (* mark_debug = DEBUG *)    logic                       bitslip         ;
-    python_receiver_10bit
-        u_python_receiver_10bit
-            (
-                .in_reset       (reset              ),
-                .in_clk_p       (python_clk_p       ),
-                .in_clk_n       (python_clk_n       ),
-                .in_data_p      (python_data_p      ),
-                .in_data_n      (python_data_n      ),
-                .in_sync_p      (python_sync_p      ),
-                .in_sync_n      (python_sync_n      ),
-                .sw_reset       (ctl_recv_reset     ),
-
-                .bitslip        (bitslip            ),
-                .out_reset      (python_reset       ),
-                .out_clk        (python_clk         ),
-                .out_data       (python_rx_data     ),
-                .out_sync       (python_rx_sync     )
-            );
-
-    // Alignment
-    (* MARK_DEBUG = DEBUG *)    raw10_t   [CHANNELS-1:0]    python_align_data   ;
-    (* MARK_DEBUG = DEBUG *)    sync10_t                    python_align_sync   ;
-    (* MARK_DEBUG = DEBUG *)    logic                       python_align_valid  ;
-    python_alignment
-            #(
-                .CHANNELS       (CHANNELS           ),
-                .DATA_BITS      ($bits(raw10_t)     ),
-                .SLIP_INTERVAL  (15                 )
-            )
-        u_python_alignment
-            (
-                .reset          (python_reset       ),
-                .clk            (python_clk         ),
-
-                .sw_reset       (ctl_align_reset    ),
-                
-                .pattern        (ctl_align_pattern  ),
-                .align_done     (ctl_align_done     ),
-                .align_error    (ctl_align_error    ),
-                
-                .bitslip        (bitslip            ),
-
-                .s_data         (python_rx_data     ),
-                .s_sync         (python_rx_sync     ),
-                .s_valid        (1'b1               ),
-
-                .m_data         (python_align_data  ),
-                .m_sync         (python_align_sync  ),
-                .m_valid        (python_align_valid )
-        );
-
-
-    // to AXI-Stream
-    localparam  AXI4S_TDATA_BITS = CHANNELS * $bits(raw10_t);
-    localparam  AXI4S_TUSER_BITS = 4;
-    jelly3_axi4s_if
-            #(
-                .USE_LAST       (1                  ),
-                .USE_USER       (1                  ),
-                .DATA_BITS      (AXI4S_TDATA_BITS   ),
-                .USER_BITS      (AXI4S_TUSER_BITS   ),
-                .DEBUG          (DEBUG              )
-            )
-        axi4s_recv
-            (
-                .aresetn        (~python_reset      ),
-                .aclk           (python_clk         ),
-                .aclken         (1'b1               )
-            );
-
-    python_to_axi4s
-        u_python_to_axi4s
-            (
-                .s_data         (python_align_data  ),
-                .s_sync         (python_align_sync  ),
-                .s_valid        (python_align_valid ),
-                .m_axi4s        (axi4s_recv         )
-            );
-
-    // pixel swap
-    jelly3_axi4s_if
-            #(
-                .USE_LAST       (1                  ),
-                .USE_USER       (1                  ),
-                .DATA_BITS      (AXI4S_TDATA_BITS   ),
-                .USER_BITS      (AXI4S_TUSER_BITS   ),
-                .DEBUG          (DEBUG              )
-            )
-        axi4s_swap
-            (
-                .aresetn        (~python_reset      ),
-                .aclk           (python_clk         ),
-                .aclken         (1'b1               )
-            );
     
-    pixel_swap
-        u_pixel_swap
-            (
-                .s_axi4s        (axi4s_recv         ),
-                .m_axi4s        (axi4s_swap         )
-            );
 
-    // pixel clip
-    jelly3_axi4s_if
-            #(
-                .USE_LAST       (1                  ),
-                .USE_USER       (1                  ),
-                .DATA_BITS      (AXI4S_TDATA_BITS   ),
-                .USER_BITS      (AXI4S_TUSER_BITS   ),
-                .DEBUG          (DEBUG              )
-            )
-        axi4s_clip
-            (
-                .aresetn        (~python_reset      ),
-                .aclk           (python_clk         ),
-                .aclken         (1'b1               )
-            );
-    
-    pixel_clip
-        u_pixel_clip
-            (
-                .s_axi4s        (axi4s_swap.s        ),
-                .m_axi4s        (axi4s_clip.m        )
-            );
 
-    // DPHY TX
+    // --------------------------------
+    //  DPHY TX
+    // --------------------------------
+
     logic   [1:0][7:0]  dphy_data   ;
     logic               dphy_request  ;
     logic               dphy_ready  ;
@@ -676,6 +749,11 @@ module rtcl_p3s7_hs
     assign dphy_ready = dphy_dl1_txreadyhs & dphy_dl0_txreadyhs;
 
 
+
+    // --------------------------------
+    //  LED
+    // --------------------------------
+    
     // Blinking LED
     logic   [24:0]     clk50_counter; // リセットがないので初期値を設定
     always_ff @(posedge clk50) begin
@@ -704,13 +782,16 @@ module rtcl_p3s7_hs
         end
     end
 
-
-  assign led[0] = clk50_counter[24];
-  assign led[1] = clk72_counter[24];
+    assign led[0] = clk50_counter[24];
+    assign led[1] = clk72_counter[24];
 //    assign led[0] = sensor_pwr_enable;
 //  assign led[1] = mipi_enable;
 //  assign led[1] = sensor_pgood;
 //    assign led[1] = python_clk_counter[24] & sensor_pwr_enable;
+
+    // --------------------------------
+    //  PMOD
+    // --------------------------------
 
     assign pmod[0] = python_monitor[0]      ;
     assign pmod[1] = python_monitor[1]      ;

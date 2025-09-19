@@ -461,11 +461,26 @@ module tb_top();
     localparam  REGADR_DPHY_CORE_RESET = 15'h0080;
     localparam  REGADR_DPHY_SYS_RESET  = 15'h0081;
     localparam  REGADR_DPHY_INIT_DONE  = 15'h0088;
+    localparam  REGADR_MMCM_CONTROL    = 15'h00a0;
+    localparam  REGADR_PLL_CONTROL     = 15'h00a1;
+
 
     initial begin
         logic [15:0] rdata;
 
         #10000; // wait for reset
+
+        cmd_write(REGADR_MMCM_CONTROL, 1);
+        for ( int i = 6; i <= 'h28; i++ ) begin
+            cmd_read (15'h1000 + i, rdata);
+            $display("addr: 0x%04h 0x%04h 0b%16b", i, rdata, rdata);
+        end
+        cmd_read (15'h104e, rdata);
+        $display("addr: 0x014e 0x%04h 0b%16b", rdata, rdata);
+        cmd_read (15'h104f, rdata);
+        $display("addr: 0x014f 0x%04h 0b%16b", rdata, rdata);
+        cmd_write(REGADR_MMCM_CONTROL, 0);
+
         cmd_write(REGADR_SENSOR_ENABLE  , 16'h0001);
 
         #10000; // wait for ready
