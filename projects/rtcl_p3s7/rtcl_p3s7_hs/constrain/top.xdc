@@ -23,7 +23,9 @@ create_clock -period 2.777 -name python_clk_p -waveform {0.000 1.388} [get_ports
 # clk_out1_clk_mipi_core : 200.00MHz  5.000ns
 # dphy_clk               : 156.25MHz  6.400ns
 
-set_clock_groups -asynchronous -group in_clk50 -group in_clk72 -group python_clk_p -group python_clk -group dphy_clk -group clk_out1_clk_mipi_core
+set_clock_groups -asynchronous -group in_clk50 -group in_clk72 -group python_clk_p -group python_clk -group dphy_clk -group core_clk200
+# -group clk_out1_clk_mipi_core
+
 # clock
 set_property PACKAGE_PIN H4 [get_ports in_clk50]
 set_property IOSTANDARD LVCMOS18 [get_ports in_clk50]

@@ -14,7 +14,7 @@ module mipi_dphy_clk_gen_serial
 
             output  var logic   clk_out1    ,
             output  var logic   clk_out2    ,
-            output  var logic   clk_out3    ,
+//          output  var logic   clk_out3    ,
             output  var logic   clkfb_out   ,
             input   var logic   clkfb_in    ,
             output  var logic   locked      
@@ -61,7 +61,8 @@ module mipi_dphy_clk_gen_serial
                 .CLKOUT0B            (                  ),
                 .CLKOUT1             (clk_out2          ),
                 .CLKOUT1B            (                  ),
-                .CLKOUT2             (clk_out3          ),
+//              .CLKOUT2             (clk_out3          ),
+                .CLKOUT2             (                  ),
                 .CLKOUT2B            (                  ),
                 .CLKOUT3             (                  ),
                 .CLKOUT3B            (                  ),
