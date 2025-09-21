@@ -383,7 +383,7 @@ module zybo_z7_rtcl_p3s7_hs
             if ( axi4l_dec[DEC_SYS].awvalid && axi4l_dec[DEC_SYS].awready 
                     && axi4l_dec[DEC_SYS].wvalid && axi4l_dec[DEC_SYS].wready
                     && axi4l_dec[DEC_SYS].wstrb[0] ) begin
-                case ( axi4l_dec[DEC_SYS].awaddr[6:3] )
+                case ( axi4l_dec[DEC_SYS].awaddr[5:2] )
                 SYSREG_SW_RESET     :   reg_sw_reset      <=         1'(axi4l_dec[DEC_SYS].wdata);
                 SYSREG_CAM_ENABLE   :   reg_cam_enable    <=         1'(axi4l_dec[DEC_SYS].wdata);
                 SYSREG_CSI_DATA_TYPE:   reg_csi_data_type <=         8'(axi4l_dec[DEC_SYS].wdata);
@@ -402,7 +402,7 @@ module zybo_z7_rtcl_p3s7_hs
                 axi4l_dec[DEC_SYS].rvalid <= 1'b0;
             end
             if ( axi4l_dec[DEC_SYS].arvalid && axi4l_dec[DEC_SYS].arready ) begin
-                case ( axi4l_dec[DEC_SYS].araddr[6:3] )
+                case ( axi4l_dec[DEC_SYS].araddr[5:2] )
                 SYSREG_ID            :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(32'h01234567)      ;
                 SYSREG_SW_RESET      :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_sw_reset)      ;
                 SYSREG_CAM_ENABLE    :  axi4l_dec[DEC_SYS].rdata  <= axi4l_dec[DEC_SYS].DATA_BITS'(reg_cam_enable)    ;

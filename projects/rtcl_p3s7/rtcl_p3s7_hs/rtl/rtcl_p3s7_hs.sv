@@ -782,8 +782,12 @@ module rtcl_p3s7_hs
         end
     end
 
-    assign led[0] = clk50_counter[24];
-    assign led[1] = clk72_counter[24];
+//  assign led[0] = clk50_counter[24];
+//  assign led[1] = clk72_counter[24];
+
+    assign led[0] = reset_n             ;
+    assign led[1] = sensor_pwr_enable   ;
+
 //    assign led[0] = sensor_pwr_enable;
 //  assign led[1] = mipi_enable;
 //  assign led[1] = sensor_pgood;
