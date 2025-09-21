@@ -520,7 +520,11 @@ int main(int argc, char *argv[])
 
         case 's':   // save data
             {
-                std::ofstream ofs("data.csv");
+                auto now = std::chrono::system_clock::now();
+                auto in_time_t = std::chrono::system_clock::to_time_t(now);
+                std::stringstream ss;
+                ss << std::put_time(std::localtime(&in_time_t), "data_%Y%m%d-%H%M%S.csv");
+                std::ofstream ofs(ss.str());
                 for ( int i= 0; i < (int)log_hist_dx.size(); i++ ) {
                     ofs << log_hist_dx[i] << "," << log_hist_dy[i] << std::endl;
                 }
