@@ -7,7 +7,7 @@
             #address-cells = <1>;
             #size-cells = <1>;
 
-            firmware-name = "zybo_z7_rtcl_py300.bit.bin";
+            firmware-name = "zybo_z7_rtcl_p3s7_hs.bit.bin";
         };
     };
 
@@ -38,11 +38,18 @@
                 reg = <0x40000000 0x10000000>;
             };
 
-            udmabuf_jelly_buffer {
+            udmabuf_jelly_buffer0 {
                 compatible = "ikwzm,u-dma-buf";
-                device-name = "udmabuf-jelly-buffer";
+                device-name = "udmabuf-jelly-vram0";
                 size = <0x03000000>;
             };
+
+            udmabuf_jelly_buffer1 {
+                compatible = "ikwzm,u-dma-buf";
+                device-name = "udmabuf-jelly-vram1";
+                size = <0x00100000>;
+            };
+
         };
     };
 

@@ -1,7 +1,7 @@
 
-TARGET    = zybo_z7_rtcl_py300.out
-DT_NAME   = zybo_z7_rtcl_py300
-BIT_NAME  = zybo_z7_rtcl_py300
+TARGET    = zybo_z7_rtcl_p3s7_hs.out
+DT_NAME   = zybo_z7_rtcl_p3s7_hs
+BIT_NAME  = zybo_z7_rtcl_p3s7_hs
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
