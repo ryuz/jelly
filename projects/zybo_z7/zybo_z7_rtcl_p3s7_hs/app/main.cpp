@@ -72,6 +72,35 @@ void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 #define TIMGENREG_PARAM_TRIG0_POL   0x22
 
 
+// D-PHY 950Mbps用設定
+std::uint16_t  mmcm_tbl[][2] = {
+    {0x06, 0x0041},
+    {0x07, 0x0040},
+    {0x08, 0x1041},
+    {0x09, 0x0000},
+    {0x0a, 0x9041},
+    {0x0b, 0x0000},
+    {0x0c, 0x0041},
+    {0x0d, 0x0040},
+    {0x0e, 0x0041},
+    {0x0f, 0x0040},
+    {0x10, 0x0041},
+    {0x11, 0x0040},
+    {0x12, 0x0041},
+    {0x13, 0x0040},
+    {0x14, 0x124a},
+    {0x15, 0x0080},
+    {0x16, 0x1041},
+    {0x18, 0x020d},
+    {0x19, 0x7c01},
+    {0x1a, 0xffe9},
+    {0x27, 0x0000},
+    {0x28, 0x0100},
+    {0x4e, 0x9008},
+    {0x4f, 0x0100}
+};
+
+
 int main(int argc, char *argv[])
 {
     int width  = 256 ;
@@ -161,6 +190,15 @@ int main(int argc, char *argv[])
     reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1);
     usleep(1000);
 
+    // MMCM 設定
+    i2c_write(i2c, CAMREG_MMCM_CONTROL, 1);
+    for ( int i = 0; i < sizeof(mmcm_tbl) / sizeof(mmcm_tbl[0]); i++ ) {
+        i2c_write(i2c, 0x1000 + mmcm_tbl[i][0], mmcm_tbl[i][1]);
+    }
+    i2c_write(i2c, CAMREG_MMCM_CONTROL, 0);
+    usleep(1000);
+
+#if 0
     // MMCM 読み出し
     i2c_write(i2c, CAMREG_MMCM_CONTROL, 1);
     for ( int i = 0; i <= 0x4F; i++ ) {
@@ -170,7 +208,7 @@ int main(int argc, char *argv[])
     }
     i2c_write(i2c, CAMREG_MMCM_CONTROL, 0);
     usleep(1000);
-
+#endif
 
     // 受信側 DPHY リセット
     reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
