@@ -14,7 +14,6 @@ module mipi_dphy_clk_gen_serial
 
             output  var logic   clk_out1    ,
             output  var logic   clk_out2    ,
-//          output  var logic   clk_out3    ,
             output  var logic   clkfb_out   ,
             input   var logic   clkfb_in    ,
             output  var logic   locked      
@@ -36,7 +35,7 @@ module mipi_dphy_clk_gen_serial
                 .COMPENSATION         ("ZHOLD"          ),
                 .STARTUP_WAIT         ("FALSE"          ),
                 .DIVCLK_DIVIDE        (1                ),
-                .CLKFBOUT_MULT_F      (25.000           ),
+                .CLKFBOUT_MULT_F      (19.000           ), // (25.000           ),
                 .CLKFBOUT_PHASE       (0.000            ),
                 .CLKFBOUT_USE_FINE_PS ("FALSE"          ),
                 .CLKOUT0_DIVIDE_F     (2.000            ),
@@ -47,10 +46,6 @@ module mipi_dphy_clk_gen_serial
                 .CLKOUT1_PHASE        (90.000           ),
                 .CLKOUT1_DUTY_CYCLE   (0.500            ),
                 .CLKOUT1_USE_FINE_PS  ("FALSE"          ),
-                .CLKOUT2_DIVIDE       (63               ),
-                .CLKOUT2_PHASE        (0.000            ),
-                .CLKOUT2_DUTY_CYCLE   (0.500            ),
-                .CLKOUT2_USE_FINE_PS  ("FALSE"          ),
                 .CLKIN1_PERIOD        (20.000           )
             )
         u_mmcm_adv
@@ -61,7 +56,6 @@ module mipi_dphy_clk_gen_serial
                 .CLKOUT0B            (                  ),
                 .CLKOUT1             (clk_out2          ),
                 .CLKOUT1B            (                  ),
-//              .CLKOUT2             (clk_out3          ),
                 .CLKOUT2             (                  ),
                 .CLKOUT2B            (                  ),
                 .CLKOUT3             (                  ),
