@@ -39,7 +39,7 @@ module mipi_dphy_clk_gen
     logic       core_locked     ;
 //  clk_mipi_core
     mipi_dphy_clk_gen_core
-        u_clk_mipi_core
+        u_mipi_dphy_clk_gen_core
             (
                 .reset              (reset              ),
                 .clk_in1            (clk50              ),

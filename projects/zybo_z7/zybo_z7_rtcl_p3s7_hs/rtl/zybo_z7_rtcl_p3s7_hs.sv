@@ -622,7 +622,8 @@ module zybo_z7_rtcl_p3s7_hs
     logic   axi4s_cam_aresetn   ;
     logic   axi4s_cam_aclk      ;
     assign axi4s_cam_aresetn = ~sys_reset   ;
-    assign axi4s_cam_aclk    = sys_clk250   ;
+//  assign axi4s_cam_aclk    = sys_clk250   ;
+    assign axi4s_cam_aclk    = sys_clk200   ;
 
     jelly3_axi4s_if
             #(
