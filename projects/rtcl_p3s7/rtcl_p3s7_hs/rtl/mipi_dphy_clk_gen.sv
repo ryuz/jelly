@@ -32,16 +32,61 @@ module mipi_dphy_clk_gen
     //  Core clock
     // -----------------------------
 
-    logic       core_locked;
-    clk_mipi_core
+    logic       core_clk200     ;
+    logic       core_clk20      ;
+    logic       core_clkfb      ;
+    logic       core_clkfb_bufg ;
+    logic       core_locked     ;
+//  clk_mipi_core
+    mipi_dphy_clk_gen_core
         u_clk_mipi_core
             (
                 .reset              (reset              ),
                 .clk_in1            (clk50              ),
-                .clk_out1           (core_clk           ),
+
+//              .s_axi4l            (s_axi4l_pll        ),
+
+                .pll_rst            (pll_rst            ),
+                .pll_pwrdwn         (pll_pwrdwn         ),
+
+                .clk_out1           (core_clk200        ),
+                .clk_out2           (core_clk20         ),
+                .clkfb_out          (core_clkfb         ),
+                .clkfb_in           (core_clkfb_bufg    ),
                 .locked             (core_locked        )
             );
-    
+
+    BUFG
+        u_bufg_core_clkfb
+            (
+                .I                  (core_clkfb     ),
+                .O                  (core_clkfb_bufg)
+            );
+
+    BUFG
+        u_bufg_core_clk
+            (
+                .I                  (core_clk200    ),
+                .O                  (core_clk       )
+            );
+
+    BUFG
+        u_bufg_txclkesc
+            (
+                .I                  (core_clk20     ),
+                .O                  (txclkesc       )
+            );
+
+    jelly3_reset
+        u_reset_core
+            (
+                .clk                (core_clk               ),
+                .cke                (1'b1                   ),
+                .in_reset           (reset || ~core_locked  ),
+                .out_reset          (core_reset             )
+            );
+
+
     // -----------------------------
     //  Serial clock
     // -----------------------------
@@ -66,18 +111,20 @@ module mipi_dphy_clk_gen
 
                 .clk_out1           (serial_clk         ),
                 .clk_out2           (serial_clk90       ),
-                .clk_out3           (serial_clkesc      ),
+//              .clk_out3           (serial_clkesc      ),
                 .clkfb_out          (serial_clkfb       ),
                 .clkfb_in           (serial_clkfb_bufg  ),
                 .locked             (serial_locked      )
             );
 
+    /*
     BUFG
         u_bufg_txclkesc
             (
                 .I                  (serial_clkesc      ),
                 .O                  (txclkesc           )
             );
+    */
 
     BUFG
         u_bufg_clkfb
@@ -129,15 +176,6 @@ module mipi_dphy_clk_gen
     // -----------------------------
     //  Serial clock
     // -----------------------------
-
-    jelly3_reset
-        u_reset_core
-            (
-                .clk                (core_clk               ),
-                .cke                (1'b1                   ),
-                .in_reset           (reset || ~core_locked  ),
-                .out_reset          (core_reset             )
-            );
 
     jelly3_reset
             #(
