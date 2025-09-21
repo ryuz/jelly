@@ -46,6 +46,8 @@ void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 #define CAMREG_DPHY_CORE_RESET      0x0080
 #define CAMREG_DPHY_SYS_RESET       0x0081
 #define CAMREG_DPHY_INIT_DONE       0x0088
+#define CAMREG_MMCM_CONTROL         0x00a0
+#define CAMREG_PLL_CONTROL          0x00a1
 
 #define SYSREG_ID                   0x0000
 #define SYSREG_DPHY_SW_RESET        0x0001
@@ -157,6 +159,17 @@ int main(int argc, char *argv[])
     usleep(1000);
     reg_sys.WriteReg(SYSREG_CAM_ENABLE, 1);
     usleep(1000);
+
+    // MMCM 読み出し
+    i2c_write(i2c, CAMREG_MMCM_CONTROL, 1);
+    for ( int i = 0; i <= 0x4F; i++ ) {
+        auto v = i2c_read(i2c, 0x1000 + i);
+//      std::cout << "MMCM[" << i << "] : 0x" << std::hex << v << std::endl;
+        printf("MMCM[0x%02x] : 0x%04x\n", i, v);
+    }
+    i2c_write(i2c, CAMREG_MMCM_CONTROL, 0);
+    usleep(1000);
+
 
     // 受信側 DPHY リセット
     reg_sys.WriteReg(SYSREG_DPHY_SW_RESET, 1);
