@@ -28,6 +28,8 @@ Jelly 内のサンプルプログラムの紹介です。
 
 - projects/kv260/kv260_imx219
   - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260/kv260_imx219/README.md)
+- projects/kv260/kv260_imx219_hls_sample
+  - [Kria KV260 で カメラ画像(IMX219) をHLSで画像を処理してみるサンプル](projects/kv260/kv260_imx219_hls_sample/README.md)
 - projects/kv260/kv260_rtos_sample  
   - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260/kv260_rtos/README.md)
 - projects/kv260/kv260_jfive_simple_controller
@@ -40,6 +42,8 @@ Jelly 内のサンプルプログラムの紹介です。
 - projects/kv260/kv260_imx219_mnist_seg
   - [Kria KV260 で Raspberry V2 カメラ の 1000fps で MNIST のセメンティックセグメンテーションを行う](projects/kv260/kv260_imx219_mnist_seg/README.md)
   - Interface 2024年10月号付録 [FPGAマガジン No.3](https://fpga.tokyo/no3-2/)で記事にしております
+- projects/kv260/kv260_imx219_of_measuring
+  - [Kria KV260 で Raspberry V2 カメラ の 1000fps で オプティカルフロー計測を行う](projects/kv260/kv260_imx219_of_measuring/README.md)
 - projects/kv260/kv260_blinking_led
   - [Kria KV260 で PL単独で LED チカチカ を試すサンプル](projects/kv260/kv260_blinking_led/README.md)
 - projects/kv260/kv260_blinking_led_ps
