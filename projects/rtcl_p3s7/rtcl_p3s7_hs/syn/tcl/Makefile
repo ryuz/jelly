@@ -38,8 +38,9 @@ SOURCES  = $(PRJ_DIR)/rtl/rtcl_p3s7_hs.sv
 SOURCES += $(PRJ_DIR)/rtl/axi4s_to_dphy.sv
 SOURCES += $(PRJ_DIR)/rtl/dphy_hs_tx.sv
 SOURCES += $(PRJ_DIR)/rtl/i2c_to_spi.sv
-#SOURCES += $(PRJ_DIR)/rtl/line_trimming.sv
 SOURCES += $(PRJ_DIR)/rtl/mipi_dphy_clk_gen.sv
+SOURCES += $(PRJ_DIR)/rtl/mipi_dphy_clk_gen_core.sv
+SOURCES += $(PRJ_DIR)/rtl/mipi_dphy_clk_gen_serial.sv
 SOURCES += $(PRJ_DIR)/rtl/pixel_clip.sv
 SOURCES += $(PRJ_DIR)/rtl/pixel_swap.sv
 SOURCES += $(PRJ_DIR)/rtl/python_alignment.sv
@@ -48,16 +49,13 @@ SOURCES += $(PRJ_DIR)/rtl/python_spi.sv
 SOURCES += $(PRJ_DIR)/rtl/python_to_axi4s.sv
 SOURCES += $(PRJ_DIR)/rtl/sensor_pwr_mng.sv
 SOURCES += $(PRJ_DIR)/rtl/system_control.sv
-
-#SOURCES += $(PRJ_DIR)/rtl/pttern_align_10bit.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
 # IP cores
-IP_CORES  = $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_core/clk_mipi_core.xci
-IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_serial/clk_mipi_serial.xci
-IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/mipi_dphy_0/mipi_dphy_0.xci
-#IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/selectio_wiz_0.xci
+IP_CORES  = $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/mipi_dphy_0/mipi_dphy_0.xci
+#IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_core/clk_mipi_core.xci
+#IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_serial/clk_mipi_serial.xci
 export IP_CORES
 
 # block design
@@ -66,7 +64,7 @@ export BD_SCRIPTS
 
 # constrains
 CONSTRAINS  = ../../constrain/top.xdc
-CONSTRAINS += ../../constrain/debug.xdc
+#CONSTRAINS += ../../constrain/debug.xdc
 export CONSTRAINS
 
 

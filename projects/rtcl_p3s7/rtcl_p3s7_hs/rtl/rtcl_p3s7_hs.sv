@@ -755,17 +755,17 @@ module rtcl_p3s7_hs
     // --------------------------------
     
     // Blinking LED
-    logic   [24:0]     clk50_counter; // リセットがないので初期値を設定
+    logic   [25:0]     clk50_counter; // リセットがないので初期値を設定
     always_ff @(posedge clk50) begin
         clk50_counter <= clk50_counter + 1;
     end
 
-    logic   [24:0]     clk72_counter; // リセットがないので初期値を設定
+    logic   [25:0]     clk72_counter; // リセットがないので初期値を設定
     always_ff @(posedge clk72) begin
         clk72_counter <= clk72_counter + 1;
     end
 
-    logic   [24:0]     python_clk_counter; // リセットがないので初期値を設定
+    logic   [25:0]     python_clk_counter; // リセットがないので初期値を設定
     always_ff @(posedge python_clk) begin
         python_clk_counter <= python_clk_counter + 1;
     end
@@ -785,8 +785,10 @@ module rtcl_p3s7_hs
 //  assign led[0] = clk50_counter[24];
 //  assign led[1] = clk72_counter[24];
 
-    assign led[0] = reset_n             ;
-    assign led[1] = sensor_pwr_enable   ;
+    always_ff @(posedge clk72) begin
+        led[0] <= reset_n | (clk72_counter[25] & clk72_counter[16]) ;
+        led[1] <= reset_n && sensor_pwr_enable                      ;
+    end
 
 //    assign led[0] = sensor_pwr_enable;
 //  assign led[1] = mipi_enable;

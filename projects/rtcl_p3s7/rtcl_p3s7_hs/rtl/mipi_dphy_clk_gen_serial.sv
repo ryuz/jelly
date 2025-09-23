@@ -35,7 +35,8 @@ module mipi_dphy_clk_gen_serial
                 .COMPENSATION         ("ZHOLD"          ),
                 .STARTUP_WAIT         ("FALSE"          ),
                 .DIVCLK_DIVIDE        (1                ),
-                .CLKFBOUT_MULT_F      (19.000           ), // (25.000           ),
+//              .CLKFBOUT_MULT_F      (19.000           ),  // 475MHz
+                .CLKFBOUT_MULT_F      (25.000           ),  // 625MHz
                 .CLKFBOUT_PHASE       (0.000            ),
                 .CLKFBOUT_USE_FINE_PS ("FALSE"          ),
                 .CLKOUT0_DIVIDE_F     (2.000            ),
