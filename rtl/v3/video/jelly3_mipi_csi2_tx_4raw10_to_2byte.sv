@@ -33,6 +33,16 @@ module jelly3_mipi_csi2_tx_4raw10_to_2byte
     assign csi2_data[3] = raw10_data[3][9:2];
     assign csi2_data[4] = {raw10_data[3][1:0], raw10_data[2][1:0], raw10_data[1][1:0], raw10_data[0][1:0]};
 
+    wire    [9:0]   raw10_data0 = raw10_data[0];
+    wire    [9:0]   raw10_data1 = raw10_data[1];
+    wire    [9:0]   raw10_data2 = raw10_data[2];
+    wire    [9:0]   raw10_data3 = raw10_data[3];
+    wire    [7:0]   csi2_data0 = csi2_data[0];
+    wire    [7:0]   csi2_data1 = csi2_data[1];
+    wire    [7:0]   csi2_data2 = csi2_data[2];
+    wire    [7:0]   csi2_data3 = csi2_data[3];
+    wire    [7:0]   csi2_data4 = csi2_data[4];
+
 
     logic   [2:0]            reg_count, next_count  ;
     logic   [5:0]            reg_user , next_user   ;
@@ -49,9 +59,10 @@ module jelly3_mipi_csi2_tx_4raw10_to_2byte
         sig_ready  = 1'b0     ;
 
         if ( m_axi4s.tvalid && m_axi4s.tready ) begin
-            next_count -= 2;
-            next_user >>= 2;
-            next_last >>= 2;
+            next_count -= 2 ;
+            next_user >>= 2 ;
+            next_last >>= 2 ;
+            next_data >>= 16;
         end
 
         if ( s_axi4s.tvalid && (next_count <= 1) ) begin
