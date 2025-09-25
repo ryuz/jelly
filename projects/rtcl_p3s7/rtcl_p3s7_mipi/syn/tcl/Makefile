@@ -7,18 +7,17 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-PROJECT_NAME = rtcl_p3s7_mipi
-BOARD_NAME   = 
+PROJECT_NAME = rtcl_p3s7_hs
 export PRJ_NAME     = $(PROJECT_NAME)_tcl
 export TOP_MODULE   = $(PROJECT_NAME)
-export BOARD_PART   =
+#export BOARD_PART   =
 export DEVICE_PART  = xc7s6ftgb196-2
 
 
 BOARD_WORK_DIR ?= git-work/jelly
 
 BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
-
+MCS_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).mcs
 
 # directories
 TOP_DIR = ../../../../..
@@ -35,30 +34,28 @@ HLS_IP =
 export HLS_IP
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/rtcl_p3s7_mipi.sv
-SOURCES += $(PRJ_DIR)/rtl/sensor_pwr_mng.sv
-SOURCES += $(PRJ_DIR)/rtl/conv_csi_raw10.sv
-SOURCES += $(PRJ_DIR)/rtl/generate_csi_packet.sv
+SOURCES  = $(PRJ_DIR)/rtl/rtcl_p3s7_hs.sv
+SOURCES += $(PRJ_DIR)/rtl/axi4s_to_dphy.sv
+SOURCES += $(PRJ_DIR)/rtl/dphy_hs_tx.sv
 SOURCES += $(PRJ_DIR)/rtl/i2c_to_spi.sv
-SOURCES += $(PRJ_DIR)/rtl/lane_conv_4to1.sv
-SOURCES += $(PRJ_DIR)/rtl/line_trimming.sv
 SOURCES += $(PRJ_DIR)/rtl/mipi_dphy_clk_gen.sv
-SOURCES += $(PRJ_DIR)/rtl/pack_csi_raw10.sv
+SOURCES += $(PRJ_DIR)/rtl/mipi_dphy_clk_gen_core.sv
+SOURCES += $(PRJ_DIR)/rtl/mipi_dphy_clk_gen_serial.sv
+SOURCES += $(PRJ_DIR)/rtl/pixel_clip.sv
 SOURCES += $(PRJ_DIR)/rtl/pixel_swap.sv
-SOURCES += $(PRJ_DIR)/rtl/python_align_10bit.sv
-SOURCES += $(PRJ_DIR)/rtl/python_control.sv
-SOURCES += $(PRJ_DIR)/rtl/python_receiver.sv
+SOURCES += $(PRJ_DIR)/rtl/python_alignment.sv
+SOURCES += $(PRJ_DIR)/rtl/python_receiver_10bit.sv
 SOURCES += $(PRJ_DIR)/rtl/python_spi.sv
 SOURCES += $(PRJ_DIR)/rtl/python_to_axi4s.sv
-
+SOURCES += $(PRJ_DIR)/rtl/sensor_pwr_mng.sv
+SOURCES += $(PRJ_DIR)/rtl/system_control.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
 # IP cores
-IP_CORES  = $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_core/clk_mipi_core.xci
-IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_serial/clk_mipi_serial.xci
-IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/mipi_dphy_0/mipi_dphy_0.xci
-#IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/selectio_wiz_0.xci
+IP_CORES  = $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/mipi_dphy_0/mipi_dphy_0.xci
+#IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_core/clk_mipi_core.xci
+#IP_CORES += $(PRJ_DIR)/ip/vivado$(VIVADO_VERSION)/clk_mipi_serial/clk_mipi_serial.xci
 export IP_CORES
 
 # block design
@@ -67,7 +64,7 @@ export BD_SCRIPTS
 
 # constrains
 CONSTRAINS  = ../../constrain/top.xdc
-CONSTRAINS += ../../constrain/debug.xdc
+#CONSTRAINS += ../../constrain/debug.xdc
 export CONSTRAINS
 
 
@@ -82,13 +79,15 @@ rebuild: clean create build
 create: $(PRJ_NAME).xpr
 
 .PHONY : build
-build: $(BIT_FILE) check_log
-
+build: $(BIT_FILE) $(MCS_FILE) check_log
 
 $(BIT_FILE): $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS)
 	rm -f $(PRJ_NAME).xpr
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl
+
+$(MCS_FILE): $(BIT_FILE)
+	vivado -m64 -mode batch -source make_mcs.tcl
 
 .PHONY : check_log
 check_log:

@@ -27,17 +27,17 @@ module jelly3_axi4s_switch
         (
             input var s_sel_t       s_sel           ,
             jelly3_axi4s_if.s       s_axi4s [S_NUM] ,
-            input var s_sel_t       m_sel           ,
+            input var m_sel_t       m_sel           ,
             jelly3_axi4s_if.m       m_axi4s [M_NUM] 
         );
 
     // type
-    localparam  type    data_t = logic [s_axi4s.DATA_BITS-1:0]  ;
-    localparam  type    strb_t = logic [s_axi4s.STRB_BITS-1:0]  ;
-    localparam  type    keep_t = logic [s_axi4s.KEEP_BITS-1:0]  ;
-    localparam  type    id_t   = logic [s_axi4s.ID_BITS  -1:0]  ;
-    localparam  type    dest_t = logic [s_axi4s.DEST_BITS-1:0]  ;
-    localparam  type    user_t = logic [s_axi4s.USER_BITS-1:0]  ;
+    localparam  type    data_t = logic [s_axi4s[0].DATA_BITS-1:0]  ;
+    localparam  type    strb_t = logic [s_axi4s[0].STRB_BITS-1:0]  ;
+    localparam  type    keep_t = logic [s_axi4s[0].KEEP_BITS-1:0]  ;
+    localparam  type    id_t   = logic [s_axi4s[0].ID_BITS  -1:0]  ;
+    localparam  type    dest_t = logic [s_axi4s[0].DEST_BITS-1:0]  ;
+    localparam  type    user_t = logic [s_axi4s[0].USER_BITS-1:0]  ;
 
     // slave
     data_t  [S_NUM-1:0]     s_tdata   ;
@@ -72,7 +72,7 @@ module jelly3_axi4s_switch
     user_t  [M_NUM-1:0]     m_tuser   ;
     logic   [M_NUM-1:0]     m_tvalid  ;
     logic   [M_NUM-1:0]     m_tready  ;
-    for ( genvar i = 0; i < S_NUM; i++ ) begin
+    for ( genvar i = 0; i < M_NUM; i++ ) begin
         assign m_axi4s[i].tdata  = m_tdata [i];
         assign m_axi4s[i].tstrb  = m_tstrb [i];
         assign m_axi4s[i].tkeep  = m_tkeep [i];
@@ -87,15 +87,23 @@ module jelly3_axi4s_switch
 
 
     // switch
-    assign m_tdata [m_sel] = s_tdata [s_sel];
-    assign m_tstrb [m_sel] = s_tstrb [s_sel];
-    assign m_tkeep [m_sel] = s_tkeep [s_sel];
-    assign m_tlast [m_sel] = s_tlast [s_sel];
-    assign m_tid   [m_sel] = s_tid   [s_sel];
-    assign m_tdest [m_sel] = s_tdest [s_sel];
-    assign m_tuser [m_sel] = s_tuser [s_sel];
-    assign m_tvalid[m_sel] = s_tvalid[s_sel];
     always_comb begin
+        m_tdata  = 'x;
+        m_tstrb  = 'x;
+        m_tkeep  = 'x;
+        m_tlast  = 'x;
+        m_tid    = 'x;
+        m_tdest  = 'x;
+        m_tuser  = 'x;
+        m_tvalid = '0;
+        m_tdata [m_sel] = s_tdata [s_sel];
+        m_tstrb [m_sel] = s_tstrb [s_sel];
+        m_tkeep [m_sel] = s_tkeep [s_sel];
+        m_tlast [m_sel] = s_tlast [s_sel];
+        m_tid   [m_sel] = s_tid   [s_sel];
+        m_tdest [m_sel] = s_tdest [s_sel];
+        m_tuser [m_sel] = s_tuser [s_sel];
+        m_tvalid[m_sel] = s_tvalid[s_sel];
         s_tready = {S_NUM{DEFAULT_READY}};
         s_tready[s_sel] = m_tready[m_sel];
     end

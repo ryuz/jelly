@@ -17,7 +17,7 @@ module jelly3_mipi_csi2_tx_packet_2lane
             parameter   DEBUG          = "false"    
         )
         (
-            input   var logic   [7:0]   param_type      ,
+            input   var logic   [7:0]   param_dt        ,
             input   var logic   [15:0]  param_wc        ,
 
             input   var logic           frame_start     ,
@@ -120,7 +120,7 @@ module jelly3_mipi_csi2_tx_packet_2lane
                         end
                         else if ( s_axi4s.tvalid ) begin
                             state    <= HEADER0     ;
-                            reg_id   <= param_type  ;
+                            reg_id   <= param_dt    ;
                             reg_wc   <= param_wc    ;
                         end
                     end
