@@ -26,8 +26,8 @@ SRCS += $(XILINX_VIVADO)/data/verilog/src/glbl.v
 
 #SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/rtcl_p3s7_dphy.gen/sources_1/ip/selectio_wiz_0/selectio_wiz_0.v
 #SIM_LIB_DIRS += ../../../ip/vivado$(VIVADO_VERSION)/selectio_wiz_0/rtcl_p3s7_dphy.gen/sources_1/ip/selectio_wiz_0
-SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/clk_mipi_core/rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core/clk_mipi_core.v
-SIM_LIB_DIRS += ../../../ip/vivado$(VIVADO_VERSION)/clk_mipi_core/rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core
+#SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/clk_mipi_core/rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core/clk_mipi_core.v
+#SIM_LIB_DIRS += ../../../ip/vivado$(VIVADO_VERSION)/clk_mipi_core/rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_core
 #SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/clk_mipi_serial/rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_serial/clk_mipi_serial.v
 #SIM_LIB_DIRS += ../../../ip/vivado$(VIVADO_VERSION)/clk_mipi_serial/rtcl_p3s7_dphy.gen/sources_1/ip/clk_mipi_serial
 #SRCS         += ../../../ip/vivado$(VIVADO_VERSION)/mipi_dphy_0/rtcl_p3s7_dphy.gen/sources_1/ip/mipi_dphy_0/mipi_dphy_0.v
@@ -55,7 +55,7 @@ all: clean build run
 .PHONY: build
 build:
 	xvlog $(VLOGFLAGS) $(SRCS)
-	xelab $(ELABFLAGS) $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
+	xelab $(ELABFLAGS) $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip -L xpm
 
 .PHONY: run
 run:

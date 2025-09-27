@@ -47,6 +47,8 @@ module python_to_axi4s
             input   var logic        [9:0]  s_sync      ,
             input   var logic               s_valid     ,
 
+            output  var logic               frame_start ,
+
             jelly3_axi4s_if.m               m_axi4s         // tready は常に 1 の前提
         );
 
@@ -127,6 +129,8 @@ module python_to_axi4s
             end
         end
     end
+
+    assign frame_start = parse_black_start[0];
 
 endmodule
 

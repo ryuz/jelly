@@ -463,10 +463,9 @@ module tb_top();
     localparam  REGADR_ALIGN_RESET     = 15'h0020;
     localparam  REGADR_ALIGN_PATTERN   = 15'h0022;
     localparam  REGADR_ALIGN_STATUS    = 15'h0028;
-//  localparam  REGADR_TRIM_X_START    = 15'h0030;
-//  localparam  REGADR_TRIM_X_END      = 15'h0031;
-//  localparam  REGADR_CSI_DATA_TYPE   = 15'h0050;
-//  localparam  REGADR_CSI_WC          = 15'h0051;
+    localparam  REGADR_CSI_MODE        = 15'h0050;
+    localparam  REGADR_CSI_DT          = 15'h0052;
+    localparam  REGADR_CSI_WC          = 15'h0053;
     localparam  REGADR_DPHY_CORE_RESET = 15'h0080;
     localparam  REGADR_DPHY_SYS_RESET  = 15'h0081;
     localparam  REGADR_DPHY_INIT_DONE  = 15'h0088;
@@ -491,6 +490,8 @@ module tb_top();
         $display("addr: 0x014f 0x%04h 0b%16b", rdata, rdata);
         cmd_write(REGADR_MMCM_CONTROL, 0);
         */
+
+        cmd_write(REGADR_CSI_MODE, 1);
 
         cmd_write(REGADR_SENSOR_ENABLE  , 16'h0001);
 

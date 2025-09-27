@@ -477,8 +477,7 @@ module rtcl_p3s7_mipi
                 .aclken         (1'b1               )
             );
 
-//  initial force axi4s_recv.tready = 1;
-
+    logic   python_frame_start;
     python_to_axi4s
         u_python_to_axi4s
             (
@@ -486,6 +485,9 @@ module rtcl_p3s7_mipi
                 .s_data         (python_align_data  ),
                 .s_sync         (python_align_sync  ),
                 .s_valid        (python_align_valid ),
+
+                .frame_start    (python_frame_start ),
+
                 .m_axi4s        (axi4s_recv         )
             );
 
@@ -842,6 +844,29 @@ module rtcl_p3s7_mipi
             );
 
     // MIPI-CSI2 TX
+    logic   dphy_frame_start;
+    jelly3_pulse_async
+            #(
+                .ASYNC          (1                  ),
+                .SYNC_FF        (2                  ),
+                .DEVICE         (DEVICE             ),
+                .SIMULATION     (SIMULATION         ),
+                .DEBUG          (DEBUG              )
+            )
+        u_pulse_async
+            (
+                .s_reset        (python_reset       ),
+                .s_clk          (python_clk         ),
+                .s_cke          (1'b1               ),
+                .s_pulse        (python_frame_start ),
+
+                .m_reset        (dphy_reset         ),
+                .m_clk          (dphy_clk           ),
+                .m_cke          (1'b1               ),
+                .m_pulse        (dphy_frame_start   )
+            );
+    
+
     mipi_csi2_tx
             #(
                 .DEVICE         (DEVICE             ),
@@ -853,7 +878,7 @@ module rtcl_p3s7_mipi
                 .param_dt       (ctl_csi_dt         ),
                 .param_wc       (ctl_csi_wc         ),
 
-                .frame_start    (1'b0               ),
+                .frame_start    (dphy_frame_start   ),
                 .frame_end      (1'b0               ),
 
                 .s_axi4s        (axi4s_sw_in [1]    ),
