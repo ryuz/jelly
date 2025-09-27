@@ -1,13 +1,11 @@
-# PYTHON300 + Spartan7 センサー D-PHY 独自プロトコル高速版
+# PYTHON300 + Spartan7 センサー FPGAデザイン
 
 ## 概要
 
 [グローバルシャッターMIPI高速度カメラ](https://rtc-lab.com/products/rtcl-cam-p3s7-mipi/)(設計は[こちら](https://github.com/ryuz/rtcl-p3s7-mipi))の Spartan-7 用のFPGAデザインです。
 
-
-MIPI-CSI規格を利用せずに D-PHY 上に独自プロトコルで高速伝送するバージョンです。
-
-画像1フレームを1パケットとして転送することで伝送帯域を有効に使い、高速度撮影を可能としています。
+MIPI-CSI規格を利用せずに D-PHY 上に独自プロトコルで高速伝送することが可能です。
+その際には画像1フレームを1パケットとして転送することで伝送帯域を有効に使い、高速度撮影を可能としています。
 
 PYTHON300のデータシートはオンセミ社より[こちら](https://www.onsemi.jp/products/sensors/image-sensors/python300)で公開されているので、随時参照してください。
 
@@ -88,8 +86,18 @@ I2C経由で 16bitアドレス 16bit データの読み書きが可能で、以�
 | 0x0020 | ALIGN_RESET          | R/W    | 0x0001       | [0]=1: アライメント部リセット                 |
 | 0x0022 | ALIGN_PATTERN        | R/W    | 0x03A6       | [9:0]: パターン値                              |
 | 0x0028 | ALIGN_STATUS         | RO     | -            | [1]=エラー, [0]=完了                           |
+| 0x0040 | CLIP_ENABLE          | R/W    | 0x0001       | [0]=1: 画素値の0を1にクリップ          |
+| 0x0050 | CSI_MODE             | R/W    | 0x0000       | [0]=0: 高速モード [0]=1: CSI2モード   |
+| 0x0052 | CSI_DT               | R/W    | 0x002b       | CSI2 DataType                        |
+| 0x0053 | CSI_WC               | R/W    | 0x0140       | CSI2 Word Count                      |
 | 0x0080 | DPHY_CORE_RESET      | R/W    | 0x0001       | [0]=1: D-PHY コアリセット                     |
 | 0x0081 | DPHY_SYS_RESET       | R/W    | 0x0001       | [0]=1: D-PHY SYSリセット                      |
 | 0x0088 | DPHY_INIT_DONE       | RO     | -            | [0]=1: D-PHY 初期化完了                       |
+| 0x00a0 | MMCM_CONTROL         | R/W    | 0x0000       | [0]=1: MMCMリセット [1]=1: MMCMパワーダウン    |
+| 0x00a1 | PLL_CONTROL          | R/W    | 0x0000       | [0]=1: PLLリセット [1]=1: PLLパワーダウン    |
+
+
+なお 0x2000 以降は MMCM の DRP ポートにレジスタにマップしており、なお 0x8000 以降は Python300のSPIレジスタにマップしています。
 
 詳しくはソースコードや KV260 側のサンプルコードを参照ください。
+
