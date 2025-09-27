@@ -1,3 +1,10 @@
+// ---------------------------------------------------------------------------
+//  RTC-lab  PYTHON300 + Spartan7 MIPI Global shutter camera
+//
+//                                 Copyright (C) 2024-2025 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/jelly.git
+// ---------------------------------------------------------------------------
+
 
 `timescale 1ns / 1ps
 `default_nettype none
