@@ -93,7 +93,7 @@
         "DATA_LANE2_TXIF4_IO_LOC": [ { "value": "R8", "value_src": "user", "resolve_type": "user", "enabled": false, "usage": "all" } ],
         "DATA_LANE3_TXIF4_IO_LOC": [ { "value": "R7", "value_src": "user", "resolve_type": "user", "enabled": false, "usage": "all" } ],
         "DATA_LANE0_BYTE": [ { "value": "All_Byte", "value_src": "user", "resolve_type": "user", "enabled": false, "usage": "all" } ],
-        "DATA_LANE1_BYTE": [ { "value": "All_Byte", "value_src": "user", "resolve_type": "user", "enabled": false, "usage": "all" } ],
+        "DATA_LANE1_BYTE": [ { "value": "All_Byte", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "DATA_LANE2_BYTE": [ { "value": "All_Byte", "value_src": "user", "resolve_type": "user", "enabled": false, "usage": "all" } ],
         "DATA_LANE3_BYTE": [ { "value": "All_Byte", "value_src": "user", "resolve_type": "user", "enabled": false, "usage": "all" } ],
         "DATA_LANE4_BYTE": [ { "value": "All_Byte", "value_src": "user", "resolve_type": "user", "enabled": false, "usage": "all" } ],

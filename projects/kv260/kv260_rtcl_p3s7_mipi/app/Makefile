@@ -1,7 +1,7 @@
 
-TARGET    = kv260_spartan7_python300.out
-DT_NAME   = kv260_spartan7_python300
-BIT_NAME  = kv260_spartan7_python300
+TARGET    = kv260_rtcl_p3s7_mipi.out
+DT_NAME   = kv260_rtcl_p3s7_mipi
+BIT_NAME  = kv260_rtcl_p3s7_mipi
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
