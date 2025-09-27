@@ -52,6 +52,11 @@ write_cfgmem -format mcs -size 2 -interface spix4 -loadbit "up 0x0 rtcl_p3s7_hs.
 
 と実行するか、GUI のツールから mcs を生成する必要がりますのでご注意ください。
 
+mcs ファイルは、SPIフラッシュに書き込む際に必要です。
+
+is25lp016d-spi-x1_x2_x4
+
+を選択して書き込んでください。
 
 ## シミュレーション
 

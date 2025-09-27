@@ -25,14 +25,14 @@ module axi4s_to_dphy
         );
 
 
-    logic   busy;
-    logic   last;
+//    logic   busy;
+//  logic   last;
     always_ff @(posedge s_axi4s.aclk ) begin
         if ( !s_axi4s.aresetn ) begin
-            busy         <= 1'b0    ;
-            dphy_data    <= '0      ;
+//          busy         <= 1'b0    ;
+//          dphy_data    <= '0      ;
             dphy_request <= 1'b0    ;
-            last         <= 1'b0    ;
+//          last         <= 1'b0    ;
         end
         else begin
             if ( !dphy_request && !dphy_ready ) begin
@@ -49,6 +49,8 @@ module axi4s_to_dphy
     end
 
     assign s_axi4s.tready = dphy_request && dphy_ready || (!dphy_request && !s_axi4s.tuser[0]);
+
+    assign dphy_data = dphy_request ? s_axi4s.tdata : '0;
 
 endmodule
 

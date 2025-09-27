@@ -41,41 +41,18 @@ module rtcl_p3s7_hs_dphy_recv
     // DPHY Receive
     logic                           rx_first    ;
     logic                           rx_last     ;
-    logic   [7:0]                   rx_type     ;
     logic   [DPHY_LANES-1:0][7:0]   rx_data     ;
     logic                           rx_valid    ;
     always_ff @(posedge dphy_clk) begin
         if ( dphy_reset ) begin
-            rx_first <= 1'b0    ;
-            rx_type  <= 8'hxx   ;
+            rx_first <= 1'b1    ;
             rx_data  <= 'x      ;
             rx_valid <= 1'b0    ;
         end
         else begin
-            if ( dphy_valid ) begin
-                if ( !rx_valid ) begin
-                    // 最初の1ワードを type とする
-                    if ( !rx_first ) begin
-                        rx_type  <= dphy_data[0][7:0]   ;
-                        rx_first <= 1'b1                ;
-                    end
-                    else begin
-                        rx_data  <= dphy_data   ;
-                        rx_valid <= 1'b1        ;
-                    end
-                end
-                else begin
-                    rx_first <= 1'b0        ;
-                    rx_data  <= dphy_data   ;
-                    rx_valid <= 1'b1        ;
-                end
-            end
-            else begin
-                rx_first <= 1'b0    ;
-                rx_type  <= 8'hxx   ;
-                rx_data  <= 'x      ;
-                rx_valid <= 1'b0    ;
-            end
+            rx_first <= ~rx_valid   ;
+            rx_data  <= dphy_data   ;
+            rx_valid <= dphy_valid  ;
         end
     end
     assign rx_last = rx_valid & ~dphy_valid;
