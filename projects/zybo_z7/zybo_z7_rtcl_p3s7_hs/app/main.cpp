@@ -43,6 +43,10 @@ void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 #define CAMREG_ALIGN_RESET          0x0020
 #define CAMREG_ALIGN_PATTERN        0x0022
 #define CAMREG_ALIGN_STATUS         0x0028
+#define CAMREG_CLIP_ENABLE          0x0040
+#define CAMREG_CSI_MODE             0x0050
+#define CAMREG_CSI_DT               0x0052
+#define CAMREG_CSI_WC               0x0053
 #define CAMREG_DPHY_CORE_RESET      0x0080
 #define CAMREG_DPHY_SYS_RESET       0x0081
 #define CAMREG_DPHY_INIT_DONE       0x0088
@@ -70,7 +74,6 @@ void          print_status(jelly::UioAccessor& uio, jelly::I2cAccessor& i2c);
 #define TIMGENREG_PARAM_TRIG0_START 0x20
 #define TIMGENREG_PARAM_TRIG0_END   0x21
 #define TIMGENREG_PARAM_TRIG0_POL   0x22
-
 
 // D-PHY 950Mbps用設定
 std::uint16_t  mmcm_tbl[][2] = {
@@ -192,7 +195,7 @@ int main(int argc, char *argv[])
 
     // MMCM 設定
     i2c_write(i2c, CAMREG_MMCM_CONTROL, 1);
-    for ( int i = 0; i < sizeof(mmcm_tbl) / sizeof(mmcm_tbl[0]); i++ ) {
+    for ( size_t i = 0; i < sizeof(mmcm_tbl) / sizeof(mmcm_tbl[0]); i++ ) {
         i2c_write(i2c, 0x1000 + mmcm_tbl[i][0], mmcm_tbl[i][1]);
     }
     i2c_write(i2c, CAMREG_MMCM_CONTROL, 0);
@@ -226,6 +229,9 @@ int main(int argc, char *argv[])
     i2c_write(i2c, CAMREG_SENSOR_ENABLE, 1);     // センサー電源ON
     usleep(500000);
 
+    // 高速モード設定
+    i2c_write(i2c, CAMREG_CSI_MODE, 0);
+    
     // センサー基板 DPHY-TX リセット解除
     i2c_write(i2c, CAMREG_DPHY_CORE_RESET, 0);
     i2c_write(i2c, CAMREG_DPHY_SYS_RESET , 0);
