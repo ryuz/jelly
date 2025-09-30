@@ -35,6 +35,7 @@ export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/kv260_rtcl_p3s7_mipi.sv
+SOURCES += $(PRJ_DIR)/rtl/timing_generator.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 

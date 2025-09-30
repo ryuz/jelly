@@ -2,7 +2,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module clk_wiz_0
+module IOBUF
         (
             input   var logic I     ,
             output  var logic O     ,

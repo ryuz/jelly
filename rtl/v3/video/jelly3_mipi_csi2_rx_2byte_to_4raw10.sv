@@ -17,10 +17,10 @@ module jelly3_mipi_csi2_rx_2byte_to_4raw10
     // parameter check
     initial begin
         if (s_axi4s.DATA_BITS != 16) begin
-            $error("s_axi4s.DATA_BITS must be 16, but it is %0d", s_axi4s.DATA_BITS);
+            $error("%m s_axi4s.DATA_BITS must be 16, but it is %0d", s_axi4s.DATA_BITS);
         end
         if (m_axi4s.DATA_BITS != 40) begin
-            $error("m_axi4s.DATA_BITS must be 40, but it is %0d", m_axi4s.DATA_BITS);
+            $error("%m m_axi4s.DATA_BITS must be 40, but it is %0d", m_axi4s.DATA_BITS);
         end
     end
 
