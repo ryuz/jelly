@@ -9,7 +9,7 @@ edition = "2021"
 
 opencv = "0.93.5"
 
-jelly-mem_access = "0.2.2"
+jelly-mem_access = "0.2.5"
 #jelly-mem_access = { path = "../../../../../rust/mem_access" }
 #jelly-lib        = { path = "../../../../../rust/lib" }
 jelly-lib         = { git = "https://github.com/ryuz/jelly-lib-rs.git", rev = "a719c9b" }
