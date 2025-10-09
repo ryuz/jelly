@@ -38,9 +38,14 @@ const REG_IMG_DEMOSAIC_CTL_INDEX: usize = 0x07;
 const REG_IMG_DEMOSAIC_PARAM_PHASE: usize = 0x08;
 const REG_IMG_DEMOSAIC_CURRENT_PHASE: usize = 0x18;
 
-fn usleep() {
+fn wait_1us() {
     thread::sleep(Duration::from_micros(1));
 }
+
+fn usleep(us: u64) {
+    thread::sleep(Duration::from_micros(us));
+}
+
 
 fn main() -> Result<(), Box<dyn Error>> {
     // start
@@ -117,7 +122,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // DMA制御
-    let mut vdmaw = VideoDmaControl::new(reg_wdma, 4, 4, Some(usleep)).unwrap();
+    let mut vdmaw = VideoDmaControl::new(reg_wdma, 4, 4, Some(wait_1us)).unwrap();
 
     // カメラON
     unsafe {
@@ -129,7 +134,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     //    let i2c = Box::new(I2cAccessor::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
     //    let i2c = Box::new(LinuxI2CDevice::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
     let i2c = LinuxI2c::new("/dev/i2c-6", 0x10).unwrap();
-    let mut imx219 = Imx219Control::new(i2c);
+    let mut imx219 = Imx219Control::new(i2c, usleep);
     println!("reset");
     imx219.reset()?;
 
