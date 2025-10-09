@@ -3,7 +3,7 @@
 	url = https://github.com/ryuz/jelly-mem_access.git
 [submodule "rust/lib"]
 	path = rust/lib
-	url = https://github.com/ryuz/jelly-lib.git
+	url = https://github.com/ryuz/jelly-lib-rs.git
 [submodule "rust/pac"]
 	path = rust/pac
 	url = https://github.com/ryuz/jelly-pac.git
