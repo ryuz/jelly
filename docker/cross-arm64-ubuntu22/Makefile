@@ -2,7 +2,7 @@
 
 GITHUB_USER = ryuz
 GITHUB_REPO = jelly
-IMAGE_BASE  = jelly-cross-arm64-ubuntu22-opencv
+IMAGE_BASE  = jelly-cross-arm64-ubuntu22
 IMAGE_NAME  = ghcr.io/$(GITHUB_USER)/$(GITHUB_REPO)/$(IMAGE_BASE)
 IMAGE_TAG   = 0.0.2
 

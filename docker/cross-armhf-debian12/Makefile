@@ -2,9 +2,9 @@
 
 GITHUB_USER = ryuz
 GITHUB_REPO = jelly
-IMAGE_BASE  = jelly-cross-arm64-ubuntu24-opencv
+IMAGE_BASE  = jelly-cross-armhf-debian12
 IMAGE_NAME  = ghcr.io/$(GITHUB_USER)/$(GITHUB_REPO)/$(IMAGE_BASE)
-IMAGE_TAG   = 0.0.1
+IMAGE_TAG   = 0.0.2
 
 .PHONY: all
 all: build
