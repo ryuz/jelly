@@ -156,7 +156,7 @@ RUN cargo install verylup \
 # Finish
 USER root
 
-RUN groupadd -g 999 dockersock \
- && usermod -aG dockersock vscode
+#RUN groupadd -g 999 dockersock \
+# && usermod -aG dockersock vscode
 
 ENV DEBIAN_FRONTEND=dialog
