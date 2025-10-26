@@ -122,6 +122,7 @@ RUN apt-get update \
         libopencv-dev \
         x11-apps \
         libtinfo5 libncurses5 \
+        protobuf-compiler \
  && apt-get install -y \
         libopencv-dev:arm64 \
     && apt-get clean \
