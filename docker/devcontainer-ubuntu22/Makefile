@@ -3,7 +3,7 @@
 GITHUB_USER = ryuz
 GITHUB_REPO = jelly
 IMAGE_NAME  = ghcr.io/$(GITHUB_USER)/$(GITHUB_REPO)/jelly-devcontainer-ubuntu22
-IMAGE_TAG   = 0.0.4
+IMAGE_TAG   = 0.0.5
 
 .PHONY: all
 all: build

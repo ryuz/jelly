@@ -148,10 +148,10 @@ RUN echo 'eval "$(pyenv init -)"' >> ~/.bashrc \
 # Python バージョンをインストール
 ENV PYTHON_VERSION=3.12.7
 RUN $PYENV_ROOT/bin/pyenv install $PYTHON_VERSION \
-    && $PYENV_ROOT/bin/pyenv global $PYTHON_VERSION \
-    && $PYENV_ROOT/bin/pyenv rehash
-RUN pip install --upgrade pip setuptools wheel
-RUN pip install numpy matplotlib jupyterlab pandas scipy scikit-learn scikit-image notebook
+ && $PYENV_ROOT/bin/pyenv global $PYTHON_VERSION \
+ && $PYENV_ROOT/bin/pyenv rehash
+RUN $PYENV_ROOT/shims/pip install --upgrade pip setuptools wheel \
+ && $PYENV_ROOT/shims/pip install numpy matplotlib jupyterlab pandas scipy scikit-learn scikit-image notebook
 
 # Rust install
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -163,6 +163,7 @@ RUN cargo install cross
 RUN cargo install evcxr_jupyter
 RUN cargo install verylup \
  && verylup setup
+RUN cargo install --git https://github.com/ryuz/jelly-fpga-loader.git --tag v0.1.0
 
 # Finish
 USER root
