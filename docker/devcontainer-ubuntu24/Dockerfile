@@ -2,7 +2,7 @@
 # Base
 ################################################
 
-FROM mcr.microsoft.com/devcontainers/base:ubuntu-22.04 AS base-builder
+FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04 AS base-builder
 
 LABEL maintainter="ryuz88"
 LABEL org.opencontainers.image.source="https://github.com/ryuz/jelly"
@@ -59,7 +59,7 @@ FROM base-builder AS riscv-builder
 RUN git clone -b 2025.09.28 https://github.com/riscv/riscv-gnu-toolchain
 WORKDIR /riscv-gnu-toolchain
 RUN ./configure --prefix=/opt/riscv --enable-multilib
-RUN make -j4
+RUN make
 WORKDIR /
 
 
@@ -121,7 +121,7 @@ RUN apt-get update \
         gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
         libopencv-dev \
         x11-apps \
-        libtinfo5 libncurses5 \
+        libtinfo6 libncurses6 \
         protobuf-compiler \
  && apt-get install -y \
         libopencv-dev:arm64 \
@@ -150,8 +150,8 @@ ENV PYTHON_VERSION=3.12.7
 RUN $PYENV_ROOT/bin/pyenv install $PYTHON_VERSION \
     && $PYENV_ROOT/bin/pyenv global $PYTHON_VERSION \
     && $PYENV_ROOT/bin/pyenv rehash
-RUN pip install --upgrade pip setuptools wheel
-RUN pip install numpy matplotlib jupyterlab pandas scipy scikit-learn scikit-image notebook
+#RUN pip install --upgrade pip setuptools wheel
+#RUN pip install numpy matplotlib jupyterlab pandas scipy scikit-learn scikit-image notebook
 
 # Rust install
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -167,7 +167,7 @@ RUN cargo install verylup \
 # Finish
 USER root
 
-RUN groupadd -g 999 dockersock \
- && usermod -aG dockersock vscode
+#RUN groupadd -g 999 dockersock \
+# && usermod -aG dockersock vscode
 
 ENV DEBIAN_FRONTEND=dialog
