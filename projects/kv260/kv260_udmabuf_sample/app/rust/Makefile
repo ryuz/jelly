@@ -21,13 +21,17 @@ all: build
 .PHONY: build
 	cargo build --release --target=$(TARGET_TRIPLET)
 
-.PHONY: cross_build
-cross_build:
-	cross build --target=$(TARGET_TRIPLET) --release
+.PHONY: run
+run: load
+	cargo run --release --target=$(TARGET_TRIPLET) -- $(RUN_OPT)
 
 .PHONY: clean
 clean:
 	cargo clean
+
+.PHONY: cross_build
+cross_build:
+	cross build --target=$(TARGET_TRIPLET) --release
 
 .PHONY: load
 load:
