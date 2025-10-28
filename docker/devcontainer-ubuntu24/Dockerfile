@@ -177,7 +177,7 @@ RUN echo '' >> /home/$USERNAME/.bashrc \
  && echo '        echo "[vitis$vitis_version]"' >> /home/$USERNAME/.bashrc \
  && echo '    fi' >> /home/$USERNAME/.bashrc \
  && echo '}' >> /home/$USERNAME/.bashrc \
- && echo 'PS1="$(ps1_vitis_version) $PS1"' >> /home/$USERNAME/.bashrc
+ && echo 'PS1="\$(ps1_vitis_version) $PS1"' >> /home/$USERNAME/.bashrc
 
 # Finish
 USER root
