@@ -38,5 +38,5 @@ load:
 
 .PHONY: remote_run
 remote_run: cross_build load
-	scp target/$(TARGET_ARCH)/release/$(ELF_NAME) $(KV260_SSH_ADDRESS):/tmp/
+	scp target/$(TARGET_TRIPLET)/release/$(ELF_NAME) $(KV260_SSH_ADDRESS):/tmp/
 	ssh -Y -t $(KV260_SSH_ADDRESS) /tmp/$(ELF_NAME) $(RUN_OPT)

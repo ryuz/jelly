@@ -44,6 +44,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "kv260_udmabuf_sample"
+version = "0.1.1"
+dependencies = [
+ "jelly-mem_access",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.177"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -108,13 +115,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "ultra96v2_udmabuf_sample"
-version = "0.1.1"
-dependencies = [
- "jelly-mem_access",
 ]
 
 [[package]]

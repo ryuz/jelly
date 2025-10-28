@@ -1,5 +1,5 @@
 [package]
-name = "ultra96v2_udmabuf_sample"
+name = "kv260_udmabuf_sample"
 version = "0.1.1"
 edition = "2024"
 
