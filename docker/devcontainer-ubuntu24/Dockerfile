@@ -165,10 +165,25 @@ RUN cargo install verylup \
  && verylup setup
 RUN cargo install --git https://github.com/ryuz/jelly-fpga-loader.git --tag v0.1.0
 
+RUN git clone https://github.com/ryuz/vitisenv.git -b v0.0.3 /home/$USERNAME/.vitisenv
+RUN echo '' >> /home/$USERNAME/.bashrc \
+ && echo '# Vitis environment setup' >> /home/$USERNAME/.bashrc \
+ && echo 'export VITISENV_ROOT="$HOME/.vitisenv"' >> /home/$USERNAME/.bashrc \
+ && echo 'export PATH=$VITISENV_ROOT/bin:$PATH' >> /home/$USERNAME/.bashrc \
+ && echo '' >> /home/$USERNAME/.bashrc \
+ && echo 'function ps1_vitis_version {' >> /home/$USERNAME/.bashrc \
+ && echo '    local vitis_version=`vitisenv version`' >> /home/$USERNAME/.bashrc \
+ && echo '    if [ -n "$vitis_version" ]; then' >> /home/$USERNAME/.bashrc \
+ && echo '        echo "[vitis$vitis_version]"' >> /home/$USERNAME/.bashrc \
+ && echo '    fi' >> /home/$USERNAME/.bashrc \
+ && echo '}' >> /home/$USERNAME/.bashrc \
+ && echo 'PS1="\$(ps1_vitis_version) $PS1"' >> /home/$USERNAME/.bashrc
+
 # Finish
 USER root
 
-#RUN groupadd -g 999 dockersock \
-# && usermod -aG dockersock vscode
+# for vivado
+RUN ln -sf /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5 \
+ && ln -sf /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5
 
 ENV DEBIAN_FRONTEND=dialog
