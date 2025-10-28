@@ -17,7 +17,8 @@
 		"KV260_SERVER_ADDRESS": "${localEnv:KV260_SERVER_ADDRESS}",
 		"KV260_SSH_ADDRESS": "${localEnv:KV260_SSH_ADDRESS}",
 		"ZYBO_Z7_SERVER_ADDRESS": "${localEnv:ZYBO_Z7_SERVER_ADDRESS}",
-		"ZYBO_Z7_SSH_ADDRESS": "${localEnv:ZYBO_Z7_SSH_ADDRESS}"
+		"ZYBO_Z7_SSH_ADDRESS": "${localEnv:ZYBO_Z7_SSH_ADDRESS}",
+		"LD_PRELOAD": "/lib/x86_64-linux-gnu/libudev.so.1"
 	},
 
  	"customizations": {
