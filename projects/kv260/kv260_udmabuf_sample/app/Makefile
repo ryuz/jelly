@@ -23,6 +23,9 @@ all: $(DTBO_FILE) $(BIN_FILE)
 clean:
 	rm -rf $(DTBO_FILE) $(BIN_FILE)
 
+.PHONY: run
+run: run_cpp
+
 .PHONY: run_cpp
 run_cpp: load
 	make run RUN_OPT="$(RUN_OPT)" -C cpp
