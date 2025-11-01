@@ -1,7 +1,8 @@
+BASE_NAME  = kv260_blinking_led
 
-
-DT_NAME   = kv260_blinking_led
-BIT_NAME  = kv260_blinking_led
+DT_NAME    = $(BASE_NAME)
+BIT_NAME   = $(BASE_NAME)
+ACCEL_NAME = $(BASE_NAME)
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
@@ -10,9 +11,9 @@ BIT_FILE  = $(BIT_NAME).bit
 BIF_FILE  = $(BIT_NAME).bif
 BIN_FILE  = $(BIT_FILE).bin
 
-FIRMWARE_PATH = /lib/firmware
 DEVTREE_PATH  = /configfs/device-tree
-
+FIRMWARE_PATH = /lib/firmware
+ACCEL_PATH   = $(FIRMWARE_PATH)/xilinx/$(ACCEL_NAME)
 
 .PHONY: all
 all: $(DTBO_FILE) $(BIN_FILE)
@@ -35,19 +36,30 @@ $(DEVTREE_PATH):
 	sudo mkdir -p /configfs
 	sudo mount -t configfs configfs /configfs
 
+.PHONY: load
+load: load_dfx
+
+.PHONY: unload
+unload: unload_dfx
+
+
+
+############################################
+# FPGA Load/Unload via Device Tree Overlay
+############################################
 
 .PHONY: mount
 mount: $(DEVTREE_PATH)
 
 .PHONY: umount
-umount: unload
+umount: unload_native
 	@if [ -d $(DEVTREE_PATH) ] ; then \
 		echo umount configfs ; \
 		sudo umount /configfs ; \
 	fi
 
-.PHONY: load
-load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
+.PHONY: load_native
+load_native: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	-sudo xmutil unloadapp
 	@if [ -e /configfs/device-tree/overlays/k26-starter-kits_image_1 ] ; then \
 		sudo rmdir /configfs/device-tree/overlays/k26-starter-kits_image_1 ; \
@@ -63,19 +75,38 @@ load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
 	sudo rm /lib/firmware/$(DTBO_FILE)
 	sudo rm /lib/firmware/$(BIN_FILE)
 
-.PHONY: unload
-unload:
+.PHONY: unload_native
+unload_native:
 	@if [ -e $(DEVTREE_PATH)/overlays/full ] ; then \
 		echo unload ; \
 		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
 	fi
 
-.PHONY: load2
-load2: $(DTBO_FILE) $(BIN_FILE)
-	sudo fpgautil -R
-	sudo fpgautil -b $(BIT_FILE) -o $(DTBO_FILE)
-#	sudo fpgautil -b $(BIT_FILE)
 
-.PHONY: unload2
-unload2:
-	sudo fpgautil -R
+############################################
+# FPGA Load/Unload via Accel Manager
+############################################
+
+.PHONY: register_dfx
+register_accel: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload_dfx
+	sudo mkdir -p $(ACCEL_PATH)
+	sudo cp $(BIN_FILE) $(ACCEL_PATH)
+	sudo cp $(DTBO_FILE) $(ACCEL_PATH)
+	sudo cp shell.json $(ACCEL_PATH)
+
+.PHONY: unregister_dfx
+unregister_accel:
+	sudo rm -f $(ACCEL_PATH)/$(BIT_FILE)
+	sudo rm -f $(ACCEL_PATH)/$(BIN_FILE)
+	sudo rm -f $(ACCEL_PATH)/$(DTBO_FILE)
+	sudo rm -f $(ACCEL_PATH)/shell.json
+	sudo rm -fd $(ACCEL_PATH)
+
+.PHONY: load_dfx
+load_dfx: register_accel
+	sudo xmutil loadapp $(ACCEL_NAME)
+
+.PHONY: unload_dfx
+unload_dfx:
+	-sudo xmutil unloadapp
+
