@@ -83,6 +83,7 @@ Untitled.*
 
 # Xilinx
 xsim.dir/
+xsim.covinfo/
 xst/
 iseconfig/
 _xmsgs/

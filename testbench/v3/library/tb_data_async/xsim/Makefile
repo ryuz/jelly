@@ -40,6 +40,9 @@ build:
 run:
 	xsim $(TOP_MODULE) --R
 
+.PHONY: coverage
+coverage:
+	xcrg -cov_db_dir . -report_format html -report_dir ./
 
 .PHONY: vcd2fst
 vcd2fst:
