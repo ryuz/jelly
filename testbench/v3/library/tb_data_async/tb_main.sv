@@ -124,19 +124,54 @@ module tb_main
     end
     assign m_ready = reg_ready;
     
-
+    /*
     covergroup cg_port (input logic clk, input logic valid, input logic ready, input logic [7:0] data) @(posedge clk);
         cp1: coverpoint valid { bins non_valid = {0}; bins valid = {1}; }
         cp2: coverpoint ready { bins non_ready = {0}; bins ready = {1}; }
         cp3: coverpoint data  { bins min_val = {0}; bins middle_val = {[1:254]}; bins max_val = {255}; }
         cross cp1, cp2, cp3 {
-            // s_valid が 0 (non_valid) の場合、s_data の値は関係ないので無視する
-            ignore_bins invalid_data = binsof(cp1.non_valid);        
+            ignore_bins invalid_data = binsof(cp1.non_valid);
         }
     endgroup
     cg_port cg_slave  = new(.clk(s_clk), .valid(s_valid), .ready(s_ready), .data(s_data));
     cg_port cg_master = new(.clk(m_clk), .valid(m_valid), .ready(m_ready), .data(m_data));
+    */
 
+    /*
+    covergroup cg_port (input logic valid, input logic ready, input logic [7:0] data);
+        cp1: coverpoint valid { bins non_valid = {0}; bins valid = {1}; }
+        cp2: coverpoint ready { bins non_ready = {0}; bins ready = {1}; }
+        cp3: coverpoint data  { bins min_val = {0}; bins middle_val = {[1:254]}; bins max_val = {255}; }
+        cross cp1, cp2, cp3 {
+            ignore_bins invalid_data = binsof(cp1.non_valid);
+        }
+    endgroup
+    cg_port cg_slave  = new(.valid(s_valid), .ready(s_ready), .data(s_data));
+    cg_port cg_master = new(.valid(m_valid), .ready(m_ready), .data(m_data));
+    always @(posedge s_clk) cg_slave.sample();
+    always @(posedge m_clk) cg_master.sample();
+    */
+
+    covergroup cg_slave_port @(posedge s_clk);
+        cp1: coverpoint s_valid { bins non_valid = {0}; bins valid = {1}; }
+        cp2: coverpoint s_ready { bins non_ready = {0}; bins ready = {1}; }
+        cp3: coverpoint s_data  { bins min_val = {0}; bins middle_val = {[1:254]}; bins max_val = {255}; }
+        cross cp1, cp2, cp3 {
+            ignore_bins invalid_data = binsof(cp1.non_valid);
+        }
+    endgroup
+    cg_slave_port cg_slave  = new();
+
+    covergroup cg_master_port @(posedge m_clk);
+        cp1: coverpoint m_valid { bins non_valid = {0}; bins valid = {1}; }
+        cp2: coverpoint m_ready { bins non_ready = {0}; bins ready = {1}; }
+        cp3: coverpoint m_data  { bins min_val = {0}; bins middle_val = {[1:254]}; bins max_val = {255}; }
+        cross cp1, cp2, cp3 {
+            ignore_bins invalid_data = binsof(cp1.non_valid);
+        }
+    endgroup
+    cg_master_port cg_master  = new();
+    
 endmodule
 
 
