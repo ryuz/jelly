@@ -5,7 +5,7 @@
 `default_nettype none
 
 
-module kv260_imx219
+module kv260_imx219_sample
         #(
             parameter   int     WIDTH_BITS  = 16                ,
             parameter   int     HEIGHT_BITS = 16                ,

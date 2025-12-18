@@ -7,15 +7,15 @@ VIVADO_VERSIONS := $(subst .,$(space),$(subst v,,$(word 2,$(shell vivado -versio
 VIVADO_VERSION  := $(word 1,$(VIVADO_VERSIONS)).$(word 2,$(VIVADO_VERSIONS))
 
 # settings
-PROJECT_NAME = kv260_imx219
+PROJECT_NAME = kv260_imx219_sample
 BOARD_NAME   = kv260
 export PRJ_NAME     = $(PROJECT_NAME)_tcl
 export TOP_MODULE   = $(PROJECT_NAME)
 export BOARD_PART   = xilinx.com:kv260_som*
 export DEVICE_PART  =
 
-BOARD_ADDRESS  ?= kria
-BOARD_WORK_DIR ?= git-work/jelly
+KV260_SSH_ADDRESS ?= kria
+BOARD_WORK_DIR    ?= git-work/jelly
 
 BIT_FILE = $(PRJ_NAME).runs/impl_1/$(TOP_MODULE).bit
 
@@ -34,7 +34,7 @@ HLS_IP =
 export HLS_IP
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/kv260_imx219.sv
+SOURCES  = $(PRJ_DIR)/rtl/kv260_imx219_sample.sv
 SOURCES += $(PRJ_DIR)/rtl/imx219_mipi_rx.sv
 SOURCES += $(PRJ_DIR)/rtl/video_raw_to_rgb.sv
 SOURCES += $(JELLY_RTL_SOURCES)
@@ -70,7 +70,7 @@ build: $(BIT_FILE) check_log
 
 .PHONY : bit_scp
 bit_scp: $(BIT_FILE)
-	scp $(BIT_FILE) $(BOARD_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)/$(PROJECT_NAME)_v3/app
+	scp $(BIT_FILE) $(KV260_SSH_ADDRESS):$(BOARD_WORK_DIR)/projects/$(BOARD_NAME)/$(PROJECT_NAME)_v3/app
 
 .PHONY : bit_cp
 bit_cp: $(BIT_FILE)
