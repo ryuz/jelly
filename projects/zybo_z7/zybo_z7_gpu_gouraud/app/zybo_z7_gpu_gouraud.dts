@@ -2,7 +2,8 @@
 
 / {
     fragment@0 {  
-        target = <&fpga_full>;
+//      target = <&fpga_full>;
+        target = <&fpga_region0>;
         __overlay__ {
             #address-cells = <1>;
             #size-cells = <1>;
