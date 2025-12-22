@@ -35,7 +35,8 @@
     };
 
     fragment@2 {
-        target-path = "/amba";
+//      target-path = "/amba";
+        target = <&amba>;
         __overlay__ {
             #address-cells = <0x1>;
             #size-cells = <0x1>;
