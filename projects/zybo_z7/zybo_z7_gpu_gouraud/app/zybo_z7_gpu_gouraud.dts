@@ -13,7 +13,8 @@
     };
 
     fragment@1 {
-        target-path = "/amba";
+//      target-path = "/amba";
+        target = <&amba>;
         __overlay__ {
             fclk0 {
                 compatible  = "ikwzm,fclkcfg-0.10.a";
