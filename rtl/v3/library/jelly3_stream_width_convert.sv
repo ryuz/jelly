@@ -164,7 +164,7 @@ module jelly3_stream_width_convert
                                         input count_t               position
                                     );
         get_strb = '0;
-        for (int i = 0; i < M_NUM; ++i) begin
+        for (int i = 0; i < M_NUM; i++) begin
             if (int'(position) + i < BUF_NUM) begin
                 if (endian) begin
                     get_strb[M_NUM-1 - i] = strb[BUF_NUM-1 - (int'(position) + i)];

@@ -134,7 +134,7 @@ module jelly3_address_generator_nd
         
         // 開始
         if ( !m_valid && ff_s_valid ) begin
-            for ( int i = 0; i < N; ++i ) begin
+            for ( int i = 0; i < N; i++ ) begin
                 next_addr [i] = ff_s_addr;
                 next_len  [i] = ff_s_len[i] - (len_t'(1) - len_t'(LEN_OFFSET));
                 next_first[i] = 1'b1;
@@ -152,7 +152,7 @@ module jelly3_address_generator_nd
             else begin
                 // 1つ前の次元がlastなら進める
                 tmp_last = 1'b1;
-                for ( int i = 0; i < N; ++i ) begin
+                for ( int i = 0; i < N; i++ ) begin
                     next_first[i] = 1'b0;
                     if ( tmp_last ) begin
                         tmp_last = reg_last[i];
@@ -168,12 +168,12 @@ module jelly3_address_generator_nd
                     end
                 end
                 
-                for ( int i = N-1; i >= 0; --i ) begin
+                for ( int i = N-1; i >= 0; i-- ) begin
                     if ( i == 0 || reg_last[i-1] ) begin
                         next_addr[i] = reg_addr[i] + ff_s_step[i];
                     end
                 end
-                for ( int i = N-2; i >= 0; --i ) begin
+                for ( int i = N-2; i >= 0; i-- ) begin
                     if ( reg_last[i] ) begin
                         next_addr[i] = next_addr[i+1];
                     end
@@ -183,7 +183,7 @@ module jelly3_address_generator_nd
         
         // last フラグ
         tmp_last = 1'b1;
-        for ( int i = 0; i < N; ++i ) begin
+        for ( int i = 0; i < N; i++ ) begin
             tmp_last = tmp_last && (next_len[i] == 0);
             next_last[i] = tmp_last;
         end

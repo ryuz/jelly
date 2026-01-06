@@ -76,9 +76,9 @@ module jelly3_model_img_m
 
     task    image_clear();
     begin
-        for ( int i = 0; i < IMG_HEIGHT; ++i ) begin
-            for ( int j = 0; j < IMG_WIDTH; ++j ) begin
-                for ( int k = 0; k < IMG_CH_DEPTH; ++k ) begin
+        for ( int i = 0; i < IMG_HEIGHT; i++ ) begin
+            for ( int j = 0; j < IMG_WIDTH; j++ ) begin
+                for ( int k = 0; k < IMG_CH_DEPTH; k++ ) begin
                     automatic int val;
                     val = 0;
                     if ( k == 0 ) val = j;
@@ -104,9 +104,9 @@ module jelly3_model_img_m
             int    width, height, maxval;
             $fscanf(fp, "%s %d %d %d", format, width, height, maxval);
             $display("[read] %s: format=%s width=%0d height=%0d maxval=%0d", filename, format, width, height, maxval);
-            for ( int i = 0; i < IMG_HEIGHT; ++i ) begin
-                for ( int j = 0; j < IMG_WIDTH; ++j ) begin
-                    for ( int k = 0; k < IMG_CH_DEPTH; ++k ) begin
+            for ( int i = 0; i < IMG_HEIGHT; i++ ) begin
+                for ( int j = 0; j < IMG_WIDTH; j++ ) begin
+                    for ( int k = 0; k < IMG_CH_DEPTH; k++ ) begin
                         int val;
                         $fscanf(fp, "%d", val);
                         if ( ENDIAN ) begin

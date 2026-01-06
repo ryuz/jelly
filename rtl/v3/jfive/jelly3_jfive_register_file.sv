@@ -42,7 +42,7 @@ module jelly3_jfive_register_file
         );
     
     generate
-    for ( genvar i = 0; i < READ_PORTS; ++i ) begin
+    for ( genvar i = 0; i < READ_PORTS; i++ ) begin
         jelly2_ram_async_dualport
                 #(
                     .ADDR_WIDTH     ($bits(addt_t)  ),

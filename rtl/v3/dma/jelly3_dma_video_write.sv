@@ -238,7 +238,7 @@ module jelly3_dma_video_write
                 .BACK_M_REG             (BACK_M_REG             ),
                 .CONVERT_S_REG          (CONVERT_S_REG          )
             )
-        i_dma_stream_write
+        u_dma_stream_write
             (
                 .endian             ,
                 .s_axi4l            ,

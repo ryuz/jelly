@@ -42,7 +42,7 @@ module jelly3_axi4l_register
                                         input [AXI_STRB_BITS-1:0] msk
                                     );
     begin
-        for ( int i = 0; i < AXI_DATA_BITS; ++i ) begin
+        for ( int i = 0; i < AXI_DATA_BITS; i++ ) begin
             write_mask[i] = msk[i/8] ? wdat[i] : org[i];
         end
     end
