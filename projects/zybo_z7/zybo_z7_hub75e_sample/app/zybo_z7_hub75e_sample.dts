@@ -1,0 +1,26 @@
+/dts-v1/; /plugin/;
+
+/ {
+    fragment@0 {  
+        target = <&fpga_region0>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <1>;
+
+            firmware-name = "zybo_z7_hub75e_sample.bit.bin";
+        };
+    };
+
+    fragment@1 {
+        target = <&amba>;
+        __overlay__ {
+            fclk0 {
+                compatible  = "ikwzm,fclkcfg-0.10.a";
+                clocks      = <&clkc 15>;
+                insert-rate = "100000000";
+            };
+        };
+    };
+};
+
+
