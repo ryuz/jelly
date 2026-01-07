@@ -39,8 +39,10 @@ module zybo_z7_hub75e_sample
                 inout   tri logic   [7:0]   pmod_c              ,
                 inout   tri logic   [7:0]   pmod_d              ,
                 inout   tri logic   [7:0]   pmod_e              ,
-
-                output  var logic   [3:0]   led
+                
+                input   var logic   [3:0]   push_sw             ,
+                input   var logic   [3:0]   dip_sw              ,
+                output  var logic   [3:0]   led                 
             );
     
     
@@ -79,11 +81,105 @@ module zybo_z7_hub75e_sample
                 .clk                    (clk                )
             );
     
-    
-    
-    
-    reg     [25:0]  clk_count;
-    always @(posedge clk) begin
+
+    // -----------------------------
+    //  HUB-75E
+    // -----------------------------
+
+    logic   hub75e_a;
+    logic   hub75e_b;
+    logic   hub75e_c;
+    logic   hub75e_d;
+    logic   hub75e_e;
+
+    logic   hub75e_oe;
+    logic   hub75e_lat;
+    logic   hub75e_cke;
+
+    logic   hub75e_r1;
+    logic   hub75e_g1;
+    logic   hub75e_b1;
+    logic   hub75e_r2;
+    logic   hub75e_g2;
+    logic   hub75e_b2;
+
+    assign pmod_d[0] = hub75e_g1    ;
+    assign pmod_d[1] = 1'b0         ;
+    assign pmod_d[2] = hub75e_g2    ;
+    assign pmod_d[3] = hub75e_e     ;
+    assign pmod_d[4] = hub75e_r1    ;
+    assign pmod_d[5] = hub75e_b1    ;
+    assign pmod_d[6] = hub75e_r2    ;
+    assign pmod_d[7] = hub75e_b2    ;
+
+    assign pmod_e[0] = hub75e_b     ;
+    assign pmod_e[1] = hub75e_d     ;
+    assign pmod_e[2] = hub75e_lat   ;
+    assign pmod_e[3] = 1'b0         ;
+    assign pmod_e[4] = hub75e_a     ;
+    assign pmod_e[5] = hub75e_c     ;
+    assign pmod_e[6] = hub75e_cke   ;
+    assign pmod_e[7] = hub75e_oe    ;
+
+    /*
+    assign hub75e_oe  = dip_sw[0];
+    assign hub75e_lat = dip_sw[1];
+    assign hub75e_cke = push_sw[0];
+
+    assign hub75e_a = dip_sw[2];
+    assign hub75e_b = push_sw[1];
+    assign hub75e_c = 1'b0;
+    assign hub75e_d = 1'b0;
+    assign hub75e_e = 1'b0;
+    assign hub75e_r1 = dip_sw[3];
+    assign hub75e_g1 = push_sw[2];
+    assign hub75e_b1 = 1'b1;
+    assign hub75e_r2 = push_sw[3];
+    assign hub75e_g2 = 1'b1;
+    assign hub75e_b2 = 1'b0;
+    */
+
+    logic   [1:0]   pre     ;
+    logic   [30:0]  count   ;
+    always_ff @(posedge clk) begin
+        pre <= pre + 1;
+        if ( pre == 0 ) begin
+            count <= count + 1;
+        end
+    end
+
+    assign hub75e_cke = pre[1];
+//  assign hub75e_cke = dip_sw[0] && count[0];
+//  assign hub75e_oe  = !dip_sw[0] || (count[5:0] <= count[11:6]);
+    assign hub75e_oe  = !dip_sw[0] || (count[5:0] == 4);
+    assign hub75e_lat = dip_sw[0] && (count[5:0] == '1);
+
+    assign hub75e_a = count[6]  && !push_sw[0];
+    assign hub75e_b = count[7]  && !push_sw[1];
+    assign hub75e_c = count[8]  && !push_sw[2];
+    assign hub75e_d = count[9]  && !push_sw[3];
+    assign hub75e_e = count[10] && dip_sw[1];
+
+    logic [5:0] color;
+//  assign color = count[5:0] + count[11:6];
+    assign color = count[5:0] + count[11:6] + count[25:20];
+
+    assign hub75e_r1 = color[0];
+    assign hub75e_g1 = color[1];
+    assign hub75e_b1 = color[2];
+    assign hub75e_r2 = color[3];
+    assign hub75e_g2 = color[4];
+    assign hub75e_b2 = color[5];
+
+
+
+
+    // -----------------------------
+    //  ZynqMP PS
+    // -----------------------------
+
+    logic   [25:0]  clk_count;
+    always_ff @(posedge clk) begin
         if ( reset ) begin
             clk_count <= 0;
         end
@@ -92,9 +188,10 @@ module zybo_z7_hub75e_sample
         end
     end
     
-    assign led[2:0] = '0;
-    assign led[3]   = clk_count[25];
-    
+//  assign led[2:0] = '0;
+//  assign led[3]   = clk_count[25];
+
+    assign led = push_sw;
     
 endmodule
 

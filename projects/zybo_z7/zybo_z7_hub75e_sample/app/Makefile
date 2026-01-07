@@ -23,7 +23,7 @@ clean:
 $(DTBO_FILE): $(DTS_FILE)
 	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
 
-$(BIN_FILE): $(BIF_FILE) $(BIT_FILE)
+$(BIN_FILE): build_bit $(BIF_FILE) $(BIT_FILE)
 	bootgen -w -image $(BIF_FILE) -arch zynq -process_bitstream bin
 
 $(DEVTREE_PATH):
@@ -68,3 +68,7 @@ remote_load: $(DTBO_FILE) $(BIN_FILE) remote_unload
 .PHONY: remote_unload
 remote_unload:
 	-jelly-fpga-loader unload --ip $(ZYBO_Z7_SERVER_ADDRESS)
+
+.PHONY: build_bit
+build_bit:
+	make -C ../syn/tcl bit_cp
