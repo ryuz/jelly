@@ -19,7 +19,7 @@ module hub75_driver
                 parameter   int     WIDTH        = 64                   ,
                 parameter   int     HEIGHT       = 32                   ,
                 parameter   int     SEL_BITS     = $clog2(HEIGHT)       ,
-                parameter   type    sel_t        = logic [DATA_BITS-1:0],
+                parameter   type    sel_t        = logic [SEL_BITS-1:0] ,
                 parameter   int     DATA_BITS    = 8                    ,
                 parameter   type    data_t       = logic [DATA_BITS-1:0],
                 parameter   int     DEPTH        = N * HEIGHT * WIDTH   ,
@@ -181,7 +181,6 @@ module hub75_driver
                         st0_cke   <= 1'b0   ;
                         st0_lat   <= 1'b0   ;
                         st0_oe_n  <= 1'b1   ;
-                        st0_cnt   <= st0_f  ;
                         st0_disp  <= disp   ;
                     end
                 
@@ -204,9 +203,10 @@ module hub75_driver
                                 st0_oe_n  <= 1'b1   ;
                                 st0_x     <= '0     ;
                                 st0_y     <= st0_y + 1;
+                                st0_cnt   <= st0_f  ;
                                 if ( st0_y == y_t'(HEIGHT-1) ) begin
-                                    st0_y <= '0;
-                                    st0_f <= st0_f + 1;
+                                    st0_y   <= '0;
+                                    st0_f   <= st0_f + 1;
                                     if ( st0_f == f_t'($bits(data_t)-1) ) begin
                                         st0_f <= '0;
                                     end

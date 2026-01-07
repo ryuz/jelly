@@ -37,7 +37,7 @@ module tb_top();
     parameter   int     WIDTH        = 64                       ;
     parameter   int     HEIGHT       = 32                       ;
     parameter   int     SEL_BITS     = $clog2(HEIGHT)           ;
-    parameter   type    sel_t        = logic [DATA_BITS-1:0]    ;
+    parameter   type    sel_t        = logic [SEL_BITS-1:0]     ;
     parameter   int     DATA_BITS    = 8                        ;
     parameter   type    data_t       = logic [DATA_BITS-1:0]    ;
     parameter   int     DEPTH        = N * HEIGHT * WIDTH       ;
