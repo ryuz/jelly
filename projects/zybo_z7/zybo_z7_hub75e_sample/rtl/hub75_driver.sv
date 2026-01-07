@@ -62,7 +62,6 @@ module hub75_driver
     mem_we_t        mem_wr_en       ;
     mem_addr_t      mem_wr_addr     ;
     mem_data_t      mem_wr_din      ;
-    logic           mem_rd_clk      ;
     mem_addr_t      mem_rd_addr     ;
     mem_data_t      mem_rd_dout     ;
 
@@ -90,7 +89,7 @@ module hub75_driver
                 .wr_addr        (mem_wr_addr        ),
                 .wr_din         (mem_wr_din         ),
                 
-                .rd_clk         (mem_rd_clk         ),
+                .rd_clk         (clk                ),
                 .rd_en          (1'b1               ),
                 .rd_regcke      (1'b1               ),
                 .rd_addr        (mem_rd_addr        ),
@@ -107,24 +106,6 @@ module hub75_driver
     localparam  int     F_BITS = $clog2($bits(data_t))      ;
     localparam  type    f_t    = logic [F_BITS-1:0]         ;
 
-    // clock div
-
-    div_t   clk_count   ;
-    logic   div_clk     ;
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            clk_count <= '0;
-            div_clk   <= 1'b0;
-        end
-        else begin
-            clk_count <= clk_count + 1;
-            if ( clk_count == div_t'(CLK_DIV - 1) ) begin
-                clk_count <= '0;
-                div_clk   <= 1'b0;
-            end
-        end
-    end
-    
     typedef enum {
         IDLE,
         SETUP,
@@ -133,6 +114,7 @@ module hub75_driver
     } state_t;
 
 
+    // stage 0
     div_t       st0_div     ;
     state_t     st0_state   ;
     logic       st0_cke     ;
@@ -157,7 +139,6 @@ module hub75_driver
             st0_disp  <= '1    ;
         end
         else begin
-            // stage 0
             if ( st0_state == TRANS ) begin
                 st0_disp <= st0_disp - 1;
                 if ( st0_disp == '0 ) begin
@@ -226,6 +207,59 @@ module hub75_driver
         end
     end
 
+    assign mem_rd_addr = {st0_y, st0_x};
+
+    logic           st1_cke ;
+    logic           st1_lat ;
+    logic           st1_oe_n;
+    sel_t           st1_sel ;
+    f_t             st1_f   ;
+
+    logic           st2_cke ;
+    logic           st2_lat ;
+    logic           st2_oe_n;
+    sel_t           st2_sel ;
+    f_t             st2_f   ;
+
+    logic           st3_cke ;
+    logic           st3_lat ;
+    logic           st3_oe_n;
+    sel_t           st3_sel ;
+    logic   [N-1:0] st3_r   ;
+    logic   [N-1:0] st3_g   ;
+    logic   [N-1:0] st3_b   ;
+
+    always_ff @(posedge clk) begin
+        st1_cke  <= st0_cke ;
+        st1_lat  <= st0_lat ;
+        st1_oe_n <= st0_oe_n;
+        st1_sel  <= st0_y   ;
+        st1_f    <= st0_f   ;
+
+        st2_cke  <= st1_cke ;
+        st2_lat  <= st1_lat ;
+        st2_oe_n <= st1_oe_n;
+        st2_sel  <= st1_sel ;
+        st2_f    <= st1_f   ;
+
+        st3_cke  <= st2_cke ;
+        st3_lat  <= st2_lat ;
+        st3_oe_n <= st2_oe_n;
+        st3_sel  <= st2_sel ;
+        for ( int i = 0; i < N; i++ ) begin
+            st3_r[i] <= mem_rd_dout[i][2][st2_f];
+            st3_g[i] <= mem_rd_dout[i][1][st2_f];
+            st3_b[i] <= mem_rd_dout[i][0][st2_f];
+        end
+    end
+
+    assign  hub75_cke  = st3_cke ;
+    assign  hub75_oe_n = st3_oe_n;
+    assign  hub75_lat  = st3_lat ;
+    assign  hub75_sel  = st3_sel ;
+    assign  hub75_r    = st3_r   ;
+    assign  hub75_g    = st3_g   ;
+    assign  hub75_b    = st3_b   ;
 
 endmodule
 

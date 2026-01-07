@@ -97,6 +97,13 @@
           <Proxy FileSetName="design_1_processing_system7_0_0"/>
         </CompFileExtendedInfo>
       </File>
+      <File Path="$PPRDIR/../../rtl/hub75_driver.sv">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../rtl/zybo_z7_hub75e_sample.sv">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>

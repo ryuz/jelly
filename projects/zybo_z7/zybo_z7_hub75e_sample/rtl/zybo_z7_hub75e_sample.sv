@@ -121,24 +121,8 @@ module zybo_z7_hub75e_sample
     assign pmod_e[6] = hub75e_cke   ;
     assign pmod_e[7] = hub75e_oe    ;
 
+
     /*
-    assign hub75e_oe  = dip_sw[0];
-    assign hub75e_lat = dip_sw[1];
-    assign hub75e_cke = push_sw[0];
-
-    assign hub75e_a = dip_sw[2];
-    assign hub75e_b = push_sw[1];
-    assign hub75e_c = 1'b0;
-    assign hub75e_d = 1'b0;
-    assign hub75e_e = 1'b0;
-    assign hub75e_r1 = dip_sw[3];
-    assign hub75e_g1 = push_sw[2];
-    assign hub75e_b1 = 1'b1;
-    assign hub75e_r2 = push_sw[3];
-    assign hub75e_g2 = 1'b1;
-    assign hub75e_b2 = 1'b0;
-    */
-
     logic   [1:0]   pre     ;
     logic   [30:0]  count   ;
     always_ff @(posedge clk) begin
@@ -170,7 +154,51 @@ module zybo_z7_hub75e_sample
     assign hub75e_r2 = color[3];
     assign hub75e_g2 = color[4];
     assign hub75e_b2 = color[5];
+    */
 
+
+    hub75_driver
+            #(
+                .CLK_DIV        (4              ),
+                .DISP_BITS      (16             ),
+                .N              (2              ),
+                .WIDTH          (64             ),
+                .HEIGHT         (32             ),
+                .SEL_BITS       (5              ),
+                .DATA_BITS      (8              ),
+                .RAM_TYPE       ("block"        ),
+                .READMEMH       (1              ),
+                .READMEM_FILE   ("../../image.hex")
+            )
+        u_hub75_driver
+            (
+                .reset          (1'b0           ),
+                .clk            (clk            ),
+                
+                .enable         (dip_sw[0]      ),
+                .disp           (16             ),
+
+                .hub75_cke      (hub75e_cke     ),
+                .hub75_oe_n     (hub75e_oe      ),
+                .hub75_lat      (hub75e_lat     ),
+                .hub75_sel      ({
+                                    hub75e_e,
+                                    hub75e_d,
+                                    hub75e_c,
+                                    hub75e_b,
+                                    hub75e_a
+                                }),
+                .hub75_r        ({hub75e_r2, hub75e_r1}),
+                .hub75_g        ({hub75e_g2, hub75e_g1}),
+                .hub75_b        ({hub75e_b2, hub75e_b1}),
+
+                .mem_clk        (clk        ),
+                .mem_we         ('0         ),
+                .mem_addr       ('0         ),
+                .mem_r          ('0         ),
+                .mem_g          ('0         ),
+                .mem_b          ('0         )
+            );
 
 
 

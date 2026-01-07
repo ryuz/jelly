@@ -45,8 +45,8 @@ module tb_top();
     parameter   type    addr_t       = logic [ADDR_BITS-1:0]    ;
     parameter           RAM_TYPE     = "block"                  ;
     parameter   bit     READMEMB     = 1'b0                     ;
-    parameter   bit     READMEMH     = 1'b0                     ;
-    parameter           READMEM_FILE = ""                       ;
+    parameter   bit     READMEMH     = 1'b1                     ;
+    parameter           READMEM_FILE = "../../../syn/image.hex" ;
 
     logic           enable      = 1     ;
     disp_t          disp        = 16    ;
