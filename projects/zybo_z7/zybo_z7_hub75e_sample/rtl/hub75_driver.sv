@@ -68,13 +68,13 @@ module hub75_driver
     jelly3_ram_simple_dualport
             #(
                 .ADDR_BITS      (MEM_ADDR_BITS      ),
-                .addr_t         (mem_addr_t         ),
+//              .addr_t         (mem_addr_t         ),
                 .WE_BITS        (N                  ),
-                .we_t           (mem_we_t           ),
+//              .we_t           (mem_we_t           ),
                 .DATA_BITS      ($bits(mem_data_t)  ),
-                .data_t         (mem_data_t         ),
+//              .data_t         (mem_data_t         ),
                 .WORD_BITS      ($bits(mem_word_t)  ),
-                .word_t         (mem_word_t         ),
+//              .word_t         (mem_word_t         ),
                 .MEM_DEPTH      (MEM_DEPTH          ),
                 .RAM_TYPE       (RAM_TYPE           ),
                 .DOUT_REG       (1'b1               ),
@@ -123,7 +123,7 @@ module hub75_driver
     x_t         st0_x       ;
     y_t         st0_y       ;
     f_t         st0_f       ;
-    f_t         st0_cnt     ;
+    data_t      st0_cnt     ;
     disp_t      st0_disp    ;
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -135,7 +135,7 @@ module hub75_driver
             st0_x     <= '0    ;
             st0_y     <= '0    ;
             st0_f     <= '1    ;
-            st0_cnt   <= '1    ;
+            st0_cnt   <= '0    ;
             st0_disp  <= '1    ;
         end
         else begin
@@ -184,7 +184,7 @@ module hub75_driver
                                 st0_oe_n  <= 1'b1   ;
                                 st0_x     <= '0     ;
                                 st0_y     <= st0_y + 1;
-                                st0_cnt   <= st0_f  ;
+                                st0_cnt   <= (1 << st0_f);
                                 if ( st0_y == y_t'(HEIGHT-1) ) begin
                                     st0_y   <= '0;
                                     st0_f   <= st0_f + 1;

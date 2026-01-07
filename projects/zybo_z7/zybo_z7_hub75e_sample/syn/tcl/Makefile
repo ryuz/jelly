@@ -29,14 +29,14 @@ PRJ_DIR = ../..
 JELLY_TOP_DIR = $(TOP_DIR)
 -include $(JELLY_TOP_DIR)/include/make/def_sources.inc
 
-
-
 # HLS IP
 HLS_IP =
 export HLS_IP
 
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/zybo_z7_hub75e_sample.sv
+SOURCES += $(PRJ_DIR)/rtl/hub75_driver.sv
+SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 
 

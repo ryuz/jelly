@@ -49,7 +49,7 @@ module tb_top();
     parameter           READMEM_FILE = "../../../syn/image.hex" ;
 
     logic           enable      = 1     ;
-    disp_t          disp        = 16    ;
+    disp_t          disp        = 2     ;
     logic           hub75_cke   ;
     logic           hub75_oe_n  ;
     logic           hub75_lat   ;

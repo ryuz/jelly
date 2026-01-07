@@ -168,7 +168,7 @@ module zybo_z7_hub75e_sample
                 .DATA_BITS      (8              ),
                 .RAM_TYPE       ("block"        ),
                 .READMEMH       (1              ),
-                .READMEM_FILE   ("../../image.hex")
+                .READMEM_FILE   ("../../../image.hex")
             )
         u_hub75_driver
             (
