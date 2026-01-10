@@ -24,13 +24,13 @@ module tb_top();
     initial #(RATE*100) reset = 0;
 
     logic       clk = 1'b1;
-    initial forever #RATE clk = ~clk;
+    initial forever #(RATE/2.0) clk = ~clk;
 
     // -----------------------------
     //  DTU
     // -----------------------------
 
-    parameter   int     CLK_DIV      = 4                        ;
+    parameter   int     CLK_DIV      = 2                        ;
     parameter   int     DISP_BITS    = 16                       ;
     parameter   type    disp_t       = logic [DISP_BITS-1:0]    ;
     parameter   int     N            = 2                        ;
@@ -40,6 +40,7 @@ module tb_top();
     parameter   type    sel_t        = logic [SEL_BITS-1:0]     ;
     parameter   int     DATA_BITS    = 8                        ;
     parameter   type    data_t       = logic [DATA_BITS-1:0]    ;
+    parameter   int     SLOTS        = $bits(data_t)            ;
     parameter   int     DEPTH        = N * HEIGHT * WIDTH       ;
     parameter   int     ADDR_BITS    = $clog2(DEPTH)            ;
     parameter   type    addr_t       = logic [ADDR_BITS-1:0]    ;
@@ -48,21 +49,33 @@ module tb_top();
     parameter   bit     READMEMH     = 1'b1                     ;
     parameter           READMEM_FILE = "../../../syn/image.hex" ;
 
-    logic           enable      = 1     ;
-    disp_t          disp        = 2     ;
-    logic           hub75_cke   ;
-    logic           hub75_oe_n  ;
-    logic           hub75_lat   ;
-    sel_t           hub75_sel   ;
-    logic   [N-1:0] hub75_r     ;
-    logic   [N-1:0] hub75_g     ;
-    logic   [N-1:0] hub75_b     ;
-    logic           mem_clk     = clk;
-    logic           mem_we      = 0;
-    addr_t          mem_addr    = 0;
-    data_t          mem_r       = 0;
-    data_t          mem_g       = 0;
-    data_t          mem_b       = 0;
+    logic               enable = 1  ;
+    disp_t  [SLOTS-1:0] disp        ;
+    logic               hub75_cke   ;
+    logic               hub75_oe_n  ;
+    logic               hub75_lat   ;
+    sel_t               hub75_sel   ;
+    logic   [N-1:0]     hub75_r     ;
+    logic   [N-1:0]     hub75_g     ;
+    logic   [N-1:0]     hub75_b     ;
+    logic               mem_clk     = clk;
+    logic               mem_we      = 0;
+    addr_t              mem_addr    = 0;
+    data_t              mem_r       = 0;
+    data_t              mem_g       = 0;
+    data_t              mem_b       = 0;
+
+    localparam R = 16'd1;
+    assign disp = {
+            R * 16'd128,
+            R * 16'd64,
+            R * 16'd32,
+            R * 16'd16,
+            R * 16'd8,
+            R * 16'd4,
+            R * 16'd2,
+            R * 16'd1
+        };
 
     hub75_driver
             #(

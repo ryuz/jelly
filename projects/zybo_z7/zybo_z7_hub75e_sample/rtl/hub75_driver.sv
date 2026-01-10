@@ -22,6 +22,7 @@ module hub75_driver
                 parameter   type    sel_t        = logic [SEL_BITS-1:0] ,
                 parameter   int     DATA_BITS    = 8                    ,
                 parameter   type    data_t       = logic [DATA_BITS-1:0],
+                parameter   int     SLOTS        = $bits(data_t)        ,
                 parameter   int     DEPTH        = N * HEIGHT * WIDTH   ,
                 parameter   int     ADDR_BITS    = $clog2(DEPTH)        ,
                 parameter   type    addr_t       = logic [ADDR_BITS-1:0],
@@ -32,24 +33,24 @@ module hub75_driver
 
             )
             (
-                input   var logic           reset               ,
-                input   var logic           clk                 ,
-                input   var logic           enable              ,
-                input   var disp_t          disp                ,
-                output  var logic           hub75_cke           ,
-                output  var logic           hub75_oe_n          ,
-                output  var logic           hub75_lat           ,
-                output  var sel_t           hub75_sel           ,
-                output  var logic   [N-1:0] hub75_r             ,
-                output  var logic   [N-1:0] hub75_g             ,
-                output  var logic   [N-1:0] hub75_b             ,
+                input   var logic               reset       ,
+                input   var logic               clk         ,
+                input   var logic               enable      ,
+                input   var disp_t  [SLOTS-1:0] disp        ,
+                output  var logic               hub75_cke   ,
+                output  var logic               hub75_oe_n  ,
+                output  var logic               hub75_lat   ,
+                output  var sel_t               hub75_sel   ,
+                output  var logic   [N-1:0]     hub75_r     ,
+                output  var logic   [N-1:0]     hub75_g     ,
+                output  var logic   [N-1:0]     hub75_b     ,
 
-                input   var logic           mem_clk             ,
-                input   var logic           mem_we              ,
-                input   var addr_t          mem_addr            ,
-                input   var data_t          mem_r               ,
-                input   var data_t          mem_g               ,
-                input   var data_t          mem_b               
+                input   var logic               mem_clk     ,
+                input   var logic               mem_we      ,
+                input   var addr_t              mem_addr    ,
+                input   var data_t              mem_r       ,
+                input   var data_t              mem_g       ,
+                input   var data_t              mem_b       
             );
     
     localparam  int     MEM_DEPTH     = HEIGHT * WIDTH                  ;
@@ -120,10 +121,10 @@ module hub75_driver
     logic       st0_cke     ;
     logic       st0_lat     ;
     logic       st0_oe_n    ;
+    sel_t       st0_sel     ;
     x_t         st0_x       ;
     y_t         st0_y       ;
     f_t         st0_f       ;
-    data_t      st0_cnt     ;
     disp_t      st0_disp    ;
     always_ff @(posedge clk) begin
         if ( reset ) begin
@@ -132,21 +133,17 @@ module hub75_driver
             st0_cke   <= 1'b0  ;
             st0_lat   <= 1'b0  ;
             st0_oe_n  <= 1'b1  ;
+            st0_sel   <= '0    ;
             st0_x     <= '0    ;
             st0_y     <= '0    ;
-            st0_f     <= '1    ;
-            st0_cnt   <= '0    ;
-            st0_disp  <= '1    ;
+            st0_f     <= '0    ;
+            st0_disp  <= '0    ;
         end
         else begin
             if ( st0_state == TRANS ) begin
                 st0_disp <= st0_disp - 1;
                 if ( st0_disp == '0 ) begin
-                    st0_disp <= disp;
-                    st0_cnt  <= st0_cnt - 1;
-                    if ( st0_cnt == '0 ) begin
-                        st0_oe_n <= 1'b1  ;
-                    end
+                    st0_oe_n <= 1'b1  ;
                 end
             end
 
@@ -162,7 +159,6 @@ module hub75_driver
                         st0_cke   <= 1'b0   ;
                         st0_lat   <= 1'b0   ;
                         st0_oe_n  <= 1'b1   ;
-                        st0_disp  <= disp   ;
                     end
                 
                 SETUP:
@@ -182,9 +178,10 @@ module hub75_driver
                                 st0_state <= LAT    ;
                                 st0_lat   <= 1'b1   ;
                                 st0_oe_n  <= 1'b1   ;
+                                st0_sel   <= st0_y  ;
                                 st0_x     <= '0     ;
                                 st0_y     <= st0_y + 1;
-                                st0_cnt   <= (1 << st0_f);
+                                st0_disp  <= disp[st0_f];
                                 if ( st0_y == y_t'(HEIGHT-1) ) begin
                                     st0_y   <= '0;
                                     st0_f   <= st0_f + 1;
@@ -233,7 +230,7 @@ module hub75_driver
         st1_cke  <= st0_cke ;
         st1_lat  <= st0_lat ;
         st1_oe_n <= st0_oe_n;
-        st1_sel  <= st0_y   ;
+        st1_sel  <= st0_sel ;
         st1_f    <= st0_f   ;
 
         st2_cke  <= st1_cke ;
@@ -246,10 +243,15 @@ module hub75_driver
         st3_lat  <= st2_lat ;
         st3_oe_n <= st2_oe_n;
         st3_sel  <= st2_sel ;
-        for ( int i = 0; i < N; i++ ) begin
-            st3_r[i] <= mem_rd_dout[i][2][st2_f];
-            st3_g[i] <= mem_rd_dout[i][1][st2_f];
-            st3_b[i] <= mem_rd_dout[i][0][st2_f];
+        st3_r    <= '0;
+        st3_g    <= '0;
+        st3_b    <= '0;
+        if ( st2_f >= 0 ) begin
+            for ( int i = 0; i < N; i++ ) begin
+                st3_r[i] <= mem_rd_dout[i][2][st2_f];
+                st3_g[i] <= mem_rd_dout[i][1][st2_f];
+                st3_b[i] <= mem_rd_dout[i][0][st2_f];
+            end
         end
     end
 

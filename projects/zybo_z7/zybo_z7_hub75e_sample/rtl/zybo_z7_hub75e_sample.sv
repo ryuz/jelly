@@ -156,10 +156,11 @@ module zybo_z7_hub75e_sample
     assign hub75e_b2 = color[5];
     */
 
+    localparam R = 16'd1;
 
     hub75_driver
             #(
-                .CLK_DIV        (4              ),
+                .CLK_DIV        (2              ),
                 .DISP_BITS      (16             ),
                 .N              (2              ),
                 .WIDTH          (64             ),
@@ -176,7 +177,16 @@ module zybo_z7_hub75e_sample
                 .clk            (clk            ),
                 
                 .enable         (dip_sw[0]      ),
-                .disp           (16             ),
+                .disp           ({
+                                    R * 16'd128,
+                                    R * 16'd64,
+                                    R * 16'd32,
+                                    R * 16'd16,
+                                    R * 16'd8,
+                                    R * 16'd4,
+                                    R * 16'd2,
+                                    R * 16'd1
+                                }),
 
                 .hub75_cke      (hub75e_cke     ),
                 .hub75_oe_n     (hub75e_oe      ),
