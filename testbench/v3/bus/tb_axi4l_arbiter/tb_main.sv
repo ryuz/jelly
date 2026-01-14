@@ -66,6 +66,7 @@ module tb_main
 
     jelly3_axi4l_terminator
             #(
+                .READ_VALUE (32'h87654321)
             )
         u_axi4_accessor
             (
