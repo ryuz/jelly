@@ -189,7 +189,6 @@ module jelly3_uart
         end
     end
 
-    logic           axi4l_rvalid;
     always_ff @(posedge s_axi4l.aclk ) begin
         if ( ~s_axi4l.aresetn ) begin
             s_axi4l.rvalid <= 1'b0;
