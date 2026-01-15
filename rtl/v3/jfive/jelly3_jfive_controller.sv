@@ -435,14 +435,19 @@ module jelly3_jfive_controller
     //  Memory access from host
     // ---------------------------------------------------------
 
+    localparam  int BRAM_ID_BITS   = s_axi4_mem.ID_BITS     ;
+    localparam  int BRAM_DATA_BITS = s_axi4_mem.DATA_BITS   ;
+    localparam  int BRAM_STRB_BITS = s_axi4_mem.STRB_BITS   ;
+    localparam  int BRAM_ADDR_BITS = s_axi4_mem.ADDR_BITS - $clog2(BRAM_STRB_BITS);
+
     jelly3_bram_if
             #(
                 .USE_ID         (1                      ),
                 .USE_STRB       (1                      ),
                 .USE_LAST       (1                      ),
-                .ID_BITS        (s_axi4_mem.ID_BITS     ),
-                .ADDR_BITS      (s_axi4_mem.ADDR_BITS   ),
-                .DATA_BITS      (s_axi4_mem.DATA_BITS   )
+                .ID_BITS        (BRAM_ID_BITS           ),
+                .ADDR_BITS      (BRAM_ADDR_BITS         ),
+                .DATA_BITS      (BRAM_DATA_BITS         )
             )
         bram
             (

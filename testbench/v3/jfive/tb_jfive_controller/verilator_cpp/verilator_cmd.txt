@@ -18,7 +18,7 @@
 #-Wno-WIDTHCONCAT
 #-Wno-MULTITOP
 #-Wno-MULTIDRIVEN
-#-Wno-fatal
+-Wno-fatal
 
 ../../../../../rtl/v3/jfive/jelly3_jfive32_pkg.sv
 
