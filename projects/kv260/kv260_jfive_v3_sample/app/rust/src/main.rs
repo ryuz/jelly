@@ -1,10 +1,12 @@
 
-use std::fs::File;
-use std::io::{self, BufRead, BufReader};
+
+//use std::fs::File;
+//use std::io::{self, BufRead, BufReader};
+use std::io::Result;
 use jelly_mem_access::*;
 
 
-fn main() -> io::Result<()> {
+fn main() -> Result<()> {
     println!("Hello JFive");
 
     // UIOを開く
