@@ -39,6 +39,10 @@ stop:
 		echo "[stop] $(RUN_PROC)" ; \
 	fi \
 
+.PHONY: start
+start:
+	@sudo sh -c "echo start > /sys/class/remoteproc/$(RUN_PROC)/state"
+
 .PHONY: disasm
 disasm: build
 	arm-none-eabi-objdump -S $(EXE_FILE) > _disasm.txt
