@@ -16,6 +16,7 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn main(id: u32) -> ! {
     if id == 0 {
+        uart_init();
         println!("Hello JFive!");
     }
 

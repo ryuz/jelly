@@ -226,7 +226,7 @@ module kv260_jfive_v3_sample
                 .RX_FIFO_PTR_BITS   (4                      ),
                 .RAM_TYPE           ("distributed"          ),
                 .DIVIDER_BITS       (16                     ),
-                .INIT_DIVIDER       (16'(217-1)             ),
+                .INIT_DIVIDER       (16'(434-1)             ),  // 115200bps@400MHz
                 .DEVICE             (DEVICE                 ),
                 .SIMULATION         (SIMULATION             ),
                 .DEBUG              (DEBUG                  )

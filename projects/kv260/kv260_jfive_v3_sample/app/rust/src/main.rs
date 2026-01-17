@@ -44,6 +44,7 @@ fn main() -> io::Result<()> {
 
     // コア動作開始
     unsafe{jfive_ctl.write_reg_u32(4, 1)};
+    println!("JFive started.");
 
     Ok(())
 }

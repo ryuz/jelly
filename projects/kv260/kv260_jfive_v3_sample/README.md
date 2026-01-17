@@ -1,15 +1,15 @@
-# Kria KV260 で RISC-V 風のバレルプロセッサ
+# Kria KV260 で RISC-V ハードウェアマルチスレッドを動かすサンプル
 
 ## 概要
 
-Kria KV260 で RISC-V 風のバレルプロセッサ を動かすサンプルです。
+Kria KV260 で RISC-V でハードウェアマルチスレッドを動かすサンプルを動かすサンプルです。
 
 
 ## 環境
 
 ### PC環境
 
-vivado2022.2 を用いております。
+vivado2024.2 を用いております。
 
 
 ### KV260環境
@@ -17,8 +17,8 @@ vivado2022.2 を用いております。
 [認定Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html) 環境にて試しております。
 
 ```
-Description : Ubuntu 22.04.4 LTS
-kernel      : 5.15.0-1031-xilinx-zynqmp
+Description : Ubuntu 24.04.3 LTS
+kernel      : 6.8.0-1021-xilinx
 ```
 
 
@@ -35,7 +35,7 @@ git clone https://github.com/ryuz/jelly.git
 
 ### PC側の Vivadoで bit ファイルを作る
 
-projects/kv260/kv260_jfive_v3_sample/syn/vivado2022.2
+projects/kv260/kv260_jfive_v3_sample/syn/vivado2024.2
 
 に移動して Vivado から kv260_jfive_v3_sample.xpr を開いてください。
 

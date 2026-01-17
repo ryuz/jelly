@@ -22,6 +22,10 @@ fn read_reg(adr: usize) -> u32 {
     unsafe { core::ptr::read_volatile(p) }
 }
 
+pub fn uart_init() {
+//  wrtie_reg(REG_UART_DIVIDER, 543-1)  // 115200bps @ 500MHz
+}
+
 // 1文字出力
 pub fn uart_write(c: i32) {
     while (read_reg(REG_UART_STATUS) & 0x2) == 0 {}
