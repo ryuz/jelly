@@ -50,7 +50,7 @@ module jelly2_uart_tx
             end
             else begin
                 tx_count <= tx_count + 1'b1;
-                if ( tx_count[2:0] == 4'h7 ) begin
+                if ( tx_count[2:0] == 3'h7 ) begin
                     tx_buf <= {1'b1, tx_buf[8:1]};
                     if ( tx_count[6:3] == 4'ha ) begin
                         tx_busy <= 1'b0;
