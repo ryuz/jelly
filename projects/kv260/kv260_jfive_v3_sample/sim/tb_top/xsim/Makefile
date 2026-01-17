@@ -23,7 +23,7 @@ VLOGFLAGS += --sourcelibext .sv
 VLOGFLAGS += $(addprefix --sourcelibdir ,$(SIM_LIB_DIRS))
 
 ELABFLAGS  = -debug wave
- 
+
 SRCS  = ../$(TOP_MODULE).sv
 SRCS += $(JELLY_TOP_DIR)/rtl/v3/jfive/jelly3_jfive32_pkg.sv
 SRCS += $(JELLY_TOP_DIR)/rtl/v3/bus/jelly3_axi4l_if.sv
@@ -42,7 +42,7 @@ build:
 
 .PHONY: run
 run:
-	make -C ../../../jfive_app
+	make -C ../../../jfive
 	xsim $(TOP_MODULE) --R
 
 

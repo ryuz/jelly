@@ -80,7 +80,7 @@ module jelly3_uart
                 .RAM_TYPE           (RAM_TYPE               ),
                 .DIVIDER_WIDTH      ($bits(divider_t)       ),
                 .SIMULATION         (SIMULATION == "true"   ),
-                .DEBUG              (DEBUG                  )
+                .DEBUG              (DEBUG == "true"        )
             )
         u_uart_core
             (
