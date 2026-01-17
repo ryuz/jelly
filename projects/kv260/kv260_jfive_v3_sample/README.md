@@ -21,6 +21,17 @@ Description : Ubuntu 24.04.3 LTS
 kernel      : 6.8.0-1021-xilinx
 ```
 
+#### 必要なツールのインストール
+
+```bash
+sudo apt update
+sudo apt install gcc-riscv64-unknown-elf
+
+rustup update
+rustup target add riscv32i-unknown-none-elf
+```
+
+
 
 ## 動かし方
 

@@ -17,7 +17,7 @@ KV260_SSH_ADDRESS    ?= kria
 all: build
 
 .PHONY: build
-build:
+build: jfive
 	cargo build --release
 
 .PHONY: clean
@@ -28,6 +28,11 @@ clean:
 run: load
 	cargo run --release -- $(RUN_OPT)
 
+.PHONY: jfive
+jfive:
+	make -C ../../jfive
+	cp ../../jfive/jfive_sample.bin .
+
 .PHONY: load
 load:
 	make -C ..
@@ -36,9 +41,7 @@ load:
 	jelly-fpga-loader load $(ACCEL_NAME) --ip $(KV260_SERVER_ADDRESS)
 
 .PHONY: cross_build
-cross_build:
-	make -C ../../jfive
-	cp ../../jfive/jfive_sample.bin .
+cross_build: jfive
 	cross build --target=$(TARGET_ARCH) --release
 
 .PHONY: remote_run

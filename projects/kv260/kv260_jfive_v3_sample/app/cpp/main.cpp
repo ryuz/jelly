@@ -32,9 +32,9 @@ int main()
     std::cout << "CORE_VER : 0x" << std::hex << jfive_ctl.ReadReg32(0x01) << std::endl;
 
     // 16進数のテキストファイルを１行づつ読み込む
-    std::ifstream ifs("../../mem.hex");
+    std::ifstream ifs("../../jfive/jfive_mem.hex");
     std::uint32_t val;
-    for ( int i = 0; i < 1024; i++ ) {
+    for ( int i = 0; i < 0x4000; i++ ) {
         if ( !(ifs >> std::hex >> val) ) {
             std::cout << "size : 0x" << std::hex << i << std::endl;
             break;
