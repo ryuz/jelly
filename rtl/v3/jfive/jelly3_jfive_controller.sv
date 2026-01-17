@@ -103,15 +103,6 @@ module jelly3_jfive_controller
     localparam  regadr_t REGADR_CORE_VERSION       = regadr_t'('h01);
     localparam  regadr_t REGADR_CTL_CONTROL        = regadr_t'('h04);
     localparam  regadr_t REGADR_CTL_STATUS         = regadr_t'('h05);
-    localparam  regadr_t REGADR_CTL_INDEX          = regadr_t'('h07);
-    localparam  regadr_t REGADR_CTL_SKIP           = regadr_t'('h08);
-    localparam  regadr_t REGADR_CTL_FRM_TIMER_EN   = regadr_t'('h0a);
-    localparam  regadr_t REGADR_CTL_FRM_TIMEOUT    = regadr_t'('h0b);
-    localparam  regadr_t REGADR_PARAM_WIDTH        = regadr_t'('h10);
-    localparam  regadr_t REGADR_PARAM_HEIGHT       = regadr_t'('h11);
-    localparam  regadr_t REGADR_PARAM_FILL         = regadr_t'('h12);
-    localparam  regadr_t REGADR_PARAM_TIMEOUT      = regadr_t'('h13);
-
     
     // registers
     logic   [0:0]   reg_ctl_control;
