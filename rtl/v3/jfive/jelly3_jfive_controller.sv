@@ -56,28 +56,28 @@ module jelly3_jfive_controller
     //  parameter
     // ---------------------------------------------------------
 
-    localparam   int                    PHASE_BITS     = 1                                                  ;
-    localparam  type                    phase_t        = logic         [PHASE_BITS-1:0]                     ;
+    localparam  int                     PHASE_BITS     = 1                                          ;
+    localparam  type                    phase_t        = logic         [PHASE_BITS-1:0]             ;
 
-    localparam  int                     INSTR_BITS     = 32                                                 ;
-    localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]                     ;
-    localparam  type                    ridx_t         = logic         [4:0]                                ;
+    localparam  int                     INSTR_BITS     = 32                                         ;
+    localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]             ;
+    localparam  type                    ridx_t         = logic         [4:0]                        ;
 
-    localparam  int                     TCM_WORD       = $bits(rval_t) / 8                                  ;
-    localparam  int                     TCM_SIZE       = (TCM_MEM_SIZE + TCM_WORD - 1) / TCM_WORD           ;
+    localparam  int                     TCM_WORD       = $bits(rval_t) / 8                          ;
+    localparam  int                     TCM_SIZE       = (TCM_MEM_SIZE + TCM_WORD - 1) / TCM_WORD   ;
     localparam  int                     TCM_ADDR_BITS  = $clog2(TCM_SIZE);
     
-    localparam   type                   tcm_addr_t     = logic  [TCM_ADDR_BITS-1:0]                         ;
-    localparam   int                    TCM_DATA_BITS  = 32                                                 ;
-    localparam   type                   tcm_data_t     = logic  [TCM_DATA_BITS-1:0]                         ;
+    localparam  type                    tcm_addr_t     = logic  [TCM_ADDR_BITS-1:0]                 ;
+    localparam  int                     TCM_DATA_BITS  = 32                                         ;
+    localparam  type                    tcm_data_t     = logic  [TCM_DATA_BITS-1:0]                 ;
     int dbgTCM_MEM_SIZE  = TCM_MEM_SIZE ;
     int dbgTCM_SIZE      = TCM_SIZE     ;
     int dbgTCM_ADDR_BITS = TCM_ADDR_BITS;
     int dbgTCM_DATA_BITS = TCM_DATA_BITS;
 
-    localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                                  ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}                    ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}                    ;
+    localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                          ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}            ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}            ;
 
     localparam  int                     IBUS_ADDR_BITS = TCM_ADDR_BITS                      ;
     localparam  type                    ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ;
