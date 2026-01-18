@@ -24,9 +24,9 @@ module tb_main
     localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]     ;
     localparam  type                    ridx_t         = logic         [4:0]                ;
     localparam  type                    rval_t         = logic signed  [XLEN-1:0]           ;
-    localparam  int                     LS_UNITS       = 2                                  ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = '{32'h8000_0000, 32'h0000_0000}    ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = '{32'hffff_ffff, 32'h7fff_ffff}    ;
+    localparam  int                     LS_UNITS       = 1                                  ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = '{32'h0000_0000}                   ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = '{32'hffff_ffff}                   ;
     localparam  int                     LOAD_QUES      = 2                                  ;
     localparam  int                     DBUS_ADDR_BITS = 10                                 ;
     localparam  type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ;
@@ -35,13 +35,13 @@ module tb_main
     localparam  int                     DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ;
     localparam  type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ;
 
-    localparam  bit     [THREADS-1:0]   INIT_RUN    = 1                                     ;
-    localparam  id_t                    INIT_ID     = '0                                    ;
-    localparam  pc_t    [THREADS-1:0]   INIT_PC     = '0                                    ;
+    localparam  bit     [THREADS-1:0]   INIT_RUN       = 1                                  ;
+    localparam  id_t                    INIT_ID        = '0                                 ;
+    localparam  pc_t    [THREADS-1:0]   INIT_PC        = '0                                 ;
 
-    localparam                          DEVICE      = "RTL"                                 ;
-    localparam                          SIMULATION  = "false"                               ;
-    localparam                          DEBUG       = "false"                               ;
+    localparam                          DEVICE         = "RTL"                              ;
+    localparam                          SIMULATION     = "false"                            ;
+    localparam                          DEBUG          = "false"                            ;
 
     logic                       cke = 1     ;
 
