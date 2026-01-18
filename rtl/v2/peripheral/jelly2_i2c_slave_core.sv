@@ -193,22 +193,24 @@ module jelly2_i2c_slave_core
         end
     end
 
+    logic   reg_i2c_sda_t = 1'b1;
     always_ff @ ( posedge clk ) begin
         if ( reset ) begin
-            i2c_sda_t <= 1'b1;
+            reg_i2c_sda_t <= 1'b1;
         end
         else begin
-            i2c_sda_t <= 1'b1;
+            reg_i2c_sda_t <= 1'b1;
             if ( ack ) begin
-                i2c_sda_t <= 1'b0;
+                reg_i2c_sda_t <= 1'b0;
             end
             else if ( state == READ ) begin
-                i2c_sda_t <= tx_data[8];
+                reg_i2c_sda_t <= tx_data[8];
             end
         end
     end
 
-    assign wr_data = rx_data;
+    assign i2c_sda_t = reg_i2c_sda_t;
+    assign wr_data   = rx_data;
 
 endmodule
 

@@ -20,12 +20,12 @@ module tb_main
     localparam  pc_t                        PC_MASK          = '0                                   ;
     localparam  type                        rval_t           = logic signed  [XLEN-1:0]             ;
     localparam  int                         LOAD_QUES        = 2                                    ;
-    localparam   int                        TCM_MEM_SIZE     = 512 * 1024                           ;
-    localparam   rval_t                     TCM_ADDR_LO      = 32'h0000_0000                        ;
-    localparam   rval_t                     TCM_ADDR_HI      = 32'h7fff_ffff                        ;
+    localparam  int                         TCM_MEM_SIZE     = 512 * 1024                           ;
+    localparam  rval_t                      TCM_ADDR_LO      = 32'h0000_0000                        ;
+    localparam  rval_t                      TCM_ADDR_HI      = 32'h7fff_ffff                        ;
     localparam                              TCM_RAM_TYPE     = "block"                              ;
-    localparam   bit                        TCM_READMEMB     = 1'b0                                 ;
-    localparam   bit                        TCM_READMEMH     = 1'b1                                 ;
+    localparam  bit                         TCM_READMEMB     = 1'b0                                 ;
+    localparam  bit                         TCM_READMEMH     = 1'b1                                 ;
     localparam                              TCM_READMEM_FIlE = "../mem.hex"                         ;
     localparam  int                         M_AXI4L_PORTS     = 1                                   ;
     localparam  int                         M_AXI4L_ADDR_BITS = 32                                  ;
@@ -82,7 +82,7 @@ module tb_main
                 .ADDR_BITS     (32          ),
                 .DATA_BITS     (32          )
             )
-        m_axi4l
+        m_axi4l [1]
             (
                 .aresetn        (~reset     ),
                 .aclk           (clk        ),
@@ -123,7 +123,7 @@ module tb_main
                 .cke                ,
                 .s_axi4l_ctl        (s_axi4l_ctl        ),
                 .s_axi4_mem         (s_axi4_mem         ),
-                .m_axi4l_ext        ('{m_axi4l}         )
+                .m_axi4l_ext        (m_axi4l            )
             );
 
 
@@ -135,7 +135,7 @@ module tb_main
             )
         u_axi4l_register
             (
-                .s_axi4l    (m_axi4l    ),
+                .s_axi4l    (m_axi4l[0] ),
                 .value      (           )
             );
 
@@ -153,10 +153,10 @@ module tb_main
     assign s_axi4_mem.rready  = 1'b0;
 
 
-    always_ff @(posedge m_axi4l.aclk) begin
-        if (  m_axi4l.aresetn == 1'b1 ) begin
-            if ( m_axi4l.wvalid && m_axi4l.wready ) begin
-                $write("%c", m_axi4l.wdata[7:0]);
+    always_ff @(posedge m_axi4l[0].aclk) begin
+        if (  m_axi4l[0].aresetn == 1'b1 ) begin
+            if ( m_axi4l[0].wvalid && m_axi4l[0].wready ) begin
+                $write("%c", m_axi4l[0].wdata[7:0]);
             end
         end
     end
@@ -177,7 +177,7 @@ module tb_main
     //  Debug
     // ------------------------------------------------
 
-    localparam  int                     DBUS_ADDR_BITS = 16                                 ;
+    localparam  int                     DBUS_ADDR_BITS = 32                                 ;
     localparam  type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ;
     localparam  int                     DBUS_DATA_BITS = XLEN                               ;
     localparam  type                    dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ;
@@ -187,8 +187,8 @@ module tb_main
     localparam  int                     INSTR_BITS     = 32                                 ;
     localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]     ;
     localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                  ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}     ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}     ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}    ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}    ;
 
     localparam  type                    mnemonic_t     = logic [64*8-1:0];
     
@@ -307,7 +307,7 @@ module tb_main
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
             if ( dbus_avalid[0] && dbus_aready[0] ) begin
-                if ( dbus_awrite ) begin
+                if ( dbus_awrite[0] ) begin
                     $fwrite(fp_dbus0_log, "%d w addr:%08x %08x wdata:%08x strb:%b\n", exe_counter, dbus_aaddr[0], int'(dbus_aaddr[0]) << 2, dbus_wdata[0], dbus_wstrb[0]);
                 end
                 else begin

@@ -43,7 +43,6 @@ module jelly2_axi4l_terminator
         );
 
     // write
-    logic       bvalid;
     always_ff @(posedge s_axi4l_aclk ) begin
         if ( ~s_axi4l_aresetn ) begin
             s_axi4l_bvalid <= 0;
@@ -58,8 +57,8 @@ module jelly2_axi4l_terminator
         end
     end
 
-    assign s_axi4l_awready = (~bvalid || s_axi4l_bready) && s_axi4l_wvalid;
-    assign s_axi4l_wready  = (~bvalid || s_axi4l_bready) && s_axi4l_awvalid;
+    assign s_axi4l_awready = (~s_axi4l_bvalid || s_axi4l_bready) && s_axi4l_wvalid;
+    assign s_axi4l_wready  = (~s_axi4l_bvalid || s_axi4l_bready) && s_axi4l_awvalid;
     assign s_axi4l_bresp   = '0;
 
 

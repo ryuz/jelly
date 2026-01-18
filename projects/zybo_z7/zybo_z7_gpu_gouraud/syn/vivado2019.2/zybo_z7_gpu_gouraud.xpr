@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2019 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="44" Path="D:/home/ryuji/git_work/github/jelly_develop/projects/zybo_z7_gpu_gouraud/syn/vivado2019.2/zybo_z7_gpu_gouraud.xpr">
+<Project Version="7" Minor="44" Path="/home/ryuji/git-work/jelly/projects/zybo_z7/zybo_z7_gpu_gouraud/syn/vivado2019.2/zybo_z7_gpu_gouraud.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="4eee7edabca149d3841b5b4d814b775c"/>
@@ -60,45 +60,38 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_clk_wiz_vout_0/ps_core_clk_wiz_vout_0.xci">
-          <Proxy FileSetName="ps_core_clk_wiz_vout_0"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_peri_0/ps_core_proc_sys_reset_peri_0.xci">
+          <Proxy FileSetName="ps_core_proc_sys_reset_peri_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_mem_0_2/ps_core_proc_sys_reset_mem_0.xci">
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_mem_0/ps_core_proc_sys_reset_mem_0.xci">
           <Proxy FileSetName="ps_core_proc_sys_reset_mem_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_peri_0_2/ps_core_proc_sys_reset_peri_0.xci">
-          <Proxy FileSetName="ps_core_proc_sys_reset_peri_0"/>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_axi_protocol_converter_0_0/ps_core_axi_protocol_converter_0_0.xci">
+          <Proxy FileSetName="ps_core_axi_protocol_converter_0_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_clk_wiz_vout_0/ps_core_clk_wiz_vout_0.xci">
+          <Proxy FileSetName="ps_core_clk_wiz_vout_0"/>
         </CompFileExtendedInfo>
         <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_ref200_0/ps_core_proc_sys_reset_ref200_0.xci">
           <Proxy FileSetName="ps_core_proc_sys_reset_ref200_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_video_0_2/ps_core_proc_sys_reset_video_0.xci">
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_proc_sys_reset_video_0/ps_core_proc_sys_reset_video_0.xci">
           <Proxy FileSetName="ps_core_proc_sys_reset_video_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_auto_pc_0_1/ps_core_auto_pc_0.xci">
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_auto_pc_0/ps_core_auto_pc_0.xci">
           <Proxy FileSetName="ps_core_auto_pc_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_s00_regslice_0_1/ps_core_s00_regslice_0.xci">
-          <Proxy FileSetName="ps_core_s00_regslice_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_axi_protocol_converter_0_0_2/ps_core_axi_protocol_converter_0_0.xci">
-          <Proxy FileSetName="ps_core_axi_protocol_converter_0_0"/>
-        </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_s00_data_fifo_0_1/ps_core_s00_data_fifo_0.xci">
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_s00_data_fifo_0/ps_core_s00_data_fifo_0.xci">
           <Proxy FileSetName="ps_core_s00_data_fifo_0"/>
         </CompFileExtendedInfo>
-        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_processing_system7_1_0_1/ps_core_processing_system7_1_0.xci">
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_s00_regslice_0/ps_core_s00_regslice_0.xci">
+          <Proxy FileSetName="ps_core_s00_regslice_0"/>
+        </CompFileExtendedInfo>
+        <CompFileExtendedInfo CompFileName="ps_core.bd" FileRelPathName="ip/ps_core_processing_system7_1_0/ps_core_processing_system7_1_0.xci">
           <Proxy FileSetName="ps_core_processing_system7_1_0"/>
         </CompFileExtendedInfo>
       </File>
       <File Path="$PPRDIR/../../../../../rtl/v1/bus/jelly_axi4l_to_wishbone.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../../rtl/v1/library/jelly_binary_to_graycode.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -154,6 +147,20 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../../../../rtl/v1/library/jelly_func_binary_to_graycode.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../../../rtl/v1/library/jelly_func_graycode_to_binary.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../../../../../rtl/v1/peripheral/jelly_gpio.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -162,13 +169,6 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../../../../../rtl/v1/gpu/jelly_gpu_gouraud.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../../../../../rtl/v1/library/jelly_graycode_to_binary.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -343,9 +343,9 @@
         <Option Name="TopAutoSet" Val="TRUE"/>
       </Config>
     </FileSet>
-    <FileSet Name="ps_core_clk_wiz_vout_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ps_core_clk_wiz_vout_0">
+    <FileSet Name="ps_core_proc_sys_reset_peri_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ps_core_proc_sys_reset_peri_0">
       <Config>
-        <Option Name="TopModule" Val="ps_core_clk_wiz_vout_0"/>
+        <Option Name="TopModule" Val="ps_core_proc_sys_reset_peri_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -355,9 +355,15 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="ps_core_proc_sys_reset_peri_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ps_core_proc_sys_reset_peri_0">
+    <FileSet Name="ps_core_axi_protocol_converter_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ps_core_axi_protocol_converter_0_0">
       <Config>
-        <Option Name="TopModule" Val="ps_core_proc_sys_reset_peri_0"/>
+        <Option Name="TopModule" Val="ps_core_axi_protocol_converter_0_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="ps_core_clk_wiz_vout_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ps_core_clk_wiz_vout_0">
+      <Config>
+        <Option Name="TopModule" Val="ps_core_clk_wiz_vout_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -379,21 +385,15 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="ps_core_s00_regslice_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ps_core_s00_regslice_0">
-      <Config>
-        <Option Name="TopModule" Val="ps_core_s00_regslice_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
-    <FileSet Name="ps_core_axi_protocol_converter_0_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ps_core_axi_protocol_converter_0_0">
-      <Config>
-        <Option Name="TopModule" Val="ps_core_axi_protocol_converter_0_0"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="ps_core_s00_data_fifo_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ps_core_s00_data_fifo_0">
       <Config>
         <Option Name="TopModule" Val="ps_core_s00_data_fifo_0"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="ps_core_s00_regslice_0" Type="BlockSrcs" RelSrcDir="$PSRCDIR/ps_core_s00_regslice_0">
+      <Config>
+        <Option Name="TopModule" Val="ps_core_s00_regslice_0"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -415,11 +415,17 @@
     <Simulator Name="Questa">
       <Option Name="Description" Val="Questa Advanced Simulator"/>
     </Simulator>
+    <Simulator Name="IES">
+      <Option Name="Description" Val="Incisive Enterprise Simulator (IES)"/>
+    </Simulator>
+    <Simulator Name="Xcelium">
+      <Option Name="Description" Val="Xcelium Parallel Simulator"/>
+    </Simulator>
+    <Simulator Name="VCS">
+      <Option Name="Description" Val="Verilog Compiler Simulator (VCS)"/>
+    </Simulator>
     <Simulator Name="Riviera">
       <Option Name="Description" Val="Riviera-PRO Simulator"/>
-    </Simulator>
-    <Simulator Name="ActiveHDL">
-      <Option Name="Description" Val="Active-HDL Simulator"/>
     </Simulator>
   </Simulators>
   <Runs Version="1" Minor="11">
@@ -427,12 +433,12 @@
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Flow_PerfOptimized_High" Flow="Vivado Synthesis 2015"/>
         <Step Id="synth_design">
-          <Option Id="ResourceSharing">2</Option>
           <Option Id="FsmExtraction">1</Option>
+          <Option Id="ResourceSharing">2</Option>
           <Option Id="KeepEquivalentRegisters">1</Option>
           <Option Id="ShregMinSize">5</Option>
-          <Option Id="RepFanoutThreshold">400</Option>
           <Option Id="NoCombineLuts">1</Option>
+          <Option Id="RepFanoutThreshold">400</Option>
         </Step>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -440,7 +446,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="ps_core_clk_wiz_vout_0_synth_1" Type="Ft3:Synth" SrcSet="ps_core_clk_wiz_vout_0" Part="xc7z020clg400-1" ConstrsSet="ps_core_clk_wiz_vout_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ps_core_clk_wiz_vout_0_synth_1" IncludeInArchive="true">
+    <Run Id="ps_core_proc_sys_reset_peri_0_synth_1" Type="Ft3:Synth" SrcSet="ps_core_proc_sys_reset_peri_0" Part="xc7z020clg400-1" ConstrsSet="ps_core_proc_sys_reset_peri_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ps_core_proc_sys_reset_peri_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -464,7 +470,19 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="ps_core_proc_sys_reset_peri_0_synth_1" Type="Ft3:Synth" SrcSet="ps_core_proc_sys_reset_peri_0" Part="xc7z020clg400-1" ConstrsSet="ps_core_proc_sys_reset_peri_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ps_core_proc_sys_reset_peri_0_synth_1" IncludeInArchive="true">
+    <Run Id="ps_core_axi_protocol_converter_0_0_synth_1" Type="Ft3:Synth" SrcSet="ps_core_axi_protocol_converter_0_0" Part="xc7z020clg400-1" ConstrsSet="ps_core_axi_protocol_converter_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ps_core_axi_protocol_converter_0_0_synth_1" IncludeInArchive="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="ps_core_clk_wiz_vout_0_synth_1" Type="Ft3:Synth" SrcSet="ps_core_clk_wiz_vout_0" Part="xc7z020clg400-1" ConstrsSet="ps_core_clk_wiz_vout_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ps_core_clk_wiz_vout_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -512,31 +530,19 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="ps_core_s00_regslice_0_synth_1" Type="Ft3:Synth" SrcSet="ps_core_s00_regslice_0" Part="xc7z020clg400-1" ConstrsSet="ps_core_s00_regslice_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ps_core_s00_regslice_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="ps_core_axi_protocol_converter_0_0_synth_1" Type="Ft3:Synth" SrcSet="ps_core_axi_protocol_converter_0_0" Part="xc7z020clg400-1" ConstrsSet="ps_core_axi_protocol_converter_0_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ps_core_axi_protocol_converter_0_0_synth_1" IncludeInArchive="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
-        <Step Id="synth_design"/>
-      </Strategy>
-      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
-      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="ps_core_s00_data_fifo_0_synth_1" Type="Ft3:Synth" SrcSet="ps_core_s00_data_fifo_0" Part="xc7z020clg400-1" ConstrsSet="ps_core_s00_data_fifo_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ps_core_s00_data_fifo_0_synth_1" IncludeInArchive="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
+          <Desc>Vivado Synthesis Defaults</Desc>
+        </StratHandle>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="ps_core_s00_regslice_0_synth_1" Type="Ft3:Synth" SrcSet="ps_core_s00_regslice_0" Part="xc7z020clg400-1" ConstrsSet="ps_core_s00_regslice_0" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ps_core_s00_regslice_0_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -586,7 +592,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="ps_core_clk_wiz_vout_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="ps_core_clk_wiz_vout_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ps_core_clk_wiz_vout_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+    <Run Id="ps_core_proc_sys_reset_peri_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="ps_core_proc_sys_reset_peri_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ps_core_proc_sys_reset_peri_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
           <Desc>Default settings for Implementation.</Desc>
@@ -624,7 +630,26 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="ps_core_proc_sys_reset_peri_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="ps_core_proc_sys_reset_peri_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ps_core_proc_sys_reset_peri_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+    <Run Id="ps_core_axi_protocol_converter_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="ps_core_axi_protocol_converter_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ps_core_axi_protocol_converter_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design" EnableStepBool="1"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="ps_core_clk_wiz_vout_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="ps_core_clk_wiz_vout_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ps_core_clk_wiz_vout_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
           <Desc>Default settings for Implementation.</Desc>
@@ -700,45 +725,26 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="ps_core_s00_regslice_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="ps_core_s00_regslice_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ps_core_s00_regslice_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design" EnableStepBool="1"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
-    <Run Id="ps_core_axi_protocol_converter_0_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="ps_core_axi_protocol_converter_0_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ps_core_axi_protocol_converter_0_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
-      <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
-        <Step Id="init_design"/>
-        <Step Id="opt_design"/>
-        <Step Id="power_opt_design"/>
-        <Step Id="place_design"/>
-        <Step Id="post_place_power_opt_design"/>
-        <Step Id="phys_opt_design" EnableStepBool="1"/>
-        <Step Id="route_design"/>
-        <Step Id="post_route_phys_opt_design"/>
-        <Step Id="write_bitstream"/>
-      </Strategy>
-      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
-      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
-      <RQSFiles/>
-    </Run>
     <Run Id="ps_core_s00_data_fifo_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="ps_core_s00_data_fifo_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ps_core_s00_data_fifo_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
+          <Desc>Default settings for Implementation.</Desc>
+        </StratHandle>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design" EnableStepBool="1"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="ps_core_s00_regslice_0_impl_1" Type="Ft2:EntireDesign" Part="xc7z020clg400-1" ConstrsSet="ps_core_s00_regslice_0" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ps_core_s00_regslice_0_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
           <Desc>Default settings for Implementation.</Desc>

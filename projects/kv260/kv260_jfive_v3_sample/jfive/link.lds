@@ -3,7 +3,7 @@ ENTRY(_rst_handler)
 
 MEMORY
 {
-	ram  : o = 0x00000000, l = 0x00001000
+	ram  : o = 0x00000000, l = 0x00010000
 }
 
 SECTIONS
@@ -53,7 +53,7 @@ SECTIONS
     .stacks ALIGN(0x08):
     {
         ___stack0 = . ; 
-        . += 256;
+        . += 8192;
         ___stack0_end = . ;
         . += 256;
         ___stack1_end = . ;

@@ -123,7 +123,7 @@ module jelly2_address_align_split
         reg                         reg_split;
         reg                         reg_first;
         reg                         reg_last;
-        reg                         reg_lflasg;
+        reg                         reg_lflag;
         reg     [USER_BITS-1:0]     reg_user;
         reg     [ADDR_WIDTH-1:0]    reg_addr;
         reg     [LEN_WIDTH-1:0]     reg_len;
@@ -135,7 +135,7 @@ module jelly2_address_align_split
                 reg_split    <= 1'b0;
                 reg_first    <= 1'bx;
                 reg_last     <= 1'bx;
-                reg_lflasg   <= 1'bx;
+                reg_lflag    <= 1'bx;
                 reg_user     <= {USER_BITS{1'bx}};
                 reg_addr     <= {ADDR_WIDTH{1'bx}};
                 reg_len      <= {LEN_WIDTH{1'bx}};
@@ -147,7 +147,7 @@ module jelly2_address_align_split
                 if ( !reg_split ) begin
                     reg_first    <= ff_s_first;
                     reg_last     <= ff_s_last;
-                    reg_lflasg   <= ff_s_last;
+                    reg_lflag    <= ff_s_last;
                     reg_user     <= ff_s_user;
                     reg_addr     <= ff_s_addr;
                     reg_len      <= ff_s_len;
@@ -161,7 +161,7 @@ module jelly2_address_align_split
                 end
                 else begin
                     reg_first <= 1'b0;
-                    reg_last  <= reg_lflasg;
+                    reg_last  <= reg_lflag;
                     reg_split <= 1'b0;
                     reg_addr  <= reg_addr + ((ADDR_WIDTH'(reg_len) + ADDR_WIDTH'(1'b1)) << UNIT_SIZE);
                     reg_len   <= reg_len_base - reg_len - LEN_WIDTH'(LEN_OFFSET);
