@@ -42,6 +42,9 @@ run:
 	make -C ../rust_app
 	xsim $(TOP_MODULE) --R
 
+.PHONY: diff
+diff:
+	diff expected_exe_log.txt exe_log.txt
 
 .PHONY: vcd2fst
 vcd2fst:

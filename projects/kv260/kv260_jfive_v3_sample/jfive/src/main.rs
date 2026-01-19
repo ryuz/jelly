@@ -20,18 +20,21 @@ pub unsafe extern "C" fn main(id: u32) -> ! {
         println!("Hello JFive!");
     }
 
+    let mut f : f32 = 1.0;
     let mut count: u32 = 0;
     loop {
         if id == 0 {
             count += 1;
             println!("count: {}", count);
+            println!("{}", f);
+            f *= 1.1;
         }
 
         let unit : u32 = 10000000;
         write_value(id, 1);
-        wait(unit + id*unit);
+//        wait(unit + id*unit);
         write_value(id, 0);
-        wait(unit + id*unit);
+//        wait(unit + id*unit);
     }
 }
 

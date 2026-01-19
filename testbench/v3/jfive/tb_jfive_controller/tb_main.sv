@@ -12,7 +12,7 @@ module tb_main
     
 
     localparam  int                         XLEN             = 32                                   ;
-    localparam  int                         THREADS          = 4                                    ;
+    localparam  int                         THREADS          = 1                                    ;
     localparam  int                         ID_BITS          = THREADS > 1 ? $clog2(THREADS) : 1    ;
     localparam  type                        id_t             = logic         [ID_BITS-1:0]          ;
     localparam  int                         PC_BITS          = 32                                   ;

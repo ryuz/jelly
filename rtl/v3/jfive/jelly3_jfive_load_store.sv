@@ -335,6 +335,7 @@ module jelly3_jfive_load_store
     assign dbus_rready = m_ready;
 
     assign queout_ready  = (dbus_rvalid && dbus_rready); // || !queout_valid;
+//  assign queout_ready  = (m_valid && m_ready); // || !queout_valid;
 
 
     // ------------------------------------

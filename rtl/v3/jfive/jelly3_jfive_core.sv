@@ -206,7 +206,7 @@ module jelly3_jfive_core
     //  Instruction Decode
     // -----------------------------
 
-    localparam  int     BUSY_RDS         = 3 + LS_UNITS * LOAD_QUES         ;
+    localparam  int     BUSY_RDS         = 3 + LS_UNITS * (LOAD_QUES + 1)   ;
     localparam  bit     RAW_HAZARD       = 1'b1                             ;
     localparam  bit     WAW_HAZARD       = 1'b1                             ;
     localparam  int     SHAMT_BITS       = $clog2(XLEN)                     ;
