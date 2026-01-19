@@ -13,7 +13,7 @@ FLAGS += --assert
 FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
 FLAGS += -D__VERILATOR__ -D__SIMULATION__
 FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
-FLAGS += -Wno-SIDEEFFECT
+#FLAGS += -Wno-SIDEEFFECT
 
 SRCS  = ../$(TOP_MODULE).sv
 SRCS += $(JELLY_TOP_DIR)/rtl/v3/jfive/jelly3_jfive32_pkg.sv
