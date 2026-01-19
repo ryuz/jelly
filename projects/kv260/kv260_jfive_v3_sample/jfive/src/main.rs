@@ -32,9 +32,9 @@ pub unsafe extern "C" fn main(id: u32) -> ! {
 
         let unit : u32 = 10000000;
         write_value(id, 1);
-//        wait(unit + id*unit);
+        wait(unit + id*unit);
         write_value(id, 0);
-//        wait(unit + id*unit);
+        wait(unit + id*unit);
     }
 }
 

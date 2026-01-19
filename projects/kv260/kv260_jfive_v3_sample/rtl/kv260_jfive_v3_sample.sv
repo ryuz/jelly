@@ -133,10 +133,12 @@ module kv260_jfive_v3_sample
     //  JFive Core
     // ---------------------------------
 
-    localparam   bit                        S_AXI4L_CLT_ASYNC = 1'b1                                ;
-    localparam   bit                        S_AXI4_MEM_ASYNC  = 1'b1                                ;
+    localparam  bit                         S_AXI4L_CLT_ASYNC = 1'b1                                ;
+    localparam  bit                         S_AXI4_MEM_ASYNC  = 1'b1                                ;
     localparam  int                         XLEN              = 32                                  ;
-    localparam  int                         THREADS           = 1; //8                              ;
+//  localparam  int                         THREADS           = 1                                   ;
+    localparam  int                         THREADS           = 4                                   ;
+//  localparam  int                         THREADS           = 8                                   ;
     localparam  int                         ID_BITS           = THREADS > 1 ? $clog2(THREADS) : 1   ;
     localparam  type                        id_t              = logic         [ID_BITS-1:0]         ;
     localparam  int                         PC_BITS           = 32                                  ;
@@ -159,12 +161,11 @@ module kv260_jfive_v3_sample
     localparam  type                        m_axi4l_data_t    = logic   [M_AXI4L_ADDR_BITS-1:0]     ;
     localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'hc000_0000, 32'h8000_0000}     ;
     localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'hffff_ffff, 32'hbfff_ffff}     ;
-//  localparam  bit     [THREADS-1:0]       INIT_RUN          = 4'hf;//8'hff                        ;
-    localparam  bit     [THREADS-1:0]       INIT_RUN          = 1'b1;                               ;
+    localparam  bit     [THREADS-1:0]       INIT_RUN          = THREADS'((1 << THREADS)-1)          ;
     localparam  id_t                        INIT_ID           = '0                                  ;
-    localparam  pc_t    [THREADS-1:0]       INIT_PC           = //'{32'h1c, 32'h18, 32'h14, 32'h10,
-//                                                                '{32'h0c, 32'h08, 32'h04, 32'h00} ;
-                                                                '{32'h00};
+//  localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'h00}                           ; // THREADS = 1
+    localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'h0c, 32'h08, 32'h04, 32'h00}   ; // THREADS = 4
+//  localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'h1c, 32'h18, 32'h14, 32'h10, 32'h0c, 32'h08, 32'h04, 32'h00}; // THREADS = 8
 
     jelly3_axi4l_if
             #(
