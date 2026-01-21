@@ -24,11 +24,11 @@ module tb_main
     localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]     ;
     localparam  type                    ridx_t         = logic         [4:0]                ;
     localparam  type                    rval_t         = logic signed  [XLEN-1:0]           ;
-    localparam  int                     LS_UNITS       = 1                                  ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = '{32'h0000_0000}                   ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = '{32'hffff_ffff}                   ;
+    localparam  int                     LS_UNITS       = 2                                  ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = '{32'h8000_0000, 32'h0000_0000}    ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = '{32'hffff_ffff, 32'h7fff_ffff}    ;
     localparam  int                     LOAD_QUES      = 2                                  ;
-    localparam  int                     DBUS_ADDR_BITS = 10                                 ;
+    localparam  int                     DBUS_ADDR_BITS = 14                                 ;
     localparam  type                    dbus_addr_t    = logic         [DBUS_ADDR_BITS-1:0] ;
     localparam  int                     DBUS_DATA_BITS = XLEN                               ;
     localparam  type                    dbus_data_t    = logic         [DBUS_DATA_BITS-1:0] ;
@@ -69,6 +69,11 @@ module tb_main
     dbus_data_t [LS_UNITS-1:0]  dbus_rdata  ;
     logic       [LS_UNITS-1:0]  dbus_rvalid ;
     logic       [LS_UNITS-1:0]  dbus_rready ;
+
+    logic       [LS_UNITS-1:0]  dbus_avalid_tmp ;
+    logic       [LS_UNITS-1:0]  dbus_aready_tmp ;
+    logic       [LS_UNITS-1:0]  dbus_rvalid_tmp ;
+    logic       [LS_UNITS-1:0]  dbus_rready_tmp ;
 
     jelly3_jfive_core
             #(
@@ -123,16 +128,33 @@ module tb_main
                 .dbus_aaddr         ,
                 .dbus_awrite        ,
                 .dbus_aread         ,
-                .dbus_avalid        ,
-                .dbus_aready        ,
+                .dbus_avalid        (dbus_avalid_tmp    ),
+                .dbus_aready        (dbus_aready_tmp    ),
                 .dbus_wstrb         ,
                 .dbus_wdata         ,
                 .dbus_wvalid        ,
                 .dbus_wready        ,
                 .dbus_rdata         ,
-                .dbus_rvalid        ,
-                .dbus_rready        
+                .dbus_rvalid        (dbus_rvalid_tmp    ),
+                .dbus_rready        (dbus_rready_tmp    )
             );
+
+    localparam  RAND_BUSY = 1;
+    logic   [LS_UNITS-1:0]  dbus_abusy;
+    logic   [LS_UNITS-1:0]  dbus_rbusy;
+    always_ff @(posedge clk) begin
+        for ( int i = 0; i < LS_UNITS; i++ ) begin
+            dbus_abusy[i] <= RAND_BUSY && 1'($urandom_range(0, 1));
+            dbus_rbusy[i] <= RAND_BUSY && 1'($urandom_range(0, 1));
+        end
+    end
+    for ( genvar i = 0; i < LS_UNITS; i++ ) begin : dbus_busy
+        assign dbus_avalid[i] = dbus_avalid_tmp[i] & !dbus_abusy[i];
+        assign dbus_aready_tmp[i] = dbus_aready[i] & !dbus_abusy[i];
+
+        assign dbus_rvalid_tmp[i] = dbus_rvalid[i] & !dbus_rbusy[i];
+        assign dbus_rready[i] = dbus_rready_tmp[i] & !dbus_rbusy[i];
+    end
 
 
     localparam int  MEM_ADDR_BITS  = 14;
@@ -284,6 +306,33 @@ module tb_main
     assign dbus_rvalid[0] = dbus_st1_valid;
 
 
+    // dbus[1]
+    assign dbus_aready[1] = 1'b1;
+    assign dbus_wready[1] = 1'b1;
+    always_ff @(posedge clk) begin
+        if ( reset ) begin
+            dbus_rdata [1] <= '0;
+            dbus_rvalid[1] <= 1'b0;
+        end
+        else if ( cke ) begin
+            if ( (!dbus_rvalid[1] || dbus_rready[1]) && !dbus_awrite[1] ) begin
+                dbus_rdata [1] <= dbus_wdata[1] + 1;
+                dbus_rready[1] <= dbus_avalid[1];
+            end
+        end
+    end
+
+
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( dbus_avalid[1] && dbus_awrite[1] ) begin
+                $write("%c", dbus_wdata[1][7:0]);
+            end
+        end
+    end
+
+
+
     // ------------------------------------------------
     //  Debug
     // ------------------------------------------------
@@ -365,6 +414,17 @@ module tb_main
                     string'(exe_mnemonic)
                     );
                 exe_counter <= exe_counter + 1;
+
+                // 0x00000004 番地を終了アドレスとする
+                if ( exe_pc == 32'h00000004 ) begin
+                    $display("program exit");
+                    $finish();
+                end
+                // 0x00000008 番地をpanicアドレスとする
+                if ( exe_pc == 32'h00000008 ) begin
+                    $display("!!!!program panic!!!!!");
+                    $finish();
+                end
             end
 
             /*
@@ -401,15 +461,25 @@ module tb_main
         end
     end
 
-    int fp_dbus_log;
-    initial fp_dbus_log = $fopen("dbus_log.txt", "w");
+    int fp_dbus0_log;
+    initial fp_dbus0_log = $fopen("dbus0_log.txt", "w");
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
             if ( dbus_avalid[0] && dbus_awrite[0] ) begin
-                $fwrite(fp_dbus_log, "%d w addr:%08x %08x wdata:%08x strb:%b\n", exe_counter, dbus_aaddr[0], int'(dbus_aaddr[0]) << 2, dbus_wdata[0], dbus_wstrb[0]);
+                $fwrite(fp_dbus0_log, "%d w addr:%08x %08x wdata:%08x strb:%b\n", exe_counter, dbus_aaddr[0], int'(dbus_aaddr[0]) << 2, dbus_wdata[0], dbus_wstrb[0]);
             end
             if ( dbus_st1_valid && !dbus_st1_wr ) begin
-                $fwrite(fp_dbus_log, "%d r addr:%08x %08x rdata:%08x\n", exe_counter, dbus_st1_addr, int'(dbus_st1_addr) << 2, dbus_rdata[0]);
+                $fwrite(fp_dbus0_log, "%d r addr:%08x %08x rdata:%08x\n", exe_counter, dbus_st1_addr, int'(dbus_st1_addr) << 2, dbus_rdata[0]);
+            end
+        end
+    end
+
+    int fp_dbus1_log;
+    initial fp_dbus1_log = $fopen("dbus1_log.txt", "w");
+    always_ff @(posedge clk) begin
+        if ( !reset && cke ) begin
+            if ( dbus_avalid[1] && dbus_awrite[1] ) begin
+                $fwrite(fp_dbus1_log, "%d w addr:%08x %08x wdata:%08x strb:%b\n", exe_counter, dbus_aaddr[1], int'(dbus_aaddr[1]) << 2, dbus_wdata[1], dbus_wstrb[1]);
             end
         end
     end
@@ -428,8 +498,6 @@ module tb_main
     end
 
 
-
-
     int fp_wb_rd_log;
     initial begin
         fp_wb_rd_log = $fopen("wb_rd_log.txt", "w");
@@ -442,9 +510,10 @@ module tb_main
         end
     end
 
+    /*
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
-            if ( dbus_avalid[0] && dbus_awrite[0] && dbus_aaddr[0] == 0 ) begin
+            if ( dbus_avalid[0] && dbus_aready[0] && dbus_awrite[0] && dbus_aaddr[0] == 0 ) begin
                 $display("%08x %08x %s\n", dbus_aaddr[0], dbus_wdata[0], string'(ids_mnemonic));
             end
         end
@@ -452,11 +521,12 @@ module tb_main
 
     always_ff @(posedge clk) begin
         if ( !reset && cke ) begin
-            if ( dbus_avalid[0] ) begin
+            if ( dbus_avalid[0] && dbus_aready[0] ) begin
                 $display("%08x %b %08x", dbus_aaddr[0], dbus_awrite[0], dbus_wdata[0]);
             end
         end
     end
+    */
 
 endmodule
 
