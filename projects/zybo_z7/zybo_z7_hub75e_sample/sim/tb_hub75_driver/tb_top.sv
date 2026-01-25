@@ -49,8 +49,6 @@ module tb_top();
     parameter   bit     READMEMH     = 1'b1                     ;
     parameter           READMEM_FILE = "../../../syn/image.hex" ;
 
-    logic               enable = 1  ;
-    disp_t  [SLOTS-1:0] disp        ;
     logic               hub75_cke   ;
     logic               hub75_oe_n  ;
     logic               hub75_lat   ;
@@ -65,44 +63,49 @@ module tb_top();
     data_t              mem_g       = 0;
     data_t              mem_b       = 0;
 
-    localparam R = 16'd1;
-    assign disp = {
-            R * 16'd128,
-            R * 16'd64,
-            R * 16'd32,
-            R * 16'd16,
-            R * 16'd8,
-            R * 16'd4,
-            R * 16'd2,
-            R * 16'd1
-        };
+    jelly3_axi4l_if
+            #(
+                .ADDR_BITS  (32             ),
+                .DATA_BITS  (32             )
+            )
+        axi4l
+            (
+                .aresetn    (~reset         ),
+                .aclk       (clk            ),
+                .aclken     (1'b1           )
+            );
+    assign axi4l.awvalid = 0;
+    assign axi4l.wvalid  = 0;
+    assign axi4l.arvalid = 0;
 
     hub75_driver
             #(
-                .CLK_DIV        (CLK_DIV        ),
-                .DISP_BITS      (DISP_BITS      ),
-                .disp_t         (disp_t         ),
-                .N              (N              ),
-                .WIDTH          (WIDTH          ),
-                .HEIGHT         (HEIGHT         ),
-                .SEL_BITS       (SEL_BITS       ),
-                .sel_t          (sel_t          ),
-                .DATA_BITS      (DATA_BITS      ),
-                .data_t         (data_t         ),
-                .DEPTH          (DEPTH          ),
-                .ADDR_BITS      (ADDR_BITS      ),
-                .addr_t         (addr_t         ),
-                .RAM_TYPE       (RAM_TYPE       ),
-                .READMEMB       (READMEMB       ),
-                .READMEMH       (READMEMH       ),
-                .READMEM_FILE   (READMEM_FILE   )
+                .CLK_DIV            (CLK_DIV        ),
+                .DISP_BITS          (DISP_BITS      ),
+                .disp_t             (disp_t         ),
+                .N                  (N              ),
+                .WIDTH              (WIDTH          ),
+                .HEIGHT             (HEIGHT         ),
+                .SEL_BITS           (SEL_BITS       ),
+                .sel_t              (sel_t          ),
+                .DATA_BITS          (DATA_BITS      ),
+                .data_t             (data_t         ),
+                .ADDR_BITS          (ADDR_BITS      ),
+                .addr_t             (addr_t         ),
+                .RAM_TYPE           (RAM_TYPE       ),
+                .READMEMB           (READMEMB       ),
+                .READMEMH           (READMEMH       ),
+                .READMEM_FILE       (READMEM_FILE   ),
+                .INIT_CTL_CONTROL   (1'b1           ),
+                .INIT_PARAM_FLIP    (2'b00          ),
+                .INIT_RATE          (1              )
+
             )
         u_hub75_driver
             (
                 .reset          ,
                 .clk            ,
-                .enable         ,
-                .disp           ,
+
                 .hub75_cke      ,
                 .hub75_oe_n     ,
                 .hub75_lat      ,
@@ -110,12 +113,15 @@ module tb_top();
                 .hub75_r        ,
                 .hub75_g        ,
                 .hub75_b        ,
+                
                 .mem_clk        ,
                 .mem_we         ,
                 .mem_addr       ,
                 .mem_r          ,
                 .mem_g          ,
-                .mem_b          
+                .mem_b          ,
+
+                .s_axi4l        (axi4l  )
             );
 
 endmodule

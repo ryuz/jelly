@@ -58,70 +58,68 @@ if { $list_projs eq "" } {
 variable design_name
 set design_name design_1
 
-# If you do not already have an existing IP Integrator design open,
-# you can create a design using the following command:
-#    create_bd_design $design_name
+# This script was generated for a remote BD. To create a non-remote design,
+# change the variable <run_remote_bd_flow> to <0>.
 
-# Creating design if needed
-set errMsg ""
-set nRet 0
+set run_remote_bd_flow 1
+if { $run_remote_bd_flow == 1 } {
+  # Set the reference directory for source file relative paths (by default 
+  # the value is script directory path)
+  set origin_dir ./bd
 
-set cur_design [current_bd_design -quiet]
-set list_cells [get_bd_cells -quiet]
+  # Use origin directory path location variable, if specified in the tcl shell
+  if { [info exists ::origin_dir_loc] } {
+     set origin_dir $::origin_dir_loc
+  }
 
-if { ${design_name} eq "" } {
-   # USE CASES:
-   #    1) Design_name not set
+  set str_bd_folder [file normalize ${origin_dir}]
+  set str_bd_filepath ${str_bd_folder}/${design_name}/${design_name}.bd
 
-   set errMsg "Please set the variable <design_name> to a non-empty value."
-   set nRet 1
+  # Check if remote design exists on disk
+  if { [file exists $str_bd_filepath ] == 1 } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2030 -severity "ERROR" "The remote BD file path <$str_bd_filepath> already exists!"}
+     common::send_gid_msg -ssname BD::TCL -id 2031 -severity "INFO" "To create a non-remote BD, change the variable <run_remote_bd_flow> to <0>."
+     common::send_gid_msg -ssname BD::TCL -id 2032 -severity "INFO" "Also make sure there is no design <$design_name> existing in your current project."
 
-} elseif { ${cur_design} ne "" && ${list_cells} eq "" } {
-   # USE CASES:
-   #    2): Current design opened AND is empty AND names same.
-   #    3): Current design opened AND is empty AND names diff; design_name NOT in project.
-   #    4): Current design opened AND is empty AND names diff; design_name exists in project.
+     return 1
+  }
 
-   if { $cur_design ne $design_name } {
-      common::send_gid_msg -ssname BD::TCL -id 2001 -severity "INFO" "Changing value of <design_name> from <$design_name> to <$cur_design> since current design is empty."
-      set design_name [get_property NAME $cur_design]
-   }
-   common::send_gid_msg -ssname BD::TCL -id 2002 -severity "INFO" "Constructing design in IPI design <$cur_design>..."
+  # Check if design exists in memory
+  set list_existing_designs [get_bd_designs -quiet $design_name]
+  if { $list_existing_designs ne "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2033 -severity "ERROR" "The design <$design_name> already exists in this project! Will not create the remote BD <$design_name> at the folder <$str_bd_folder>."}
 
-} elseif { ${cur_design} ne "" && $list_cells ne "" && $cur_design eq $design_name } {
-   # USE CASES:
-   #    5) Current design opened AND has components AND same names.
+     common::send_gid_msg -ssname BD::TCL -id 2034 -severity "INFO" "To create a non-remote BD, change the variable <run_remote_bd_flow> to <0> or please set a different value to variable <design_name>."
 
-   set errMsg "Design <$design_name> already exists in your project, please set the variable <design_name> to another value."
-   set nRet 1
-} elseif { [get_files -quiet ${design_name}.bd] ne "" } {
-   # USE CASES: 
-   #    6) Current opened design, has components, but diff names, design_name exists in project.
-   #    7) No opened design, design_name exists in project.
+     return 1
+  }
 
-   set errMsg "Design <$design_name> already exists in your project, please set the variable <design_name> to another value."
-   set nRet 2
+  # Check if design exists on disk within project
+  set list_existing_designs [get_files -quiet */${design_name}.bd]
+  if { $list_existing_designs ne "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2035 -severity "ERROR" "The design <$design_name> already exists in this project at location:
+    $list_existing_designs"}
+     catch {common::send_gid_msg -ssname BD::TCL -id 2036 -severity "ERROR" "Will not create the remote BD <$design_name> at the folder <$str_bd_folder>."}
 
+     common::send_gid_msg -ssname BD::TCL -id 2037 -severity "INFO" "To create a non-remote BD, change the variable <run_remote_bd_flow> to <0> or please set a different value to variable <design_name>."
+
+     return 1
+  }
+
+  # Now can create the remote BD
+  # NOTE - usage of <-dir> will create <$str_bd_folder/$design_name/$design_name.bd>
+  create_bd_design -dir $str_bd_folder $design_name
 } else {
-   # USE CASES:
-   #    8) No opened design, design_name not in project.
-   #    9) Current opened design, has components, but diff names, design_name not in project.
 
-   common::send_gid_msg -ssname BD::TCL -id 2003 -severity "INFO" "Currently there is no design <$design_name> in project, so creating one..."
+  # Create regular design
+  if { [catch {create_bd_design $design_name} errmsg] } {
+     common::send_gid_msg -ssname BD::TCL -id 2038 -severity "INFO" "Please set a different value to variable <design_name>."
 
-   create_bd_design $design_name
-
-   common::send_gid_msg -ssname BD::TCL -id 2004 -severity "INFO" "Making design <$design_name> as current_bd_design."
-   current_bd_design $design_name
-
+     return 1
+  }
 }
 
-common::send_gid_msg -ssname BD::TCL -id 2005 -severity "INFO" "Currently the variable <design_name> is equal to \"$design_name\"."
-
-if { $nRet != 0 } {
-   catch {common::send_gid_msg -ssname BD::TCL -id 2006 -severity "ERROR" $errMsg}
-   return $nRet
-}
+current_bd_design $design_name
 
 set bCheckIPsPassed 1
 ##################################################################
@@ -131,6 +129,8 @@ set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
 xilinx.com:ip:processing_system7:5.5\
+xilinx.com:ip:proc_sys_reset:5.0\
+xilinx.com:ip:axi_protocol_converter:2.1\
 "
 
    set list_ips_missing ""
@@ -198,9 +198,47 @@ proc create_root_design { parentCell } {
 
   set FIXED_IO [ create_bd_intf_port -mode Master -vlnv xilinx.com:display_processing_system7:fixedio_rtl:1.0 FIXED_IO ]
 
+  set m_axi4l [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi4l ]
+  set_property -dict [ list \
+   CONFIG.ADDR_WIDTH {32} \
+   CONFIG.DATA_WIDTH {32} \
+   CONFIG.HAS_BURST {0} \
+   CONFIG.HAS_CACHE {0} \
+   CONFIG.HAS_LOCK {0} \
+   CONFIG.HAS_QOS {0} \
+   CONFIG.HAS_REGION {0} \
+   CONFIG.PROTOCOL {AXI4LITE} \
+   ] $m_axi4l
+
+  set m_axi3 [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 m_axi3 ]
+  set_property -dict [ list \
+   CONFIG.ADDR_WIDTH {32} \
+   CONFIG.DATA_WIDTH {32} \
+   CONFIG.HAS_REGION {0} \
+   CONFIG.NUM_READ_OUTSTANDING {8} \
+   CONFIG.NUM_WRITE_OUTSTANDING {8} \
+   CONFIG.PROTOCOL {AXI3} \
+   ] $m_axi3
+
 
   # Create ports
-  set clk [ create_bd_port -dir O -type clk clk ]
+  set out_clk [ create_bd_port -dir O -type clk out_clk ]
+  set_property -dict [ list \
+   CONFIG.ASSOCIATED_RESET {out_reset} \
+ ] $out_clk
+  set m_axi4l_aclk [ create_bd_port -dir O -type clk m_axi4l_aclk ]
+  set_property -dict [ list \
+   CONFIG.ASSOCIATED_BUSIF {m_axi4l} \
+   CONFIG.ASSOCIATED_RESET {m_axi4l_aresetn} \
+ ] $m_axi4l_aclk
+  set out_reset [ create_bd_port -dir O -from 0 -to 0 -type rst out_reset ]
+  set m_axi4l_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst m_axi4l_aresetn ]
+  set m_axi3_aresetn [ create_bd_port -dir O -from 0 -to 0 -type rst m_axi3_aresetn ]
+  set m_axi3_aclk [ create_bd_port -dir O -type clk m_axi3_aclk ]
+  set_property -dict [ list \
+   CONFIG.ASSOCIATED_BUSIF {m_axi3} \
+   CONFIG.ASSOCIATED_RESET {m_axi3_aresetn} \
+ ] $m_axi3_aclk
 
   # Create instance: processing_system7_0, and set properties
   set processing_system7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0 ]
@@ -541,19 +579,44 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_USE_AXI_NONSECURE {0} \
     CONFIG.PCW_USE_CROSS_TRIGGER {0} \
     CONFIG.PCW_USE_M_AXI_GP0 {1} \
+    CONFIG.PCW_USE_M_AXI_GP1 {1} \
   ] $processing_system7_0
 
 
+  # Create instance: proc_sys_reset_0, and set properties
+  set proc_sys_reset_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 proc_sys_reset_0 ]
+
+  # Create instance: axi_protocol_convert_0, and set properties
+  set axi_protocol_convert_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_protocol_converter:2.1 axi_protocol_convert_0 ]
+
   # Create interface connections
+  connect_bd_intf_net -intf_net axi_protocol_convert_0_M_AXI [get_bd_intf_ports m_axi4l] [get_bd_intf_pins axi_protocol_convert_0/M_AXI]
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins processing_system7_0/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
+  connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins axi_protocol_convert_0/S_AXI]
+  connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP1 [get_bd_intf_ports m_axi3] [get_bd_intf_pins processing_system7_0/M_AXI_GP1]
 
   # Create port connections
+  connect_bd_net -net proc_sys_reset_0_peripheral_aresetn  [get_bd_pins proc_sys_reset_0/peripheral_aresetn] \
+  [get_bd_ports m_axi4l_aresetn] \
+  [get_bd_pins axi_protocol_convert_0/aresetn] \
+  [get_bd_ports m_axi3_aresetn]
+  connect_bd_net -net proc_sys_reset_0_peripheral_reset  [get_bd_pins proc_sys_reset_0/peripheral_reset] \
+  [get_bd_ports out_reset]
   connect_bd_net -net processing_system7_0_FCLK_CLK0  [get_bd_pins processing_system7_0/FCLK_CLK0] \
-  [get_bd_ports clk] \
-  [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK]
+  [get_bd_ports out_clk] \
+  [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] \
+  [get_bd_ports m_axi4l_aclk] \
+  [get_bd_pins proc_sys_reset_0/slowest_sync_clk] \
+  [get_bd_pins axi_protocol_convert_0/aclk] \
+  [get_bd_pins processing_system7_0/M_AXI_GP1_ACLK] \
+  [get_bd_ports m_axi3_aclk]
+  connect_bd_net -net processing_system7_0_FCLK_RESET0_N  [get_bd_pins processing_system7_0/FCLK_RESET0_N] \
+  [get_bd_pins proc_sys_reset_0/ext_reset_in]
 
   # Create address segments
+  assign_bd_address -offset 0x43C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs m_axi4l/Reg] -force
+  assign_bd_address -offset 0x83C00000 -range 0x00010000 -with_name SEG_m_axi_Reg -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs m_axi3/Reg] -force
 
 
   # Restore current instance

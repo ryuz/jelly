@@ -36,6 +36,7 @@ export HLS_IP
 # sources
 SOURCES  = $(PRJ_DIR)/rtl/zybo_z7_hub75e_sample.sv
 SOURCES += $(PRJ_DIR)/rtl/hub75_driver.sv
+SOURCES += $(PRJ_DIR)/rtl/hub75_driver_core.sv
 SOURCES += $(JELLY_RTL_SOURCES)
 export SOURCES
 

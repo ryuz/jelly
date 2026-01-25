@@ -1,270 +1,234 @@
 // ---------------------------------------------------------------------------
-//  Jelly  -- the system on fpga system
+//  Real-time Computing Lab   PYTHON300 + Spartan-7 MIPI Camera
 //
-//  Ultra96V2 udmabuf test
-//
-//                                 Copyright (C) 2008-2026 by Ryuji Fuchikami
-//                                 https://github.com/ryuz/jelly.git
+//  Copyright (C) 2025 Ryuji Fuchikami. All Rights Reserved.
+//  https://rtc-lab.com/
 // ---------------------------------------------------------------------------
+
 
 `timescale 1ns / 1ps
 `default_nettype none
 
+
 module hub75_driver
-            #(
-                parameter   int     CLK_DIV      = 4                    ,
-                parameter   int     DISP_BITS    = 16                   ,
-                parameter   type    disp_t       = logic [DISP_BITS-1:0],
-                parameter   int     N            = 2                    ,
-                parameter   int     WIDTH        = 64                   ,
-                parameter   int     HEIGHT       = 32                   ,
-                parameter   int     SEL_BITS     = $clog2(HEIGHT)       ,
-                parameter   type    sel_t        = logic [SEL_BITS-1:0] ,
-                parameter   int     DATA_BITS    = 8                    ,
-                parameter   type    data_t       = logic [DATA_BITS-1:0],
-                parameter   int     SLOTS        = $bits(data_t)        ,
-                parameter   int     DEPTH        = N * HEIGHT * WIDTH   ,
-                parameter   int     ADDR_BITS    = $clog2(DEPTH)        ,
-                parameter   type    addr_t       = logic [ADDR_BITS-1:0],
-                parameter           RAM_TYPE     = "block"              ,
-                parameter   bit     READMEMB     = 1'b0                 ,
-                parameter   bit     READMEMH     = 1'b0                 ,
-                parameter           READMEM_FILE = ""                   
+        #(
+            parameter   int             CLK_DIV          = 4                        ,
+            parameter   int             N                = 2                        ,
+            parameter   int             WIDTH            = 64                       ,
+            parameter   int             HEIGHT           = 32                       ,
+            parameter   int             DATA_BITS        = 10                       ,
+            parameter   type            data_t           = logic [DATA_BITS-1:0]    ,
+            parameter   int             DISP_BITS        = 16                       ,
+            parameter   type            disp_t           = logic [DISP_BITS-1:0]    ,
+            parameter   int             SEL_BITS         = $clog2(HEIGHT)           ,
+            parameter   type            sel_t            = logic [SEL_BITS-1:0]     ,
+            parameter   int             ADDR_BITS        = $clog2(N*HEIGHT*WIDTH)   ,
+            parameter   type            addr_t           = logic [ADDR_BITS-1:0]    ,
+            parameter   int             REGADR_BITS      = 8                        ,
+            parameter   type            regadr_t         = logic [REGADR_BITS-1:0]  ,
+            parameter                   RAM_TYPE         = "block"                  ,
+            parameter   bit             READMEMB         = 0                        ,
+            parameter   bit             READMEMH         = 0                        ,
+            parameter                   READMEM_FILE     = ""                       ,
+            parameter                   CORE_ID          = 32'h5254_2421            ,
+            parameter                   CORE_VERSION     = 32'h0001_0000            ,
+            parameter   bit     [0:0]   INIT_CTL_CONTROL = 1'b1                     ,
+            parameter   bit     [1:0]   INIT_PARAM_FLIP  = 2'b00                    ,
+            parameter   int             INIT_RATE        = 1                        
+        )
+        (
+            input   var logic               reset       ,
+            input   var logic               clk         ,
+            output  var logic               hub75_cke   ,
+            output  var logic               hub75_oe_n  ,
+            output  var logic               hub75_lat   ,
+            output  var sel_t               hub75_sel   ,
+            output  var logic   [N-1:0]     hub75_r     ,
+            output  var logic   [N-1:0]     hub75_g     ,
+            output  var logic   [N-1:0]     hub75_b     ,
 
-            )
-            (
-                input   var logic               reset       ,
-                input   var logic               clk         ,
-                input   var logic               enable      ,
-                input   var disp_t  [SLOTS-1:0] disp        ,
-                output  var logic               hub75_cke   ,
-                output  var logic               hub75_oe_n  ,
-                output  var logic               hub75_lat   ,
-                output  var sel_t               hub75_sel   ,
-                output  var logic   [N-1:0]     hub75_r     ,
-                output  var logic   [N-1:0]     hub75_g     ,
-                output  var logic   [N-1:0]     hub75_b     ,
+            input   var logic               mem_clk     ,
+            input   var logic               mem_we      ,
+            input   var addr_t              mem_addr    ,
+            input   var data_t              mem_r       ,
+            input   var data_t              mem_g       ,
+            input   var data_t              mem_b       ,
 
-                input   var logic               mem_clk     ,
-                input   var logic               mem_we      ,
-                input   var addr_t              mem_addr    ,
-                input   var data_t              mem_r       ,
-                input   var data_t              mem_g       ,
-                input   var data_t              mem_b       
-            );
+            jelly3_axi4l_if.s               s_axi4l     
+        );
     
-    localparam  int     MEM_DEPTH     = HEIGHT * WIDTH                  ;
-    localparam  int     MEM_ADDR_BITS = $clog2(MEM_DEPTH)               ;
-    localparam  type    mem_addr_t    = logic       [MEM_ADDR_BITS-1:0] ;
-    localparam  type    mem_we_t      = logic       [N-1:0]             ;
-    localparam  type    mem_word_t    = data_t      [2:0]               ;
-    localparam  type    mem_data_t    = mem_word_t  [N-1:0]             ;
+    // -------------------------------------
+    //  localparam
+    // -------------------------------------
 
-    mem_we_t        mem_wr_en       ;
-    mem_addr_t      mem_wr_addr     ;
-    mem_data_t      mem_wr_din      ;
-    mem_addr_t      mem_rd_addr     ;
-    mem_data_t      mem_rd_dout     ;
+    localparam  int     SLOTS        = $bits(data_t)            ;
+    localparam  int     DEPTH        = N * HEIGHT * WIDTH       ;
 
-    jelly3_ram_simple_dualport
-            #(
-                .ADDR_BITS      (MEM_ADDR_BITS      ),
-//              .addr_t         (mem_addr_t         ),
-                .WE_BITS        (N                  ),
-//              .we_t           (mem_we_t           ),
-                .DATA_BITS      ($bits(mem_data_t)  ),
-//              .data_t         (mem_data_t         ),
-                .WORD_BITS      ($bits(mem_word_t)  ),
-//              .word_t         (mem_word_t         ),
-                .MEM_DEPTH      (MEM_DEPTH          ),
-                .RAM_TYPE       (RAM_TYPE           ),
-                .DOUT_REG       (1'b1               ),
-                .READMEMB       (READMEMB           ),
-                .READMEMH       (READMEMH           ),
-                .READMEM_FILE   (READMEM_FILE       )
-            )
-        u_ram_simple_dualport
-            (
-                .wr_clk         (mem_clk            ),
-                .wr_en          (mem_wr_en          ),
-                .wr_addr        (mem_wr_addr        ),
-                .wr_din         (mem_wr_din         ),
-                
-                .rd_clk         (clk                ),
-                .rd_en          (1'b1               ),
-                .rd_regcke      (1'b1               ),
-                .rd_addr        (mem_rd_addr        ),
-                .rd_dout        (mem_rd_dout        )
-            );
+    localparam  type    axi4l_data_t = logic [s_axi4l.DATA_BITS-1:0];
+
+
+    // -------------------------------------
+    //  registers
+    // -------------------------------------
     
-    assign mem_wr_en   = mem_we ? (1 << (mem_addr >> MEM_ADDR_BITS)) : '0;
-    assign mem_wr_addr = mem_addr_t'(mem_addr);
-    assign mem_wr_din  = {N{mem_r, mem_g, mem_b}};
+    // register address offset
+    localparam  regadr_t REGADR_CORE_ID            = regadr_t'('h00);
+    localparam  regadr_t REGADR_CORE_VERSION       = regadr_t'('h01);
+    localparam  regadr_t REGADR_CTL_CONTROL        = regadr_t'('h04);
+    localparam  regadr_t REGADR_PARAM_FLIP         = regadr_t'('h10);
+    localparam  regadr_t REGADR_PARAM_DISP         = regadr_t'('h20);
+    
+    // registers
+    logic   [0:0]           reg_ctl_control ;
+    logic   [1:0]           reg_param_flip  ;
+    disp_t  [SLOTS-1:0]     reg_param_disp  ;
 
-    localparam  type    div_t  = logic [$clog2(CLK_DIV)-1:0];
-    localparam  type    x_t    = logic [$clog2(WIDTH )-1:0] ;
-    localparam  type    y_t    = logic [$clog2(HEIGHT)-1:0] ;
-    localparam  int     F_BITS = $clog2($bits(data_t))      ;
-    localparam  type    f_t    = logic [F_BITS-1:0]         ;
-
-    typedef enum {
-        IDLE,
-        SETUP,
-        TRANS,
-        LAT
-    } state_t;
-
-
-    // stage 0
-    div_t       st0_div     ;
-    state_t     st0_state   ;
-    logic       st0_cke     ;
-    logic       st0_lat     ;
-    logic       st0_oe_n    ;
-    sel_t       st0_sel     ;
-    x_t         st0_x       ;
-    y_t         st0_y       ;
-    f_t         st0_f       ;
-    disp_t      st0_disp    ;
-    always_ff @(posedge clk) begin
-        if ( reset ) begin
-            st0_div   <= '0    ;
-            st0_state <= IDLE  ;
-            st0_cke   <= 1'b0  ;
-            st0_lat   <= 1'b0  ;
-            st0_oe_n  <= 1'b1  ;
-            st0_sel   <= '0    ;
-            st0_x     <= '0    ;
-            st0_y     <= '0    ;
-            st0_f     <= '0    ;
-            st0_disp  <= '0    ;
+    function [s_axi4l.DATA_BITS-1:0] write_mask(
+                                        input [s_axi4l.DATA_BITS-1:0] org,
+                                        input [s_axi4l.DATA_BITS-1:0] data,
+                                        input [s_axi4l.STRB_BITS-1:0] strb
+                                    );
+        for ( int i = 0; i < s_axi4l.DATA_BITS; i++ ) begin
+            write_mask[i] = strb[i/8] ? data[i] : org[i];
         end
+    endfunction
+
+    regadr_t  regadr_write;
+    regadr_t  regadr_read;
+    assign regadr_write = regadr_t'(s_axi4l.awaddr / s_axi4l.ADDR_BITS'(s_axi4l.STRB_BITS));
+    assign regadr_read  = regadr_t'(s_axi4l.araddr / s_axi4l.ADDR_BITS'(s_axi4l.STRB_BITS));
+
+    always_ff @(posedge s_axi4l.aclk) begin
+        if ( ~s_axi4l.aresetn ) begin
+            reg_ctl_control <= INIT_CTL_CONTROL       ;
+            reg_param_flip  <= INIT_PARAM_FLIP        ;
+            for ( int i = 0; i < SLOTS; i++ ) begin
+                reg_param_disp[i] = disp_t'((2**i) * INIT_RATE);
+            end
+       end
         else begin
-            if ( st0_state == TRANS ) begin
-                st0_disp <= st0_disp - 1;
-                if ( st0_disp == '0 ) begin
-                    st0_oe_n <= 1'b1  ;
+            if ( s_axi4l.awvalid && s_axi4l.awready && s_axi4l.wvalid && s_axi4l.wready ) begin
+                case ( regadr_write )
+                REGADR_CTL_CONTROL: reg_ctl_control <= 1'(write_mask(axi4l_data_t'(reg_ctl_control), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_FLIP : reg_param_flip  <= 2'(write_mask(axi4l_data_t'(reg_ctl_control), s_axi4l.wdata, s_axi4l.wstrb));
+                default: ;
+                endcase
+
+                for ( int i = 0; i < SLOTS; i++ ) begin
+                    if ( regadr_write == REGADR_PARAM_DISP + regadr_t'(i) ) begin
+                        reg_param_disp[i] = disp_t'(write_mask(axi4l_data_t'(reg_param_disp[i]), s_axi4l.wdata, s_axi4l.wstrb));
+                    end
                 end
             end
+        end
+    end
 
-            st0_div <= st0_div + 1;
-            if ( st0_div == div_t'(CLK_DIV - 1) ) begin
-                st0_div   <= '0     ;
-                case ( st0_state )
-                IDLE:
-                    begin
-                        if ( enable ) begin
-                            st0_state <= SETUP  ;
-                        end
-                        st0_cke   <= 1'b0   ;
-                        st0_lat   <= 1'b0   ;
-                        st0_oe_n  <= 1'b1   ;
-                    end
+    always_ff @(posedge s_axi4l.aclk ) begin
+        if ( ~s_axi4l.aresetn ) begin
+            s_axi4l.bvalid <= 0;
+        end
+        else begin
+            if ( s_axi4l.bready ) begin
+                s_axi4l.bvalid <= 0;
+            end
+            if ( s_axi4l.awvalid && s_axi4l.awready ) begin
+                s_axi4l.bvalid <= 1'b1;
+            end
+        end
+    end
+
+    assign s_axi4l.awready = (~s_axi4l.bvalid || s_axi4l.bready) && s_axi4l.wvalid;
+    assign s_axi4l.wready  = (~s_axi4l.bvalid || s_axi4l.bready) && s_axi4l.awvalid;
+    assign s_axi4l.bresp   = '0;
+
+
+    // read
+    always_ff @(posedge s_axi4l.aclk ) begin
+        if ( s_axi4l.arvalid && s_axi4l.arready ) begin
+            case ( regadr_read )
+            REGADR_CORE_ID:            s_axi4l.rdata <= axi4l_data_t'(CORE_ID               );
+            REGADR_CORE_VERSION:       s_axi4l.rdata <= axi4l_data_t'(CORE_VERSION          );
+            REGADR_CTL_CONTROL:        s_axi4l.rdata <= axi4l_data_t'(reg_ctl_control       );
+            REGADR_PARAM_FLIP :        s_axi4l.rdata <= axi4l_data_t'(reg_param_flip        );
+            default:                   s_axi4l.rdata <= '0;
+            endcase
+            for ( int i = 0; i < SLOTS; i++ ) begin
+                if ( regadr_read == REGADR_PARAM_DISP + regadr_t'(i) ) begin
+                    s_axi4l.rdata <= axi4l_data_t'(reg_param_disp[i]);
+                end
+            end
+        end
+    end
+
+    always_ff @(posedge s_axi4l.aclk ) begin
+        if ( ~s_axi4l.aresetn ) begin
+            s_axi4l.rvalid <= 1'b0;
+        end
+        else begin
+            if ( s_axi4l.rready ) begin
+                s_axi4l.rvalid <= 1'b0;
+            end
+            if ( s_axi4l.arvalid && s_axi4l.arready ) begin
+                s_axi4l.rvalid <= 1'b1;
+            end
+        end
+    end
+
+    assign s_axi4l.arready = ~s_axi4l.rvalid || s_axi4l.rready;
+    assign s_axi4l.rresp   = '0;
+    
+
+    // core
+    hub75_driver_core
+            #(
+                .CLK_DIV        (CLK_DIV        ),
+                .DISP_BITS      ($bits(disp_t)  ),
+                .disp_t         (disp_t         ),
+                .N              (N              ),
+                .WIDTH          (WIDTH          ),
+                .HEIGHT         (HEIGHT         ),
+                .SEL_BITS       ($bits(sel_t)   ),
+                .sel_t          (sel_t          ),
+                .DATA_BITS      ($bits(data_t)  ),
+                .data_t         (data_t         ),
+                .SLOTS          (SLOTS          ),
+                .DEPTH          (DEPTH          ),
+                .ADDR_BITS      ($bits(addr_t)  ),
+                .addr_t         (addr_t         ),
+                .RAM_TYPE       (RAM_TYPE       ),
+                .READMEMB       (READMEMB       ),
+                .READMEMH       (READMEMH       ),
+                .READMEM_FILE   (READMEM_FILE   )
+
+            )
+        u_hub75_driver_core
+            (
+                .reset          ,
+                .clk            ,
                 
-                SETUP:
-                    begin
-                        st0_state <= TRANS  ;
-                        st0_cke   <= 1'b0   ;
-                        st0_lat   <= 1'b0   ;
-                        st0_oe_n  <= 1'b0   ;
-                    end
+                .enable         (reg_ctl_control[0]    ),
+                .flip_h         (reg_param_flip[0]     ),
+                .flip_v         (reg_param_flip[1]     ),
+                .disp           (reg_param_disp        ),
 
-                TRANS:
-                    begin
-                        st0_cke <= ~st0_cke;
-                        if ( st0_cke ) begin
-                            st0_x <= st0_x + 1;
-                            if ( st0_x == x_t'(WIDTH-1) ) begin
-                                st0_state <= LAT    ;
-                                st0_lat   <= 1'b1   ;
-                                st0_oe_n  <= 1'b1   ;
-                                st0_sel   <= st0_y  ;
-                                st0_x     <= '0     ;
-                                st0_y     <= st0_y + 1;
-                                st0_disp  <= disp[st0_f];
-                                if ( st0_y == y_t'(HEIGHT-1) ) begin
-                                    st0_y   <= '0;
-                                    st0_f   <= st0_f + 1;
-                                    if ( st0_f == f_t'($bits(data_t)-1) ) begin
-                                        st0_f <= '0;
-                                    end
-                                end
-                            end
-                        end
-                    end
+                .hub75_cke      ,
+                .hub75_oe_n     ,
+                .hub75_lat      ,
+                .hub75_sel      ,
+                .hub75_r        ,
+                .hub75_g        ,
+                .hub75_b        ,
 
-                LAT:
-                    begin
-                        st0_state <= IDLE   ;
-                        st0_lat   <= 1'b1   ;
-                        st0_oe_n  <= 1'b1   ;
-                    end
-                endcase
-            end
-        end
-    end
-
-    assign mem_rd_addr = {st0_y, st0_x};
-
-    logic           st1_cke ;
-    logic           st1_lat ;
-    logic           st1_oe_n;
-    sel_t           st1_sel ;
-    f_t             st1_f   ;
-
-    logic           st2_cke ;
-    logic           st2_lat ;
-    logic           st2_oe_n;
-    sel_t           st2_sel ;
-    f_t             st2_f   ;
-
-    logic           st3_cke ;
-    logic           st3_lat ;
-    logic           st3_oe_n;
-    sel_t           st3_sel ;
-    logic   [N-1:0] st3_r   ;
-    logic   [N-1:0] st3_g   ;
-    logic   [N-1:0] st3_b   ;
-
-    always_ff @(posedge clk) begin
-        st1_cke  <= st0_cke ;
-        st1_lat  <= st0_lat ;
-        st1_oe_n <= st0_oe_n;
-        st1_sel  <= st0_sel ;
-        st1_f    <= st0_f   ;
-
-        st2_cke  <= st1_cke ;
-        st2_lat  <= st1_lat ;
-        st2_oe_n <= st1_oe_n;
-        st2_sel  <= st1_sel ;
-        st2_f    <= st1_f   ;
-
-        st3_cke  <= st2_cke ;
-        st3_lat  <= st2_lat ;
-        st3_oe_n <= st2_oe_n;
-        st3_sel  <= st2_sel ;
-        st3_r    <= '0;
-        st3_g    <= '0;
-        st3_b    <= '0;
-        if ( st2_f >= 0 ) begin
-            for ( int i = 0; i < N; i++ ) begin
-                st3_r[i] <= mem_rd_dout[i][2][st2_f];
-                st3_g[i] <= mem_rd_dout[i][1][st2_f];
-                st3_b[i] <= mem_rd_dout[i][0][st2_f];
-            end
-        end
-    end
-
-    assign  hub75_cke  = st3_cke ;
-    assign  hub75_oe_n = st3_oe_n;
-    assign  hub75_lat  = st3_lat ;
-    assign  hub75_sel  = st3_sel ;
-    assign  hub75_r    = st3_r   ;
-    assign  hub75_g    = st3_g   ;
-    assign  hub75_b    = st3_b   ;
-
+                .mem_clk        ,
+                .mem_we         ,
+                .mem_addr       ,
+                .mem_r          ,
+                .mem_g          ,
+                .mem_b          
+            );
+    
+    
 endmodule
-
 
 
 `default_nettype wire
