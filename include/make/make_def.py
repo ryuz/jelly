@@ -53,8 +53,16 @@ def write_files(f, macro_name, files):
 
 
 # ファイル一覧取得
-sv_files   = remove_ignore_file(glob.glob(os.path.join(RTL_DIR, "**/*.sv"), recursive=True))
-vlog_files = remove_ignore_file(glob.glob(os.path.join(RTL_DIR, "**/*.v"), recursive=True))
+vlog_files  = glob.glob(os.path.join(RTL_DIR, "v1/**/*.v"), recursive=True)
+vlog_files  = remove_ignore_file(vlog_files)
+
+sv_files    = glob.glob(os.path.join(RTL_DIR, "v2/**/*.sv"), recursive=True)
+sv_files   += glob.glob(os.path.join(RTL_DIR, "v3/**/*.sv"), recursive=True)
+sv_files    = remove_ignore_file(sv_files)
+
+veryl_files = glob.glob(os.path.join(RTL_DIR, "jellyvl/**/*.sv"), recursive=True)
+veryl_files = remove_ignore_file(veryl_files)
+
 
 # モジュール名重複チェック
 modules = dict()
@@ -75,6 +83,8 @@ with open("def_sources.inc", "w") as f:
     write_files(f, "JELLY_VLOG_SOURCES", vlog_files)
     f.write("\n\n")
     write_files(f, "JELLY_SV_SOURCES", sv_files)
+    f.write("\n\n")
+    write_files(f, "JELLYVL_SV_SOURCES", veryl_files)
     f.write("\n\n")
     f.write("JELLY_RTL_SOURCES = $(JELLY_VLOG_SOURCES) $(JELLY_SV_SOURCES)\n")
     f.write("\n\n")

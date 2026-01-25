@@ -19,8 +19,15 @@
 /************************************************
   リセットハンドラ
 ************************************************/
-//                .align      4
+//              .align      4
 _rst_handler:   
+                j       start
+sim_end:
+                j       sim_end
+sim_panic:
+                j       sim_panic
+
+start:
                 lui     a1, %hi(0x12345678)
                 addi    a1, a1, %lo(0x12345678)
 
@@ -30,7 +37,11 @@ _rst_handler:
                 /* main関数の呼び出し */
                 jal     main
 end_loop:
-                j       end_loop
+                j       sim_end
+
+                .global   asm_panic
+asm_panic:
+                j       sim_panic
 
 
                 .global   asm_test

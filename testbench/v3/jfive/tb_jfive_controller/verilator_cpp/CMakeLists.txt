@@ -31,7 +31,7 @@ set(RTL_SRCS
 
 verilate(tb_verilator
 #    COVERAGE
-    TRACE
+#   TRACE
     INCLUDE_DIRS "."
     VERILATOR_ARGS -f verilator_cmd.txt -O3
     SOURCES ${RTL_SRCS})

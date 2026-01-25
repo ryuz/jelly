@@ -20,6 +20,9 @@ module jelly3_jfive_controller
             parameter   rval_t                      TCM_ADDR_LO       = 32'h0000_0000                       ,
             parameter   rval_t                      TCM_ADDR_HI       = 32'h7fff_ffff                       ,
             parameter                               TCM_RAM_TYPE      = "block"                             ,
+            parameter                               TCM_RAM_MODE      = "NO_CHANGE"                         ,
+            parameter   bit                         TCM_FILLMEM       = 0                                   ,
+            parameter   logic   [31:0]              TCM_FILLMEM_DATA  = '0                                  ,
             parameter   bit                         TCM_READMEMB      = 1'b0                                ,
             parameter   bit                         TCM_READMEMH      = 1'b0                                ,
             parameter                               TCM_READMEM_FIlE  = ""                                  ,
@@ -53,28 +56,28 @@ module jelly3_jfive_controller
     //  parameter
     // ---------------------------------------------------------
 
-    localparam   int                    PHASE_BITS     = 1                                                  ;
-    localparam  type                    phase_t        = logic         [PHASE_BITS-1:0]                     ;
+    localparam  int                     PHASE_BITS     = 1                                          ;
+    localparam  type                    phase_t        = logic         [PHASE_BITS-1:0]             ;
 
-    localparam  int                     INSTR_BITS     = 32                                                 ;
-    localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]                     ;
-    localparam  type                    ridx_t         = logic         [4:0]                                ;
+    localparam  int                     INSTR_BITS     = 32                                         ;
+    localparam  type                    instr_t        = logic         [INSTR_BITS-1:0]             ;
+    localparam  type                    ridx_t         = logic         [4:0]                        ;
 
-    localparam  int                     TCM_WORD       = $bits(rval_t) / 8                                  ;
-    localparam  int                     TCM_SIZE       = (TCM_MEM_SIZE + TCM_WORD - 1) / TCM_WORD           ;
+    localparam  int                     TCM_WORD       = $bits(rval_t) / 8                          ;
+    localparam  int                     TCM_SIZE       = (TCM_MEM_SIZE + TCM_WORD - 1) / TCM_WORD   ;
     localparam  int                     TCM_ADDR_BITS  = $clog2(TCM_SIZE);
     
-    localparam   type                   tcm_addr_t     = logic  [TCM_ADDR_BITS-1:0]                         ;
-    localparam   int                    TCM_DATA_BITS  = 32                                                 ;
-    localparam   type                   tcm_data_t     = logic  [TCM_DATA_BITS-1:0]                         ;
+    localparam  type                    tcm_addr_t     = logic  [TCM_ADDR_BITS-1:0]                 ;
+    localparam  int                     TCM_DATA_BITS  = 32                                         ;
+    localparam  type                    tcm_data_t     = logic  [TCM_DATA_BITS-1:0]                 ;
     int dbgTCM_MEM_SIZE  = TCM_MEM_SIZE ;
     int dbgTCM_SIZE      = TCM_SIZE     ;
     int dbgTCM_ADDR_BITS = TCM_ADDR_BITS;
     int dbgTCM_DATA_BITS = TCM_DATA_BITS;
 
-    localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                                  ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}                    ;
-    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}                    ;
+    localparam  int                     LS_UNITS       = 1 + M_AXI4L_PORTS                          ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = {M_AXI4L_ADDRS_LO, TCM_ADDR_LO}            ;
+    localparam  rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = {M_AXI4L_ADDRS_HI, TCM_ADDR_HI}            ;
 
     localparam  int                     IBUS_ADDR_BITS = TCM_ADDR_BITS                      ;
     localparam  type                    ibus_addr_t    = logic         [IBUS_ADDR_BITS-1:0] ;
@@ -100,15 +103,6 @@ module jelly3_jfive_controller
     localparam  regadr_t REGADR_CORE_VERSION       = regadr_t'('h01);
     localparam  regadr_t REGADR_CTL_CONTROL        = regadr_t'('h04);
     localparam  regadr_t REGADR_CTL_STATUS         = regadr_t'('h05);
-    localparam  regadr_t REGADR_CTL_INDEX          = regadr_t'('h07);
-    localparam  regadr_t REGADR_CTL_SKIP           = regadr_t'('h08);
-    localparam  regadr_t REGADR_CTL_FRM_TIMER_EN   = regadr_t'('h0a);
-    localparam  regadr_t REGADR_CTL_FRM_TIMEOUT    = regadr_t'('h0b);
-    localparam  regadr_t REGADR_PARAM_WIDTH        = regadr_t'('h10);
-    localparam  regadr_t REGADR_PARAM_HEIGHT       = regadr_t'('h11);
-    localparam  regadr_t REGADR_PARAM_FILL         = regadr_t'('h12);
-    localparam  regadr_t REGADR_PARAM_TIMEOUT      = regadr_t'('h13);
-
     
     // registers
     logic   [0:0]   reg_ctl_control;
@@ -332,10 +326,10 @@ module jelly3_jfive_controller
                 .RAM_TYPE       (TCM_RAM_TYPE       ),
                 .DOUT_REGS0     (1                  ),
                 .DOUT_REGS1     (1                  ),
-                .MODE0          ("NO_CHANGE"        ),
-                .MODE1          ("NO_CHANGE"        ),
-                .FILLMEM        (0                  ),
-                .FILLMEM_DATA   (0                  ),
+                .MODE0          (TCM_RAM_MODE       ),
+                .MODE1          (TCM_RAM_MODE       ),
+                .FILLMEM        (TCM_FILLMEM        ),
+                .FILLMEM_DATA   (TCM_FILLMEM_DATA   ),
                 .READMEMB       (TCM_READMEMB       ),
                 .READMEMH       (TCM_READMEMH       ),
                 .READMEM_FIlE   (TCM_READMEM_FIlE   )
@@ -435,14 +429,19 @@ module jelly3_jfive_controller
     //  Memory access from host
     // ---------------------------------------------------------
 
+    localparam  int BRAM_ID_BITS   = s_axi4_mem.ID_BITS     ;
+    localparam  int BRAM_DATA_BITS = s_axi4_mem.DATA_BITS   ;
+    localparam  int BRAM_STRB_BITS = s_axi4_mem.STRB_BITS   ;
+    localparam  int BRAM_ADDR_BITS = s_axi4_mem.ADDR_BITS - $clog2(BRAM_STRB_BITS);
+
     jelly3_bram_if
             #(
                 .USE_ID         (1                      ),
                 .USE_STRB       (1                      ),
                 .USE_LAST       (1                      ),
-                .ID_BITS        (s_axi4_mem.ID_BITS     ),
-                .ADDR_BITS      (s_axi4_mem.ADDR_BITS   ),
-                .DATA_BITS      (s_axi4_mem.DATA_BITS   )
+                .ID_BITS        (BRAM_ID_BITS           ),
+                .ADDR_BITS      (BRAM_ADDR_BITS         ),
+                .DATA_BITS      (BRAM_DATA_BITS         )
             )
         bram
             (

@@ -16,7 +16,7 @@ module jelly3_jfive_register_file
         #(
             parameter   int     READ_PORTS  = 2                     ,
             parameter   int     ADDR_BITS   = 5                     ,
-            parameter   type    addt_t      = logic [ADDR_BITS-1:0] ,
+            parameter   type    addr_t      = logic [ADDR_BITS-1:0] ,
             parameter   int     DATA_BITS   = 32                    ,
             parameter   type    data_t      = logic [DATA_BITS-1:0] ,
             parameter   int     REGISTERS   = (1 << ADDR_BITS)      , 
@@ -33,11 +33,11 @@ module jelly3_jfive_register_file
 
             // write port
             input   var logic                       wr_en,
-            input   var addt_t                      wr_addr,
+            input   var addr_t                      wr_addr,
             input   var data_t                      wr_din,
 
             // read port
-            input   var addt_t  [READ_PORTS-1:0]    rd_addr,
+            input   var addr_t  [READ_PORTS-1:0]    rd_addr,
             output  var data_t  [READ_PORTS-1:0]    rd_dout
         );
     
@@ -45,7 +45,7 @@ module jelly3_jfive_register_file
     for ( genvar i = 0; i < READ_PORTS; ++i ) begin
         jelly2_ram_async_dualport
                 #(
-                    .ADDR_WIDTH     ($bits(addt_t)  ),
+                    .ADDR_WIDTH     ($bits(addr_t)  ),
                     .DATA_WIDTH     ($bits(data_t)  ),
                     .RAM_TYPE       (RAM_TYPE       ),
                     .MEM_SIZE       (REGISTERS      ),

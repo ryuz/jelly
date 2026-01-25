@@ -5,21 +5,25 @@
 use core::panic::PanicInfo;
 
 
+unsafe extern "C" {
+    fn asm_test() -> i32;
+    fn asm_panic() -> !;
+}
+
+
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
-    loop {}
+    unsafe { asm_panic(); }
+//  loop {}
 }
 
 
-extern{
-    fn asm_test() -> i32;
-}
 
-static mut DATA : i32 = 0;
+//static mut DATA : i32 = 0;
 
 
-#[no_mangle]
-pub unsafe extern "C" fn main() -> ! {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn main() {
     println!("Start!");
     
     /*
@@ -92,7 +96,7 @@ pub unsafe extern "C" fn main() -> ! {
     */
     
     println!("Hello world!");
-    println!("asm_test:{}", asm_test());
+    println!("asm_test:{}", unsafe{asm_test()});
 
     let mut a :f32 = 0.1;
     for _ in 0..10 {
@@ -100,7 +104,7 @@ pub unsafe extern "C" fn main() -> ! {
         a *= 1.1;
     }
 
-    loop {}
+//  loop {}
 }
 
 
@@ -108,7 +112,7 @@ pub unsafe extern "C" fn main() -> ! {
 
 
 fn write_byte(c: u8) {
-    let mmio_putc = 0x10000000  as *mut u8;
+    let mmio_putc = 0x80000000  as *mut u8;
     unsafe {
         core::ptr::write_volatile(mmio_putc, c);
     }
