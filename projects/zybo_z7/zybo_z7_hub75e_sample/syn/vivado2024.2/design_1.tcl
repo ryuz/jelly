@@ -615,8 +615,8 @@ proc create_root_design { parentCell } {
   [get_bd_pins proc_sys_reset_0/ext_reset_in]
 
   # Create address segments
-  assign_bd_address -offset 0x43C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs m_axi4l/Reg] -force
-  assign_bd_address -offset 0x83C00000 -range 0x00010000 -with_name SEG_m_axi_Reg -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs m_axi3/Reg] -force
+  assign_bd_address -offset 0x40000000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs m_axi4l/Reg] -force
+  assign_bd_address -offset 0x80000000 -range 0x00010000 -with_name SEG_m_axi_Reg -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs m_axi3/Reg] -force
 
 
   # Restore current instance

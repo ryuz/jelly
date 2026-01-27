@@ -21,6 +21,23 @@
             };
         };
     };
+
+    fragment@2 {
+        target = <&amba>;
+        __overlay__ {
+            #address-cells = <0x1>;
+            #size-cells = <0x1>;
+            
+            uio_reg {
+                compatible = "generic-uio";
+                reg = <0x40000000 0x10000000>;
+            };
+            uio_vram {
+                compatible = "generic-uio";
+                reg = <0x80000000 0x10000000>;
+            };
+        };
+    };
 };
 
 

@@ -30,24 +30,29 @@ module tb_top();
     //  DTU
     // -----------------------------
 
-    parameter   int     CLK_DIV      = 2                        ;
-    parameter   int     DISP_BITS    = 16                       ;
-    parameter   type    disp_t       = logic [DISP_BITS-1:0]    ;
-    parameter   int     N            = 2                        ;
-    parameter   int     WIDTH        = 64                       ;
-    parameter   int     HEIGHT       = 32                       ;
-    parameter   int     SEL_BITS     = $clog2(HEIGHT)           ;
-    parameter   type    sel_t        = logic [SEL_BITS-1:0]     ;
-    parameter   int     DATA_BITS    = 8                        ;
-    parameter   type    data_t       = logic [DATA_BITS-1:0]    ;
-    parameter   int     SLOTS        = $bits(data_t)            ;
-    parameter   int     DEPTH        = N * HEIGHT * WIDTH       ;
-    parameter   int     ADDR_BITS    = $clog2(DEPTH)            ;
-    parameter   type    addr_t       = logic [ADDR_BITS-1:0]    ;
-    parameter           RAM_TYPE     = "block"                  ;
-    parameter   bit     READMEMB     = 1'b0                     ;
-    parameter   bit     READMEMH     = 1'b1                     ;
-    parameter           READMEM_FILE = "../../../syn/image.hex" ;
+    parameter   int             CLK_DIV          = 2                        ;
+    parameter   int             DISP_BITS        = 16                       ;
+    parameter   type            disp_t           = logic [DISP_BITS-1:0]    ;
+    parameter   int             N                = 2                        ;
+    parameter   int             WIDTH            = 64                       ;
+    parameter   int             HEIGHT           = 32                       ;
+    parameter   int             SEL_BITS         = $clog2(HEIGHT)           ;
+    parameter   type            sel_t            = logic [SEL_BITS-1:0]     ;
+    parameter   int             DATA_BITS        = 10                       ;
+    parameter   type            data_t           = logic [DATA_BITS-1:0]    ;
+    parameter   int             SLOTS            = $bits(data_t)            ;
+    parameter   int             DEPTH            = N * HEIGHT * WIDTH       ;
+    parameter   int             ADDR_BITS        = $clog2(DEPTH)            ;
+    parameter   type            addr_t           = logic [ADDR_BITS-1:0]    ;
+    parameter                   RAM_TYPE         = "block"                  ;
+    parameter   bit             READMEMB         = 1'b0                     ;
+    parameter   bit             READMEMH         = 1'b1                     ;
+    parameter                   READMEM_FILE     = "../../../syn/image.hex" ;
+    parameter   bit     [0:0]   INIT_CTL_CONTROL = 1'b1                     ;
+    parameter   bit     [1:0]   INIT_PARAM_FLIP  = 2'b00                    ;
+    parameter   disp_t          INIT_DISP        = disp_t'(256)             ;
+    parameter   disp_t          INIT_MIN_DISP    = 32                       ;
+
 
     logic               hub75_cke   ;
     logic               hub75_oe_n  ;
@@ -80,25 +85,26 @@ module tb_top();
 
     hub75_driver
             #(
-                .CLK_DIV            (CLK_DIV        ),
-                .DISP_BITS          (DISP_BITS      ),
-                .disp_t             (disp_t         ),
-                .N                  (N              ),
-                .WIDTH              (WIDTH          ),
-                .HEIGHT             (HEIGHT         ),
-                .SEL_BITS           (SEL_BITS       ),
-                .sel_t              (sel_t          ),
-                .DATA_BITS          (DATA_BITS      ),
-                .data_t             (data_t         ),
-                .ADDR_BITS          (ADDR_BITS      ),
-                .addr_t             (addr_t         ),
-                .RAM_TYPE           (RAM_TYPE       ),
-                .READMEMB           (READMEMB       ),
-                .READMEMH           (READMEMH       ),
-                .READMEM_FILE       (READMEM_FILE   ),
-                .INIT_CTL_CONTROL   (1'b1           ),
-                .INIT_PARAM_FLIP    (2'b00          ),
-                .INIT_RATE          (1              )
+                .CLK_DIV            (CLK_DIV            ),
+                .DISP_BITS          (DISP_BITS          ),
+                .disp_t             (disp_t             ),
+                .N                  (N                  ),
+                .WIDTH              (WIDTH              ),
+                .HEIGHT             (HEIGHT             ),
+                .SEL_BITS           (SEL_BITS           ),
+                .sel_t              (sel_t              ),
+                .DATA_BITS          (DATA_BITS          ),
+                .data_t             (data_t             ),
+                .ADDR_BITS          (ADDR_BITS          ),
+                .addr_t             (addr_t             ),
+                .RAM_TYPE           (RAM_TYPE           ),
+                .READMEMB           (READMEMB           ),
+                .READMEMH           (READMEMH           ),
+                .READMEM_FILE       (READMEM_FILE       ),
+                .INIT_CTL_CONTROL   (INIT_CTL_CONTROL   ),
+                .INIT_PARAM_FLIP    (INIT_PARAM_FLIP    ),
+                .INIT_DISP          (INIT_DISP          ),
+                .INIT_MIN_DISP      (INIT_MIN_DISP      )
 
             )
         u_hub75_driver

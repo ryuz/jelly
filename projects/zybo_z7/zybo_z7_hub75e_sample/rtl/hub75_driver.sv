@@ -20,6 +20,8 @@ module hub75_driver
             parameter   type            data_t           = logic [DATA_BITS-1:0]    ,
             parameter   int             DISP_BITS        = 16                       ,
             parameter   type            disp_t           = logic [DISP_BITS-1:0]    ,
+            parameter   int             INTERVAL_BITS    = 8                        ,
+            parameter   type            interval_t       = logic [INTERVAL_BITS-1:0],
             parameter   int             SEL_BITS         = $clog2(HEIGHT)           ,
             parameter   type            sel_t            = logic [SEL_BITS-1:0]     ,
             parameter   int             ADDR_BITS        = $clog2(N*HEIGHT*WIDTH)   ,
@@ -34,7 +36,8 @@ module hub75_driver
             parameter                   CORE_VERSION     = 32'h0001_0000            ,
             parameter   bit     [0:0]   INIT_CTL_CONTROL = 1'b1                     ,
             parameter   bit     [1:0]   INIT_PARAM_FLIP  = 2'b00                    ,
-            parameter   int             INIT_RATE        = 1                        
+            parameter   disp_t          INIT_DISP        = disp_t'(256)             ,
+            parameter   disp_t          INIT_MIN_DISP    = 32                       
         )
         (
             input   var logic               reset       ,
@@ -66,6 +69,39 @@ module hub75_driver
 
     localparam  type    axi4l_data_t = logic [s_axi4l.DATA_BITS-1:0];
 
+    function automatic disp_t init_disp(input int slot);
+        disp_t disp = INIT_DISP;
+        for ( int i = SLOTS-1; i >= 0; i-- ) begin
+            if ( i == slot ) begin
+                if ( disp < INIT_MIN_DISP ) begin
+                    return INIT_MIN_DISP;
+                end
+                return disp;
+            end
+            disp = disp / 2;
+            if ( disp < INIT_MIN_DISP ) begin
+                disp     = disp * 2;
+            end
+        end
+        return disp;
+    endfunction
+
+    function automatic interval_t init_interval(input int slot);
+        disp_t     disp     = INIT_DISP;
+        interval_t interval = 1;
+        for ( int i = SLOTS-1; i >= 0; i-- ) begin
+            if ( i == slot ) begin
+                return interval - 1;
+            end
+            disp = disp / 2;
+            if ( disp < INIT_MIN_DISP ) begin
+                disp     = disp * 2;
+                interval = interval * 2;
+            end
+        end
+        return interval;
+    endfunction
+
 
     // -------------------------------------
     //  registers
@@ -77,11 +113,13 @@ module hub75_driver
     localparam  regadr_t REGADR_CTL_CONTROL        = regadr_t'('h04);
     localparam  regadr_t REGADR_PARAM_FLIP         = regadr_t'('h10);
     localparam  regadr_t REGADR_PARAM_DISP         = regadr_t'('h20);
+    localparam  regadr_t REGADR_PARAM_INTERVAL     = regadr_t'('h40);
     
     // registers
-    logic   [0:0]           reg_ctl_control ;
-    logic   [1:0]           reg_param_flip  ;
-    disp_t  [SLOTS-1:0]     reg_param_disp  ;
+    logic       [0:0]           reg_ctl_control     ;
+    logic       [1:0]           reg_param_flip      ;
+    disp_t      [SLOTS-1:0]     reg_param_disp      ;
+    interval_t  [SLOTS-1:0]     reg_param_interval  ;
 
     function [s_axi4l.DATA_BITS-1:0] write_mask(
                                         input [s_axi4l.DATA_BITS-1:0] org,
@@ -103,7 +141,9 @@ module hub75_driver
             reg_ctl_control <= INIT_CTL_CONTROL       ;
             reg_param_flip  <= INIT_PARAM_FLIP        ;
             for ( int i = 0; i < SLOTS; i++ ) begin
-                reg_param_disp[i] = disp_t'((2**i) * INIT_RATE);
+//              reg_param_disp[i]     = disp_t'((2**i) * INIT_DISP);
+                reg_param_disp[i]     = init_disp(i);
+                reg_param_interval[i] = init_interval(i);
             end
        end
         else begin
@@ -181,35 +221,35 @@ module hub75_driver
     // core
     hub75_driver_core
             #(
-                .CLK_DIV        (CLK_DIV        ),
-                .DISP_BITS      ($bits(disp_t)  ),
-                .disp_t         (disp_t         ),
-                .N              (N              ),
-                .WIDTH          (WIDTH          ),
-                .HEIGHT         (HEIGHT         ),
-                .SEL_BITS       ($bits(sel_t)   ),
-                .sel_t          (sel_t          ),
-                .DATA_BITS      ($bits(data_t)  ),
-                .data_t         (data_t         ),
-                .SLOTS          (SLOTS          ),
-                .DEPTH          (DEPTH          ),
-                .ADDR_BITS      ($bits(addr_t)  ),
-                .addr_t         (addr_t         ),
-                .RAM_TYPE       (RAM_TYPE       ),
-                .READMEMB       (READMEMB       ),
-                .READMEMH       (READMEMH       ),
-                .READMEM_FILE   (READMEM_FILE   )
-
+                .CLK_DIV        (CLK_DIV            ),
+                .DISP_BITS      ($bits(disp_t)      ),
+                .disp_t         (disp_t             ),
+                .N              (N                  ),
+                .WIDTH          (WIDTH              ),
+                .HEIGHT         (HEIGHT             ),
+                .SEL_BITS       ($bits(sel_t)       ),
+                .sel_t          (sel_t              ),
+                .DATA_BITS      ($bits(data_t)      ),
+                .data_t         (data_t             ),
+                .SLOTS          (SLOTS              ),
+                .DEPTH          (DEPTH              ),
+                .ADDR_BITS      ($bits(addr_t)      ),
+                .addr_t         (addr_t             ),
+                .RAM_TYPE       (RAM_TYPE           ),
+                .READMEMB       (READMEMB           ),
+                .READMEMH       (READMEMH           ),
+                .READMEM_FILE   (READMEM_FILE       )
             )
         u_hub75_driver_core
             (
                 .reset          ,
                 .clk            ,
                 
-                .enable         (reg_ctl_control[0]    ),
-                .flip_h         (reg_param_flip[0]     ),
-                .flip_v         (reg_param_flip[1]     ),
-                .disp           (reg_param_disp        ),
+                .enable         (reg_ctl_control[0] ),
+                .flip_h         (reg_param_flip[0]  ),
+                .flip_v         (reg_param_flip[1]  ),
+                .disp           (reg_param_disp     ),
+                .interval       (reg_param_interval ),
 
                 .hub75_cke      ,
                 .hub75_oe_n     ,
