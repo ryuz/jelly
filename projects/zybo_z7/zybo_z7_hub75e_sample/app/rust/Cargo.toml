@@ -1,0 +1,13 @@
+[package]
+name = "zybo_z7_hub75e_sample"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+jelly-mem_access = "0.2.5"
+opencv = "0.93.5"
+clap = { version = "4.0", features = ["derive"] }
+
+[features]
+default = ["std"]
+std = []
