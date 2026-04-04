@@ -14,6 +14,7 @@
 
 module jelly3_img_moment_core
         #(
+            parameter   int     CH_DEPTH   = 1                       ,
             parameter   int     M00_BITS   = 32                      ,  // 総和
             parameter   type    m00_t      = logic [M00_BITS-1:0]    ,
             parameter   int     M10_BITS   = 32                      ,  // X
@@ -32,7 +33,6 @@ module jelly3_img_moment_core
 
 
     localparam  int     TAPS       = s_mat.TAPS         ;
-    localparam  int     CH_DEPTH   = s_mat.CH_DEPTH     ;
     localparam  int     CH_BITS    = s_mat.CH_BITS      ;
     localparam  type    ch_t       = logic [CH_BITS-1:0];
     localparam  int     DE_BITS    = s_mat.DE_BITS      ;

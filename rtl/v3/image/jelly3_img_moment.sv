@@ -15,6 +15,7 @@
 module jelly3_img_moment
         #(
             parameter   bit             AXI4L_ASYNC       = 1                           ,
+            parameter   int             CH_DEPTH          = 1                           ,
             parameter   int             CX_BITS           = 32                          ,
             parameter   type            cx_t              = logic signed  [CX_BITS-1:0] ,
             parameter   int             CY_BITS           = 32                          ,
@@ -45,8 +46,6 @@ module jelly3_img_moment
             output  var cy_t                    m_out_y        ,
             output  var logic                   m_out_valid    
         );
-
-    localparam  int     CH_DEPTH = s_mat.CH_DEPTH;
 
 
     // -------------------------------------
@@ -259,9 +258,9 @@ module jelly3_img_moment
                 REGADR_IRQ_SET      : reg_irq_status     <=    1'( write_mask(axi4l_data_t'(0                           ), s_axi4l.wdata, s_axi4l.wstrb)) | reg_irq_status;
                 REGADR_MOMENT_READY : reg_moment_ready   <=    1'( write_mask(axi4l_data_t'(reg_moment_ready            ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_OUT_X_LO     : reg_out_x          <= cx_t'( write_mask(axi4l_data_t'(reg_out_x                   ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_OUT_X_HI     : reg_out_x          <= cx_t'({write_mask(axi4l_data_t'(reg_out_x >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_out_x[AXI4L_DATA_BITS-1:0]});
+//              REGADR_OUT_X_HI     : reg_out_x          <= cx_t'({write_mask(axi4l_data_t'(reg_out_x >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_out_x[AXI4L_DATA_BITS-1:0]});
                 REGADR_OUT_Y_LO     : reg_out_y          <= cy_t'( write_mask(axi4l_data_t'(reg_out_y                   ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_OUT_Y_HI     : reg_out_y          <= cy_t'({write_mask(axi4l_data_t'(reg_out_y >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_out_y[AXI4L_DATA_BITS-1:0]});
+//              REGADR_OUT_Y_HI     : reg_out_y          <= cy_t'({write_mask(axi4l_data_t'(reg_out_y >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_out_y[AXI4L_DATA_BITS-1:0]});
                 REGADR_OUT_VALID    : reg_out_valid      <=    1'( write_mask(axi4l_data_t'(0                           ), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
