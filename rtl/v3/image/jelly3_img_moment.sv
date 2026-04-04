@@ -32,18 +32,18 @@ module jelly3_img_moment
             parameter   bit     [0:0]   INIT_IRQ_ENABLE   = 1'b0                        
         )
         (
-            jelly3_mat_if.s                     s_mat               ,
-            jelly3_axi4l_if.s                   s_axi4l             ,
-            output  var logic                   out_irq             ,
+            jelly3_mat_if.s                     s_mat          ,
+            jelly3_axi4l_if.s                   s_axi4l        ,
+            output  var logic                   out_irq        ,
 
-            output  var m00_t   [CH_DEPTH-1:0]  m_moment_m00        ,
-            output  var m10_t   [CH_DEPTH-1:0]  m_moment_m10        ,
-            output  var m01_t   [CH_DEPTH-1:0]  m_moment_m01        ,
-            output  var logic                   m_moment_valid      ,
+            output  var m00_t   [CH_DEPTH-1:0]  m_moment_m00   ,
+            output  var m10_t   [CH_DEPTH-1:0]  m_moment_m10   ,
+            output  var m01_t   [CH_DEPTH-1:0]  m_moment_m01   ,
+            output  var logic                   m_moment_valid ,
 
-            output  var cx_t                    m_centroid_x        ,
-            output  var cy_t                    m_centroid_y        ,
-            output  var logic                   m_centroid_valid    
+            output  var cx_t                    m_out_x        ,
+            output  var cy_t                    m_out_y        ,
+            output  var logic                   m_out_valid    
         );
 
     localparam  int     CH_DEPTH = s_mat.CH_DEPTH;
@@ -109,15 +109,20 @@ module jelly3_img_moment
     localparam  regadr_t REGADR_IRQ_STATUS       = regadr_t'('h09);
     localparam  regadr_t REGADR_IRQ_CLR          = regadr_t'('h0a);
     localparam  regadr_t REGADR_IRQ_SET          = regadr_t'('h0b);
-    localparam  regadr_t REGADR_MOMENT_VALID        = regadr_t'('h20);
-    localparam  regadr_t REGADR_MOMENT_READY        = regadr_t'('h21);
-    localparam  regadr_t REGADR_CENTROID_X_LO    = regadr_t'('h28);
-    localparam  regadr_t REGADR_CENTROID_X_HI    = regadr_t'('h29);
-    localparam  regadr_t REGADR_CENTROID_Y_LO    = regadr_t'('h2a);
-    localparam  regadr_t REGADR_CENTROID_Y_HI    = regadr_t'('h2b);
-    localparam  regadr_t REGADR_CENTROID_VALID   = regadr_t'('h2c);
-    // per-channel moment: base 0x40, stride 8
-    //   +0: M00_LO  +1: M00_HI  +2: M10_LO  +3: M10_HI  +4: M01_LO  +5: M01_HI
+    localparam  regadr_t REGADR_MOMENT_VALID     = regadr_t'('h20);
+    localparam  regadr_t REGADR_MOMENT_READY     = regadr_t'('h21);
+    localparam  regadr_t REGADR_MOMENT_M00_LO    = regadr_t'('h30);
+    localparam  regadr_t REGADR_MOMENT_M00_HI    = regadr_t'('h31);
+    localparam  regadr_t REGADR_MOMENT_M10_LO    = regadr_t'('h32);
+    localparam  regadr_t REGADR_MOMENT_M10_HI    = regadr_t'('h33);
+    localparam  regadr_t REGADR_MOMENT_M01_LO    = regadr_t'('h34);
+    localparam  regadr_t REGADR_MOMENT_M01_HI    = regadr_t'('h35);
+    localparam  regadr_t REGADR_OUT_VALID        = regadr_t'('h40);
+    localparam  regadr_t REGADR_OUT_READY        = regadr_t'('h41);
+    localparam  regadr_t REGADR_OUT_X_LO         = regadr_t'('h50);
+    localparam  regadr_t REGADR_OUT_X_HI         = regadr_t'('h51);
+    localparam  regadr_t REGADR_OUT_Y_LO         = regadr_t'('h52);
+    localparam  regadr_t REGADR_OUT_Y_HI         = regadr_t'('h53);
 
     // registers
     logic   [0:0]       reg_irq_enable      ;
@@ -125,9 +130,10 @@ module jelly3_img_moment
     moment_data_t       reg_moment          ;
     logic               reg_moment_valid    ;
     logic               reg_moment_ready    ;
-    cx_t                reg_centroid_x      ;
-    cy_t                reg_centroid_y      ;
-    logic               reg_centroid_valid;
+    cx_t                reg_out_x           ;
+    cy_t                reg_out_y           ;
+    logic               reg_out_valid       ;
+    logic               reg_out_ready       ;
 
     // pack core output into struct
     moment_data_t       core_moment     ;
@@ -163,12 +169,12 @@ module jelly3_img_moment
     } centroid_data_t;
 
     // async transfer: register domain -> core domain (centroid from CPU)
-    centroid_data_t     reg_centroid_data    ;
-    assign reg_centroid_data.x = reg_centroid_x;
-    assign reg_centroid_data.y = reg_centroid_y;
+    centroid_data_t     reg_out_data;
+    assign reg_out_data.x = reg_out_x   ;
+    assign reg_out_data.y = reg_out_y   ;
 
-    centroid_data_t     out_centroid_data    ;
-    logic               out_centroid_valid   ;
+    centroid_data_t     out_data    ;
+    logic               out_valid   ;
 
     jelly_data_async
             #(
@@ -179,20 +185,20 @@ module jelly3_img_moment
             (
                 .s_reset        (~s_axi4l.aresetn       ),
                 .s_clk          (s_axi4l.aclk           ),
-                .s_data         (reg_centroid_data      ),
-                .s_valid        (reg_centroid_valid   ),
-                .s_ready        (                       ),
+                .s_data         (reg_out_data           ),
+                .s_valid        (reg_out_valid          ),
+                .s_ready        (reg_out_ready          ),
 
                 .m_reset        (s_mat.reset            ),
                 .m_clk          (s_mat.clk              ),
-                .m_data         (out_centroid_data      ),
-                .m_valid        (out_centroid_valid     ),
+                .m_data         (out_data               ),
+                .m_valid        (out_valid              ),
                 .m_ready        (1'b1                   )
             );
 
-    assign m_centroid_x     = out_centroid_data.x   ;
-    assign m_centroid_y     = out_centroid_data.y   ;
-    assign m_centroid_valid = out_centroid_valid     ;
+    assign m_out_x     = out_data.x   ;
+    assign m_out_y     = out_data.y   ;
+    assign m_out_valid = out_valid    ;
 
 
     // write mask
@@ -226,9 +232,9 @@ module jelly3_img_moment
             reg_irq_enable     <= INIT_IRQ_ENABLE   ;
             reg_irq_status     <= '0                ;
             reg_moment_ready   <= 1'b0              ;
-            reg_centroid_x     <= 'x                ;
-            reg_centroid_y     <= 'x                ;
-            reg_centroid_valid <= 1'b0              ;
+            reg_out_x          <= 'x                ;
+            reg_out_y          <= 'x                ;
+            reg_out_valid      <= 1'b0              ;
 
             s_axi4l.bvalid     <= 1'b0              ;
             s_axi4l.rdata      <= 'x                ;
@@ -240,9 +246,12 @@ module jelly3_img_moment
                 reg_irq_status[0] <= 1'b1;
             end
 
-            // auto clear pulses
-            reg_moment_ready        <= 1'b0;
-            reg_centroid_valid <= 1'b0;
+            // auto clear
+            reg_moment_ready <= 1'b0;
+            if ( reg_out_ready ) begin
+                reg_out_valid <= 1'b0;
+            end
+
 
             // write
             if ( s_axi4l.bready ) begin
@@ -250,15 +259,15 @@ module jelly3_img_moment
             end
             if ( s_axi4l.awvalid && s_axi4l.awready && s_axi4l.wvalid && s_axi4l.wready ) begin
                 case ( regadr_write )
-                REGADR_IRQ_ENABLE    :  reg_irq_enable     <=    1'( write_mask(axi4l_data_t'(reg_irq_enable                   ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_IRQ_CLR       :  reg_irq_status     <=   ~1'( write_mask(axi4l_data_t'(0                                ), s_axi4l.wdata, s_axi4l.wstrb)) & reg_irq_status;
-                REGADR_IRQ_SET       :  reg_irq_status     <=    1'( write_mask(axi4l_data_t'(0                                ), s_axi4l.wdata, s_axi4l.wstrb)) | reg_irq_status;
-                REGADR_MOMENT_READY  :  reg_moment_ready   <=    1'( write_mask(axi4l_data_t'(reg_moment_ready                 ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_CENTROID_X_LO :  reg_centroid_x     <= cx_t'( write_mask(axi4l_data_t'(reg_centroid_x                   ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_CENTROID_X_HI :  reg_centroid_x     <= cx_t'({write_mask(axi4l_data_t'(reg_centroid_x >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_centroid_x[AXI4L_DATA_BITS-1:0]});
-                REGADR_CENTROID_Y_LO :  reg_centroid_y     <= cy_t'( write_mask(axi4l_data_t'(reg_centroid_y                   ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_CENTROID_Y_HI :  reg_centroid_y     <= cy_t'({write_mask(axi4l_data_t'(reg_centroid_y >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_centroid_y[AXI4L_DATA_BITS-1:0]});
-                REGADR_CENTROID_VALID:  reg_centroid_valid <=    1'( write_mask(axi4l_data_t'(0                                ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_IRQ_ENABLE   : reg_irq_enable     <=    1'( write_mask(axi4l_data_t'(reg_irq_enable              ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_IRQ_CLR      : reg_irq_status     <=   ~1'( write_mask(axi4l_data_t'(0                           ), s_axi4l.wdata, s_axi4l.wstrb)) & reg_irq_status;
+                REGADR_IRQ_SET      : reg_irq_status     <=    1'( write_mask(axi4l_data_t'(0                           ), s_axi4l.wdata, s_axi4l.wstrb)) | reg_irq_status;
+                REGADR_MOMENT_READY : reg_moment_ready   <=    1'( write_mask(axi4l_data_t'(reg_moment_ready            ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_OUT_X_LO     : reg_out_x          <= cx_t'( write_mask(axi4l_data_t'(reg_out_x                   ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_OUT_X_HI     : reg_out_x          <= cx_t'({write_mask(axi4l_data_t'(reg_out_x >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_centroid_x[AXI4L_DATA_BITS-1:0]});
+                REGADR_OUT_Y_LO     : reg_out_y          <= cy_t'( write_mask(axi4l_data_t'(reg_out_y                   ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_OUT_Y_HI     : reg_out_y          <= cy_t'({write_mask(axi4l_data_t'(reg_out_y >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_centroid_y[AXI4L_DATA_BITS-1:0]});
+                REGADR_OUT_VALID    : reg_out_valid      <=    1'( write_mask(axi4l_data_t'(0                           ), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
                 s_axi4l.bvalid <= 1'b1;
@@ -277,10 +286,10 @@ module jelly3_img_moment
                 REGADR_IRQ_STATUS    :  s_axi4l.rdata <= axi4l_data_t'(reg_irq_status   );
                 REGADR_MOMENT_VALID  :  s_axi4l.rdata <= axi4l_data_t'(reg_moment_valid );
                 REGADR_MOMENT_READY  :  s_axi4l.rdata <= axi4l_data_t'(reg_moment_ready );
-                REGADR_CENTROID_X_LO :  s_axi4l.rdata <= lo(128'(reg_centroid_x));
-                REGADR_CENTROID_X_HI :  s_axi4l.rdata <= hi(128'(reg_centroid_x));
-                REGADR_CENTROID_Y_LO :  s_axi4l.rdata <= lo(128'(reg_centroid_y));
-                REGADR_CENTROID_Y_HI :  s_axi4l.rdata <= hi(128'(reg_centroid_y));
+                REGADR_OUT_X_LO      :  s_axi4l.rdata <= lo(128'(reg_centroid_x));
+                REGADR_OUT_X_HI      :  s_axi4l.rdata <= hi(128'(reg_centroid_x));
+                REGADR_OUT_Y_LO      :  s_axi4l.rdata <= lo(128'(reg_centroid_y));
+                REGADR_OUT_Y_HI      :  s_axi4l.rdata <= hi(128'(reg_centroid_y));
                 default: begin
                     for ( int c = 0; c < CH_DEPTH; c++ ) begin
                         if (regadr_read == regadr_t'('h40 + c * 8 + 0)) s_axi4l.rdata <= lo(128'(reg_moment.m00[c]));
