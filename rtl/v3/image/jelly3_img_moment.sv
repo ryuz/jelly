@@ -109,20 +109,15 @@ module jelly3_img_moment
     localparam  regadr_t REGADR_IRQ_STATUS       = regadr_t'('h09);
     localparam  regadr_t REGADR_IRQ_CLR          = regadr_t'('h0a);
     localparam  regadr_t REGADR_IRQ_SET          = regadr_t'('h0b);
-    localparam  regadr_t REGADR_MOMENT_VALID     = regadr_t'('h20);
-    localparam  regadr_t REGADR_MOMENT_READY     = regadr_t'('h21);
-    localparam  regadr_t REGADR_MOMENT_M00_LO    = regadr_t'('h30);
-    localparam  regadr_t REGADR_MOMENT_M00_HI    = regadr_t'('h31);
-    localparam  regadr_t REGADR_MOMENT_M10_LO    = regadr_t'('h32);
-    localparam  regadr_t REGADR_MOMENT_M10_HI    = regadr_t'('h33);
-    localparam  regadr_t REGADR_MOMENT_M01_LO    = regadr_t'('h34);
-    localparam  regadr_t REGADR_MOMENT_M01_HI    = regadr_t'('h35);
-    localparam  regadr_t REGADR_OUT_VALID        = regadr_t'('h40);
-    localparam  regadr_t REGADR_OUT_READY        = regadr_t'('h41);
-    localparam  regadr_t REGADR_OUT_X_LO         = regadr_t'('h50);
-    localparam  regadr_t REGADR_OUT_X_HI         = regadr_t'('h51);
-    localparam  regadr_t REGADR_OUT_Y_LO         = regadr_t'('h52);
-    localparam  regadr_t REGADR_OUT_Y_HI         = regadr_t'('h53);
+    localparam  regadr_t REGADR_OUT_VALID        = regadr_t'('h20);
+    localparam  regadr_t REGADR_OUT_READY        = regadr_t'('h21);
+    localparam  regadr_t REGADR_OUT_X_LO         = regadr_t'('h30);
+    localparam  regadr_t REGADR_OUT_X_HI         = regadr_t'('h31);
+    localparam  regadr_t REGADR_OUT_Y_LO         = regadr_t'('h32);
+    localparam  regadr_t REGADR_OUT_Y_HI         = regadr_t'('h33);
+    localparam  regadr_t REGADR_MOMENT_VALID     = regadr_t'('h40);
+    localparam  regadr_t REGADR_MOMENT_READY     = regadr_t'('h41);
+    localparam  regadr_t REGADR_MOMENT_DATA      = regadr_t'('h50);
 
     // registers
     logic   [0:0]       reg_irq_enable      ;
@@ -264,9 +259,9 @@ module jelly3_img_moment
                 REGADR_IRQ_SET      : reg_irq_status     <=    1'( write_mask(axi4l_data_t'(0                           ), s_axi4l.wdata, s_axi4l.wstrb)) | reg_irq_status;
                 REGADR_MOMENT_READY : reg_moment_ready   <=    1'( write_mask(axi4l_data_t'(reg_moment_ready            ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_OUT_X_LO     : reg_out_x          <= cx_t'( write_mask(axi4l_data_t'(reg_out_x                   ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_OUT_X_HI     : reg_out_x          <= cx_t'({write_mask(axi4l_data_t'(reg_out_x >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_centroid_x[AXI4L_DATA_BITS-1:0]});
+                REGADR_OUT_X_HI     : reg_out_x          <= cx_t'({write_mask(axi4l_data_t'(reg_out_x >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_out_x[AXI4L_DATA_BITS-1:0]});
                 REGADR_OUT_Y_LO     : reg_out_y          <= cy_t'( write_mask(axi4l_data_t'(reg_out_y                   ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_OUT_Y_HI     : reg_out_y          <= cy_t'({write_mask(axi4l_data_t'(reg_out_y >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_centroid_y[AXI4L_DATA_BITS-1:0]});
+                REGADR_OUT_Y_HI     : reg_out_y          <= cy_t'({write_mask(axi4l_data_t'(reg_out_y >> AXI4L_DATA_BITS), s_axi4l.wdata, s_axi4l.wstrb), reg_out_y[AXI4L_DATA_BITS-1:0]});
                 REGADR_OUT_VALID    : reg_out_valid      <=    1'( write_mask(axi4l_data_t'(0                           ), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
@@ -286,18 +281,18 @@ module jelly3_img_moment
                 REGADR_IRQ_STATUS    :  s_axi4l.rdata <= axi4l_data_t'(reg_irq_status   );
                 REGADR_MOMENT_VALID  :  s_axi4l.rdata <= axi4l_data_t'(reg_moment_valid );
                 REGADR_MOMENT_READY  :  s_axi4l.rdata <= axi4l_data_t'(reg_moment_ready );
-                REGADR_OUT_X_LO      :  s_axi4l.rdata <= lo(128'(reg_centroid_x));
-                REGADR_OUT_X_HI      :  s_axi4l.rdata <= hi(128'(reg_centroid_x));
-                REGADR_OUT_Y_LO      :  s_axi4l.rdata <= lo(128'(reg_centroid_y));
-                REGADR_OUT_Y_HI      :  s_axi4l.rdata <= hi(128'(reg_centroid_y));
+                REGADR_OUT_X_LO      :  s_axi4l.rdata <= lo(128'(reg_out_x));
+                REGADR_OUT_X_HI      :  s_axi4l.rdata <= hi(128'(reg_out_x));
+                REGADR_OUT_Y_LO      :  s_axi4l.rdata <= lo(128'(reg_out_y));
+                REGADR_OUT_Y_HI      :  s_axi4l.rdata <= hi(128'(reg_out_y));
                 default: begin
                     for ( int c = 0; c < CH_DEPTH; c++ ) begin
-                        if (regadr_read == regadr_t'('h40 + c * 8 + 0)) s_axi4l.rdata <= lo(128'(reg_moment.m00[c]));
-                        if (regadr_read == regadr_t'('h40 + c * 8 + 1)) s_axi4l.rdata <= hi(128'(reg_moment.m00[c]));
-                        if (regadr_read == regadr_t'('h40 + c * 8 + 2)) s_axi4l.rdata <= lo(128'(reg_moment.m10[c]));
-                        if (regadr_read == regadr_t'('h40 + c * 8 + 3)) s_axi4l.rdata <= hi(128'(reg_moment.m10[c]));
-                        if (regadr_read == regadr_t'('h40 + c * 8 + 4)) s_axi4l.rdata <= lo(128'(reg_moment.m01[c]));
-                        if (regadr_read == regadr_t'('h40 + c * 8 + 5)) s_axi4l.rdata <= hi(128'(reg_moment.m01[c]));
+                        if (regadr_read == regadr_t'('h50 + c * 8 + 0)) s_axi4l.rdata <= lo(128'(reg_moment.m00[c]));
+                        if (regadr_read == regadr_t'('h50 + c * 8 + 1)) s_axi4l.rdata <= hi(128'(reg_moment.m00[c]));
+                        if (regadr_read == regadr_t'('h50 + c * 8 + 2)) s_axi4l.rdata <= lo(128'(reg_moment.m10[c]));
+                        if (regadr_read == regadr_t'('h50 + c * 8 + 3)) s_axi4l.rdata <= hi(128'(reg_moment.m10[c]));
+                        if (regadr_read == regadr_t'('h50 + c * 8 + 4)) s_axi4l.rdata <= lo(128'(reg_moment.m01[c]));
+                        if (regadr_read == regadr_t'('h50 + c * 8 + 5)) s_axi4l.rdata <= hi(128'(reg_moment.m01[c]));
                     end
                 end
                 endcase
