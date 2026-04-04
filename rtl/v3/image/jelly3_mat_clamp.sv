@@ -23,6 +23,8 @@ module jelly3_mat_clamp
             parameter                   CORE_ID           = 32'h527a_2842           ,
             parameter                   CORE_VERSION      = 32'h0001_0000           ,
             parameter   bit     [1:0]   INIT_CTL_CONTROL  = 2'b01                   ,
+            parameter   bit             INIT_PARAM_INV    = 1'b0                    ,
+            parameter   bit             INIT_PARAM_ZERO   = 1'b0                    ,
             parameter   calc_t          INIT_PARAM_MIN    = '0                      ,
             parameter   calc_t          INIT_PARAM_MAX    = '1                      
         )
@@ -51,16 +53,22 @@ module jelly3_mat_clamp
     localparam  regadr_t REGADR_CTL_CONTROL     = regadr_t'('h04);
     localparam  regadr_t REGADR_CTL_STATUS      = regadr_t'('h05);
     localparam  regadr_t REGADR_CTL_INDEX       = regadr_t'('h07);
-    localparam  regadr_t REGADR_PARAM_MIN       = regadr_t'('h10);
-    localparam  regadr_t REGADR_PARAM_MAX       = regadr_t'('h11);
+    localparam  regadr_t REGADR_PARAM_INV       = regadr_t'('h10);
+    localparam  regadr_t REGADR_PARAM_ZERO      = regadr_t'('h11);
+    localparam  regadr_t REGADR_PARAM_MIN       = regadr_t'('h20);
+    localparam  regadr_t REGADR_PARAM_MAX       = regadr_t'('h21);
     
     // registers
     logic   [1:0]       reg_ctl_control     ;    // bit[0]:enable, bit[1]:update
+    logic               reg_param_inv       ;
+    logic               reg_param_zero      ;
     calc_t              reg_param_min       ;
     calc_t              reg_param_max       ;
 
     // shadow registers(core domain)
     logic   [0:0]       core_ctl_control    ;
+    logic               core_param_inv      ;
+    logic               core_param_zero     ;
     calc_t              core_param_min      ;
     calc_t              core_param_max      ;
 
@@ -103,6 +111,8 @@ module jelly3_mat_clamp
     always_ff @(posedge s_axi4l.aclk) begin
         if ( ~s_axi4l.aresetn ) begin
             reg_ctl_control <= INIT_CTL_CONTROL ;
+            reg_param_inv   <= INIT_PARAM_INV   ;
+            reg_param_zero  <= INIT_PARAM_ZERO  ;
             reg_param_min   <= INIT_PARAM_MIN   ;
             reg_param_max   <= INIT_PARAM_MAX   ;
 
@@ -122,7 +132,9 @@ module jelly3_mat_clamp
             end
             if ( s_axi4l.awvalid && s_axi4l.awready && s_axi4l.wvalid && s_axi4l.wready ) begin
                 case ( regadr_write )
-                REGADR_CTL_CONTROL:   reg_ctl_control      <= 2'(write_mask(axi4l_data_t'(reg_ctl_control), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_CTL_CONTROL:   reg_ctl_control <=      2'(write_mask(axi4l_data_t'(reg_ctl_control), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_INV:     reg_param_inv   <=      1'(write_mask(axi4l_data_t'(reg_param_inv  ), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_ZERO:    reg_param_zero  <=      1'(write_mask(axi4l_data_t'(reg_param_zero ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_PARAM_MIN:     reg_param_min   <= calc_t'(write_mask(axi4l_data_t'(reg_param_min  ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_PARAM_MAX:     reg_param_max   <= calc_t'(write_mask(axi4l_data_t'(reg_param_max  ), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
@@ -141,6 +153,8 @@ module jelly3_mat_clamp
                 REGADR_CTL_CONTROL:    s_axi4l.rdata <= axi4l_data_t'(reg_ctl_control    );
                 REGADR_CTL_STATUS:     s_axi4l.rdata <= axi4l_data_t'(core_ctl_control   );   // debug use only
                 REGADR_CTL_INDEX:      s_axi4l.rdata <= axi4l_data_t'(ctl_index          );
+                REGADR_PARAM_INV:      s_axi4l.rdata <= axi4l_data_t'(reg_param_inv      );
+                REGADR_PARAM_ZERO:     s_axi4l.rdata <= axi4l_data_t'(reg_param_zero     );
                 REGADR_PARAM_MIN:      s_axi4l.rdata <= axi4l_data_t'(reg_param_min      );
                 REGADR_PARAM_MAX:      s_axi4l.rdata <= axi4l_data_t'(reg_param_max      );
                 default:               s_axi4l.rdata <= '0;
@@ -204,6 +218,8 @@ module jelly3_mat_clamp
                     reg_update_req     <= 1'b0;
                     
                     core_ctl_control  <= reg_ctl_control[0] ;
+                    core_param_inv    <= reg_param_inv       ;
+                    core_param_zero   <= reg_param_zero      ;
                     core_param_min    <= reg_param_min      ;
                     core_param_max    <= reg_param_max      ;
                 end
@@ -220,6 +236,8 @@ module jelly3_mat_clamp
         u_mat_clamp_core
             (
                 .enable     (core_ctl_control   ),
+                .inv        (core_param_inv     ),
+                .zero       (core_param_zero    ),
                 .min_value  (core_param_min     ),
                 .max_value  (core_param_max     ),
                 .s_mat      (s_mat              ),
