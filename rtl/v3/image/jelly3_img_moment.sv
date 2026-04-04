@@ -80,7 +80,7 @@ module jelly3_img_moment
                     if ( s_mat.col_first ) begin
                         st0_x[t] <= x_t'(t);
                     end
-                    else if ( st0_de ) begin
+                    else if ( st0_de != '0 ) begin
                         st0_x[t] <= st0_x[t] + x_t'(TAPS);
                     end
                 end
@@ -99,7 +99,6 @@ module jelly3_img_moment
             for ( int t = 0; t < TAPS; t = t + 1 ) begin
                 st0_data[t] <= s_mat.valid && is_de(s_mat.de, t) ? s_mat.data[t] : '0;
             end
-            st0_data  <= s_mat.data;
             st0_valid <= s_mat.valid;
         end
     end
@@ -124,9 +123,9 @@ module jelly3_img_moment
         else if ( s_mat.cke ) begin
             if ( st0_valid ) begin
                 for ( int t = 0; t < TAPS; t++ ) begin
-                    for ( int c = 0; t < CH_DEPTH; c++ ) begin
+                    for ( int c = 0; c < CH_DEPTH; c++ ) begin
                         st1_m00[t][c] <= m00_t'(st0_data[t][c]);
-                        st1_m10[t][c] <= m10_t'(st0_data[t][c]) * m10_t'(st0_x[y]);
+                        st1_m10[t][c] <= m10_t'(st0_data[t][c]) * m10_t'(st0_x[t]);
                         st1_m01[t][c] <= m01_t'(st0_data[t][c]) * m01_t'(st0_y);
                     end
                 end
@@ -156,7 +155,7 @@ module jelly3_img_moment
                 sum_m10 = '0;
                 sum_m01 = '0;
                 for ( int c = 0; c < CH_DEPTH; c++ ) begin
-                    for ( int t = 0; c < TAPS; t++ ) begin
+                    for ( int t = 0; t < TAPS; t++ ) begin
                         sum_m00[c] += st1_m00[t][c];
                         sum_m10[c] += st1_m10[t][c];
                         sum_m01[c] += st1_m01[t][c];
