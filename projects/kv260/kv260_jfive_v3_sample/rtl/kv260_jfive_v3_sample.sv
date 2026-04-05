@@ -18,12 +18,12 @@ module kv260_jfive_v3_sample
     //  PS
     // ---------------------------------
 
-    logic   reset;
-    logic   clk;
-    logic   axi4l_aresetn;
-    logic   axi4l_aclk;
-    logic   axi4_aresetn;
-    logic   axi4_aclk;
+    logic   reset           ;
+    logic   clk             ;
+    logic   axi4l_aresetn   ;
+    logic   axi4l_aclk      ;
+    logic   axi4_aresetn    ;
+    logic   axi4_aclk       ;
 
     jelly3_axi4l_if
             #(
@@ -92,7 +92,7 @@ module kv260_jfive_v3_sample
                 .m_axi4_awprot      (axi4_mem.awprot    ),
                 .m_axi4_awqos       (axi4_mem.awqos     ),
                 .m_axi4_awregion    (axi4_mem.awregion  ),
-                .m_axi4_awuser      (axi4_mem.awuser    ),
+//              .m_axi4_awuser      (axi4_mem.awuser    ),
                 .m_axi4_awvalid     (axi4_mem.awvalid   ),
                 .m_axi4_awready     (axi4_mem.awready   ),
                 .m_axi4_wdata       (axi4_mem.wdata     ),
@@ -116,7 +116,7 @@ module kv260_jfive_v3_sample
                 .m_axi4_arprot      (axi4_mem.arprot    ),
                 .m_axi4_arqos       (axi4_mem.arqos     ),
                 .m_axi4_arregion    (axi4_mem.arregion  ),
-                .m_axi4_aruser      (axi4_mem.aruser    ),
+//              .m_axi4_aruser      (axi4_mem.aruser    ),
                 .m_axi4_arvalid     (axi4_mem.arvalid   ),
                 .m_axi4_arready     (axi4_mem.arready   ),
                 .m_axi4_rid         (axi4_mem.rid       ),
@@ -128,50 +128,17 @@ module kv260_jfive_v3_sample
                 .m_axi4_rready      (axi4_mem.rready    )
             );
 
-    // ----------------------------------------
-    //  Address decoder
-    // ----------------------------------------
-
-    /*
-    localparam DEC_CTL  = 0;
-    localparam DEC_MEM  = 1;
-    localparam DEC_NUM  = 2;
-
-    jelly3_axi4l_if
-            #(
-                .ADDR_BITS      (40             ),
-                .DATA_BITS      (32             )
-            )
-        axi4l_dec [DEC_NUM]
-            (
-                .aresetn        (axi4l_aresetn  ),
-                .aclk           (axi4l_aclk     ),
-                .aclken         (1'b1           )
-            );
-    
-    // address map
-    assign {axi4l_dec[DEC_CTL].addr_base, axi4l_dec[DEC_CTL].addr_high} = {40'ha000_0000, 40'ha000_ffff};
-    assign {axi4l_dec[DEC_MEM].addr_base, axi4l_dec[DEC_MEM].addr_high} = {40'ha010_0000, 40'ha01f_ffff};
-
-    jelly3_axi4l_addr_decoder
-            #(
-                .NUM            (DEC_NUM    ),
-                .DEC_ADDR_BITS  (28         )
-            )
-        u_axi4l_addr_decoder
-            (
-                .s_axi4l        (axi4l_ctl   ),
-                .m_axi4l        (axi4l_dec    )
-            );
-    */
-
 
     // ---------------------------------
     //  JFive Core
     // ---------------------------------
 
+    localparam  bit                         S_AXI4L_CLT_ASYNC = 1'b1                                ;
+    localparam  bit                         S_AXI4_MEM_ASYNC  = 1'b1                                ;
     localparam  int                         XLEN              = 32                                  ;
-    localparam  int                         THREADS           = 4;//8                                   ;
+//  localparam  int                         THREADS           = 1                                   ;
+    localparam  int                         THREADS           = 4                                   ;
+//  localparam  int                         THREADS           = 8                                   ;
     localparam  int                         ID_BITS           = THREADS > 1 ? $clog2(THREADS) : 1   ;
     localparam  type                        id_t              = logic         [ID_BITS-1:0]         ;
     localparam  int                         PC_BITS           = 32                                  ;
@@ -179,74 +146,33 @@ module kv260_jfive_v3_sample
     localparam  pc_t                        PC_MASK           = '0                                  ;
     localparam  type                        rval_t            = logic signed  [XLEN-1:0]            ;
     localparam  int                         LOAD_QUES         = 2                                   ;
-    localparam   int                        TCM_MEM_SIZE      = 4 * 1024                            ;
-    localparam   rval_t                     TCM_ADDR_LO       = 32'h0000_0000                       ;
-    localparam   rval_t                     TCM_ADDR_HI       = 32'h7fff_ffff                       ;
+    localparam  int                         TCM_MEM_SIZE      = 64 * 1024                           ;
+    localparam  rval_t                      TCM_ADDR_LO       = 32'h0000_0000                       ;
+    localparam  rval_t                      TCM_ADDR_HI       = 32'h7fff_ffff                       ;
     localparam                              TCM_RAM_TYPE      = "block"                             ;
-    localparam   bit                        TCM_READMEMB      = 1'b0                                ;
-    localparam   bit                        TCM_READMEMH      = 1'b1                                ;
-    localparam                              TCM_READMEM_FIlE  = "../../../mem.hex"                  ;
-    localparam  int                         M_AXI4L_PORTS     = 1                                   ;
+    localparam                              TCM_RAM_MODE      = "NO_CHANGE"                         ;
+    localparam  bit                         TCM_FILLMEM       = 1                                   ;
+    localparam  logic   [31:0]              TCM_FILLMEM_DATA  = '0                                  ;
+    localparam  bit                         TCM_READMEMB      = 1'b0                                ;
+    localparam  bit                         TCM_READMEMH      = 1'b1                                ;
+    localparam                              TCM_READMEM_FIlE  = "../../../jfive/jfive_mem.hex"      ;
+    localparam  int                         M_AXI4L_PORTS     = 2                                   ;
     localparam  int                         M_AXI4L_ADDR_BITS = 32                                  ;
     localparam  type                        m_axi4l_data_t    = logic   [M_AXI4L_ADDR_BITS-1:0]     ;
-    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'h8000_0000}                    ;
-    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'hffff_ffff}                    ;
-
-    localparam  bit     [THREADS-1:0]       INIT_RUN          = 4'hf;//8'hff                               ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'hc000_0000, 32'h8000_0000}     ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'hffff_ffff, 32'hbfff_ffff}     ;
+    localparam  bit     [THREADS-1:0]       INIT_RUN          = THREADS'((1 << THREADS)-1)          ;
     localparam  id_t                        INIT_ID           = '0                                  ;
-    localparam  pc_t    [THREADS-1:0]       INIT_PC           = //'{32'h1c, 32'h18, 32'h14, 32'h10,
-                                                                  '{32'h0c, 32'h08, 32'h04, 32'h00}   ;
-
-    /*
-    jelly3_axi4l_if
-            #(
-                .ADDR_BITS          (40          ),
-                .DATA_BITS          (32          )
-            )
-        s_axi4l_ctl
-            (
-                .aresetn            (~reset     ),
-                .aclk               (clk        ),
-                .aclken             (1'b1       )
-            );
-    
-    jelly3_axi4l_if
-            #(
-                .ADDR_BITS          (40          ),
-                .DATA_BITS          (32          )
-            )
-        s_axi4l_mem
-            (
-                .aresetn            (~reset     ),
-                .aclk               (clk        ),
-                .aclken             (1'b1       )
-            );
-    */
-    /*
-    jelly3_axi4l_if
-            #(
-                .ADDR_BITS      (40             ),
-                .DATA_BITS      (32             )
-            )
-        axi4l_mem
-            (
-                .aresetn        (axi4l_aresetn  ),
-                .aclk           (axi4l_aclk     ),
-                .aclken         (1'b1           )
-            );
-    assign axi4l_mem.awvalid = 1'b0;
-    assign axi4l_mem.wvalid  = 1'b0;
-    assign axi4l_mem.bready  = 1'b0;
-    assign axi4l_mem.arvalid = 1'b0;
-    assign axi4l_mem.rready  = 1'b0;
-    */
+//  localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'h00}                           ; // THREADS = 1
+    localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'h0c, 32'h08, 32'h04, 32'h00}   ; // THREADS = 4
+//  localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'h1c, 32'h18, 32'h14, 32'h10, 32'h0c, 32'h08, 32'h04, 32'h00}; // THREADS = 8
 
     jelly3_axi4l_if
             #(
                 .ADDR_BITS          (32         ),
                 .DATA_BITS          (32         )
             )
-        m_axi4l
+        axi4l_jfive [2]
             (
                 .aresetn            (~reset     ),
                 .aclk               (clk        ),
@@ -263,6 +189,9 @@ module kv260_jfive_v3_sample
                 .TCM_ADDR_LO        (TCM_ADDR_LO        ),
                 .TCM_ADDR_HI        (TCM_ADDR_HI        ),
                 .TCM_RAM_TYPE       (TCM_RAM_TYPE       ),
+                .TCM_RAM_MODE       (TCM_RAM_MODE       ),
+                .TCM_FILLMEM        (TCM_FILLMEM        ),
+                .TCM_FILLMEM_DATA   (TCM_FILLMEM_DATA   ),
                 .TCM_READMEMB       (TCM_READMEMB       ),
                 .TCM_READMEMH       (TCM_READMEMH       ),
                 .TCM_READMEM_FIlE   (TCM_READMEM_FIlE   ),
@@ -285,27 +214,52 @@ module kv260_jfive_v3_sample
 
                 .s_axi4l_ctl        (axi4l_ctl          ),
                 .s_axi4_mem         (axi4_mem           ),
-                .m_axi4l_ext        ('{m_axi4l}         )
+                .m_axi4l_ext        (axi4l_jfive        )
             );
-
 
 
     // ---------------------------------
     //  PMOD
     // ---------------------------------
 
+    jelly3_uart
+            #(
+                .ASYNC              (0                      ),
+                .TX_FIFO_PTR_BITS   (4                      ),
+                .RX_FIFO_PTR_BITS   (4                      ),
+                .RAM_TYPE           ("distributed"          ),
+                .DIVIDER_BITS       (16                     ),
+                .INIT_DIVIDER       (16'(434-1)             ),  // 115200bps@400MHz
+                .DEVICE             (DEVICE                 ),
+                .SIMULATION         (SIMULATION             ),
+                .DEBUG              (DEBUG                  )
+            )
+        u_uart
+            (
+                .uart_reset         (~axi4l_jfive[0].aresetn),
+                .uart_clk           (axi4l_jfive[0].aclk    ),
+                .uart_tx            (pmod[5]                ),
+                .uart_rx            (pmod[6]                ),
+
+                .s_axi4l            (axi4l_jfive[0]         ),
+                .irq_rx             (                       ),
+                .irq_tx             (                       )
+            );
+    
+
     jelly3_axi4l_register
             #(
-                .NUM                (4          ),
-                .BITS               (1          ),
-                .INIT               ('0         )
+                .NUM                (4                      ),
+                .BITS               (1                      ),
+                .INIT               ('0                     )
             )
         u_axi4l_register
             (
-                .s_axi4l            (m_axi4l    ),
-                .value              (pmod[3:0]  )
+                .s_axi4l            (axi4l_jfive[1]         ),
+                .value              (pmod[3:0]              )
             );
 
+    /*
     logic   [27:0]    counter;
     always_ff @(posedge clk) begin
         if (reset) begin
@@ -315,6 +269,7 @@ module kv260_jfive_v3_sample
         end
     end
     assign pmod[7:4] = counter[27:24];
+    */
 
 endmodule
 

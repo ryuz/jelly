@@ -76,6 +76,7 @@ bit_cp: $(BIT_FILE)
 
 $(BIT_FILE): $(SOURCES) $(CONSTRAINS) $(IP_CORES) $(BD_SCRIPTS)
 	rm -f $(PRJ_NAME).xpr
+	rm -fr bd/
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_create_project.tcl | tee vivado_create_project.log
 	vivado -m64 -mode batch -source $(TOP_DIR)/scripts/vivado_implementation.tcl | tee vivado_implementation.log
 

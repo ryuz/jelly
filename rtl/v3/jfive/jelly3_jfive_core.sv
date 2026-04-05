@@ -36,13 +36,13 @@ module jelly3_jfive_core
             parameter   int                     DBUS_STRB_BITS = $bits(dbus_data_t) / 8             ,
             parameter   type                    dbus_strb_t    = logic         [DBUS_STRB_BITS-1:0] ,
 
-            parameter   bit     [THREADS-1:0]   INIT_RUN    = 1                                     ,
-            parameter   id_t                    INIT_ID     = '0                                    ,
-            parameter   pc_t    [THREADS-1:0]   INIT_PC     = '0                                    ,
+            parameter   bit     [THREADS-1:0]   INIT_RUN       = 1                                  ,
+            parameter   id_t                    INIT_ID        = '0                                 ,
+            parameter   pc_t    [THREADS-1:0]   INIT_PC        = '0                                 ,
 
-            parameter                           DEVICE      = "RTL"                                 ,
-            parameter                           SIMULATION  = "false"                               ,
-            parameter                           DEBUG       = "false"                               
+            parameter                           DEVICE         = "RTL"                              ,
+            parameter                           SIMULATION     = "false"                            ,
+            parameter                           DEBUG          = "false"                            
         )
         (
             input   var logic                       reset       ,
@@ -206,7 +206,7 @@ module jelly3_jfive_core
     //  Instruction Decode
     // -----------------------------
 
-    localparam  int     BUSY_RDS         = 3 + LS_UNITS * LOAD_QUES         ;
+    localparam  int     BUSY_RDS         = 3 + LS_UNITS * (LOAD_QUES + 1)   ;
     localparam  bit     RAW_HAZARD       = 1'b1                             ;
     localparam  bit     WAW_HAZARD       = 1'b1                             ;
     localparam  int     SHAMT_BITS       = $clog2(XLEN)                     ;

@@ -1,9 +1,11 @@
 #![no_main]
 #![no_std]
 
+#[macro_use]
+mod uart;
+use uart::*;
 
 use core::panic::PanicInfo;
-
 
 #[panic_handler]
 fn panic(_panic: &PanicInfo<'_>) -> ! {
@@ -11,9 +13,23 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 }
 
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn main(id: u32) -> ! {
+    if id == 0 {
+        uart_init();
+        println!("Hello JFive!");
+    }
+
+    let mut f : f32 = 1.0;
+    let mut count: u32 = 0;
     loop {
+        if id == 0 {
+            count += 1;
+            println!("count: {}", count);
+            println!("{}", f);
+            f *= 1.1;
+        }
+
         let unit : u32 = 10000000;
         write_value(id, 1);
         wait(unit + id*unit);
@@ -32,7 +48,7 @@ fn wait(n: u32) {
 
 // 値出力
 fn write_value(id: u32, value: u32) {
-    let mmio = (0x8000_0000 + 4*id) as *mut u32;
+    let mmio = (0xc000_0000 + 4*id) as *mut u32;
     unsafe {
         core::ptr::write_volatile(mmio, value);
     }

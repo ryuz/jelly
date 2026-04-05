@@ -61,7 +61,7 @@ pub fn get_irq_status() -> u64 {
 }
 
 pub fn get_acc_valid() -> u64 {
-    read_reg(REG_IMG_LK_ACC_IRQ_STATUS) as u64
+    read_reg(REG_IMG_LK_ACC_ACC_VALID) as u64
 }
 
 pub fn start() {
@@ -84,8 +84,8 @@ pub fn irq_handler() {
 
     // 計算
     let det = gx2 * gy2 - gxy * gxy;
-    let dx = 64.0 * -(gx2 * ex - gxy * ey) / det;
-    let dy = 64.0 * -(gy2 * ey - gxy * ex) / det;
+    let dx = 64.0 * -(gy2 * ex - gxy * ey) / det;
+    let dy = 64.0 * -(gx2 * ey - gxy * ex) / det;
 
     /*
     unsafe {

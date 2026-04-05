@@ -2,6 +2,10 @@ use cc::Build;
 use std::{env, error::Error, fs::File, io::Write, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
+    // 依存ファイルの変更を検知
+    println!("cargo:rerun-if-changed=src/crt0.S");
+    println!("cargo:rerun-if-changed=link.lds");
+
     // Rust以外のソースコード
     let src_files = vec![
         ["src/crt0.S", "crt0"],

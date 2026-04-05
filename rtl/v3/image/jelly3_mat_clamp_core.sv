@@ -21,6 +21,8 @@ module jelly3_mat_clamp_core
             input   var logic               enable      ,
             input   var calc_t              min_value   ,
             input   var calc_t              max_value   ,
+            input   var logic               inv         ,
+            input   var logic               zero        ,
             jelly3_mat_if.s                 s_mat       ,
             jelly3_mat_if.m                 m_mat       
         );
@@ -35,8 +37,10 @@ module jelly3_mat_clamp_core
     localparam  type    user_t    = logic    [USER_BITS  -1:0];
 
     function automatic calc_t clamp(input calc_t value);
-        if ( value < min_value ) return min_value;
-        if ( value > max_value ) return max_value;
+        if ( inv               ) value = ~value;
+        if ( value < min_value ) value = min_value;
+        if ( value > max_value ) value = max_value;
+        if ( zero              ) value = value - min_value;
         return value;
     endfunction
 

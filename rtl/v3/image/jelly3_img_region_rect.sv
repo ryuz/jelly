@@ -12,7 +12,7 @@
 `default_nettype none
 
 
-// demosaic with ACPI
+// Image Region Rectangular
 module jelly3_img_region_rect
         #(
             parameter   int             X_BITS            = 11                       ,
