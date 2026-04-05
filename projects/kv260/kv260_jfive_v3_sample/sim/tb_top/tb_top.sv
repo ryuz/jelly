@@ -11,7 +11,7 @@ module tb_top();
         $dumpfile("tb_top.vcd");
         $dumpvars(0, tb_top);
         
-    #100000
+    #10000000
         $finish();
     end
 
@@ -150,7 +150,11 @@ module tb_top();
             );
 
 
-    logic   [31:0]    mem   [0:1023];
+    localparam  int MEM_SIZE = 65536 / 4;
+    logic   [31:0]    mem   [0:MEM_SIZE-1];
+    initial begin
+        $readmemh("../../../jfive/jfive_mem.hex", mem);
+    end
     
     logic   [39:0]  base_mem = 40'ha010_0000;
 
@@ -159,9 +163,10 @@ module tb_top();
         $display("start");
         #1000;
 
-        $readmemh("../../../mem.hex", mem);
-        for (int i=0; i < 1024; i++) begin
-            u_axi4_accessor.write_reg(base_mem, i, mem[i], 4'hf, 16'h12);
+        for ( int i = 0; i < MEM_SIZE; i++ ) begin
+            if ( mem[i] != 0 ) begin
+                u_axi4_accessor.write_reg(base_mem, i, mem[i], 4'hf, 16'h12);
+            end
         end
 
         u_axi4_accessor.read_reg(base_mem, 0, rdata);

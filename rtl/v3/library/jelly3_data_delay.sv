@@ -32,7 +32,7 @@ module jelly3_data_delay
     if ( LATENCY == 0 ) begin : bypass
         assign m_data = s_data;
     end
-    else begin
+    else begin : delay
         data_t  que_data    [0:LATENCY-1];
         always_ff @(posedge clk) begin
             if ( reset ) begin

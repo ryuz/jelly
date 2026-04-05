@@ -287,7 +287,37 @@ module tb_dma_video_write();
                 .buffer_addr
             );
     
-    
+
+    jelly3_model_axi4_s
+            #(
+                .MEM_ADDR_BITS      (16                   ),
+                .READ_DATA_ADDR     (0                    ),
+                .WRITE_LOG_FILE     ("axi4_write_log.txt" ),
+                .READ_LOG_FILE      (""                   ),
+                .AW_DELAY           (0                    ),
+                .AR_DELAY           (0                    ),
+                .AW_FIFO_PTR_BITS   (0                    ),
+                .W_FIFO_PTR_BITS    (0                    ),
+                .B_FIFO_PTR_BITS    (0                    ),
+                .AR_FIFO_PTR_BITS   (0                    ),
+                .R_FIFO_PTR_BITS    (0                    ),
+                .AW_BUSY_RATE       (0                    ),
+                .W_BUSY_RATE        (0                    ),
+                .B_BUSY_RATE        (0                    ),
+                .AR_BUSY_RATE       (0                    ),
+                .R_BUSY_RATE        (0                    ),
+                .AW_RAND_SEED       (0                    ),
+                .W_RAND_SEED        (1                    ),
+                .B_RAND_SEED        (2                    ),
+                .AR_RAND_SEED       (3                    ),
+                .R_RAND_SEED        (4                    )
+            )
+        u_model_axi4_s
+            (
+                .s_axi4             (axi4                 )
+            );
+
+
     /*
 
     // -----------------------------

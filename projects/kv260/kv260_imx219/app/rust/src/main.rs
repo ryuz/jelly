@@ -1,3 +1,4 @@
+
 #![allow(dead_code)]
 
 use std::error::Error;
@@ -11,9 +12,10 @@ use opencv::{
     highgui::*,
 };
 
-use jelly_lib::imx219_control::Imx219Control;
+use jelly_lib::imx219_sensor_driver::Imx219SensorDriver;
 use jelly_lib::linux_i2c::LinuxI2c;
-use jelly_pac::video_dma_control::VideoDmaControl;
+//use jelly_pac::video_dma_control::VideoDmaControl;
+use jelly_lib::video_dma_pac::VideoDmaPac;
 
 // Video format regularizer
 const REG_VIDEO_FMTREG_CORE_ID: usize = 0x00;
@@ -38,9 +40,15 @@ const REG_IMG_DEMOSAIC_CTL_INDEX: usize = 0x07;
 const REG_IMG_DEMOSAIC_PARAM_PHASE: usize = 0x08;
 const REG_IMG_DEMOSAIC_CURRENT_PHASE: usize = 0x18;
 
-fn usleep() {
+/*
+fn wait_1us() {
     thread::sleep(Duration::from_micros(1));
 }
+
+fn usleep(us: u64) {
+    thread::sleep(Duration::from_micros(us));
+}
+*/
 
 fn main() -> Result<(), Box<dyn Error>> {
     // start
@@ -82,7 +90,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let udmabuf_device_name = "udmabuf-jelly-vram0";
     println!("\nudmabuf open");
     let udmabuf_acc =
-        UdmabufAccessor::<usize>::new(udmabuf_device_name, false).expect("Failed to open udmabuf");
+        UdmabufAccessor::<usize>::new(udmabuf_device_name, false)?;
     println!(
         "{} phys addr : 0x{:x}",
         udmabuf_device_name,
@@ -117,7 +125,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // DMA制御
-    let mut vdmaw = VideoDmaControl::new(reg_wdma, 4, 4, Some(usleep)).unwrap();
+    let mut vdmaw = VideoDmaPac::new(reg_wdma, 4, 4, None)?;
 
     // カメラON
     unsafe {
@@ -129,7 +137,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     //    let i2c = Box::new(I2cAccessor::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
     //    let i2c = Box::new(LinuxI2CDevice::new("/dev/i2c-6", 0x10).expect("Failed to open i2c"));
     let i2c = LinuxI2c::new("/dev/i2c-6", 0x10).unwrap();
-    let mut imx219 = Imx219Control::new(i2c);
+    let mut imx219 = Imx219SensorDriver::new(i2c);
     println!("reset");
     imx219.reset()?;
 

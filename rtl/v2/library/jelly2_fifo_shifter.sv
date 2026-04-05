@@ -119,7 +119,7 @@ module jelly2_fifo_shifter
         end
         assign rd_data = reg_rd_data;
     end
-    else begin
+    else begin : bypass_dout_reg
         assign rd_data = reg_dout;
     end
     endgenerate

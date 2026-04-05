@@ -1,0 +1,5 @@
+all:
+{
+    kv260_spartan7_python300.bit
+}
+

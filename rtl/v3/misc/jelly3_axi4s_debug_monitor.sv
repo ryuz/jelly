@@ -28,7 +28,7 @@ module jelly3_axi4s_debug_monitor
         );
     
     localparam  type    tuser_t   = logic [mon_axi4s.USER_BITS-1:0];
-    localparam  type    data_t    = logic [mon_axi4s.USER_BITS-1:0];
+    localparam  type    data_t    = logic [mon_axi4s.DATA_BITS-1:0];
     
     (* MARK_DEBUG = "true" *)   tuser_t     dbg_axi4s_tuser ;
     (* MARK_DEBUG = "true" *)   logic       dbg_axi4s_tlast ;

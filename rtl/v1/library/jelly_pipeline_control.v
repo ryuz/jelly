@@ -53,13 +53,13 @@ module jelly_pipeline_control
     genvar                          j;
     wire    [PIPELINE_STAGES-1:0]   tmp_next_valid;
     generate
-    if ( AUTO_VALID ) begin
+    if ( AUTO_VALID ) begin : blk_auto_balid
         assign tmp_next_valid[0] = stage_cke[0] ? src_valid : stage_valid[0];
         for ( j = 1; j < PIPELINE_STAGES; j = j+1 ) begin : valid_loop
             assign tmp_next_valid[j] = stage_cke[j] ? stage_valid[j-1] : stage_valid[j];
         end
     end
-    else begin
+    else begin : blk_manual_balid
         for ( j = 0; j < PIPELINE_STAGES; j = j+1 ) begin : valid_loop
             assign tmp_next_valid[j] = stage_cke[j] ? next_valid[j] :  stage_valid[j];
         end
@@ -68,7 +68,7 @@ module jelly_pipeline_control
     
     
     generate
-    if ( MASTER_IN_REGS ) begin
+    if ( MASTER_IN_REGS ) begin : blk_master_in_reg
         // CKEをFF打ち
         
         // cke
@@ -144,7 +144,7 @@ module jelly_pipeline_control
         assign src_data    = s_data;
         assign src_valid   = s_valid;
     end
-    else begin
+    else begin : blk_master_no_reg
         // CKEを組み合わせ生成
         
         // master port

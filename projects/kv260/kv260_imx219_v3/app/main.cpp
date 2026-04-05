@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <iostream>
+#include <filesystem>
 
 #include <opencv2/opencv.hpp>
 
@@ -38,7 +39,7 @@ int main(int argc, char *argv[])
     int     a_gain      = 20;
     int     d_gain      = 0;
     int     bayer_phase = 0;
-    int     fmtsel      = 0;
+    int     fmtsel      = 2;
     int     view_scale  = 4;
 
     // 720p
@@ -256,7 +257,8 @@ int main(int argc, char *argv[])
     imx219.SetAoi(width, height, aoi_x, aoi_y, binning, binning);
     imx219.Start();
 
-    int     rec_frame_num = std::min(100, (int)(dmabuf_mem_size / (width * height * 4)));
+    int     rec_frame_num = std::min(1000, (int)(dmabuf_mem_size / (width * height * 4)));
+    std::cout << "rec_frame_num : " << std::dec << rec_frame_num << std::endl;
     int     frame_num     = 1;
 
     if ( rec_frame_num <= 0 ) {
@@ -371,6 +373,9 @@ int main(int argc, char *argv[])
         view_scale = std::max(1, view_scale);
         cv::Mat view_img;
         cv::resize(img, view_img, cv::Size(), 1.0/view_scale, 1.0/view_scale);
+        if ( fmtsel == 2 ) {
+            view_img *= 64;
+        }
         cv::imshow("img", view_img);
 
         // ユーザー操作
@@ -423,20 +428,46 @@ int main(int argc, char *argv[])
             break;
 
         case 'r': // image record
-            std::cout << "record" << std::endl;
-            vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
-            int offset = 0;
-            for ( int i = 0; i < rec_frame_num; i++ ) {
-                char fname[64];
-                sprintf(fname, "rec_%04d.png", i);
-                cv::Mat imgRec(height, width, CV_8UC4);
-                udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
-                offset += width * height * 4;
-                cv::Mat imgRgb;
-                cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
-                cv::imwrite(fname, imgRgb);
+            {
+                // 撮影実施
+                std::cout << "record start " << std::dec << rec_frame_num << std::endl;
+                vdmaw.Oneshot(dmabuf_phys_adr, width, height, rec_frame_num);
+                std::cout << "record end" << std::endl;
+
+                // record ディレクトリが無ければ生成
+                if ( !std::filesystem::exists("record") ) {
+                    std::filesystem::create_directory("record");
+                }
+
+                // 日時でディレクトリ名を生成
+                auto t = std::time(nullptr);
+                auto tm = *std::localtime(&t);
+                char dir_name[64];
+                std::strftime(dir_name, sizeof(dir_name), "record/%Y%m%d_%H%M%S", &tm);
+                std::filesystem::create_directory(dir_name);
+
+                int offset = 0;
+                for ( int i = 0; i < rec_frame_num; i++ ) {
+                    char fname[64];
+                    sprintf(fname, "%s/rec_%04d.png", dir_name, i);
+                    if ( fmtsel == 2 || fmtsel == 3 ) {
+                        cv::Mat imgRec(height, width, CV_32S);
+                        udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
+                        offset += width * height * 4;
+                        imgRec.convertTo(imgRec, CV_16U);
+                        cv::imwrite(fname, imgRec);
+                    }
+                    else {
+                        cv::Mat imgRec(height, width, CV_8UC4);
+                        udmabuf_acc.MemCopyTo(imgRec.data, offset, width * height * 4);
+                        offset += width * height * 4;
+                        cv::Mat imgRgb;
+                        cv::cvtColor(imgRec, imgRgb, cv::COLOR_BGRA2BGR);
+                        cv::imwrite(fname, imgRgb);
+                    }
+                }
+                break;
             }
-            break;
         }
     }
 

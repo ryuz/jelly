@@ -94,7 +94,7 @@
         <File path="../../../../rtl/v3/library/jelly3_histry_buffer_mem.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_histry_buffer_mem_sdp.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_ram_simple_dualport.sv" type="file.verilog" enable="1" />
-        <File path="../../../../rtl/v3/library/jelly3_reset.sv" type="file.verilog" enable="1" />
+        <File path="../../../../rtl/v3/library/jelly3_reset_sync.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_skid_buffer.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_stream_delay.sv" type="file.verilog" enable="1" />
         <File path="../../../../rtl/v3/library/jelly3_stream_ff.sv" type="file.verilog" enable="1" />

@@ -11,14 +11,14 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 }
 
 
-extern{
+unsafe extern "C" {
     fn asm_test() -> i32;
 }
 
-static mut DATA : i32 = 0;
+//static mut DATA : i32 = 0;
 
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn main() -> ! {
     println!("Start!");
     
@@ -92,7 +92,7 @@ pub unsafe extern "C" fn main() -> ! {
     */
     
     println!("Hello world!");
-    println!("asm_test:{}", asm_test());
+    println!("asm_test:{}", unsafe{asm_test()});
 
     let mut a :f32 = 0.1;
     for _ in 0..10 {

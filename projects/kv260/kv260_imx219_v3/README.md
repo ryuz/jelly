@@ -9,7 +9,7 @@ Kria KV260 で Raspberry Pi Camera Module V2 (Sony IMX219) を動かすサンプ
 
 ### PC環境
 
-vivado2021.2 を用いております。
+vivado2023.2 を用いております。
 
 
 ### KV260環境
@@ -18,8 +18,8 @@ vivado2021.2 を用いております。
 
 ```
 image       : iot-kria-classic-desktop-2004-x03-20211110-98.img
-Description : Ubuntu 20.04.4 LTS
-kernel      : 5.4.0-1017-xilinx-zynqmp
+Description : Ubuntu 22.04.4 LTS
+kernel      : 5.15.0-1027-xilinx-zynqmp
 ```
 
 
@@ -44,7 +44,7 @@ git clone https://github.com/ryuz/jelly.git
 
 ### PC側の Vivadoで bit ファイルを作る
 
-projects/kv260/kv260_imx219/syn/vivado2021.2
+projects/kv260/kv260_imx219/syn/vivado2023.2
 
 に移動して Vivado から kv260_imx219.xpr を開いてください。
 

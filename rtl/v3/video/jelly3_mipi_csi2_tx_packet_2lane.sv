@@ -17,7 +17,7 @@ module jelly3_mipi_csi2_tx_packet_2lane
             parameter   DEBUG          = "false"    
         )
         (
-            input   var logic   [7:0]   param_type      ,
+            input   var logic   [7:0]   param_dt        ,
             input   var logic   [15:0]  param_wc        ,
 
             input   var logic           frame_start     ,
@@ -31,10 +31,10 @@ module jelly3_mipi_csi2_tx_packet_2lane
     // parameter check
     initial begin
         if (s_axi4s.DATA_BITS != 16) begin
-            $error("s_axi4s.DATA_BITS must be 16, but it is %0d", s_axi4s.DATA_BITS);
+            $error("%m s_axi4s.DATA_BITS must be 16, but it is %0d", s_axi4s.DATA_BITS);
         end
         if (m_axi4s.DATA_BITS != 16) begin
-            $error("m_axi4s.DATA_BITS must be 16, but it is %0d", m_axi4s.DATA_BITS);
+            $error("%m m_axi4s.DATA_BITS must be 16, but it is %0d", m_axi4s.DATA_BITS);
         end
     end
 
@@ -120,7 +120,7 @@ module jelly3_mipi_csi2_tx_packet_2lane
                         end
                         else if ( s_axi4s.tvalid ) begin
                             state    <= HEADER0     ;
-                            reg_id   <= param_type  ;
+                            reg_id   <= param_dt    ;
                             reg_wc   <= param_wc    ;
                         end
                     end

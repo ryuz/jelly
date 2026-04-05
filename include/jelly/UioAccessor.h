@@ -41,18 +41,23 @@ public:
         return std::shared_ptr<AccessorUioManager>(new AccessorUioManager(fname, size, offset, flags));
     }
 
-    void SetIrqEnable(bool enable)
+    bool SetIrqEnable(bool enable)
     {
         unsigned int  irq_en = enable ? 1 : 0;
         auto fd = _super::GetFd();
-        write(fd, &irq_en, sizeof(irq_en));
+        if (write(fd, &irq_en, sizeof(irq_en)) < 0) {
+            return false;
+        }
+        return true;
     }
     
     unsigned int WaitIrq(void)
     {
         unsigned int    count = 0;
         auto fd = _super::GetFd();
-        read(fd, &count, sizeof(count));
+        if (read(fd, &count, sizeof(count)) < 0) {
+            return 0;
+        }
         return count;
     }
 

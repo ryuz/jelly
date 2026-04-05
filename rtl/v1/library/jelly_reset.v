@@ -35,7 +35,7 @@ module jelly_reset
     wire    in_regs_reset;
     generate
     if ( INPUT_REGS > 0 ) begin : blk_input_reg
-        (* ASYNC_REG="true" *)  reg     [INPUT_REGS-1:0]    reg_in_reset;
+        (* ASYNC_REG="true" *)  reg     [INPUT_REGS-1:0]    reg_in_reset = {INPUT_REGS{1'b1}};
         always @(posedge clk or posedge input_reset) begin
             if ( input_reset ) begin
                 reg_in_reset <= {INPUT_REGS{1'b1}};
@@ -56,7 +56,7 @@ module jelly_reset
     wire    counter_reset;
     generate
     if ( COUNTER_WIDTH > 0 ) begin : blk_counter
-        reg     [COUNTER_WIDTH-1:0] reg_counter;
+        reg     [COUNTER_WIDTH-1:0] reg_counter = COUNTER_VALUE;
         always @(posedge clk) begin
             if ( in_regs_reset ) begin
                 reg_counter <= COUNTER_VALUE;
@@ -76,7 +76,7 @@ module jelly_reset
     
     
     // syncrnous reset
-    reg     reg_reset;
+    reg     reg_reset = OUT_LOW_ACTIVE ? 1'b0 : 1'b1;
     always @(posedge clk) begin
         if ( counter_reset ) begin
             reg_reset <= OUT_LOW_ACTIVE ? 1'b0 : 1'b1;

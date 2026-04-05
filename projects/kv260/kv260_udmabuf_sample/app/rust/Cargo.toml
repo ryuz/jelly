@@ -1,9 +1,7 @@
 [package]
-name = "ultra96v2_udmabuf_sample"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+name = "kv260_udmabuf_sample"
+version = "0.1.1"
+edition = "2024"
 
 [dependencies]
 jelly-mem_access = "0.2.3"

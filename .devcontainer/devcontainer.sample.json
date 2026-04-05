@@ -1,0 +1,40 @@
+{
+	"name": "Cross Development",
+//  "image": "ghcr.io/ryuz/jelly/jelly-devcontainer-ubuntu22:latest",
+    "image": "ghcr.io/ryuz/jelly/jelly-devcontainer-ubuntu24:latest",
+//  "image": "ghcr.io/ryuz/jelly/jelly-devcontainer-debian12:latest",
+
+	"mounts": [
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=/tools/Xilinx,target=/tools/Xilinx,type=bind,consistency=cached"
+	],
+
+	"features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    },
+
+	"containerEnv": {
+		"KV260_SERVER_ADDRESS": "${localEnv:KV260_SERVER_ADDRESS}",
+		"KV260_SSH_ADDRESS": "${localEnv:KV260_SSH_ADDRESS}",
+		"ZYBO_Z7_SERVER_ADDRESS": "${localEnv:ZYBO_Z7_SERVER_ADDRESS}",
+		"ZYBO_Z7_SSH_ADDRESS": "${localEnv:ZYBO_Z7_SSH_ADDRESS}",
+		"LD_PRELOAD": "/lib/x86_64-linux-gnu/libudev.so.1"
+	},
+
+ 	"customizations": {
+		"vscode": {
+			"extensions": [
+				"rust-lang.rust-analyzer",
+				"vadimcn.vscode-lldb",
+				"mshr-h.veriloghdl",
+				"tamasfe.even-better-toml",
+				"dustypomerleau.rust-syntax",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-python.autopep8",
+				"ms-toolsai.jupyter",
+				"ambooth.git-rename"
+			]
+		}
+	}
+}

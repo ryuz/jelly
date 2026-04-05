@@ -90,7 +90,7 @@ module jelly_pipeline_insert_ff
         assign buffered        = reg_buf_valid;
         assign s_ready_next    = next_s_ready;
     end
-    else begin
+    else begin : bypass_slave
         assign internal_data   = s_data;
         assign internal_valid  = s_valid;
         assign s_ready         = internal_ready;
@@ -123,7 +123,7 @@ module jelly_pipeline_insert_ff
         assign m_data         = reg_m_data;
         assign m_valid        = reg_m_valid;
     end
-    else begin
+    else begin : bypass_master
         assign internal_ready = m_ready;
         assign m_data         = internal_data;
         assign m_valid        = internal_valid;

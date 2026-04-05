@@ -26,9 +26,7 @@ module kv260_imx219_of_measuring
             output  var logic   [7:0]   pmod
         );
     
-    reg aaa;
-    assign aaa = 1;
-
+    
     // ----------------------------------------
     //  Zynq UltraScale+ MPSoC block
     // ----------------------------------------
@@ -543,7 +541,6 @@ module kv260_imx219_of_measuring
             )
         u_video_format_regularizer
             (
-                .aclken                 (1'b1                       ),
                 .s_axi4s                (axi4s_csi2.s               ),
                 .m_axi4s                (axi4s_fmtr.m               ),
                 .s_axi4l                (axi4l_dec[DEC_FMTR].s      ),

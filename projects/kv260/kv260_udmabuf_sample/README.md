@@ -11,11 +11,13 @@ Zynqを活用するうえで非常に有用なソフトウェアですので同�
 
 ### 環境
 
-環境は下記の通りです。
+[認定Ubuntu](https://ubuntu.com/download/amd) 環境にて試しております。
+
 
 ```
-Description:    Ubuntu 20.04.4 LTS
-kernel:         5.4.0-1017-xilinx-zynqmp
+image: iot-limerick-kria-classic-server-2404-classic-24.04-x05-20241114.img
+Description:    Ubuntu 24.04.3 LTS
+kernel:         6.8.0-1017-xilinx
 ```
 
 KV260 にはインジゲーターとして使えるLEDが無いので、PMOD に LED等を別途準備している前提としています。
@@ -54,7 +56,7 @@ PS用のbitstreamは PC(WindowsやLinuxなど)で Vivado を使って行いま�
 
 Vivado のプロジェクトは
 
-/projects/kv260/kv260_udmabuf_sample/syn/vivado2021.2/kv260_udmabuf_sample.xpr
+/projects/kv260/kv260_udmabuf_sample/syn/vivado2024.2/kv260_udmabuf_sample.xpr
 
 にありますので Vivado で開いてください。
 
@@ -87,7 +89,6 @@ kv260_udmabuf_sample.bit が出来上がります。
 
   KV260 の Linux側で git clone する手もあります。
 
-  （余談ですが、作者はVS code Remote Development を使ってセルフコンパイル開発してそのままpushしています。）
 
 ### 動かしてみる
 

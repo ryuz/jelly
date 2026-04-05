@@ -458,7 +458,7 @@ ASSERT_RLAST_STABLE : assert property(prop_rlast_stable );
 
 
 
-if ( USE_ID ) begin
+if ( USE_ID ) begin : sva_id
     // awid
     property prop_awid_valid ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awid ); endproperty
     property prop_awid_stable; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awid ); endproperty
@@ -484,7 +484,7 @@ if ( USE_ID ) begin
     ASSERT_RID_STABLE : assert property(prop_rid_stable );
 end
         
-if ( USE_SIZE ) begin
+if ( USE_SIZE ) begin : sva_size
     // awsize
     property prop_awsize_valid ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awsize ); endproperty
     property prop_awsize_stable; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awsize ); endproperty
@@ -498,7 +498,7 @@ if ( USE_SIZE ) begin
     ASSERT_ARSIZE_STABLE : assert property(prop_arsize_stable );
 end
 
-if ( USE_BURST ) begin
+if ( USE_BURST ) begin : sva_burst
     // awburst
     property prop_awburst_valid ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awburst ); endproperty
     property prop_awburst_stable; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awburst ); endproperty
@@ -512,7 +512,7 @@ if ( USE_BURST ) begin
     ASSERT_ARBURST_STABLE : assert property(prop_arburst_stable );
 end
 
-if ( USE_LOCK ) begin
+if ( USE_LOCK ) begin : sva_lock
     // awlock
     property prop_awlock_valid ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awlock ); endproperty
     property prop_awlock_stable; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awlock ); endproperty
@@ -526,7 +526,7 @@ if ( USE_LOCK ) begin
     ASSERT_ARLOCK_STABLE : assert property(prop_arlock_stable );
 end 
 
-if ( USE_CACHE ) begin
+if ( USE_CACHE ) begin : sva_cache
     // awcache
     property prop_awcache_valid ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awcache ); endproperty
     property prop_awcache_stable; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awcache ); endproperty
@@ -540,7 +540,7 @@ if ( USE_CACHE ) begin
     ASSERT_ARCACHE_STABLE : assert property(prop_arcache_stable );
 end
 
-if ( USE_PROT ) begin
+if ( USE_PROT ) begin : sva_port
     // awprot
     property prop_awprot_valid ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awprot ); endproperty
     property prop_awprot_stable; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awprot ); endproperty
@@ -554,7 +554,7 @@ if ( USE_PROT ) begin
     ASSERT_ARPROT_STABLE : assert property(prop_arprot_stable );
 end 
 
-if ( USE_QOS ) begin
+if ( USE_QOS ) begin : sva_qos
     // awqos
     property prop_awqos_valid ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awqos ); endproperty
     property prop_awqos_stable; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awqos ); endproperty
@@ -568,7 +568,7 @@ if ( USE_QOS ) begin
     ASSERT_ARQOS_STABLE : assert property(prop_arqos_stable );
 end 
 
-if ( USE_REGION ) begin
+if ( USE_REGION ) begin : sva_region
     // awregion
     property prop_awregion_valid ; @(posedge aclk) disable iff ( ~aresetn ) awvalid |-> !$isunknown(awregion ); endproperty
     property prop_awregion_stable; @(posedge aclk) disable iff ( ~aresetn ) (awvalid && !awready) |=> $stable(awregion ); endproperty
@@ -582,7 +582,7 @@ if ( USE_REGION ) begin
     ASSERT_ARREGION_STABLE : assert property(prop_arregion_stable );
 end 
 
-if ( USE_RESP ) begin
+if ( USE_RESP ) begin : sva_resp
     // bresp
     property prop_bresp_valid ; @(posedge aclk) disable iff ( ~aresetn ) bvalid |-> !$isunknown(bresp ); endproperty
     property prop_bresp_stable; @(posedge aclk) disable iff ( ~aresetn ) (bvalid && !bready) |=> $stable(bresp ); endproperty

@@ -608,6 +608,39 @@
 `define REG_IMG_PREVFRM_CURRENT_RTIMEOUT        'h37
 `define REG_IMG_PREVFRM_CURRENT_INITDATA        'h38
 
+/* LK acc */
+`define REG_IMG_LK_ACC_CORE_ID                  'h00
+`define REG_IMG_LK_ACC_CORE_VERSION             'h01
+`define REG_IMG_LK_ACC_CTL_CONTROL              'h04
+`define REG_IMG_LK_ACC_CTL_STATUS               'h05
+`define REG_IMG_LK_ACC_CTL_INDEX                'h07
+`define REG_IMG_LK_ACC_IRQ_ENABLE               'h08
+`define REG_IMG_LK_ACC_IRQ_STATUS               'h09
+`define REG_IMG_LK_ACC_IRQ_CLR                  'h0a
+`define REG_IMG_LK_ACC_IRQ_SET                  'h0b
+`define REG_IMG_LK_ACC_PARAM_X                  'h10
+`define REG_IMG_LK_ACC_PARAM_Y                  'h11
+`define REG_IMG_LK_ACC_PARAM_WIDTH              'h12
+`define REG_IMG_LK_ACC_PARAM_HEIGHT             'h13
+`define REG_IMG_LK_ACC_ACC_VALID                'h40
+`define REG_IMG_LK_ACC_ACC_READY                'h41
+`define REG_IMG_LK_ACC_ACC_GXX0                 'h42
+`define REG_IMG_LK_ACC_ACC_GXX1                 'h43
+`define REG_IMG_LK_ACC_ACC_GYY0                 'h44
+`define REG_IMG_LK_ACC_ACC_GYY1                 'h45
+`define REG_IMG_LK_ACC_ACC_GXY0                 'h46
+`define REG_IMG_LK_ACC_ACC_GXY1                 'h47
+`define REG_IMG_LK_ACC_ACC_EX0                  'h48
+`define REG_IMG_LK_ACC_ACC_EX1                  'h49
+`define REG_IMG_LK_ACC_ACC_EY0                  'h4a
+`define REG_IMG_LK_ACC_ACC_EY1                  'h4b
+`define REG_IMG_LK_ACC_OUT_VALID                'h60
+`define REG_IMG_LK_ACC_OUT_READY                'h61
+`define REG_IMG_LK_ACC_OUT_DX0                  'h64
+`define REG_IMG_LK_ACC_OUT_DX1                  'h65
+`define REG_IMG_LK_ACC_OUT_DY0                  'h66
+`define REG_IMG_LK_ACC_OUT_DY1                  'h67
+
 /* image selector */
 `define REG_IMG_SELECTOR_CORE_ID                'h00
 `define REG_IMG_SELECTOR_CORE_VERSION           'h01

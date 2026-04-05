@@ -165,10 +165,11 @@ module image_processing
                 .param_rows     (param_height       ),
                 .param_cols     (param_width        ),
                 .param_blank    (4'd5               ),
+                
                 .s_axi4s        (s_axi4s            ),
                 .m_axi4s        (m_axi4s            ),
 
-                .img_cke        (cke                ),
+                .out_cke        (cke                ),
                 .m_mat          (img_src.m          ),
                 .s_mat          (img_sink.s         )
         );

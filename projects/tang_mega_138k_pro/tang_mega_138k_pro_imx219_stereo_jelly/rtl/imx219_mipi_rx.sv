@@ -181,14 +181,14 @@ module imx219_mipi_rx
 
     wire    logic   dphy_clk   = dphy_rx_clk;
     wire    logic   dphy_reset;
-    jelly3_reset
+    jelly3_reset_sync
             #(
                 .IN_LOW_ACTIVE      (0              ),
                 .OUT_LOW_ACTIVE     (0              ),
-                .INPUT_REGS         (2              ),
+                .SYNC_REGS          (2              ),
                 .ADDITIONAL_CYCLE   (0              ) 
             )
-        u_reset
+        u_reset_sync
             (
                 .clk                (dphy_clk       ),
                 .cke                (1'b1           ),
