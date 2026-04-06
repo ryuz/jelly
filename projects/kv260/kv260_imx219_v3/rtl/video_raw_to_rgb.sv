@@ -248,8 +248,8 @@ module video_raw_to_rgb
 
     jelly3_mat_if
             #(
-                .CH_BITS        (img_sink.CH_BITS   ),
-                .CH_DEPTH       (img_sink.CH_DEPTH  )
+                .CH_BITS        (M_CH_BITS          ),
+                .CH_DEPTH       (M_CH_DEPTH         )
             )
          img_clamp
             (
@@ -265,6 +265,8 @@ module video_raw_to_rgb
         u_mat_clamp_core
             (
                 .enable         (1'b1               ),
+                .inv            (1'b0               ),
+                .zero           (1'b0               ),
                 .min_value      (11'd0              ),
                 .max_value      (11'd1023           ),
                 .s_mat          (img_demos.s        ),

@@ -1,5 +1,5 @@
 all:
 {
-    kv260_imx219.bit
+    kv260_imx219_sample.bit
 }
 

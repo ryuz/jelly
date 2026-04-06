@@ -46,7 +46,7 @@ module tb_main
     parameter   int     IMG_WIDTH   = 3280 / 2;
     parameter   int     IMG_HEIGHT  = 2464 / 2;
 
-    kv260_imx219
+    kv260_imx219_sample
             #(
                 .WIDTH_BITS     (WIDTH_BITS     ),
                 .HEIGHT_BITS    (HEIGHT_BITS    ),
@@ -90,21 +90,21 @@ module tb_main
                 .USER_BITS      (1),
                 .DATA_BITS      (10)
             )
-        i_axi4s_src
+        axi4s_src
             (
                 .aresetn        (axi4s_src_aresetn  ),
                 .aclk           (axi4s_src_aclk     ),
                 .aclken         (1'b1               )
             );
 
-    assign axi4s_src_aresetn = u_top.u_mipi_csi2_rx.m_axi4s_aresetn;
-    assign axi4s_src_aclk    = u_top.u_mipi_csi2_rx.m_axi4s_aclk;
+    assign axi4s_src_aresetn = u_top.axi4s_csi2.aresetn;
+    assign axi4s_src_aclk    = u_top.axi4s_csi2.aclk;
     
-    always_comb force u_top.u_mipi_csi2_rx.axi4s_tuser  = i_axi4s_src.tuser ;
-    always_comb force u_top.u_mipi_csi2_rx.axi4s_tlast  = i_axi4s_src.tlast ;
-    always_comb force u_top.u_mipi_csi2_rx.axi4s_tdata  = i_axi4s_src.tdata ;
-    always_comb force u_top.u_mipi_csi2_rx.axi4s_tvalid = i_axi4s_src.tvalid;
-    assign i_axi4s_src.tready = u_top.u_mipi_csi2_rx.axi4s_tready;
+    always_comb force u_top.axi4s_csi2.tuser  = axi4s_src.tuser ;
+    always_comb force u_top.axi4s_csi2.tlast  = axi4s_src.tlast ;
+    always_comb force u_top.axi4s_csi2.tdata  = axi4s_src.tdata ;
+    always_comb force u_top.axi4s_csi2.tvalid = axi4s_src.tvalid;
+    assign axi4s_src.tready = u_top.axi4s_csi2.tready;
 
 
     localparam DATA_WIDTH      = 10;
@@ -147,7 +147,7 @@ module tb_main
                 .enable             (1'b1           ),
                 .busy               (               ),
 
-                .m_axi4s            (i_axi4s_src.m  ),
+                .m_axi4s            (axi4s_src.m  ),
                 .out_x              (               ),
                 .out_y              (               ),
                 .out_f              (               )
