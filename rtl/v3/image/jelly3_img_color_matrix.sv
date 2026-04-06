@@ -43,12 +43,12 @@ module jelly3_img_color_matrix
             parameter   bit     signed  [COEFF_BITS-1:0]    INIT_PARAM_MATRIX21  = '0                                   ,
             parameter   bit     signed  [COEFF_BITS-1:0]    INIT_PARAM_MATRIX22  = COEFF_BITS'(1 << COEFF_FRAC_BITS)    ,
             parameter   bit     signed  [COEFF3_BITS-1:0]   INIT_PARAM_MATRIX23  = '0                                   ,
-            parameter   bit             [CH_BITS-1:0]       INIT_PARAM_CLIP_MIN0 = {CH_BITS{1'b0}}                      ,
-            parameter   bit             [CH_BITS-1:0]       INIT_PARAM_CLIP_MAX0 = {CH_BITS{1'b1}}                      ,
-            parameter   bit             [CH_BITS-1:0]       INIT_PARAM_CLIP_MIN1 = {CH_BITS{1'b0}}                      ,
-            parameter   bit             [CH_BITS-1:0]       INIT_PARAM_CLIP_MAX1 = {CH_BITS{1'b1}}                      ,
-            parameter   bit             [CH_BITS-1:0]       INIT_PARAM_CLIP_MIN2 = {CH_BITS{1'b0}}                      ,
-            parameter   bit             [CH_BITS-1:0]       INIT_PARAM_CLIP_MAX2 = {CH_BITS{1'b1}}
+            parameter   ch_t                                INIT_PARAM_CLIP_MIN0 = '0                                   ,
+            parameter   ch_t                                INIT_PARAM_CLIP_MAX0 = '1                                   ,
+            parameter   ch_t                                INIT_PARAM_CLIP_MIN1 = '0                                   ,
+            parameter   ch_t                                INIT_PARAM_CLIP_MAX1 = '1                                   ,
+            parameter   ch_t                                INIT_PARAM_CLIP_MIN2 = '0                                   ,
+            parameter   ch_t                                INIT_PARAM_CLIP_MAX2 = '1
         )
         (
             input   var logic   in_update_req,
@@ -137,12 +137,12 @@ module jelly3_img_color_matrix
     logic   signed  [COEFF_BITS-1:0]    reg_param_matrix21;
     logic   signed  [COEFF_BITS-1:0]    reg_param_matrix22;
     logic   signed  [COEFF3_BITS-1:0]   reg_param_matrix23;
-    logic           [CH_BITS-1:0]       reg_param_clip_min0;
-    logic           [CH_BITS-1:0]       reg_param_clip_max0;
-    logic           [CH_BITS-1:0]       reg_param_clip_min1;
-    logic           [CH_BITS-1:0]       reg_param_clip_max1;
-    logic           [CH_BITS-1:0]       reg_param_clip_min2;
-    logic           [CH_BITS-1:0]       reg_param_clip_max2;
+    ch_t                                reg_param_clip_min0;
+    ch_t                                reg_param_clip_max0;
+    ch_t                                reg_param_clip_min1;
+    ch_t                                reg_param_clip_max1;
+    ch_t                                reg_param_clip_min2;
+    ch_t                                reg_param_clip_max2;
 
     // shadow registers (core domain)
     logic   signed  [COEFF_BITS-1:0]    core_param_matrix00;
@@ -157,12 +157,12 @@ module jelly3_img_color_matrix
     logic   signed  [COEFF_BITS-1:0]    core_param_matrix21;
     logic   signed  [COEFF_BITS-1:0]    core_param_matrix22;
     logic   signed  [COEFF3_BITS-1:0]   core_param_matrix23;
-    logic           [CH_BITS-1:0]       core_param_clip_min0;
-    logic           [CH_BITS-1:0]       core_param_clip_max0;
-    logic           [CH_BITS-1:0]       core_param_clip_min1;
-    logic           [CH_BITS-1:0]       core_param_clip_max1;
-    logic           [CH_BITS-1:0]       core_param_clip_min2;
-    logic           [CH_BITS-1:0]       core_param_clip_max2;
+    ch_t                                core_param_clip_min0;
+    ch_t                                core_param_clip_max0;
+    ch_t                                core_param_clip_min1;
+    ch_t                                core_param_clip_max1;
+    ch_t                                core_param_clip_min2;
+    ch_t                                core_param_clip_max2;
 
     // handshake with core domain
     index_t         update_index;
@@ -252,12 +252,12 @@ module jelly3_img_color_matrix
                 REGADR_PARAM_MATRIX21:  reg_param_matrix21  <=  COEFF_BITS'(write_mask(axi4l_data_t'(reg_param_matrix21 ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_PARAM_MATRIX22:  reg_param_matrix22  <=  COEFF_BITS'(write_mask(axi4l_data_t'(reg_param_matrix22 ), s_axi4l.wdata, s_axi4l.wstrb));
                 REGADR_PARAM_MATRIX23:  reg_param_matrix23  <= COEFF3_BITS'(write_mask(axi4l_data_t'(reg_param_matrix23 ), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_CLIP_MIN0: reg_param_clip_min0 <=     CH_BITS'(write_mask(axi4l_data_t'(reg_param_clip_min0), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_CLIP_MAX0: reg_param_clip_max0 <=     CH_BITS'(write_mask(axi4l_data_t'(reg_param_clip_max0), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_CLIP_MIN1: reg_param_clip_min1 <=     CH_BITS'(write_mask(axi4l_data_t'(reg_param_clip_min1), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_CLIP_MAX1: reg_param_clip_max1 <=     CH_BITS'(write_mask(axi4l_data_t'(reg_param_clip_max1), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_CLIP_MIN2: reg_param_clip_min2 <=     CH_BITS'(write_mask(axi4l_data_t'(reg_param_clip_min2), s_axi4l.wdata, s_axi4l.wstrb));
-                REGADR_PARAM_CLIP_MAX2: reg_param_clip_max2 <=     CH_BITS'(write_mask(axi4l_data_t'(reg_param_clip_max2), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_CLIP_MIN0: reg_param_clip_min0 <=        ch_t'(write_mask(axi4l_data_t'(reg_param_clip_min0), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_CLIP_MAX0: reg_param_clip_max0 <=        ch_t'(write_mask(axi4l_data_t'(reg_param_clip_max0), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_CLIP_MIN1: reg_param_clip_min1 <=        ch_t'(write_mask(axi4l_data_t'(reg_param_clip_min1), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_CLIP_MAX1: reg_param_clip_max1 <=        ch_t'(write_mask(axi4l_data_t'(reg_param_clip_max1), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_CLIP_MIN2: reg_param_clip_min2 <=        ch_t'(write_mask(axi4l_data_t'(reg_param_clip_min2), s_axi4l.wdata, s_axi4l.wstrb));
+                REGADR_PARAM_CLIP_MAX2: reg_param_clip_max2 <=        ch_t'(write_mask(axi4l_data_t'(reg_param_clip_max2), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
                 s_axi4l.bvalid <= 1'b1;

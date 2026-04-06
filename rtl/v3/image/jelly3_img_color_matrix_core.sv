@@ -40,12 +40,12 @@ module jelly3_img_color_matrix_core
             input   var logic   signed  [COEFF_BITS-1:0]    param_matrix22  ,
             input   var logic   signed  [COEFF3_BITS-1:0]   param_matrix23  ,
 
-            input   var logic           [CH_BITS-1:0]       param_clip_min0 ,
-            input   var logic           [CH_BITS-1:0]       param_clip_max0 ,
-            input   var logic           [CH_BITS-1:0]       param_clip_min1 ,
-            input   var logic           [CH_BITS-1:0]       param_clip_max1 ,
-            input   var logic           [CH_BITS-1:0]       param_clip_min2 ,
-            input   var logic           [CH_BITS-1:0]       param_clip_max2 ,
+            input   var ch_t                                param_clip_min0 ,
+            input   var ch_t                                param_clip_max0 ,
+            input   var ch_t                                param_clip_min1 ,
+            input   var ch_t                                param_clip_max1 ,
+            input   var ch_t                                param_clip_min2 ,
+            input   var ch_t                                param_clip_max2 ,
 
             jelly3_mat_if.s     s_img,
             jelly3_mat_if.m     m_img
@@ -54,7 +54,7 @@ module jelly3_img_color_matrix_core
     localparam  int     CH_NUM           = s_img.CH_DEPTH;
     localparam  int     DE_BITS          = s_img.DE_BITS;
     localparam  int     USER_BITS        = s_img.USER_BITS;
-    localparam  int     PACKED_USER_BITS = USER_BITS + DE_BITS + 4 + CH_NUM * CH_BITS;
+    localparam  int     PACKED_USER_BITS = USER_BITS + DE_BITS + 4 + s_img.DATA_BITS;
 
     localparam  type    de_t   = logic [DE_BITS-1:0];
     localparam  type    user_t = logic [USER_BITS-1:0];
@@ -72,9 +72,9 @@ module jelly3_img_color_matrix_core
     logic                                   matrix_row_last;
     logic                                   matrix_col_first;
     logic                                   matrix_col_last;
-    logic   [DE_BITS-1:0]                   matrix_de;
-    logic   [USER_BITS-1:0]                 matrix_user;
-    logic   [CH_BITS-1:0]   [CH_NUM-1:0]   matrix_data_in;
+    de_t                                    matrix_de;
+    user_t                                  matrix_user;
+    ch_t                    [CH_NUM-1:0]    matrix_data_in;
     logic   signed  [INTERNAL_BITS-1:0]     matrix_color0;
     logic   signed  [INTERNAL_BITS-1:0]     matrix_color1;
     logic   signed  [INTERNAL_BITS-1:0]     matrix_color2;
@@ -171,9 +171,9 @@ module jelly3_img_color_matrix_core
     logic                                   clip_row_last   ;
     logic                                   clip_col_first  ;
     logic                                   clip_col_last   ;
-    logic   [DE_BITS-1:0]                   clip_de         ;
-    logic   [USER_BITS-1:0]                 clip_user       ;
-    logic   [CH_BITS-1:0]   [CH_NUM-1:0]   clip_data_in    ;
+    de_t                                    clip_de         ;
+    user_t                                  clip_user       ;
+    ch_t                    [CH_NUM-1:0]    clip_data_in    ;
     ch_t                                    clip_color0     ;
     ch_t                                    clip_color1     ;
     ch_t                                    clip_color2     ;

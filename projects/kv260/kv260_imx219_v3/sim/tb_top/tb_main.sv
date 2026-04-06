@@ -247,7 +247,7 @@ module tb_main
     jelly2_img_slave_model
             #(
                 .COMPONENTS         (1              ),
-                .DATA_WIDTH         (11             ),
+                .DATA_WIDTH         (12             ),
                 .FORMAT             ("P2"           ),
                 .FILE_NAME          ("output/wb_"   ),
                 .FILE_EXT           (".pgm"         ),
