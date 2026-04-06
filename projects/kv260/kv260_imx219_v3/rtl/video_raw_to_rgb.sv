@@ -53,8 +53,8 @@ module video_raw_to_rgb
 
     localparam DEC_WB    = 0;
     localparam DEC_DEMOS = 1;
-
-    localparam DEC_NUM   = 2;
+    localparam DEC_DEMOS = 2;
+    localparam DEC_NUM   = 3;
 
     jelly3_axi4l_if
             #(
@@ -69,8 +69,9 @@ module video_raw_to_rgb
             );
     
     // address map
-    assign {axi4l_dec[DEC_WB   ].addr_base, axi4l_dec[DEC_WB   ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
-    assign {axi4l_dec[DEC_DEMOS].addr_base, axi4l_dec[DEC_DEMOS].addr_high} = {40'ha012_2000, 40'ha012_2fff};
+    assign {axi4l_dec[DEC_WB    ].addr_base, axi4l_dec[DEC_WB    ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
+    assign {axi4l_dec[DEC_DEMOS ].addr_base, axi4l_dec[DEC_DEMOS ].addr_high} = {40'ha012_2000, 40'ha012_2fff};
+    assign {axi4l_dec[DEC_COLMAT].addr_base, axi4l_dec[DEC_COLMAT].addr_high} = {40'ha012_3000, 40'ha013_2fff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -240,6 +241,38 @@ module video_raw_to_rgb
 //   assign img_sink.data        = img_demos.data     ;
 //   assign img_sink.user        = img_demos.user     ;
 //   assign img_sink.valid       = img_demos.valid    ;
+
+
+    jelly3_mat_if
+            #(
+                .CH_BITS        ($bits(ch_t)    ),
+                .CH_DEPTH       (4              )
+            )
+         img_colmat
+            (
+                .reset          (img_src.reset  ),
+                .clk            (img_src.clk    ),
+                .cke            (img_src.cke    )
+            );
+
+    jelly3_img_color_matrix
+            #(
+                .CH_BITS            ($bits(ch_t)            ),
+                .ch_t               (ch_t                   ),
+                .COEFF_INT_BITS     (17                     ),
+                .COEFF_FRAC_BITS    (8                      ),
+                .COEFF3_INT_BITS    (17                     ),
+                .COEFF3_FRAC_BITS   (8                      ),
+                .STATIC_COEFF       (1                      )
+            )
+        u_img_color_matrix
+            (
+                .in_update_req      (in_update_req          ),
+                .s_img              (img_demos.s            ),
+                .m_img              (img_colmat.m           ),
+                .s_axi4l            (axi4l_dec[DEC_COLMAT].s)
+            );
+
 
 
     // -------------------------------------

@@ -29,7 +29,7 @@ module jelly3_img_moment
             parameter   int             REGADR_BITS       = 8                           ,
             parameter   type            regadr_t          = logic [REGADR_BITS-1:0]     ,
             parameter                   CORE_ID           = 32'h527a_5a34               ,
-            parameter                   CORE_VERSION      = 32'h0001_0003               ,
+            parameter                   CORE_VERSION      = 32'h0003_0001               ,
             parameter   bit     [0:0]   INIT_IRQ_ENABLE   = 1'b0                        
         )
         (
