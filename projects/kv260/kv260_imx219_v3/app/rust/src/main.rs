@@ -31,6 +31,22 @@ const REG_VIDEO_FMTREG_PARAM_HEIGHT: usize = 0x11;
 const REG_VIDEO_FMTREG_PARAM_FILL: usize = 0x12;
 const REG_VIDEO_FMTREG_PARAM_TIMEOUT: usize = 0x13;
 
+// White Balance
+const REG_IMG_BAYER_WB_CORE_ID       : usize = 0x00;
+const REG_IMG_BAYER_WB_CORE_VERSION  : usize = 0x01;
+const REG_IMG_BAYER_WB_CTL_CONTROL   : usize = 0x04;
+const REG_IMG_BAYER_WB_CTL_STATUS    : usize = 0x05;
+const REG_IMG_BAYER_WB_CTL_INDEX     : usize = 0x07;
+const REG_IMG_BAYER_WB_PARAM_PHASE   : usize = 0x08;
+const REG_IMG_BAYER_WB_PARAM_OFFSET0 : usize = 0x10;
+const REG_IMG_BAYER_WB_PARAM_OFFSET1 : usize = 0x11;
+const REG_IMG_BAYER_WB_PARAM_OFFSET2 : usize = 0x12;
+const REG_IMG_BAYER_WB_PARAM_OFFSET3 : usize = 0x13;
+const REG_IMG_BAYER_WB_PARAM_COEFF0  : usize = 0x14;
+const REG_IMG_BAYER_WB_PARAM_COEFF1  : usize = 0x15;
+const REG_IMG_BAYER_WB_PARAM_COEFF2  : usize = 0x16;
+const REG_IMG_BAYER_WB_PARAM_COEFF3  : usize = 0x17;
+
 // Demosaic
 const REG_IMG_DEMOSAIC_CORE_ID: usize = 0x00;
 const REG_IMG_DEMOSAIC_CORE_VERSION: usize = 0x01;
@@ -108,11 +124,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("uio_pl_peri phys addr : 0x{:x}", uio_acc.phys_addr());
     println!("uio_pl_peri size      : 0x{:x}", uio_acc.size());
 
-    let reg_gid = uio_acc.subclone(0x00000000, 0x400);
-    let reg_fmtr = uio_acc.subclone(0x00100000, 0x400);
-    let reg_demos = uio_acc.subclone(0x00120000, 0x400);
+    let reg_gid    = uio_acc.subclone(0x00000000, 0x400);
+    let reg_fmtr   = uio_acc.subclone(0x00100000, 0x400);
+    let reg_wb     = uio_acc.subclone(0x00121000, 0x400);
+    let reg_demos  = uio_acc.subclone(0x00122000, 0x400);
     let reg_colmat = uio_acc.subclone(0x00120800, 0x400);
-    let reg_wdma = uio_acc.subclone(0x00210000, 0x400);
+    let reg_wdma   = uio_acc.subclone(0x00210000, 0x400);
 
     println!("CORE ID");
     unsafe {
@@ -123,6 +140,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("reg_colmat : {:08x}", reg_colmat.read_reg(0));
         println!("reg_wdma   : {:08x}", reg_wdma.read_reg(0));
     }
+
+    unsafe {
+        // White Balance
+        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET0,    66); // black level R 
+        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET1,    66); // black level G
+        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET2,    66); // black level G
+        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET3,    66); // black level B
+        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4620); // white balance R
+        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096); // white balance G
+        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096); // white balance G
+        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428); // white balance B
+    }
+
 
     // DMA制御
     let mut vdmaw = VideoDmaPac::new(reg_wdma, 4, 4, None)?;
