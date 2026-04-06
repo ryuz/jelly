@@ -71,7 +71,7 @@ module video_raw_to_rgb
     // address map
     assign {axi4l_dec[DEC_WB    ].addr_base, axi4l_dec[DEC_WB    ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
     assign {axi4l_dec[DEC_DEMOS ].addr_base, axi4l_dec[DEC_DEMOS ].addr_high} = {40'ha012_2000, 40'ha012_2fff};
-    assign {axi4l_dec[DEC_COLMAT].addr_base, axi4l_dec[DEC_COLMAT].addr_high} = {40'ha012_3000, 40'ha013_2fff};
+    assign {axi4l_dec[DEC_COLMAT].addr_base, axi4l_dec[DEC_COLMAT].addr_high} = {40'ha012_3000, 40'ha012_3fff};
 
     jelly3_axi4l_addr_decoder
             #(

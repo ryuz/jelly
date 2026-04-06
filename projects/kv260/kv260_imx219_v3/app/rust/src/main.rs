@@ -56,6 +56,58 @@ const REG_IMG_DEMOSAIC_CTL_INDEX: usize = 0x07;
 const REG_IMG_DEMOSAIC_PARAM_PHASE: usize = 0x08;
 const REG_IMG_DEMOSAIC_CURRENT_PHASE: usize = 0x18;
 
+// Color Matrix
+const REG_IMG_COLMAT_CORE_ID               : usize = 0x00;
+const REG_IMG_COLMAT_CORE_VERSION          : usize = 0x01;
+const REG_IMG_COLMAT_CTL_CONTROL           : usize = 0x04;
+const REG_IMG_COLMAT_CTL_STATUS            : usize = 0x05;
+const REG_IMG_COLMAT_CTL_INDEX             : usize = 0x07;
+const REG_IMG_COLMAT_PARAM_MATRIX00        : usize = 0x10;
+const REG_IMG_COLMAT_PARAM_MATRIX01        : usize = 0x11;
+const REG_IMG_COLMAT_PARAM_MATRIX02        : usize = 0x12;
+const REG_IMG_COLMAT_PARAM_MATRIX03        : usize = 0x13;
+const REG_IMG_COLMAT_PARAM_MATRIX10        : usize = 0x14;
+const REG_IMG_COLMAT_PARAM_MATRIX11        : usize = 0x15;
+const REG_IMG_COLMAT_PARAM_MATRIX12        : usize = 0x16;
+const REG_IMG_COLMAT_PARAM_MATRIX13        : usize = 0x17;
+const REG_IMG_COLMAT_PARAM_MATRIX20        : usize = 0x18;
+const REG_IMG_COLMAT_PARAM_MATRIX21        : usize = 0x19;
+const REG_IMG_COLMAT_PARAM_MATRIX22        : usize = 0x1a;
+const REG_IMG_COLMAT_PARAM_MATRIX23        : usize = 0x1b;
+const REG_IMG_COLMAT_PARAM_CLIP_MIN0       : usize = 0x20;
+const REG_IMG_COLMAT_PARAM_CLIP_MAX0       : usize = 0x21;
+const REG_IMG_COLMAT_PARAM_CLIP_MIN1       : usize = 0x22;
+const REG_IMG_COLMAT_PARAM_CLIP_MAX1       : usize = 0x23;
+const REG_IMG_COLMAT_PARAM_CLIP_MIN2       : usize = 0x24;
+const REG_IMG_COLMAT_PARAM_CLIP_MAX2       : usize = 0x25;
+const REG_IMG_COLMAT_CFG_COEFF0_BITS       : usize = 0x40;
+const REG_IMG_COLMAT_CFG_COEFF1_BITS       : usize = 0x41;
+const REG_IMG_COLMAT_CFG_COEFF2_BITS       : usize = 0x42;
+const REG_IMG_COLMAT_CFG_COEFF3_BITS       : usize = 0x43;
+const REG_IMG_COLMAT_CFG_COEFF0_FRAC_BITS  : usize = 0x44;
+const REG_IMG_COLMAT_CFG_COEFF1_FRAC_BITS  : usize = 0x45;
+const REG_IMG_COLMAT_CFG_COEFF2_FRAC_BITS  : usize = 0x46;
+const REG_IMG_COLMAT_CFG_COEFF3_FRAC_BITS  : usize = 0x47;
+const REG_IMG_COLMAT_CURRENT_MATRIX00      : usize = 0x90;
+const REG_IMG_COLMAT_CURRENT_MATRIX01      : usize = 0x91;
+const REG_IMG_COLMAT_CURRENT_MATRIX02      : usize = 0x92;
+const REG_IMG_COLMAT_CURRENT_MATRIX03      : usize = 0x93;
+const REG_IMG_COLMAT_CURRENT_MATRIX10      : usize = 0x94;
+const REG_IMG_COLMAT_CURRENT_MATRIX11      : usize = 0x95;
+const REG_IMG_COLMAT_CURRENT_MATRIX12      : usize = 0x96;
+const REG_IMG_COLMAT_CURRENT_MATRIX13      : usize = 0x97;
+const REG_IMG_COLMAT_CURRENT_MATRIX20      : usize = 0x98;
+const REG_IMG_COLMAT_CURRENT_MATRIX21      : usize = 0x99;
+const REG_IMG_COLMAT_CURRENT_MATRIX22      : usize = 0x9a;
+const REG_IMG_COLMAT_CURRENT_MATRIX23      : usize = 0x9b;
+const REG_IMG_COLMAT_CURRENT_CLIP_MIN0     : usize = 0xa0;
+const REG_IMG_COLMAT_CURRENT_CLIP_MAX0     : usize = 0xa1;
+const REG_IMG_COLMAT_CURRENT_CLIP_MIN1     : usize = 0xa2;
+const REG_IMG_COLMAT_CURRENT_CLIP_MAX1     : usize = 0xa3;
+const REG_IMG_COLMAT_CURRENT_CLIP_MIN2     : usize = 0xa4;
+const REG_IMG_COLMAT_CURRENT_CLIP_MAX2     : usize = 0xa5;
+
+
 /*
 fn wait_1us() {
     thread::sleep(Duration::from_micros(1));
@@ -164,6 +216,44 @@ fn main() -> Result<(), Box<dyn Error>> {
             reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF2 , 4096); // white balance G
             reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 4096); // white balance B
         }
+
+        // Color Matrix
+        // [6022, -2314,  394]
+        // [-936,  4728,  310]
+        // [ 300, -4324, 8126]
+
+        println!("REG_IMG_COLMAT_PARAM_MATRIX00  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX00 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX01  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX01 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX02  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX02 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX03  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX03 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX10  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX10 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX11  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX11 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX12  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX12 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX13  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX13 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX20  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX20 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX21  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX21 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX22  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX22 ));
+        println!("REG_IMG_COLMAT_PARAM_MATRIX23  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX23 ));
+        println!("REG_IMG_COLMAT_PARAM_CLIP_MIN0 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN0));
+        println!("REG_IMG_COLMAT_PARAM_CLIP_MAX0 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX0));
+        println!("REG_IMG_COLMAT_PARAM_CLIP_MIN1 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN1));
+        println!("REG_IMG_COLMAT_PARAM_CLIP_MAX1 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX1));
+        println!("REG_IMG_COLMAT_PARAM_CLIP_MIN2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN2));
+        println!("REG_IMG_COLMAT_PARAM_CLIP_MAX2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX2));
+
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX00,  6022 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX01, -2314 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX02,   394 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX03,     0 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX10,  -936 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX11,  4728 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX12,   310 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX13,     0 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX20,   300 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX21, -4324 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX22,  8126 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX23,     0 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_CTL_CONTROL, 3); // update & enable
     }
 
 
