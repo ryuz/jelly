@@ -59,14 +59,24 @@ module jelly3_img_color_matrix_core
     localparam  type    de_t   = logic [DE_BITS-1:0];
     localparam  type    user_t = logic [USER_BITS-1:0];
 
+    // ch_t が符号付きかどうかを検出
+    localparam type ch_sign_t = logic signed [$bits(ch_t):0];
+    localparam bit  CH_SIGNED = ch_sign_t'(ch_t'(ch_sign_t'(-1))) == ch_sign_t'(-1);
 
     // matrix
     logic   signed  [CH_BITS:0]             s_color0_signed;
     logic   signed  [CH_BITS:0]             s_color1_signed;
     logic   signed  [CH_BITS:0]             s_color2_signed;
-    assign s_color0_signed = {1'b0, ch_t'(s_img.data[0][0])};
-    assign s_color1_signed = {1'b0, ch_t'(s_img.data[0][1])};
-    assign s_color2_signed = {1'b0, ch_t'(s_img.data[0][2])};
+    if ( CH_SIGNED ) begin : gen_signed
+        assign s_color0_signed = (CH_BITS+1)'($signed(s_img.data[0][0]));
+        assign s_color1_signed = (CH_BITS+1)'($signed(s_img.data[0][1]));
+        assign s_color2_signed = (CH_BITS+1)'($signed(s_img.data[0][2]));
+    end
+    else begin : gen_unsigned
+        assign s_color0_signed = {1'b0, ch_t'(s_img.data[0][0])};
+        assign s_color1_signed = {1'b0, ch_t'(s_img.data[0][1])};
+        assign s_color2_signed = {1'b0, ch_t'(s_img.data[0][2])};
+    end
 
     logic                                   matrix_row_first;
     logic                                   matrix_row_last;

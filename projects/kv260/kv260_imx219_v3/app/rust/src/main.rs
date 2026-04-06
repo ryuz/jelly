@@ -128,7 +128,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let reg_fmtr   = uio_acc.subclone(0x00100000, 0x400);
     let reg_wb     = uio_acc.subclone(0x00121000, 0x400);
     let reg_demos  = uio_acc.subclone(0x00122000, 0x400);
-    let reg_colmat = uio_acc.subclone(0x00120800, 0x400);
+    let reg_colmat = uio_acc.subclone(0x00123000, 0x400);
     let reg_wdma   = uio_acc.subclone(0x00210000, 0x400);
 
     println!("CORE ID");
@@ -143,14 +143,27 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     unsafe {
         // White Balance
-        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET0,    66); // black level R 
-        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET1,    66); // black level G
-        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET2,    66); // black level G
-        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET3,    66); // black level B
-        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4620); // white balance R
-        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096); // white balance G
-        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096); // white balance G
-        reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428); // white balance B
+        if true {
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET0,    66); // black level R
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET1,    66); // black level G
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET2,    66); // black level G
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET3,    66); // black level B
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF0 ,  4620); // white balance R
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096); // white balance G
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096); // white balance G
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428); // white balance B
+            reg_wb.write_reg(REG_IMG_BAYER_WB_CTL_CONTROL, 3); // update & enable
+        }
+        else {
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET0,    0); // black level R
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET1,    0); // black level G
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET2,    0); // black level G
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET3,    0); // black level B
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF0 , 4096); // white balance R
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF1 , 4096); // white balance G
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF2 , 4096); // white balance G
+            reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 4096); // white balance B
+        }
     }
 
 
