@@ -258,8 +258,8 @@ module video_raw_to_rgb
             #(
                 .CH_BITS                ($bits(ch_t)            ),
                 .ch_t                   (ch_t                   ),
-                .COEFF_INT_BITS         (17                     ),
-                .COEFF_FRAC_BITS        (8                      ),
+                .COEFF_INT_BITS         (9                      ),
+                .COEFF_FRAC_BITS        (16                     ),
                 .COEFF3_INT_BITS        (17                     ),
                 .COEFF3_FRAC_BITS       (8                      ),
                 .STATIC_COEFF           (1                      ),

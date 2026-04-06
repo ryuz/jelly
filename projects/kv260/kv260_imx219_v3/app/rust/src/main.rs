@@ -241,18 +241,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("REG_IMG_COLMAT_PARAM_CLIP_MIN2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN2));
         println!("REG_IMG_COLMAT_PARAM_CLIP_MAX2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX2));
 
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX00,  6022 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX01, -2314 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX02,   394 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX03,     0 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX10,  -936 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX11,  4728 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX12,   310 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX13,     0 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX20,   300 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX21, -4324 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX22,  8126 / 16);
-        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX23,     0 / 16);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX22,  6022 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX21, -2314 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX20,   394 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX23,     0 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX12,  -936 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX11,  4728 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX10,   310 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX13,     0 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX02,   300 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX01, -4324 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX00,  8126 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX03,     0 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_CTL_CONTROL, 3); // update & enable
     }
 
