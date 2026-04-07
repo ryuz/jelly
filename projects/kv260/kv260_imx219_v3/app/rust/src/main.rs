@@ -152,6 +152,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let a_gain: i32 = 20;
     let d_gain: i32 = 0;
     let bayer_phase: i32 = 0;
+    let display_gamma: f32 = 2.2;
+    let inv_display_gamma: f32 = 1.0 / display_gamma;
+    let gamma_lut: [u8; 256] = std::array::from_fn(|i| {
+        let x = (i as f32) / 255.0;
+        ((x.powf(inv_display_gamma) * 255.0).clamp(0.0, 255.0).round()) as u8
+    });
     //    let view_scale  : i32 = 2;
 
     // mmap udmabuf
@@ -241,6 +247,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("REG_IMG_COLMAT_PARAM_CLIP_MIN2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN2));
         println!("REG_IMG_COLMAT_PARAM_CLIP_MAX2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX2));
 
+        
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX22,  6022 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX21, -2314 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX20,   394 * 65536 / 4096);
@@ -253,6 +260,21 @@ fn main() -> Result<(), Box<dyn Error>> {
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX01, -4324 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX00,  8126 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX03,     0 * 65536 / 4096);
+        /*
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX00,  6022 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX01, -2314 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX02,   394 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX03,     0 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX10,  -936 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX11,  4728 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX12,   310 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX13,     0 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX20,   300 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX21, -4324 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX22,  8126 * 65536 / 4096);
+        reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX23,     0 * 65536 / 4096);
+        */
+
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_CTL_CONTROL, 3); // update & enable
     }
 
@@ -334,6 +356,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut buf = vec![VecN::<u8, 4>::new(0, 0, 0, 0); (width * height) as usize];
         unsafe {
             udmabuf_acc.copy_to_::<VecN<u8, 4>>(0, buf.as_mut_ptr(), (width * height) as usize);
+            let bytes = std::slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut u8, buf.len() * 4);
+            for px in bytes.chunks_exact_mut(4) {
+                px[0] = gamma_lut[px[0] as usize];
+                px[1] = gamma_lut[px[1] as usize];
+                px[2] = gamma_lut[px[2] as usize];
+            }
             let img = Mat::new_rows_cols_with_data(height, width, &buf).unwrap();
             imshow("img", &img)?;
         }
