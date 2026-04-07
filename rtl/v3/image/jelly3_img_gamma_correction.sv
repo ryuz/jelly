@@ -26,6 +26,7 @@ module jelly3_img_gamma_correction
             parameter   type                    index_t           = logic [INDEX_BITS-1:0]  ,
             parameter   int                     REGADR_BITS       = 16                      ,
             parameter   type                    regadr_t          = logic [REGADR_BITS-1:0] ,
+            parameter   int                     TABLE_ADR_BITS    = $bits(s_data_t) < 8 ? 8 : $bits(s_data_t),
 
             parameter   bit     [2:0]           INIT_CTL_CONTROL  = 3'b000                  ,
             parameter   bit     [CH_DEPTH-1:0]  INIT_PARAM_ENABLE = '0
@@ -44,7 +45,8 @@ module jelly3_img_gamma_correction
     // -------------------------------------
 
     initial begin
-        if ( REGADR_BITS < (S_DATA_BITS + 1) ) $error("REGADR_BITS is too small for gamma table addressing");
+        if ( TABLE_ADR_BITS < S_DATA_BITS )    $error("TABLE_ADR_BITS must be >= S_DATA_BITS");
+        if ( REGADR_BITS < (TABLE_ADR_BITS + 1) ) $error("REGADR_BITS is too small for gamma table addressing");
         if ( CH_DEPTH != s_img.CH_DEPTH )      $error("CH_DEPTH != s_img.CH_DEPTH");
         if ( CH_DEPTH != m_img.CH_DEPTH )      $error("CH_DEPTH != m_img.CH_DEPTH");
         if ( S_DATA_BITS != s_img.CH_BITS )    $warning("S_DATA_BITS != s_img.CH_BITS");
@@ -55,9 +57,6 @@ module jelly3_img_gamma_correction
     localparam type axi4l_data_t = logic [$bits(s_axi4l.wdata)-1:0];
     localparam type axi4l_strb_t = logic [$bits(s_axi4l.wstrb)-1:0];
     localparam type enable_t     = logic [CH_DEPTH-1:0];
-
-    localparam int TABLE_SEL_BITS = REGADR_BITS - S_DATA_BITS;
-    localparam type table_sel_t    = logic [TABLE_SEL_BITS-1:0];
 
     // register address offset
     localparam  regadr_t REGADR_CORE_ID        = regadr_t'('h00);
@@ -73,8 +72,11 @@ module jelly3_img_gamma_correction
 
 
     // registers
-    logic   [2:0]               reg_ctl_control;
-    logic   [CH_DEPTH-1:0]      reg_param_enable;
+    logic       [2:0]               reg_ctl_control ;
+    logic       [CH_DEPTH-1:0]      reg_param_enable;
+    logic       [CH_DEPTH-1:0]      reg_mem_en      ;
+    s_data_t                        reg_mem_addr    ;
+    m_data_t                        reg_mem_din     ;
 
     // shadow registers(core domain)
     logic   [0:0]               core_ctl_control;
@@ -121,6 +123,9 @@ module jelly3_img_gamma_correction
         if ( ~s_axi4l.aresetn ) begin
             reg_ctl_control  <= INIT_CTL_CONTROL;
             reg_param_enable <= INIT_PARAM_ENABLE;
+            reg_mem_en       <= '0;
+            reg_mem_addr     <= 'x;
+            reg_mem_din      <= 'x;
 
             s_axi4l.bvalid <= 1'b0;
             s_axi4l.rdata  <= 'x;
@@ -131,6 +136,9 @@ module jelly3_img_gamma_correction
             if ( update_ack && !reg_ctl_control[2] ) begin
                 reg_ctl_control[1] <= 1'b0;
             end
+            reg_mem_en   <= '0;
+            reg_mem_addr <= 'x;
+            reg_mem_din  <= 'x;
 
             // write
             if ( s_axi4l.bready ) begin
@@ -142,6 +150,13 @@ module jelly3_img_gamma_correction
                 REGADR_PARAM_ENABLE: reg_param_enable <= enable_t'(write_mask(axi4l_data_t'(reg_param_enable), s_axi4l.wdata, s_axi4l.wstrb));
                 default: ;
                 endcase
+                for ( int i = 0; i < CH_DEPTH; i++ ) begin
+                    if ( (regadr_write >> TABLE_ADR_BITS) == regadr_t'(i+1) ) begin
+                        reg_mem_en[i] <= 1'b1;
+                        reg_mem_addr  <= s_data_t'(regadr_write[TABLE_ADR_BITS-1:0]);
+                        reg_mem_din   <= m_data_t'(s_axi4l.wdata);
+                    end
+                end
                 s_axi4l.bvalid <= 1'b1;
             end
 
@@ -151,16 +166,16 @@ module jelly3_img_gamma_correction
             end
             if ( s_axi4l.arvalid && s_axi4l.arready ) begin
                 case ( regadr_read )
-                REGADR_CORE_ID:        s_axi4l.rdata <= axi4l_data_t'(CORE_ID           );
-                REGADR_CORE_VERSION:   s_axi4l.rdata <= axi4l_data_t'(CORE_VERSION      );
-                REGADR_CTL_CONTROL:    s_axi4l.rdata <= axi4l_data_t'(reg_ctl_control   );
-                REGADR_CTL_STATUS:     s_axi4l.rdata <= axi4l_data_t'(core_ctl_control  );
-                REGADR_CTL_INDEX:      s_axi4l.rdata <= axi4l_data_t'(ctl_index         );
-                REGADR_PARAM_ENABLE:   s_axi4l.rdata <= axi4l_data_t'(reg_param_enable  );
-                REGADR_CURRENT_ENABLE: s_axi4l.rdata <= axi4l_data_t'(core_param_enable );
-                REGADR_CFG_TBL_ADDR:   s_axi4l.rdata <= axi4l_data_t'(1 << S_DATA_BITS  );
-                REGADR_CFG_TBL_SIZE:   s_axi4l.rdata <= axi4l_data_t'(1 << S_DATA_BITS  );
-                REGADR_CFG_TBL_WIDTH:  s_axi4l.rdata <= axi4l_data_t'(M_DATA_BITS       );
+                REGADR_CORE_ID:        s_axi4l.rdata <= axi4l_data_t'(CORE_ID               );
+                REGADR_CORE_VERSION:   s_axi4l.rdata <= axi4l_data_t'(CORE_VERSION          );
+                REGADR_CTL_CONTROL:    s_axi4l.rdata <= axi4l_data_t'(reg_ctl_control       );
+                REGADR_CTL_STATUS:     s_axi4l.rdata <= axi4l_data_t'(core_ctl_control      );
+                REGADR_CTL_INDEX:      s_axi4l.rdata <= axi4l_data_t'(ctl_index             );
+                REGADR_PARAM_ENABLE:   s_axi4l.rdata <= axi4l_data_t'(reg_param_enable      );
+                REGADR_CURRENT_ENABLE: s_axi4l.rdata <= axi4l_data_t'(core_param_enable     );
+                REGADR_CFG_TBL_ADDR:   s_axi4l.rdata <= axi4l_data_t'(axi4l_data_t'(1) << TABLE_ADR_BITS);
+                REGADR_CFG_TBL_SIZE:   s_axi4l.rdata <= axi4l_data_t'(axi4l_data_t'(1) << S_DATA_BITS   );
+                REGADR_CFG_TBL_WIDTH:  s_axi4l.rdata <= axi4l_data_t'(M_DATA_BITS           );
                 default:               s_axi4l.rdata <= '0;
                 endcase
                 s_axi4l.rvalid <= 1'b1;
@@ -224,60 +239,50 @@ module jelly3_img_gamma_correction
         end
     end
 
-
-    // table write select
-    table_sel_t wr_tbl_sel;
-    s_data_t    wr_tbl_addr;
-    assign wr_tbl_sel  = table_sel_t'(regadr_write[REGADR_BITS-1:S_DATA_BITS]);
-    assign wr_tbl_addr = s_data_t'(regadr_write[S_DATA_BITS-1:0]);
-
-
     // cores
     m_data_t [CH_DEPTH-1:0] core_data;
     for ( genvar i = 0; i < CH_DEPTH; i++ ) begin : g_core
         jelly3_img_gamma_correction_core
                 #(
-                    .S_DATA_BITS     (S_DATA_BITS),
-                    .s_data_t        (s_data_t   ),
-                    .M_DATA_BITS     (M_DATA_BITS),
-                    .m_data_t        (m_data_t   ),
-                    .RAM_TYPE        (RAM_TYPE   )
+                    .S_DATA_BITS     (S_DATA_BITS               ),
+                    .s_data_t        (s_data_t                  ),
+                    .M_DATA_BITS     (M_DATA_BITS               ),
+                    .m_data_t        (m_data_t                  ),
+                    .RAM_TYPE        (RAM_TYPE                  )
                 )
             u_img_gamma_correction_core
                 (
-                    .reset          (s_img.reset                             ),
-                    .clk            (s_img.clk                               ),
-                    .cke            (s_img.cke                               ),
+                    .reset          (s_img.reset                ),
+                    .clk            (s_img.clk                  ),
+                    .cke            (s_img.cke                  ),
 
-                    .enable         (core_param_enable[i]                    ),
+                    .enable         (core_param_enable[i]       ),
 
-                    .mem_clk        (s_axi4l.aclk                            ),
-                    .mem_en         (s_axi4l.awvalid && s_axi4l.awready &&
-                                     s_axi4l.wvalid  && s_axi4l.wready  &&
-                                     (wr_tbl_sel == table_sel_t'(i+1))       ),
-                    .mem_addr       (wr_tbl_addr                             ),
-                    .mem_din        (m_data_t'(s_axi4l.wdata)                ),
+                    .mem_clk        (s_axi4l.aclk               ),
+                    .mem_en         (reg_mem_en[i]              ),
+                    .mem_addr       (reg_mem_addr               ),
+                    .mem_din        (reg_mem_din                ),
 
-                    .s_data         (s_data_t'(s_img.data[0][i])             ),
+                    .s_data         (s_data_t'(s_img.data[0][i])),
 
-                    .m_data         (core_data[i]                            )
+                    .m_data         (core_data[i]               )
                 );
     end
 
 
     // delay sideband to match 3-cycle LUT path
-    localparam  int     DE_BITS   = s_img.DE_BITS;
-    localparam  int     USER_BITS = s_img.USER_BITS;
-    localparam  type    de_t      = logic [DE_BITS-1:0];
-    localparam  type    user_t    = logic [USER_BITS-1:0];
+    localparam  int     DE_BITS   = s_img.DE_BITS           ;
+    localparam  int     USER_BITS = s_img.USER_BITS         ;
+    localparam  type    de_t      = logic [DE_BITS-1:0]     ;
+    localparam  type    user_t    = logic [USER_BITS-1:0]   ;
 
-    logic               dly_row_first;
-    logic               dly_row_last;
-    logic               dly_col_first;
-    logic               dly_col_last;
-    de_t                dly_de;
-    user_t              dly_user;
-    logic               dly_valid;
+    logic               dly_row_first   ;
+    logic               dly_row_last    ;
+    logic               dly_col_first   ;
+    logic               dly_col_last    ;
+    de_t                dly_de          ;
+    user_t              dly_user        ;
+    logic               dly_valid       ;
 
     jelly3_mat_delay
             #(
