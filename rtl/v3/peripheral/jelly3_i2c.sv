@@ -146,7 +146,7 @@ module jelly3_i2c
         if ( ~s_axi4l.aresetn ) begin
             s_axi4l.bvalid <= 0;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             if ( s_axi4l.bready ) begin
                 s_axi4l.bvalid <= 0;
             end
@@ -162,13 +162,15 @@ module jelly3_i2c
 
     // read
     always_ff @(posedge s_axi4l.aclk ) begin
-        if ( s_axi4l.arvalid && s_axi4l.arready ) begin
-            case ( regadr_read )
-            REGADR_STATUS  : s_axi4l.rdata <= axi4l_data_t'({i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, ack_status, 2'b00, busy});
-            REGADR_RECV    : s_axi4l.rdata <= axi4l_data_t'(recv_data);
-            REGADR_DIVIDER : s_axi4l.rdata <= axi4l_data_t'(divider);
-            default:         s_axi4l.rdata <= '0;
-            endcase
+        if ( s_axi4l.aclken ) begin
+            if ( s_axi4l.arvalid && s_axi4l.arready ) begin
+                case ( regadr_read )
+                REGADR_STATUS  : s_axi4l.rdata <= axi4l_data_t'({i2c_scl_i, i2c_sda_i, i2c_scl_t, i2c_sda_t, ack_status, 2'b00, busy});
+                REGADR_RECV    : s_axi4l.rdata <= axi4l_data_t'(recv_data);
+                REGADR_DIVIDER : s_axi4l.rdata <= axi4l_data_t'(divider);
+                default:         s_axi4l.rdata <= '0;
+                endcase
+            end
         end
     end
 
@@ -176,7 +178,7 @@ module jelly3_i2c
         if ( ~s_axi4l.aresetn ) begin
             s_axi4l.rvalid <= 1'b0;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             if ( s_axi4l.rready ) begin
                 s_axi4l.rvalid <= 1'b0;
             end

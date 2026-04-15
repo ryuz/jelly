@@ -23,7 +23,6 @@ module jelly3_gpio
             parameter   data_t  [N-1:0] INIT_DIR     = '0                       
         )
         (
-            // I2C
             input   var data_t  [N-1:0]     gpio_i  ,
             output  var data_t  [N-1:0]     gpio_o  ,
             output  var data_t  [N-1:0]     gpio_t  ,
@@ -75,7 +74,7 @@ module jelly3_gpio
             s_axi4l.rdata  <= 'x    ;
             s_axi4l.rvalid <= 1'b0  ;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             // write
             if ( s_axi4l.bready ) begin
                 s_axi4l.bvalid <= 0;
