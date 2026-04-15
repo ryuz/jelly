@@ -206,19 +206,17 @@ int main(int argc, char *argv[])
 
     auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
-//  auto reg_prmup  = uio_acc.GetAccessor(0x00011000);
     auto reg_wb     = uio_acc.GetAccessor(0x00121000);
     auto reg_demos  = uio_acc.GetAccessor(0x00122000);
-    auto reg_colmat = uio_acc.GetAccessor(0x00120800);
-//  auto reg_sel    = uio_acc.GetAccessor(0x00130000);
+    auto reg_colmat = uio_acc.GetAccessor(0x00123000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
     
 #if 1
     std::cout << "CORE ID" << std::endl;
     std::cout << std::hex << reg_gpio.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_fmtr.ReadReg(0) << std::endl;
-//  std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
-//  std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_demos.ReadReg(0) << std::endl;
+    std::cout << std::hex << reg_colmat.ReadReg(0) << std::endl;
     std::cout << std::hex << reg_wdma.ReadReg(0) << std::endl;
 #endif
 
