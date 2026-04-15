@@ -84,8 +84,8 @@ pub fn irq_handler() {
 
     // 計算
     let det = gx2 * gy2 - gxy * gxy;
-    let dx = 64.0 * -(gy2 * ex - gxy * ey) / det;
-    let dy = 64.0 * -(gx2 * ey - gxy * ex) / det;
+    let dx = 32.0 * -(gy2 * ex - gxy * ey) / det;
+    let dy = 32.0 * -(gx2 * ey - gxy * ex) / det;
 
     /*
     unsafe {
