@@ -51,10 +51,10 @@ module video_raw_to_rgb
     //  Address decoder
     // ----------------------------------------
 
-    localparam DEC_WB    = 0;
-    localparam DEC_DEMOS = 1;
-
-    localparam DEC_NUM   = 2;
+    localparam DEC_WB     = 0;
+    localparam DEC_DEMOS  = 1;
+    localparam DEC_COLMAT = 2;
+    localparam DEC_NUM    = 3;
 
     jelly3_axi4l_if
             #(
@@ -69,8 +69,9 @@ module video_raw_to_rgb
             );
     
     // address map
-    assign {axi4l_dec[DEC_WB   ].addr_base, axi4l_dec[DEC_WB   ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
-    assign {axi4l_dec[DEC_DEMOS].addr_base, axi4l_dec[DEC_DEMOS].addr_high} = {40'ha012_2000, 40'ha012_2fff};
+    assign {axi4l_dec[DEC_WB    ].addr_base, axi4l_dec[DEC_WB    ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
+    assign {axi4l_dec[DEC_DEMOS ].addr_base, axi4l_dec[DEC_DEMOS ].addr_high} = {40'ha012_2000, 40'ha012_2fff};
+    assign {axi4l_dec[DEC_COLMAT].addr_base, axi4l_dec[DEC_COLMAT].addr_high} = {40'ha012_3000, 40'ha012_3fff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -160,7 +161,7 @@ module video_raw_to_rgb
     // -------------------------------------
 
     // 現像用データサイズ
-    localparam  int     CH_BITS = S_CH_BITS + 1;
+    localparam  int     CH_BITS = S_CH_BITS + 2;
     localparam  type    ch_t    = logic signed [CH_BITS-1:0];
 
     jelly3_mat_if
@@ -191,7 +192,6 @@ module video_raw_to_rgb
             )
         u_img_bayer_white_balance
             (
-                
                 .in_update_req      (in_update_req          ),
                 .s_img              (img_src.s              ),
                 .m_img              (img_wb.m               ),
@@ -242,14 +242,51 @@ module video_raw_to_rgb
 //   assign img_sink.valid       = img_demos.valid    ;
 
 
+    jelly3_mat_if
+            #(
+                .CH_BITS        ($bits(ch_t)    ),
+                .CH_DEPTH       (4              )
+            )
+         img_colmat
+            (
+                .reset          (img_src.reset  ),
+                .clk            (img_src.clk    ),
+                .cke            (img_src.cke    )
+            );
+
+    jelly3_img_color_matrix
+            #(
+                .CH_BITS                ($bits(ch_t)            ),
+                .ch_t                   (ch_t                   ),
+                .COEFF_INT_BITS         (9                      ),
+                .COEFF_FRAC_BITS        (16                     ),
+                .COEFF3_INT_BITS        (17                     ),
+                .COEFF3_FRAC_BITS       (8                      ),
+                .STATIC_COEFF           (1                      ),
+                .INIT_PARAM_CLIP_MIN0   (12'd0                  ),
+                .INIT_PARAM_CLIP_MAX0   (12'd1023               ),
+                .INIT_PARAM_CLIP_MIN1   (12'd0                  ),
+                .INIT_PARAM_CLIP_MAX1   (12'd1023               ),
+                .INIT_PARAM_CLIP_MIN2   (12'd0                  ),
+                .INIT_PARAM_CLIP_MAX2   (12'd1023               )
+            )
+        u_img_color_matrix
+            (
+                .in_update_req          (in_update_req          ),
+                .s_img                  (img_demos.s            ),
+                .m_img                  (img_colmat.m           ),
+                .s_axi4l                (axi4l_dec[DEC_COLMAT].s)
+            );
+
+
     // -------------------------------------
     //  clamp
     // -------------------------------------
 
     jelly3_mat_if
             #(
-                .CH_BITS        (img_sink.CH_BITS   ),
-                .CH_DEPTH       (img_sink.CH_DEPTH  )
+                .CH_BITS        (M_CH_BITS          ),
+                .CH_DEPTH       (M_CH_DEPTH         )
             )
          img_clamp
             (
@@ -265,12 +302,14 @@ module video_raw_to_rgb
         u_mat_clamp_core
             (
                 .enable         (1'b1               ),
-                .min_value      (11'd0              ),
-                .max_value      (11'd1023           ),
-                .s_mat          (img_demos.s        ),
+                .inv            (1'b0               ),
+                .zero           (1'b0               ),
+                .min_value      (12'd0              ),
+                .max_value      (12'd1023           ),
+                .s_mat          (img_colmat.s       ),
                 .m_mat          (img_clamp.m        )
             );
-
+    
     assign img_sink.row_first   = img_clamp.row_first;
     assign img_sink.row_last    = img_clamp.row_last ;
     assign img_sink.col_first   = img_clamp.col_first;

@@ -32,7 +32,7 @@ module jelly3_img_bayer_white_balance
             parameter   type            regadr_t           = logic [REGADR_BITS-1:0]    ,
   
             parameter                   CORE_ID            = 32'h527a_ffff              ,
-            parameter                   CORE_VERSION       = 32'h0001_0000              ,
+            parameter                   CORE_VERSION       = 32'h0003_0001              ,
           
             parameter   bit     [1:0]   INIT_CTL_CONTROL   = 2'b01                      ,
             parameter   phase_t         INIT_PARAM_PHASE   = 2'b00                      ,

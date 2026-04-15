@@ -4,28 +4,26 @@
 
 Kria KV260 で Raspberry Pi Camera Module V2 (Sony IMX219) を動かすサンプルです。
 
-
 ## 環境
 
 ### PC環境
 
-vivado2023.2 を用いております。
+vivado2024.2 を用いております。
 
 
 ### KV260環境
 
-[認定Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html) 環境にて試しております。
+[認定Ubuntu](https://ubuntu.com/download/amd) 環境にて試しております。
 
 ```
-image       : iot-kria-classic-desktop-2004-x03-20211110-98.img
-Description : Ubuntu 22.04.4 LTS
-kernel      : 5.15.0-1027-xilinx-zynqmp
+image       : iot-limerick-kria-classic-server-2404-classic-24.04-x05-20241114.img
+Description : Ubuntu 24.04.3 LTS
+kernel      : 6.8.0-1017-xilinx
 ```
-
 
 ### OpenCV
 
-```
+```bash
 sudo apt update
 sudo apt install libopencv-dev
 ```
@@ -44,9 +42,9 @@ git clone https://github.com/ryuz/jelly.git
 
 ### PC側の Vivadoで bit ファイルを作る
 
-projects/kv260/kv260_imx219/syn/vivado2023.2
+projects/kv260/kv260_imx219_sampe/syn/vivado2024.2
 
-に移動して Vivado から kv260_imx219.xpr を開いてください。
+に移動して Vivado から kv260_imx219_sampe.xpr を開いてください。
 
 最初に BlockDesign を tcl から再構成する必要がります。
 
@@ -57,14 +55,14 @@ Vivado メニューの「Tools」→「Run Tcl Script」で、プロジェクト
 
 design_1 が生成されたら「Flow」→「Run Implementation」で合成を行います。正常に合成できれば
 
-kv260_imx219.runs/impl_1
+kv260_imx219_sample.runs/impl_1
 
-に kv260_imx219.bit が出来上がります。
+に kv260_imx219_sample.bit が出来上がります。
 
 
 ### KV260 でPSソフトをコンパイルして実行
 
-projects/kv260/kv260_imx219/app の内容一式と先ほど合成した kv260_imx219.bit を、KV260 の Ubuntu で作業できる適当なディレクトリにコピーします。bitファイルも同じ app ディレクトリに入れてください。
+projects/kv260/kv260_imx219_sample/app の内容一式と先ほど合成した kv260_imx219_sample.bit を、KV260 の Ubuntu で作業できる適当なディレクトリにコピーします。bitファイルも同じ app ディレクトリに入れてください。
 
 を、KV260 側では Ubuntu が起動済みで ssh などで接続ができている前提ですので scp や samba などでコピーすると良いでしょう。app に関しては を、KV260 から git で clone することも可能です。
 
@@ -83,7 +81,7 @@ projects/kv260/kv260_imx219/app の内容一式と先ほど合成した kv260_im
 make all
 ```
 
-と実行すれば kv260_imx219.out という実行ファイルが生成されます。
+と実行すれば kv260_imx219_sample.out という実行ファイルが生成されます。
 
 ここで
 
@@ -106,7 +104,7 @@ make unload
 
 ```
 make load
-./kv260_imx219.out 1000fps
+./kv260_imx219_sample.out 1000fps
 ```
 
 のようにすれば、640x132での 1000fps モードにも切り替わります(カメラが1000fpsで動くだけで、表示は間引かれて60fpsです)。
