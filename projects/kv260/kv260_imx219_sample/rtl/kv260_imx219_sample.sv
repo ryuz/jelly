@@ -1,4 +1,9 @@
-
+// ---------------------------------------------------------------------------
+//  Jelly  -- The platform for real-time computing
+//
+//                                 Copyright (C) 2008-2026 by Ryuji Fuchikami
+//                                 https://github.com/ryuz/jelly.git
+// ---------------------------------------------------------------------------
 
 
 `timescale 1ns / 1ps
