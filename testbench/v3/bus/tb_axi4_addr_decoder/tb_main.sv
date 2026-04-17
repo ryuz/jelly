@@ -195,6 +195,8 @@ module tb_main
 
     initial begin
         automatic data_t rd_data;
+        automatic data_t wr_other_datas[];
+        automatic data_t rd_other_datas[];
 
         // decode table
         m_axi4[0].addr_base = addr_t'(32'h0000_0000);
@@ -221,8 +223,48 @@ module tb_main
         u_axi4_accessor.read_reg(addr_t'(32'h0000_8000), 0, rd_data, id_t'(7));
         assert (rd_data == data_t'('0)) else $error("out-of-range read data mismatch actual=%08x", rd_data);
 
+        // out-of-range burst read must return LEN+1 beats with zero data
+        u_axi4_accessor.read(
+                id_t'(7),               // id
+                addr_t'(32'h0000_8000), // addr
+                8'd3,                   // len
+                3'h2,                   // size
+                2'b01,                  // burst
+                '0,                     // lock
+                '0,                     // cache
+                '0,                     // prot
+                '0,                     // qos
+                '0,                     // region
+                '0,                     // user
+                rd_other_datas
+            );
+        assert (rd_other_datas.size() == 4)
+            else $error("out-of-range burst read size mismatch size=%0d", rd_other_datas.size());
+        for ( int i = 0; i < 4; i++ ) begin
+            assert (rd_other_datas[i] == data_t'('0))
+                else $error("out-of-range burst read data mismatch beat=%0d actual=%08x", i, rd_other_datas[i]);
+        end
+
         // out-of-range write must not affect mapped region data
         u_axi4_accessor.write_reg(addr_t'(32'h0000_8000), 0, 32'hffff_ffff, 4'hf, id_t'(8));
+
+        // out-of-range burst write must also not affect mapped region data
+        wr_other_datas = '{32'hffff0000, 32'hffff0001, 32'hffff0002, 32'hffff0003};
+        u_axi4_accessor.write(
+                id_t'(8),               // id
+                addr_t'(32'h0000_8000), // addr
+                3'h2,                   // size
+                2'b01,                  // burst
+                '0,                     // lock
+                '0,                     // cache
+                '0,                     // prot
+                '0,                     // qos
+                '0,                     // region
+                '0,                     // user
+                wr_other_datas,         // data []
+                '{4'hf, 4'hf, 4'hf, 4'hf}
+            );
+
         u_axi4_accessor.read_reg(addr_t'(32'h0000_0000), 4, rd_data, id_t'(9));
         assert (rd_data == 32'h1111_0004) else $error("out-of-range write side-effect detected actual=%08x", rd_data);
 

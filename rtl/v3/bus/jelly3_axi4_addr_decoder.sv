@@ -218,6 +218,8 @@ module jelly3_axi4_addr_decoder
     logic           read_other;
 
     id_t            read_other_rid;
+    len_t           read_other_len;
+    len_t           read_other_count;
     logic           read_other_rvalid;
 
     logic [NUM-1:0] m_arvalid;
@@ -228,6 +230,8 @@ module jelly3_axi4_addr_decoder
             read_sel          <= '0;
             read_other        <= 1'b0;
             read_other_rid    <= '0;
+            read_other_len    <= '0;
+            read_other_count  <= '0;
             read_other_rvalid <= 1'b0;
         end
         else begin
@@ -237,13 +241,20 @@ module jelly3_axi4_addr_decoder
                 read_other     <= araddr_other;
                 read_other_rid <= s_axi4.arid;
                 if ( araddr_other ) begin
+                    read_other_len    <= s_axi4.arlen;
+                    read_other_count  <= '0;
                     read_other_rvalid <= 1'b1;
                 end
             end
 
             if ( read_other_rvalid && s_axi4.rready ) begin
-                read_other_rvalid <= 1'b0;
-                read_busy         <= 1'b0;
+                if ( read_other_count >= read_other_len ) begin
+                    read_other_rvalid <= 1'b0;
+                    read_busy         <= 1'b0;
+                end
+                else begin
+                    read_other_count <= read_other_count + len_t'(1);
+                end
             end
 
             for ( int i = 0; i < NUM; i++ ) begin
@@ -284,7 +295,7 @@ module jelly3_axi4_addr_decoder
     assign s_axi4.rid     = read_other_rvalid ? read_other_rid : s_rid_sel;
     assign s_axi4.rdata   = read_other_rvalid ? data_t'('0)    : s_rdata_sel;
     assign s_axi4.rresp   = read_other_rvalid ? resp_t'('0)    : s_rresp_sel;
-    assign s_axi4.rlast   = read_other_rvalid ? 1'b1           : s_rlast_sel;
+    assign s_axi4.rlast   = read_other_rvalid ? (read_other_count >= read_other_len) : s_rlast_sel;
     assign s_axi4.ruser   = read_other_rvalid ? ruser_t'('0)   : s_ruser_sel;
     assign s_axi4.rvalid  = read_other_rvalid || s_rvalid_sel;
 
