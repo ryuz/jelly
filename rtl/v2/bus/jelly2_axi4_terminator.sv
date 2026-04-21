@@ -70,85 +70,76 @@ module jelly2_axi4_terminator
             input   var logic                           s_axi4_rready
         );
 
-    logic   [AXI4_ID_WIDTH-1:0]    reg_awid;
-    logic   [AXI4_LEN_WIDTH-1:0]   reg_awlen;
-    logic                           reg_wbusy;
+    jelly2_axi4_write_terminator
+            #(
+                .AXI4_ID_WIDTH      (AXI4_ID_WIDTH),
+                .AXI4_ADDR_WIDTH    (AXI4_ADDR_WIDTH),
+                .AXI4_DATA_SIZE     (AXI4_DATA_SIZE),
+                .AXI4_DATA_WIDTH    (AXI4_DATA_WIDTH),
+                .AXI4_STRB_WIDTH    (AXI4_STRB_WIDTH),
+                .AXI4_LEN_WIDTH     (AXI4_LEN_WIDTH),
+                .AXI4_QOS_WIDTH     (AXI4_QOS_WIDTH)
+            )
+        i_axi4_write_terminator
+            (
+                .s_axi4_aresetn     (s_axi4_aresetn),
+                .s_axi4_aclk        (s_axi4_aclk),
+                .s_axi4_awid        (s_axi4_awid),
+                .s_axi4_awaddr      (s_axi4_awaddr),
+                .s_axi4_awlen       (s_axi4_awlen),
+                .s_axi4_awsize      (s_axi4_awsize),
+                .s_axi4_awburst     (s_axi4_awburst),
+                .s_axi4_awlock      (s_axi4_awlock),
+                .s_axi4_awcache     (s_axi4_awcache),
+                .s_axi4_awprot      (s_axi4_awprot),
+                .s_axi4_awqos       (s_axi4_awqos),
+                .s_axi4_awregion    (s_axi4_awregion),
+                .s_axi4_awvalid     (s_axi4_awvalid),
+                .s_axi4_awready     (s_axi4_awready),
+                .s_axi4_wdata       (s_axi4_wdata),
+                .s_axi4_wstrb       (s_axi4_wstrb),
+                .s_axi4_wlast       (s_axi4_wlast),
+                .s_axi4_wvalid      (s_axi4_wvalid),
+                .s_axi4_wready      (s_axi4_wready),
+                .s_axi4_bid         (s_axi4_bid),
+                .s_axi4_bresp       (s_axi4_bresp),
+                .s_axi4_bvalid      (s_axi4_bvalid),
+                .s_axi4_bready      (s_axi4_bready)
+            );
 
-    logic   [AXI4_ID_WIDTH-1:0]    reg_arid;
-    logic   [AXI4_LEN_WIDTH-1:0]   reg_arlen;
-    logic                           reg_rbusy;
-
-
-    // write
-    always_ff @(posedge s_axi4_aclk) begin
-        if ( ~s_axi4_aresetn ) begin
-            reg_awid      <= 'x;
-            reg_awlen     <= 'x;
-            reg_wbusy     <= 1'b0;
-            s_axi4_bid    <= 'x;
-            s_axi4_bvalid <= 1'b0;
-        end
-        else begin
-            if ( s_axi4_bvalid && s_axi4_bready ) begin
-                s_axi4_bvalid <= 1'b0;
-            end
-
-            if ( s_axi4_awvalid && s_axi4_awready ) begin
-                reg_awid  <= s_axi4_awid;
-                reg_awlen <= s_axi4_awlen;
-                reg_wbusy <= 1'b1;
-            end
-
-            if ( s_axi4_wvalid && s_axi4_wready ) begin
-                if ( reg_awlen == '0 ) begin
-                    reg_wbusy     <= 1'b0;
-                    s_axi4_bid    <= reg_awid;
-                    s_axi4_bvalid <= 1'b1;
-                end
-                else begin
-                    reg_awlen <= reg_awlen - AXI4_LEN_WIDTH'(1);
-                end
-            end
-        end
-    end
-
-    assign s_axi4_awready = !reg_wbusy && !(s_axi4_bvalid && !s_axi4_bready);
-    assign s_axi4_wready  = reg_wbusy;
-    assign s_axi4_bresp   = '0;
-
-
-    // read
-    always_ff @(posedge s_axi4_aclk) begin
-        if ( ~s_axi4_aresetn ) begin
-            reg_arid      <= 'x;
-            reg_arlen     <= 'x;
-            reg_rbusy     <= 1'b0;
-            s_axi4_rvalid <= 1'b0;
-        end
-        else begin
-            if ( s_axi4_arvalid && s_axi4_arready ) begin
-                reg_arid      <= s_axi4_arid;
-                reg_arlen     <= s_axi4_arlen;
-                reg_rbusy     <= 1'b1;
-                s_axi4_rvalid <= 1'b1;
-            end
-            else if ( s_axi4_rvalid && s_axi4_rready ) begin
-                if ( reg_arlen == '0 ) begin
-                    reg_rbusy     <= 1'b0;
-                    s_axi4_rvalid <= 1'b0;
-                end
-                else begin
-                    reg_arlen <= reg_arlen - AXI4_LEN_WIDTH'(1);
-                end
-            end
-        end
-    end
-
-    assign s_axi4_arready = !reg_rbusy;
-    assign s_axi4_rid     = reg_arid;
-    assign s_axi4_rdata   = READ_VALUE;
-    assign s_axi4_rresp   = '0;
-    assign s_axi4_rlast   = (reg_arlen == '0);
+    jelly2_axi4_read_terminator
+            #(
+                .AXI4_ID_WIDTH      (AXI4_ID_WIDTH),
+                .AXI4_ADDR_WIDTH    (AXI4_ADDR_WIDTH),
+                .AXI4_DATA_SIZE     (AXI4_DATA_SIZE),
+                .AXI4_DATA_WIDTH    (AXI4_DATA_WIDTH),
+                .AXI4_LEN_WIDTH     (AXI4_LEN_WIDTH),
+                .AXI4_QOS_WIDTH     (AXI4_QOS_WIDTH),
+                .READ_VALUE         (READ_VALUE)
+            )
+        i_axi4_read_terminator
+            (
+                .s_axi4_aresetn     (s_axi4_aresetn),
+                .s_axi4_aclk        (s_axi4_aclk),
+                .s_axi4_arid        (s_axi4_arid),
+                .s_axi4_araddr      (s_axi4_araddr),
+                .s_axi4_arlen       (s_axi4_arlen),
+                .s_axi4_arsize      (s_axi4_arsize),
+                .s_axi4_arburst     (s_axi4_arburst),
+                .s_axi4_arlock      (s_axi4_arlock),
+                .s_axi4_arcache     (s_axi4_arcache),
+                .s_axi4_arprot      (s_axi4_arprot),
+                .s_axi4_arqos       (s_axi4_arqos),
+                .s_axi4_arregion    (s_axi4_arregion),
+                .s_axi4_arvalid     (s_axi4_arvalid),
+                .s_axi4_arready     (s_axi4_arready),
+                .s_axi4_rid         (s_axi4_rid),
+                .s_axi4_rdata       (s_axi4_rdata),
+                .s_axi4_rresp       (s_axi4_rresp),
+                .s_axi4_rlast       (s_axi4_rlast),
+                .s_axi4_rvalid      (s_axi4_rvalid),
+                .s_axi4_rready      (s_axi4_rready)
+            );
 
 endmodule
 
