@@ -1,12 +1,32 @@
 
 # device_version
-set device_name $::env(DEVICE_NAME)
-if {[info exists ::env(DEVICE_VERSION)]} {
-    set device_version $::env(DEVICE_VERSION)
-    set_device -device_version $device_version $device_name
+if {[info exists ::env(DEVICE_PART_NUMBER)]} {
+    set device_part_number $::env(DEVICE_PART_NUMBER)
+    if {[info exists ::env(DEVICE_NAME)]} {
+        set device_name $::env(DEVICE_NAME)
+        if {[info exists ::env(DEVICE_VERSION)]} {
+            set device_version $::env(DEVICE_VERSION)
+            set_device -name $device_name -device_version $device_version $device_part_number
+        } else {
+            set_device -name $device_name $device_part_number
+        }
+    } else {
+        if {[info exists ::env(DEVICE_VERSION)]} {
+            set device_version $::env(DEVICE_VERSION)
+            set_device -device_version $device_version $device_part_number
+        } else {
+            set_device $device_part_number
+        }
+    }
 } else {
-#   set device_version "C"
-    set_device $device_name
+    set device_part_number $::env(DEVICE_NAME)
+    if {[info exists ::env(DEVICE_VERSION)]} {
+        set device_version $::env(DEVICE_VERSION)
+        set_device -device_version $device_version $device_part_number
+    } else {
+#       set device_version "C"
+        set_device $device_part_number
+    }
 }
 
 # synthesis_tool
