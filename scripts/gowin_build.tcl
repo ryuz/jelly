@@ -19,6 +19,7 @@ if {[info exists ::env(DEVICE_PART_NUMBER)]} {
         }
     }
 } else {
+    # old version
     set device_part_number $::env(DEVICE_NAME)
     if {[info exists ::env(DEVICE_VERSION)]} {
         set device_version $::env(DEVICE_VERSION)
@@ -65,6 +66,14 @@ if {[info exists ::env(USE_CPU_AS_GPIO)]} {
     set use_cpu_as_gpio "1"
 }
 set_option -use_cpu_as_gpio $use_cpu_as_gpio
+
+# use_i2c_as_gpio
+if {[info exists ::env(USE_I2C_AS_GPIO)]} {
+    set use_i2c_as_gpio $::env(USE_I2C_AS_GPIO)
+} else {
+    set use_i2c_as_gpio "1"
+}
+set_option -use_i2c_as_gpio $use_i2c_as_gpio
 
 
 # top_module
