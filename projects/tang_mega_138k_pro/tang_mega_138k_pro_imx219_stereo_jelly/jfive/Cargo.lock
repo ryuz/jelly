@@ -13,9 +13,9 @@ dependencies = [
 
 [[package]]
 name = "delegate"
-version = "0.13.3"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9b6483c2bbed26f97861cf57651d4f2b731964a28cd2257f934a4b452480d21"
+checksum = "780eb241654bf097afb00fc5f054a09b687dad862e485fdcf8399bb056565370"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -23,10 +23,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "jelly-lib"
+version = "0.2.0"
+source = "git+https://github.com/ryuz/jelly-lib-rs.git?rev=95c01a7#95c01a7397bcb89b2806c610cf98b95062caa8da"
+dependencies = [
+ "jelly-mem_access",
+ "libm",
+]
+
+[[package]]
 name = "jelly-mem_access"
-version = "0.2.2"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dac2e67c72f81b2ec3e00fb2c1d12e4542ef88579d1cc8a76523fb0af149fdfd"
+checksum = "c381ff9c153e350dd09e5335634088bb4b7b153530d5bc4dbabfa0b8b224fc3f"
 dependencies = [
  "delegate",
 ]
@@ -36,6 +45,7 @@ name = "jelly-pac"
 version = "0.1.1"
 dependencies = [
  "delegate",
+ "jelly-lib",
  "jelly-mem_access",
 ]
 
