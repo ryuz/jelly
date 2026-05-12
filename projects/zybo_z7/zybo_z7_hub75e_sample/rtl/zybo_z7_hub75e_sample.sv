@@ -1,11 +1,5 @@
-// ---------------------------------------------------------------------------
-//  Jelly  -- the system on fpga system
-//
-//  Ultra96V2 udmabuf test
-//
-//                                 Copyright (C) 2008-2026 by Ryuji Fuchikami
-//                                 https://github.com/ryuz/jelly.git
-// ---------------------------------------------------------------------------
+
+
 
 `timescale 1ns / 1ps
 `default_nettype none
