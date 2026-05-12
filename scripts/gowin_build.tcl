@@ -54,27 +54,26 @@ set_option -verilog_std $verilog_std
 # use_done_as_gpio
 if {[info exists ::env(USE_DONE_AS_GPIO)]} {
     set use_done_as_gpio $::env(USE_DONE_AS_GPIO)
-} else {
-    set use_done_as_gpio "1"
+    set_option -use_done_as_gpio $use_done_as_gpio
 }
-set_option -use_done_as_gpio $use_done_as_gpio
+
+# use_ready_as_gpio
+if {[info exists ::env(USE_READY_AS_GPIO)]} {
+    set use_ready_as_gpio $::env(USE_READY_AS_GPIO)
+    set_option -use_ready_as_gpio $use_done_as_gpio
+}
 
 # use_cpu_as_gpio
 if {[info exists ::env(USE_CPU_AS_GPIO)]} {
     set use_cpu_as_gpio $::env(USE_CPU_AS_GPIO)
-} else {
-    set use_cpu_as_gpio "1"
+    set_option -use_cpu_as_gpio $use_cpu_as_gpio
 }
-set_option -use_cpu_as_gpio $use_cpu_as_gpio
 
 # use_i2c_as_gpio
 if {[info exists ::env(USE_I2C_AS_GPIO)]} {
     set use_i2c_as_gpio $::env(USE_I2C_AS_GPIO)
-} else {
-    set use_i2c_as_gpio "1"
+    set_option -use_i2c_as_gpio $use_i2c_as_gpio
 }
-set_option -use_i2c_as_gpio $use_i2c_as_gpio
-
 
 # top_module
 if {[info exists ::env(TOP_MODULE)]} {
