@@ -338,6 +338,12 @@ module jelly3_model_axi4_s
     localparam  MEM_ADDR_MASK  = ((1 << MEM_BITS) - 1);
     logic   [AXI_DATA_BITS-1:0]    mem     [MEM_SIZE-1:0];
 
+    initial begin
+        for ( int i = 0; i < MEM_SIZE; ++i ) begin
+            mem[i] = '0;
+        end
+    end
+
     // write
     logic                           reg_awbusy  ;
     logic   [AXI_ID_BITS-1:0]       reg_awid    ;
