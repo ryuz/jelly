@@ -25,7 +25,10 @@ interface jelly3_axi4l_if
 
         parameter           DEVICE     = "RTL"                  ,
         parameter           SIMULATION = "false"                ,
-        parameter           DEBUG      = "false"                
+        parameter           DEBUG      = "false"                ,
+
+        parameter   bit     ALLOW_WDATA_X  = 0                  ,
+        parameter   bit     ALLOW_RDATA_X  = 0                  
     )
     (
         input   var logic   aresetn ,
@@ -279,10 +282,12 @@ ASSERT_AWVALID_STABLE : assert property(prop_awvalid_stable);
 
 
 // wdata
-property prop_wdata_valid  ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wdata ); endproperty
-property prop_wdata_stable ; @(posedge aclk) disable iff ( ~aresetn ) (wvalid && !wready) |=> $stable(wdata ); endproperty
-ASSERT_WDATA_VALID  : assert property(prop_wdata_valid );
-ASSERT_WDATA_STABLE : assert property(prop_wdata_stable );
+if ( !ALLOW_WDATA_X ) begin : sva_wdata_valid
+    property prop_wdata_valid  ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wdata ); endproperty
+    property prop_wdata_stable ; @(posedge aclk) disable iff ( ~aresetn ) (wvalid && !wready) |=> $stable(wdata ); endproperty
+    ASSERT_WDATA_VALID  : assert property(prop_wdata_valid );
+    ASSERT_WDATA_STABLE : assert property(prop_wdata_stable );
+end
 
 // wstrb
 property prop_wstrb_valid  ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wstrb ); endproperty
@@ -324,10 +329,12 @@ ASSERT_ARVALID_STABLE : assert property(prop_arvalid_stable );
 
 
 // rdata
-property prop_rdata_valid  ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rdata ); endproperty
-property prop_rdata_stable ; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rdata ); endproperty
-ASSERT_RDATA_VALID  : assert property(prop_rdata_valid );
-ASSERT_RDATA_STABLE : assert property(prop_rdata_stable );
+if ( !ALLOW_RDATA_X ) begin : sva_rdata_valid
+    property prop_rdata_valid  ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rdata ); endproperty
+    property prop_rdata_stable ; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rdata ); endproperty
+    ASSERT_RDATA_VALID  : assert property(prop_rdata_valid );
+    ASSERT_RDATA_STABLE : assert property(prop_rdata_stable );
+end
 
 // rresp
 property prop_rresp_valid  ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rresp ); endproperty
