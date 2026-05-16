@@ -182,6 +182,40 @@ interface jelly3_axi4l_if
             output  rready      
         );
 
+    modport mon
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+
+            input   aresetn     ,
+            input   aclk        ,
+            input   aclken      ,
+
+            input   awaddr      ,
+            input   awprot      ,
+            input   awvalid     ,
+            input   awready     ,
+
+            input   wstrb       ,
+            input   wdata       ,
+            input   wvalid      ,
+            input   wready      ,
+
+            input   bresp       ,
+            input   bvalid      ,
+            input   bready      ,
+
+            input   araddr      ,
+            input   arprot      ,
+            input   arvalid     ,
+            input   arready     ,
+
+            input   rdata       ,
+            input   rresp       ,
+            input   rvalid      ,
+            input   rready      
+        );
+
     modport sw
         (
             input   addr_base   ,
