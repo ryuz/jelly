@@ -632,6 +632,7 @@ end
             count_wc     <= 0;
             count_ar     <= 0;
             count_r      <= 0;
+            count_rc     <= 0;
         end
         else begin
             count_aw <= count_aw + issue_aw    - issue_b        ;

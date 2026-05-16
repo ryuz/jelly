@@ -1,4 +1,3 @@
-
 # get vivado version
 empty:=
 space:= $(empty) $(empty)
@@ -35,7 +34,6 @@ all: clean build run
 build:
 	xvlog $(VLOGFLAGS) $(SRCS)
 	xelab $(ELABFLAGS) $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip
-#	xelab $(ELABFLAGS) $(TOP_MODULE) glbl -s $(TOP_MODULE) -L unisims_ver -L unimacro_ver -L secureip -L uvm -timescale 1ns/1ps
 
 .PHONY: run
 run:

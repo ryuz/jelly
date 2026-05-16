@@ -1,4 +1,3 @@
-
 # jelly
 JELLY_TOP_DIR = ../../../../..
 -include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
