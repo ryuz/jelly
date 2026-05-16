@@ -21,8 +21,8 @@ module tb_main
     localparam  int     DATA_SIZE       = $clog2(DATA_BYTES);
     localparam  int     WRITE_ADDR_LOW  = 'h0000_0100;
     localparam  int     WRITE_ADDR_HIGH = 'h0000_01ff;
-    localparam  int     READ_ADDR_LOW   = 'h0000_0200;
-    localparam  int     READ_ADDR_HIGH  = 'h0000_02ff;
+    localparam  int     READ_ADDR_LOW   = 'h0000_0100;
+    localparam  int     READ_ADDR_HIGH  = 'h0000_01ff;
     localparam  int     TEST_CYCLES     = 5000;
     localparam  int     WRITE_ID        = 3;
     localparam  int     READ_ID         = 5;
@@ -100,7 +100,7 @@ module tb_main
     jelly3_model_axi4_s
             #(
                 .MEM_ADDR_BITS       (12                  ),
-                .READ_DATA_ADDR      (1                   ),
+                .READ_DATA_ADDR      (0                   ),
                 .WRITE_LOG_FILE      ("slave_write_log.txt"),
                 .READ_LOG_FILE       ("slave_read_log.txt" ),
                 .AW_DELAY            (0                   ),
@@ -128,7 +128,7 @@ module tb_main
 
     jelly3_model_axi4_mem_check
             #(
-                .SHOW_MATCH          (0                   ),
+                .SHOW_MATCH          (1                   ),
                 .SHOW_SKIP           (0                   ),
                 .CHECK_BID           (1                   ),
                 .CHECK_BRESP         (1                   ),
@@ -269,8 +269,6 @@ module tb_main
                     else $error("read response id mismatch expected=%0d actual=%0d", READ_ID, axi4.rid);
                 assert (axi4.rresp == 2'b00)
                     else $error("read response error resp=%0d", axi4.rresp);
-                assert (axi4.rdata == data_t'(mon_read_addr))
-                    else $error("read data mismatch expected=%08x actual=%08x", mon_read_addr, axi4.rdata);
                 assert (axi4.rlast == (mon_read_len == 0))
                     else $error("rlast mismatch addr=%08x len=%0d rlast=%0d", mon_read_addr, mon_read_len, axi4.rlast);
 
