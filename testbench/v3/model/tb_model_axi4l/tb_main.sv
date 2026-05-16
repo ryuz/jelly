@@ -89,9 +89,7 @@ module tb_main
 
     jelly3_model_axi4l_mem_check
             #(
-                .MEM_ADDR_BITS  (12             ),
-                .ADDR_BASE      (0              ),
-                .SHOW_MATCH     (0              ),
+                .SHOW_MATCH     (1              ),
                 .SHOW_SKIP      (0              ),
                 .CHECK_BRESP    (1              ),
                 .CHECK_RRESP    (1              )

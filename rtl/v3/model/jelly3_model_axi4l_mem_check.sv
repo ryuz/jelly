@@ -12,9 +12,6 @@
 
 module jelly3_model_axi4l_mem_check
         #(
-            parameter   int                 MEM_ADDR_BITS    = 10                   ,
-            parameter   int                 MEM_SIZE         = (1 << MEM_ADDR_BITS) ,
-            parameter   longint unsigned    ADDR_BASE        = 0                    ,
             parameter   bit                 SHOW_MATCH       = 0                    ,
             parameter   bit                 SHOW_SKIP        = 0                    ,
             parameter   bit                 CHECK_BRESP      = 1                    ,
@@ -28,7 +25,6 @@ module jelly3_model_axi4l_mem_check
     localparam  int     AXI_DATA_BITS    = mon_axi4l.DATA_BITS                          ;
     localparam  int     AXI_STRB_BITS    = mon_axi4l.STRB_BITS                          ;
     localparam  int     AXI_RESP_BITS    = mon_axi4l.RESP_BITS                          ;
-    localparam  int     AXI_DATA_BYTES   = AXI_STRB_BITS                                ;
     localparam  int     AXI_ADDR_LSB     = AXI_STRB_BITS > 1 ? $clog2(AXI_STRB_BITS) : 0;
     localparam  int     AW_QUEUE_LIMIT   = mon_axi4l.LIMIT_AW > 0 ? mon_axi4l.LIMIT_AW : 1;
     localparam  int     W_QUEUE_LIMIT    = mon_axi4l.LIMIT_W  > 0 ? mon_axi4l.LIMIT_W  : 1;
@@ -39,7 +35,6 @@ module jelly3_model_axi4l_mem_check
     localparam  type    data_t           = logic [AXI_DATA_BITS-1:0]  ;
     localparam  type    strb_t           = logic [AXI_STRB_BITS-1:0]  ;
     localparam  type    resp_t           = logic [AXI_RESP_BITS-1:0]  ;
-    localparam  type    mem_index_t      = logic [MEM_ADDR_BITS-1:0]  ;
 
     addr_t                  aw_queue[$];
     data_t                  wdata_queue[$];
@@ -51,9 +46,9 @@ module jelly3_model_axi4l_mem_check
     addr_t                  rd_addr_queue[$];
     data_t                  rd_expect_queue[$];
     logic                   rd_track_queue[$];
-    logic                   mem_valid            [MEM_SIZE-1:0];
-    data_t                  mem_data             [MEM_SIZE-1:0];
-    int unsigned            pending_write_count  [MEM_SIZE-1:0];
+    bit     [AXI_STRB_BITS-1:0]    mem_valid  [addr_t];
+    data_t                          mem_data   [addr_t];
+    int unsigned                    pending_write_count [addr_t];
 
 
     function automatic addr_t align_addr
@@ -68,29 +63,12 @@ module jelly3_model_axi4l_mem_check
         end
     endfunction
 
-    function automatic bit in_range
+    function automatic bit has_data
             (
                 input   addr_t  addr
             );
-        longint unsigned start_addr;
-        longint unsigned end_addr;
-        longint unsigned byte_span;
     begin
-        byte_span   = longint'(MEM_SIZE) * AXI_DATA_BYTES;
-        start_addr  = ADDR_BASE;
-        end_addr    = ADDR_BASE + (byte_span == 0 ? 0 : (byte_span - 1));
-        in_range    = (longint'(addr) >= start_addr) && (longint'(addr) <= end_addr);
-    end
-    endfunction
-
-    function automatic mem_index_t get_index
-            (
-                input   addr_t  addr
-            );
-        longint unsigned offset;
-    begin
-        offset    = (longint'(addr) - ADDR_BASE) >> AXI_ADDR_LSB;
-        get_index = mem_index_t'(offset);
+        has_data = mem_valid.exists(addr) && (mem_valid[addr] == {AXI_STRB_BITS{1'b1}});
     end
     endfunction
 
@@ -104,7 +82,6 @@ module jelly3_model_axi4l_mem_check
 
     always @(posedge mon_axi4l.aclk) begin
         addr_t          addr;
-        mem_index_t     index;
         data_t          wr_data;
         strb_t          wr_strb;
         data_t          rd_expect;
@@ -122,11 +99,9 @@ module jelly3_model_axi4l_mem_check
             rd_addr_queue.delete();
             rd_expect_queue.delete();
             rd_track_queue.delete();
-            for ( int i = 0; i < MEM_SIZE; ++i ) begin
-                mem_data[i]            <= '0;
-                mem_valid[i]           <= '0;
-                pending_write_count[i] <= '0;
-            end
+            mem_valid.delete();
+            mem_data.delete();
+            pending_write_count.delete();
         end
         else if ( mon_axi4l.aclken ) begin
             if ( issue_aw ) begin
@@ -134,15 +109,8 @@ module jelly3_model_axi4l_mem_check
                     else $error("ERROR: %m: aw queue overflow size=%0d", aw_queue.size());
                 addr = align_addr(mon_axi4l.awaddr);
                 aw_queue.push_back(addr);
-                if ( in_range(addr) ) begin
-                    index = get_index(addr);
-                    mem_valid[index] <= 1'b0;
-                    if ( SHOW_SKIP ) begin
-                        $display("[%m(%t)] write issue invalidate addr=%h", $time, addr);
-                    end
-                end
-                else if ( SHOW_SKIP ) begin
-                    $display("[%m(%t)] write issue out of checker range addr=%h", $time, addr);
+                if ( SHOW_SKIP ) begin
+                    $display("[%m(%t)] write issue addr=%h", $time, addr);
                 end
             end
 
@@ -157,16 +125,18 @@ module jelly3_model_axi4l_mem_check
                 addr = aw_queue.pop_front();
                 wr_data = wdata_queue.pop_front();
                 wr_strb = wstrb_queue.pop_front();
-                wr_track = in_range(addr);
+                wr_track = 1'b1;
 
                 wr_addr_queue.push_back(addr);
                 wr_data_queue.push_back(wr_data);
                 wr_strb_queue.push_back(wr_strb);
                 wr_track_queue.push_back(wr_track);
 
-                if ( wr_track ) begin
-                    index = get_index(addr);
-                    pending_write_count[index] <= pending_write_count[index] + 1;
+                if ( pending_write_count.exists(addr) ) begin
+                    pending_write_count[addr] = pending_write_count[addr] + 1;
+                end
+                else begin
+                    pending_write_count[addr] = 1;
                 end
 
                 assert (wr_addr_queue.size() <= WR_QUEUE_LIMIT)
@@ -175,22 +145,24 @@ module jelly3_model_axi4l_mem_check
 
             if ( issue_ar ) begin
                 addr = align_addr(mon_axi4l.araddr);
-                if ( in_range(addr) ) begin
-                    index = get_index(addr);
-                    rd_addr_queue.push_back(addr);
-                    rd_expect_queue.push_back(mem_data[index]);
-                    rd_track_queue.push_back((pending_write_count[index] == 0) && mem_valid[index]);
-
-                    if ( SHOW_SKIP && !((pending_write_count[index] == 0) && mem_valid[index]) ) begin
-                        $display("[%m(%t)] read issue skip-check addr=%h valid=%b pending=%0d", $time, addr, mem_valid[index], pending_write_count[index]);
+                rd_addr_queue.push_back(addr);
+                if ( has_data(addr) && (!pending_write_count.exists(addr) || pending_write_count[addr] == 0) ) begin
+                    rd_expect_queue.push_back(mem_data[addr]);
+                    rd_track_queue.push_back(1'b1);
+                    if ( SHOW_SKIP ) begin
+                        $display("[%m(%t)] read issue check addr=%h data=%h", $time, addr, mem_data[addr]);
                     end
                 end
                 else begin
-                    rd_addr_queue.push_back(addr);
                     rd_expect_queue.push_back('0);
                     rd_track_queue.push_back(1'b0);
                     if ( SHOW_SKIP ) begin
-                        $display("[%m(%t)] read issue out of checker range addr=%h", $time, addr);
+                        if ( pending_write_count.exists(addr) && pending_write_count[addr] > 0 ) begin
+                            $display("[%m(%t)] read issue skip-check addr=%h pending=%0d", $time, addr, pending_write_count[addr]);
+                        end
+                        else begin
+                            $display("[%m(%t)] read issue skip-check addr=%h unknown", $time, addr);
+                        end
                     end
                 end
 
@@ -207,19 +179,20 @@ module jelly3_model_axi4l_mem_check
                     wr_strb  = wr_strb_queue.pop_front();
                     wr_track = wr_track_queue.pop_front();
                     if ( wr_track ) begin
-                        index = get_index(addr);
-                        if ( pending_write_count[index] > 0 ) begin
-                            pending_write_count[index] <= pending_write_count[index] - 1;
+                        if ( pending_write_count.exists(addr) && pending_write_count[addr] > 0 ) begin
+                            pending_write_count[addr] = pending_write_count[addr] - 1;
                         end
 
                         if ( !CHECK_BRESP || mon_axi4l.bresp == resp_t'(2'b00) ) begin
+                            if ( !mem_valid.exists(addr) ) begin
+                                mem_valid[addr] = '0;
+                                mem_data[addr]  = '0;
+                            end
                             for ( int i = 0; i < AXI_STRB_BITS; ++i ) begin
                                 if ( wr_strb[i] ) begin
-                                    mem_data[index][i*8 +: 8]  <= wr_data[i*8 +: 8];
+                                    mem_data[addr][i*8 +: 8]  = wr_data[i*8 +: 8];
+                                    mem_valid[addr][i]         = 1'b1;
                                 end
-                            end
-                            if ( pending_write_count[index] == 1 ) begin
-                                mem_valid[index] <= 1'b1;
                             end
                         end
                         else begin
@@ -237,7 +210,6 @@ module jelly3_model_axi4l_mem_check
                     rd_expect = rd_expect_queue.pop_front();
                     rd_track  = rd_track_queue.pop_front();
                     if ( rd_track ) begin
-                        index = get_index(addr);
                         if ( CHECK_RRESP && mon_axi4l.rresp != resp_t'(2'b00) ) begin
                             $error("ERROR: %m: rresp error addr=%h resp=%0d", addr, mon_axi4l.rresp);
                         end
