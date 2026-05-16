@@ -139,6 +139,13 @@ module jelly3_model_axi4l_mem_check
                     pending_write_count[addr] = 1;
                 end
 
+                // AR~R の間に同アドレスへの書き込みが確定したので in-flight read の比較を無効化
+                for ( int i = 0; i < rd_addr_queue.size(); ++i ) begin
+                    if ( rd_addr_queue[i] == addr ) begin
+                        rd_track_queue[i] = 1'b0;
+                    end
+                end
+
                 assert (wr_addr_queue.size() <= WR_QUEUE_LIMIT)
                     else $error("ERROR: %m: write-response queue overflow size=%0d", wr_addr_queue.size());
             end

@@ -2,6 +2,7 @@
 `default_nettype none
 
 `include "../../../../rtl/v3/model/jelly3_model_axi4_m.sv"
+`include "../../../../rtl/v3/model/jelly3_model_axi4_mem_check.sv"
 
 
 module tb_main
@@ -123,6 +124,22 @@ module tb_main
         u_model_axi4_s
             (
                 .s_axi4              (axi4.s              )
+            );
+
+    jelly3_model_axi4_mem_check
+            #(
+                .SHOW_MATCH          (0                   ),
+                .SHOW_SKIP           (0                   ),
+                .CHECK_BID           (1                   ),
+                .CHECK_BRESP         (1                   ),
+                .CHECK_RID           (1                   ),
+                .CHECK_RRESP         (1                   ),
+                .CHECK_WLAST         (1                   ),
+                .CHECK_RLAST         (1                   )
+            )
+        u_memory_checker
+            (
+                .mon_axi4            (axi4.mon            )
             );
 
 
