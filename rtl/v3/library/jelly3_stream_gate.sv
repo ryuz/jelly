@@ -136,10 +136,10 @@ module jelly3_stream_gate
     logic           permit_fifo_valid;
     logic           permit_fifo_ready;
 
-    if ( ASYNC ) begin : blk_permit_fifo
+    if ( !BYPASS || (BYPASS_COMBINE && ASYNC) ) begin : blk_permit_fifo
         jelly3_stream_fifo
                 #(
-                    .ASYNC          (1                          ),
+                    .ASYNC          (ASYNC                      ),
                     .PTR_BITS       (FIFO_PTR_BITS              ),
                     .DATA_BITS      ($bits(permit_fifo_first)
                                     + $bits(permit_fifo_last)
@@ -198,7 +198,7 @@ module jelly3_stream_gate
         assign m_first           = s_first                                                      ;
         assign m_last            = s_last                                                       ;
         assign m_data            = s_data                                                       ;
-        assign m_user            = BYPASS_COMBINE ? permit_fifo_user                : '0        ;
+        assign m_user            = BYPASS_COMBINE ? permit_fifo_user                : 'x        ;
         assign m_valid           = BYPASS_COMBINE ? (s_valid & permit_fifo_valid)   : s_valid   ;
         assign s_ready           = BYPASS_COMBINE ? (m_ready & permit_fifo_valid)   : m_ready   ;
         assign permit_fifo_ready = BYPASS_COMBINE ? (m_ready & s_valid & s_last[0]) : 1'b1      ;
