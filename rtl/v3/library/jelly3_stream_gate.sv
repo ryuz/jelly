@@ -159,22 +159,16 @@ module jelly3_stream_gate
     else begin : blk_gate
 
         // ---- 入力FF ----
-        logic [N-1:0]   s_ff_s_first;
-        logic [N-1:0]   s_ff_s_last ;
-        data_t          s_ff_s_data ;
-        logic [N-1:0]   s_ff_m_first;
-        logic [N-1:0]   s_ff_m_last ;
-        data_t          s_ff_m_data ;
-        logic   core_s_valid;
-        logic   core_s_ready;
-
-        assign s_ff_s_first   = s_first;
-        assign s_ff_s_last    = s_last ;
-        assign s_ff_s_data    = s_data ;
+        logic [N-1:0]   s_ff_first    ;
+        logic [N-1:0]   s_ff_last     ;
+        data_t          s_ff_data     ;
+        logic           s_ff_valid    ;
+        logic           s_ff_ready    ;
 
         jelly3_stream_ff
                 #(
-                    .DATA_BITS      (2*N + $bits(data_t)                 ),
+                    .DATA_BITS      (2*N 
+                                    + $bits(data_t) ),
                     .S_REG          (S_REG          ),
                     .M_REG          (0              )
                 )
@@ -184,32 +178,29 @@ module jelly3_stream_gate
                     .clk            (clk            ),
                     .cke            (cke            ),
                     .s_data         ({
-                                        s_ff_s_first,
-                                        s_ff_s_last ,
-                                        s_ff_s_data
+                                        s_first ,
+                                        s_last  ,
+                                        s_data
                                     }),
                     .s_valid        (s_valid        ),
                     .s_ready        (s_ready        ),
+
                     .m_data         ({
-                                        s_ff_m_first,
-                                        s_ff_m_last ,
-                                        s_ff_m_data
+                                        s_ff_first,
+                                        s_ff_last ,
+                                        s_ff_data
                                     }),
-                    .m_valid        (core_s_valid   ),
-                    .m_ready        (core_s_ready   )
+                    .m_valid        (s_ff_valid     ),
+                    .m_ready        (s_ff_ready     )
                 );
 
         // ---- 出力FF ----
-        logic [N-1:0]   m_ff_s_first;
-        logic [N-1:0]   m_ff_s_last ;
-        data_t          m_ff_s_data ;
-        user_t          m_ff_s_user ;
-        logic [N-1:0]   m_ff_m_first;
-        logic [N-1:0]   m_ff_m_last ;
-        data_t          m_ff_m_data ;
-        user_t          m_ff_m_user ;
-        logic   core_m_valid;
-        logic   core_m_ready;
+        logic [N-1:0]   m_ff_first;
+        logic [N-1:0]   m_ff_last ;
+        data_t          m_ff_data ;
+        user_t          m_ff_user ;
+        logic           m_ff_valid;
+        logic           m_ff_ready;
 
         jelly3_stream_ff
                 #(
@@ -225,38 +216,25 @@ module jelly3_stream_gate
                     .clk            (clk            ),
                     .cke            (cke            ),
                     .s_data         ({
-                                        m_ff_s_first,
-                                        m_ff_s_last ,
-                                        m_ff_s_data ,
-                                        m_ff_s_user
+                                        m_ff_first,
+                                        m_ff_last ,
+                                        m_ff_data ,
+                                        m_ff_user
                                     }),
-                    .s_valid        (core_m_valid   ),
-                    .s_ready        (core_m_ready   ),
+                    .s_valid        (m_ff_valid     ),
+                    .s_ready        (m_ff_ready     ),
                     .m_data         ({
-                                        m_ff_m_first,
-                                        m_ff_m_last ,
-                                        m_ff_m_data ,
-                                        m_ff_m_user
+                                        m_first ,
+                                        m_last  ,
+                                        m_data  ,
+                                        m_user
                                     }),
                     .m_valid        (m_valid        ),
                     .m_ready        (m_ready        )
                 );
 
-        assign m_first = m_ff_m_first;
-        assign m_last  = m_ff_m_last ;
-        assign m_data  = m_ff_m_data ;
-        assign m_user  = m_ff_m_user ;
 
         // ---- core ----
-        logic [N-1:0]   core_m_first;
-        logic [N-1:0]   core_m_last ;
-        data_t          core_m_data ;
-        user_t          core_m_user ;
-
-        assign m_ff_s_first = core_m_first;
-        assign m_ff_s_last  = core_m_last ;
-        assign m_ff_s_data  = core_m_data ;
-        assign m_ff_s_user  = core_m_user ;
 
         jelly3_stream_gate_core
                 #(
@@ -283,18 +261,18 @@ module jelly3_stream_gate
                     .padding_en     (padding_en                 ),
                     .padding_data   (padding_data               ),
 
-                    .s_first        (s_ff_m_first               ),
-                    .s_last         (s_ff_m_last                ),
-                    .s_data         (s_ff_m_data                ),
-                    .s_valid        (core_s_valid               ),
-                    .s_ready        (core_s_ready               ),
+                    .s_first        (s_ff_first                 ),
+                    .s_last         (s_ff_last                  ),
+                    .s_data         (s_ff_data                  ),
+                    .s_valid        (s_ff_valid                 ),
+                    .s_ready        (s_ff_ready                 ),
 
-                    .m_first        (core_m_first               ),
-                    .m_last         (core_m_last                ),
-                    .m_data         (core_m_data                ),
-                    .m_user         (core_m_user                ),
-                    .m_valid        (core_m_valid               ),
-                    .m_ready        (core_m_ready               ),
+                    .m_first        (m_ff_first                 ),
+                    .m_last         (m_ff_last                  ),
+                    .m_data         (m_ff_data                  ),
+                    .m_user         (m_ff_user                  ),
+                    .m_valid        (m_ff_valid                 ),
+                    .m_ready        (m_ff_ready                 ),
 
                     .s_permit_first (permit_fifo_first          ),
                     .s_permit_last  (permit_fifo_last           ),
