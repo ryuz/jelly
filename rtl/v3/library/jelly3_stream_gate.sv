@@ -11,8 +11,9 @@
 
 
 // 許可した分だけデータを通すゲート (ラッパー)
-//   - 非同期FIFO (permit パス CDC) と入出力FF の挿入を担当
-//   - ゲートの本質ロジックは jelly3_stream_gate_core に委譲
+//   - BYPASS path  : データを素通しし、必要なら permit と combine する
+//   - Gate  path  : 入出力FF の挿入 + jelly3_stream_gate_core への委譲
+//   - 非同期FIFO (permit パス CDC) はパスに関わらずここで処理する
 // first や last は 上位次元でbitが立っているとき下位次元は必ず立っているとみなす
 module jelly3_stream_gate
         #(
@@ -142,22 +143,22 @@ module jelly3_stream_gate
 
 
     // -----------------------------------------------------------------
-    //  data path FFs (gate path のみ; BYPASS は wire-through)
+    //  BYPASS path  /  Gate path
     // -----------------------------------------------------------------
-    // core とのインターフェース用中間信号
-    logic   [N-1:0] core_s_first;
-    logic   [N-1:0] core_s_last ;
-    data_t          core_s_data ;
-    logic           core_s_valid;
-    logic           core_s_ready;
-    logic   [N-1:0] core_m_first;
-    logic   [N-1:0] core_m_last ;
-    data_t          core_m_data ;
-    user_t          core_m_user ;
-    logic           core_m_valid;
-    logic           core_m_ready;
 
-    if ( !BYPASS ) begin : blk_data_ff
+    if ( BYPASS ) begin : blk_bypass
+
+        // データはそのまま通過させる
+        assign m_first = s_first;
+        assign m_last  = s_last ;
+        assign m_data  = s_data ;
+        assign m_user              = BYPASS_COMBINE ? fifo_m_permit_data.user                       : '0   ;
+        assign m_valid             = BYPASS_COMBINE ? (s_valid & fifo_m_permit_valid)               : s_valid;
+        assign s_ready             = BYPASS_COMBINE ? (m_ready & fifo_m_permit_valid)               : m_ready;
+        assign fifo_m_permit_ready = BYPASS_COMBINE ? (m_ready & s_valid & s_last[0])              : 1'b1;
+
+    end
+    else begin : blk_gate
 
         // ---- 入力FF ----
         typedef struct packed {
@@ -168,6 +169,8 @@ module jelly3_stream_gate
 
         s_ff_t  s_ff_s_data;
         s_ff_t  s_ff_m_data;
+        logic   core_s_valid;
+        logic   core_s_ready;
 
         assign s_ff_s_data.first = s_first;
         assign s_ff_s_data.last  = s_last ;
@@ -193,10 +196,6 @@ module jelly3_stream_gate
                     .m_ready        (core_s_ready   )
                 );
 
-        assign core_s_first = s_ff_m_data.first;
-        assign core_s_last  = s_ff_m_data.last ;
-        assign core_s_data  = s_ff_m_data.data ;
-
         // ---- 出力FF ----
         typedef struct packed {
             logic [N-1:0]   first;
@@ -207,11 +206,8 @@ module jelly3_stream_gate
 
         m_ff_t  m_ff_s_data;
         m_ff_t  m_ff_m_data;
-
-        assign m_ff_s_data.first = core_m_first;
-        assign m_ff_s_data.last  = core_m_last ;
-        assign m_ff_s_data.data  = core_m_data ;
-        assign m_ff_s_data.user  = core_m_user ;
+        logic   core_m_valid;
+        logic   core_m_ready;
 
         jelly3_stream_ff
                 #(
@@ -238,75 +234,64 @@ module jelly3_stream_gate
         assign m_data  = m_ff_m_data.data ;
         assign m_user  = m_ff_m_data.user ;
 
+        // ---- core ----
+        logic [N-1:0]   core_m_first;
+        logic [N-1:0]   core_m_last ;
+        data_t          core_m_data ;
+        user_t          core_m_user ;
+
+        assign m_ff_s_data.first = core_m_first;
+        assign m_ff_s_data.last  = core_m_last ;
+        assign m_ff_s_data.data  = core_m_data ;
+        assign m_ff_s_data.user  = core_m_user ;
+
+        jelly3_stream_gate_core
+                #(
+                    .N              (N              ),
+                    .DETECTOR_ENABLE(DETECTOR_ENABLE),
+                    .AUTO_FIRST     (AUTO_FIRST     ),
+                    .DATA_BITS      (DATA_BITS      ),
+                    .data_t         (data_t         ),
+                    .LEN_BITS       (LEN_BITS       ),
+                    .len_t          (len_t          ),
+                    .LEN_OFFSET     (LEN_OFFSET     ),
+                    .USER_BITS      (USER_BITS      ),
+                    .user_t         (user_t         )
+                )
+            u_gate_core
+                (
+                    .reset          (reset                      ),
+                    .clk            (clk                        ),
+                    .cke            (cke                        ),
+
+                    .skip           (skip                       ),
+                    .detect_first   (detect_first               ),
+                    .detect_last    (detect_last                ),
+                    .padding_en     (padding_en                 ),
+                    .padding_data   (padding_data               ),
+
+                    .s_first        (s_ff_m_data.first          ),
+                    .s_last         (s_ff_m_data.last           ),
+                    .s_data         (s_ff_m_data.data           ),
+                    .s_valid        (core_s_valid               ),
+                    .s_ready        (core_s_ready               ),
+
+                    .m_first        (core_m_first               ),
+                    .m_last         (core_m_last                ),
+                    .m_data         (core_m_data                ),
+                    .m_user         (core_m_user                ),
+                    .m_valid        (core_m_valid               ),
+                    .m_ready        (core_m_ready               ),
+
+                    .s_permit_first (fifo_m_permit_data.first   ),
+                    .s_permit_last  (fifo_m_permit_data.last    ),
+                    .s_permit_len   (fifo_m_permit_data.len     ),
+                    .s_permit_user  (fifo_m_permit_data.user    ),
+                    .s_permit_valid (fifo_m_permit_valid        ),
+                    .s_permit_ready (fifo_m_permit_ready        )
+                );
+
     end
-    else begin : blk_bypass_data
-        // BYPASS時はwire-through (FF不要)
-        assign core_s_first = s_first;
-        assign core_s_last  = s_last ;
-        assign core_s_data  = s_data ;
-        assign core_s_valid = s_valid;
-        assign s_ready      = core_s_ready;
-
-        assign m_first      = core_m_first;
-        assign m_last       = core_m_last ;
-        assign m_data       = core_m_data ;
-        assign m_user       = core_m_user ;
-        assign m_valid      = core_m_valid;
-        assign core_m_ready = m_ready;
-    end
-
-
-    // -----------------------------------------------------------------
-    //  core
-    // -----------------------------------------------------------------
-
-    jelly3_stream_gate_core
-            #(
-                .N              (N              ),
-                .BYPASS         (BYPASS         ),
-                .BYPASS_COMBINE (BYPASS_COMBINE ),
-                .DETECTOR_ENABLE(DETECTOR_ENABLE),
-                .AUTO_FIRST     (AUTO_FIRST     ),
-                .DATA_BITS      (DATA_BITS      ),
-                .data_t         (data_t         ),
-                .LEN_BITS       (LEN_BITS       ),
-                .len_t          (len_t          ),
-                .LEN_OFFSET     (LEN_OFFSET     ),
-                .USER_BITS      (USER_BITS      ),
-                .user_t         (user_t         )
-            )
-        u_gate_core
-            (
-                .reset          (reset          ),
-                .clk            (clk            ),
-                .cke            (cke            ),
-
-                .skip           (skip           ),
-                .detect_first   (detect_first   ),
-                .detect_last    (detect_last    ),
-                .padding_en     (padding_en     ),
-                .padding_data   (padding_data   ),
-
-                .s_first        (core_s_first   ),
-                .s_last         (core_s_last    ),
-                .s_data         (core_s_data    ),
-                .s_valid        (core_s_valid   ),
-                .s_ready        (core_s_ready   ),
-
-                .m_first        (core_m_first   ),
-                .m_last         (core_m_last    ),
-                .m_data         (core_m_data    ),
-                .m_user         (core_m_user    ),
-                .m_valid        (core_m_valid   ),
-                .m_ready        (core_m_ready   ),
-
-                .s_permit_first (fifo_m_permit_data.first ),
-                .s_permit_last  (fifo_m_permit_data.last  ),
-                .s_permit_len   (fifo_m_permit_data.len   ),
-                .s_permit_user  (fifo_m_permit_data.user  ),
-                .s_permit_valid (fifo_m_permit_valid      ),
-                .s_permit_ready (fifo_m_permit_ready      )
-            );
 
 
     // -----------------------------------------------------------------
