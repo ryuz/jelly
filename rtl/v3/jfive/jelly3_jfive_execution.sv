@@ -37,7 +37,7 @@ module jelly3_jfive_execution
             parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = '{32'h8000_0000, 32'h0000_0000}    ,
             parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = '{32'hffff_ffff, 32'h7fff_ffff}    ,
             parameter   int                     LOAD_QUES      = 2                                  ,
-            parameter   int                     BUSY_RDS       = 3                                  ,
+            parameter   int                     BUSY_RDS       = 3 + LS_UNITS * (LOAD_QUES + 1)     ,
             parameter   bit                     RAW_HAZARD     = 1'b1                               ,
             parameter   bit                     WAW_HAZARD     = 1'b1                               ,
             parameter                           DEVICE         = "RTL"                              ,
@@ -178,7 +178,7 @@ module jelly3_jfive_execution
                 .DEBUG          (DEBUG              )
             )
         u_jfive_match
-        (
+            (
                 .reset          ,
                 .clk            ,
                 .cke            (cke & s_ready      ),
@@ -187,7 +187,7 @@ module jelly3_jfive_execution
                 .s_rs2_val      (s_rs2_val          ),
                 
                 .m_eq           (st0_match_eq       )
-        );
+            );
 
 
     // logical
@@ -476,6 +476,8 @@ module jelly3_jfive_execution
     rval_t  [LS_UNITS-1:0]                  load_rd_val ;
     logic   [LS_UNITS-1:0]                  load_valid  ;
     logic   [LS_UNITS-1:0]                  load_ready  ;
+    logic   [LS_UNITS-1:0]                  load_busy_en;
+
     for ( genvar i = 0; i < LS_UNITS; i++ ) begin : load_store
 
         jelly3_jfive_load_store
@@ -555,6 +557,8 @@ module jelly3_jfive_execution
                     .m_valid            (load_valid [i]             ),
                     .m_ready            (load_ready [i]             )
                 );
+        
+        assign load_busy_en[i] = load_valid[i] && !load_ready [i] && load_rd_en [i];
     end
 
     // control
@@ -690,9 +694,9 @@ module jelly3_jfive_execution
     end
 
     // busy
-    assign busy_id      = {que_id,     st0_id,     st1_id,     st2_id    };
-    assign busy_rd_en   = {que_rd_en,  st0_rd_en,  st1_rd_en,  st2_rd_en };
-    assign busy_rd_idx  = {que_rd_idx, st0_rd_idx, st1_rd_idx, st2_rd_idx};
+    assign busy_id      = {que_id,     st0_id,     st1_id,     st2_id    , load_id     };
+    assign busy_rd_en   = {que_rd_en,  st0_rd_en,  st1_rd_en,  st2_rd_en , load_busy_en};
+    assign busy_rd_idx  = {que_rd_idx, st0_rd_idx, st1_rd_idx, st2_rd_idx, load_rd_idx };
 
     // writeback
     always_comb begin

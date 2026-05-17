@@ -1,24 +1,45 @@
-# Kria KV260 で RISC-V 風のバレルプロセッサ
+# Kria KV260 で RISC-V ハードウェアマルチスレッドを動かすサンプル
 
 ## 概要
 
-Kria KV260 で RISC-V 風のバレルプロセッサ を動かすサンプルです。
+Kria KV260 で RISC-V でハードウェアマルチスレッドを動かすサンプルを動かすサンプルです。
+
+レジスタファイルを Block-RAM で構成すると、汎用レジスタを複数セットもてるだけの容量がある為、プログラムカウンタも複数持たせることでハードウェアマルチスレッドを実現しています。
+
+当初、[バレルプロセッサ](https://ja.wikipedia.org/wiki/%E3%83%90%E3%83%AC%E3%83%AB%E3%83%97%E3%83%AD%E3%82%BB%E3%83%83%E3%82%B5)を意識しておりましたが、有効になっているPCのみを実行する方式であるため、[細粒度マルチスレッディング](https://ja.wikipedia.org/wiki/%E3%83%8F%E3%83%BC%E3%83%89%E3%82%A6%E3%82%A7%E3%82%A2%E3%83%9E%E3%83%AB%E3%83%81%E3%82%B9%E3%83%AC%E3%83%83%E3%83%87%E3%82%A3%E3%83%B3%E3%82%B0)に分類されるようです。
+
+複数スレッドを交互に実行する為、N個のスレッドを作るとスレッド単独の性能は 1/N になりますが、パイプラインハザードの発生頻度が下がり、分岐ミスのペナルティーも減少する為全体のスループットは若干が向上します。
+
+なお、例によって、最小の命令セットである RV32I 命令セットのみの簡易版 RISC-V コアとなっており、割り込みすら実装していません。
+
+一方で、将来的な方向性としては、[ハードウェア RTOS](https://github.com/ryuz/jelly/tree/master/projects/kv260/kv260_rtos_sample) のようなものと組み合わせて、割り込みを使わないスレッドの起動／停止や、スレッド間同期などをハードウェアで実現するようなものを目指しています。
 
 
 ## 環境
 
 ### PC環境
 
-vivado2022.2 を用いております。
-
+vivado2024.2 を用いております。
 
 ### KV260環境
+
+PMOD端子の [3:0] に LEDを接続し、[7:4] に UART を接続して使う想定にしています。
 
 [認定Ubuntu](https://japan.xilinx.com/products/design-tools/embedded-software/ubuntu.html) 環境にて試しております。
 
 ```
-Description : Ubuntu 22.04.4 LTS
-kernel      : 5.15.0-1031-xilinx-zynqmp
+Description : Ubuntu 24.04.3 LTS
+kernel      : 6.8.0-1021-xilinx
+```
+
+#### 必要なツールのインストール
+
+```bash
+sudo apt update
+sudo apt install gcc-riscv64-unknown-elf
+
+rustup update
+rustup target add riscv32i-unknown-none-elf
 ```
 
 
@@ -35,7 +56,7 @@ git clone https://github.com/ryuz/jelly.git
 
 ### PC側の Vivadoで bit ファイルを作る
 
-projects/kv260/kv260_jfive_v3_sample/syn/vivado2022.2
+projects/kv260/kv260_jfive_v3_sample/syn/vivado2024.2
 
 に移動して Vivado から kv260_jfive_v3_sample.xpr を開いてください。
 

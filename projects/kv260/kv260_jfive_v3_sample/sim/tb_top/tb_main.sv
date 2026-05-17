@@ -6,7 +6,7 @@
 module tb_main
     import jelly3_jfive32_pkg::*;
         #(
-            parameter   DEVICE            = "ULTRASCALE_PLUS"   ,
+            parameter   DEVICE            = "RTL",//"ULTRASCALE_PLUS"   ,
             parameter   SIMULATION        = "false"             ,
             parameter   DEBUG             = "false"             
         )
@@ -161,6 +161,15 @@ module tb_main
     assign s_axi4_rlast      = u_top.u_design_1.axi4_rlast  ;
     assign s_axi4_rresp      = u_top.u_design_1.axi4_rresp  ;
     assign s_axi4_rvalid     = u_top.u_design_1.axi4_rvalid ;
+
+
+    always_ff @(posedge u_top.axi4l_jfive[0].aclk) begin
+        if ( u_top.axi4l_jfive[0].aresetn == 1'b1 ) begin
+            if ( u_top.axi4l_jfive[0].wvalid && u_top.axi4l_jfive[0].wready ) begin
+                $write("%c", u_top.axi4l_jfive[0].wdata[7:0]);
+            end
+        end
+    end
 
 endmodule
 

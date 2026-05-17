@@ -89,8 +89,6 @@ module jelly3_img_region_rect_core
             end
         end
     end
-
-    assign m_img.de = st1_de;
     
 
     rows_t              m_mat_rows      ;

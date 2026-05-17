@@ -47,16 +47,18 @@ interface jelly3_axi4_if
         parameter   int     ARUSER_BITS    = USER_REQ_BITS                  ,
         parameter   int     RUSER_BITS     = USER_DATA_BITS + USER_RESP_BITS,
 
-        parameter   int     LIMIT_AW      = 255                             ,
-        parameter   int     LIMIT_W       = 255                             ,
-        parameter   int     LIMIT_WC      = 65535                           ,
-        parameter   int     LIMIT_AR      = 255                             ,
-        parameter   int     LIMIT_R       = 255                             ,
-        parameter   int     LIMIT_RC      = 65535                           ,
+        parameter   int     LIMIT_AW       = 255                            ,
+        parameter   int     LIMIT_W        = 255                            ,
+        parameter   int     LIMIT_WC       = 65535                          ,
+        parameter   int     LIMIT_AR       = 255                            ,
+        parameter   int     LIMIT_R        = 255                            ,
+        parameter   int     LIMIT_RC       = 65535                          ,
+        parameter   bit     ALLOW_WDATA_X  = 0                              ,
+        parameter   bit     ALLOW_RDATA_X  = 0                              ,
 
-        parameter           DEVICE        = "RTL"                           ,
-        parameter           SIMULATION    = "false"                         ,
-        parameter           DEBUG         = "false"                         
+        parameter           DEVICE         = "RTL"                          ,
+        parameter           SIMULATION     = "false"                        ,
+        parameter           DEBUG          = "false"                        
     )
     (
         input   var logic   aresetn ,
@@ -326,6 +328,65 @@ interface jelly3_axi4_if
             output  rready      
         );
 
+    modport mon
+        (
+            input   addr_base   ,
+            input   addr_high   ,
+
+            input   aresetn     ,
+            input   aclk        ,
+            input   aclken      ,
+
+            input   awid        ,
+            input   awaddr      ,
+            input   awlen       ,
+            input   awsize      ,
+            input   awburst     ,
+            input   awlock      ,
+            input   awcache     ,
+            input   awprot      ,
+            input   awqos       ,
+            input   awregion    ,
+            input   awuser      ,
+            input   awvalid     ,
+            input   awready     ,
+
+            input   wdata       ,
+            input   wstrb       ,
+            input   wlast       ,
+            input   wuser       ,
+            input   wvalid      ,
+            input   wready      ,
+
+            input   bid         ,
+            input   bresp       ,
+            input   buser       ,
+            input   bvalid      ,
+            input   bready      ,
+
+            input   arid        ,
+            input   araddr      ,
+            input   arlen       ,
+            input   arsize      ,
+            input   arburst     ,
+            input   arlock      ,
+            input   arcache     ,
+            input   arprot      ,
+            input   arqos       ,
+            input   arregion    ,
+            input   aruser      ,
+            input   arvalid     ,
+            input   arready     ,
+
+            input   rid         ,
+            input   rdata       ,
+            input   rresp       ,
+            input   rlast       ,
+            input   ruser       ,
+            input   rvalid      ,
+            input   rready      
+        );
+
     modport sw
         (
             input   addr_base   ,
@@ -427,10 +488,12 @@ ASSERT_ARLEN_STABLE : assert property(prop_arlen_stable );
 
 
 // wdata
-property prop_wdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wdata ); endproperty
-property prop_wdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (wvalid && !wready) |=> $stable(wdata ); endproperty
-//ASSERT_WDATA_VALID  : assert property(prop_wdata_valid );
-ASSERT_WDATA_STABLE : assert property(prop_wdata_stable );
+if ( !ALLOW_WDATA_X ) begin : sva_wdata_valid
+    property prop_wdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wdata ); endproperty
+    property prop_wdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (wvalid && !wready) |=> $stable(wdata ); endproperty
+    ASSERT_WDATA_VALID  : assert property(prop_wdata_valid );
+    ASSERT_WDATA_STABLE : assert property(prop_wdata_stable );
+end
 
 // wstrb
 property prop_wstrb_valid ; @(posedge aclk) disable iff ( ~aresetn ) wvalid |-> !$isunknown(wstrb ); endproperty
@@ -445,10 +508,12 @@ ASSERT_WLAST_VALID  : assert property(prop_wlast_valid );
 ASSERT_WLAST_STABLE : assert property(prop_wlast_stable );
 
 // rdata
-property prop_rdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rdata ); endproperty
-property prop_rdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rdata ); endproperty
-//ASSERT_RDATA_VALID  : assert property(prop_rdata_valid );
-ASSERT_RDATA_STABLE : assert property(prop_rdata_stable );
+if ( !ALLOW_RDATA_X ) begin : sva_rdata_valid
+    property prop_rdata_valid ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rdata ); endproperty
+    property prop_rdata_stable; @(posedge aclk) disable iff ( ~aresetn ) (rvalid && !rready) |=> $stable(rdata ); endproperty
+    ASSERT_RDATA_VALID  : assert property(prop_rdata_valid );
+    ASSERT_RDATA_STABLE : assert property(prop_rdata_stable );
+end
 
 // rlast
 property prop_rlast_valid ; @(posedge aclk) disable iff ( ~aresetn ) rvalid |-> !$isunknown(rlast ); endproperty
@@ -632,6 +697,7 @@ end
             count_wc     <= 0;
             count_ar     <= 0;
             count_r      <= 0;
+            count_rc     <= 0;
         end
         else begin
             count_aw <= count_aw + issue_aw    - issue_b        ;

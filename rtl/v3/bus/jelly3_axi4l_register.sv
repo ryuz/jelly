@@ -108,7 +108,7 @@ module jelly3_axi4l_register
             end
             if ( s_axi4l.arvalid && s_axi4l.arready ) begin
                 if ( !WRITE_ONLY ) begin
-                    rdata  <= reg_data[reg_raddr];
+                    rdata  <= axi_data_t'(reg_data[reg_raddr]);
                 end
                 rvalid <= 1'b1;
             end

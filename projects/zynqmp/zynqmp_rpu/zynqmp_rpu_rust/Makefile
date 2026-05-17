@@ -58,3 +58,18 @@ qemu: $(TARGET) ../zynqmp-qemu-arm.dtb
 		-device loader,addr=0xff9a0000,data=0x80000218,data-len=4 \
 		-hw-dtb ../zynqmp-qemu-arm.dtb \
 		-display none
+
+.PHONY:
+remote_load: build
+	jelly-fpga-loader remoteproc load $(EXE_FILE) --ip $(KV260_SERVER_ADDRESS)
+
+.PHONY: remote_start
+remote_start:
+	jelly-fpga-loader remoteproc start --ip $(KV260_SERVER_ADDRESS)
+
+.PHONY: remote_stop
+remote_stop:
+	-jelly-fpga-loader remoteproc stop --ip $(KV260_SERVER_ADDRESS)
+
+.PHONY:
+remote_run: remote_stop remote_load remote_start

@@ -14,10 +14,10 @@ DEVTREE_PATH  = /configfs/device-tree
 
 
 .PHONY: all
-all: jfive build
+all: build
 
 .PHONY: build
-build: $(DTBO_FILE) $(BIN_FILE) build_rust
+build: $(DTBO_FILE) $(BIN_FILE)
 
 .PHONY: clean
 clean: clean_rust
@@ -26,12 +26,10 @@ clean: clean_rust
 .PHONY: run
 run: run_rust
 
-
-
 # JFive app
 .PHONY: jfive
 jfive:
-	make -C ../jfive_app
+	make -C ../jfive
 
 # rust
 .PHONY: build_rust

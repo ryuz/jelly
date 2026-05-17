@@ -19,6 +19,7 @@ clean:
 
 .PHONY: run
 run: $(TARGET)
+	make -C ../../jfive
 	./$(TARGET) $(RUN_OPT)
 
 

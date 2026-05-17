@@ -1,0 +1,5 @@
+[target.aarch64-unknown-linux-gnu]
+#image = "ghcr.io/ryuz/jelly/jelly-cross-arm64-ubuntu22-opencv:latest"
+image = "ghcr.io/ryuz/jelly/jelly-cross-arm64-ubuntu24:latest"
+#image = "ghcr.io/ryuz/jelly/jelly-devcontainer-ubuntu22:0.0.2"
+#dockerfile = { file = "Dockerfile" }
