@@ -17,28 +17,29 @@
 // first や last は 上位次元でbitが立っているとき下位次元は必ず立っているとみなす
 module jelly3_stream_gate
         #(
-            parameter   int                 N               = 1         ,   // 次元数(dimension)
-            parameter   bit                 BYPASS          = 0         ,   // バイパス
-            parameter   bit                 BYPASS_COMBINE  = 0         ,   // バイパス時にpermitもcombineするか
-            parameter   bit                 DETECTOR_ENABLE = 0         ,   // フラグ検出器(読み飛ばし/パディング)を使うか
-            parameter   bit     [N-1:0]     AUTO_FIRST      = {N{1'b1}} ,   // lastの後を自動的にfirst扱いにする
+            parameter   int                 N               = 1                     ,   // 次元数(dimension)
+            parameter   bit                 BYPASS          = 0                     ,   // バイパス
+            parameter   bit                 BYPASS_COMBINE  = 0                     ,   // バイパス時にpermitもcombineするか
+            parameter   bit                 DETECTOR_ENABLE = 0                     ,   // フラグ検出器(読み飛ばし/パディング)を使うか
+            parameter   bit     [N-1:0]     AUTO_FIRST      = {N{1'b1}}             ,   // lastの後を自動的にfirst扱いにする
             
-            parameter   int                 DATA_BITS       = 32        ,
-            parameter   type                data_t          = logic [DATA_BITS-1:0],
-            parameter   int                 LEN_BITS        = 32        ,
-            parameter   type                len_t           = logic [LEN_BITS-1:0],
-            parameter   bit                 LEN_OFFSET      = 1'b1      ,
-            parameter   int                 USER_BITS       = 1         ,
-            parameter   type                user_t          = logic [USER_BITS-1:0],
-            parameter   bit                 S_REG           = 1         ,
-            parameter   bit                 M_REG           = 1         ,
+            parameter   int                 DATA_BITS       = 32                    ,
+            parameter   type                data_t          = logic [DATA_BITS-1:0] ,
+            parameter   int                 LEN_BITS        = 32                    ,
+            parameter   type                len_t           = logic [LEN_BITS-1:0]  ,
+            parameter   bit                 LEN_OFFSET      = 1'b1                  ,
+            parameter   int                 USER_BITS       = 1                     ,
+            parameter   type                user_t          = logic [USER_BITS-1:0] ,
+            parameter   bit                 S_PERMIT_REG    = 0                     ,
+            parameter   bit                 S_REG           = 1                     ,
+            parameter   bit                 M_REG           = 1                     ,
 
-            parameter   bit                 ASYNC           = 0         ,
-            parameter   int                 FIFO_PTR_BITS   = ASYNC ? 4 : 0,
-            parameter   bit                 FIFO_DOUT_REG   = 0         ,
-            parameter                       FIFO_RAM_TYPE   = "distributed",
-            parameter   int                 FIFO_S_SYNC_FF  = 2         ,
-            parameter   int                 FIFO_M_SYNC_FF  = 2         
+            parameter   bit                 ASYNC           = 0                     ,
+            parameter   int                 FIFO_PTR_BITS   = ASYNC ? 4 : 0         ,
+            parameter   bit                 FIFO_DOUT_REG   = 0                     ,
+            parameter                       FIFO_RAM_TYPE   = "distributed"         ,
+            parameter   int                 FIFO_S_SYNC_FF  = 2                     ,
+            parameter   int                 FIFO_M_SYNC_FF  = 2                     
         )
         (
             input   var logic               reset           ,
@@ -78,6 +79,52 @@ module jelly3_stream_gate
             output  var logic               s_permit_ready  
         );
 
+
+    // -----------------------------------------------------------------
+    //  permit FF
+    // -----------------------------------------------------------------
+
+    logic   [N-1:0] permit_ff_first ;
+    logic   [N-1:0] permit_ff_last  ;
+    len_t           permit_ff_len   ;
+    user_t          permit_ff_user  ;
+    logic           permit_ff_valid ;
+    logic           permit_ff_ready ;
+
+    jelly3_stream_ff
+            #(
+                .DATA_BITS      ($bits(permit_fifo_first)
+                                + $bits(permit_fifo_last)
+                                + $bits(permit_fifo_len )
+                                + $bits(permit_fifo_user)),
+                .S_REG          (S_PERMIT_REG   ),
+                .M_REG          (0              )
+            )
+        u_stream_ff_permit
+            (
+                .reset          (s_permit_reset ),
+                .clk            (s_permit_clk   ),
+                .cke            (s_permit_cke   ),
+                .s_data         ({
+                                    s_permit_first  ,
+                                    s_permit_last   ,
+                                    s_permit_len    ,
+                                    s_permit_user   
+                                }),
+                .s_valid        (s_permit_valid ),
+                .s_ready        (s_permit_ready ),
+
+                .m_data         ({
+                                    permit_ff_first ,
+                                    permit_ff_last  ,
+                                    permit_ff_len   ,
+                                    permit_ff_user
+                                }),
+                .m_valid        (permit_ff_valid),
+                .m_ready        (permit_ff_ready)
+            );
+
+
     // -----------------------------------------------------------------
     //  permit FIFO  (CDC or synchronous pass-through)
     // -----------------------------------------------------------------
@@ -109,13 +156,13 @@ module jelly3_stream_gate
                     .s_clk          (s_permit_clk               ),
                     .s_cke          (s_permit_cke               ),
                     .s_data         ({
-                                        s_permit_first  ,
-                                        s_permit_last   ,
-                                        s_permit_len    ,
-                                        s_permit_user
+                                        permit_ff_first  ,
+                                        permit_ff_last   ,
+                                        permit_ff_len    ,
+                                        permit_ff_user
                                     }),
-                    .s_valid        (s_permit_valid             ),
-                    .s_ready        (s_permit_ready             ),
+                    .s_valid        (permit_ff_valid            ),
+                    .s_ready        (permit_ff_ready            ),
                     .s_free_size    (                           ),
 
                     .m_reset        (reset                      ),
@@ -133,12 +180,12 @@ module jelly3_stream_gate
                 );
     end
     else begin : blk_permit_sync
-        assign permit_fifo_first = s_permit_first   ;
-        assign permit_fifo_last  = s_permit_last    ;
-        assign permit_fifo_len   = s_permit_len     ;
-        assign permit_fifo_user  = s_permit_user    ;
-        assign permit_fifo_valid = s_permit_valid   ;
-        assign s_permit_ready    = permit_fifo_ready;
+        assign permit_fifo_first = permit_ff_first  ;
+        assign permit_fifo_last  = permit_ff_last   ;
+        assign permit_fifo_len   = permit_ff_len    ;
+        assign permit_fifo_user  = permit_ff_user   ;
+        assign permit_fifo_valid = permit_ff_valid  ;
+        assign permit_ff_ready   = permit_fifo_ready;
     end
 
 
