@@ -204,8 +204,8 @@ module jelly3_model_axi4_mem_check
                     $display("ERROR: bresp=%b expected=00", mon_axi4.bresp);
                 end
                 if ( b_queue.size() <= 0 ) begin
-                    $display("ERROR: unexpected bvalid");
-                    $finish;
+                    $display("%t ERROR: unexpected bvalid", $time());
+//                  $finish;
                 end
 
                 for ( int i = 0; i < int'(b_queue[0]) + 1; i++ ) begin

@@ -106,7 +106,7 @@ module jelly3_model_axi4_m
     logic   rready;
 
     function automatic bit can_issue(input int busy_rate);
-        return ($urandom_range(0, 100) >= busy_rate);
+        return ($urandom_range(0, 99) >= busy_rate);
     endfunction
 
     always_ff @(posedge m_axi4.aclk) begin
@@ -116,11 +116,13 @@ module jelly3_model_axi4_m
             bready  <= 1'b0;
             arvalid <= 1'b0;
             rready  <= 1'b0;
+            aw_queue.delete();
+            w_queue.delete();
         end
         else if ( m_axi4.aclken ) begin
             // 書き込みコマンドを一定数キューイングする
             while ( enable && aw_queue.size() <= 2 ) begin
-                automatic len_t len = len_t'($urandom());
+                automatic len_t len = len_t'($urandom_range(0,3));
                 aw_queue.push_back(len);
                 for ( int i = 0; i < int'(len)+1; i++ ) begin
                     w_queue.push_back(i==int'(len));
@@ -158,6 +160,9 @@ module jelly3_model_axi4_m
                     wuser   <= wuser_t'($urandom());
                     wvalid  <= 1'b1;
                     w_queue.pop_front();
+                end
+                else begin
+                    wvalid <= 1'b0;
                 end
             end
 

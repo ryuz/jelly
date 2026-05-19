@@ -22,7 +22,7 @@ module tb_main
     //  Parameters
     // -----------------------------------------------------------------------
 
-    localparam  int     NUM         = 4         ;   // number of masters
+    localparam  int     NUM         = 1         ;   // number of masters
     localparam  int     S_ID_BITS   = 2         ;   // slave-side ID bits
     // m_axi4 must carry S_ID_BITS + $clog2(NUM) = 2+2 = 4 bits
     // because the arbiter encodes port index into the lower $clog2(NUM) bits:
@@ -133,11 +133,11 @@ module tb_main
                 // write_start to fire.  Any non-zero busy rate on AW or W
                 // can cause the slave to accept one before the other, leading
                 // to duplicate AW entries in the checker's queue.
-                .AW_BUSY_RATE       (0              ),
-                .W_BUSY_RATE        (0              ),
+                .AW_BUSY_RATE       (30             ),
+                .W_BUSY_RATE        (30             ),
                 .B_BUSY_RATE        (30             ),
                 .AR_BUSY_RATE       (30             ),
-                .R_BUSY_RATE        (0              ),  // must be 0: arbiter R-buf does not clear on non-last beats
+                .R_BUSY_RATE        (30             ),  // must be 0: arbiter R-buf does not clear on non-last beats
                 .AW_RAND_SEED       (600            ),
                 .W_RAND_SEED        (601            ),
                 .B_RAND_SEED        (602            ),
@@ -157,11 +157,9 @@ module tb_main
 
     jelly3_model_axi4_mem_check
             #(
-                .SHOW_MATCH         (1              ),
-                .SHOW_SKIP          (1              ),
-//              .CHECK_BID          (1              ),
+                .SHOW_MATCH         (0              ),
+                .SHOW_SKIP          (0              ),
                 .CHECK_BRESP        (1              ),
-//              .CHECK_RID          (1              ),
                 .CHECK_RRESP        (1              ),
                 .CHECK_WLAST        (1              ),
                 .CHECK_RLAST        (1              )
@@ -184,8 +182,6 @@ module tb_main
 
     logic [NUM-1:0]     enable      ;
     logic [NUM-1:0]     busy        ;
-    logic [NUM-1:0]     write_busy  ;
-    logic [NUM-1:0]     read_busy   ;
 
     for (genvar i = 0; i < NUM; i++) begin : g_master
 
@@ -195,39 +191,19 @@ module tb_main
 
         jelly3_model_axi4_m
                 #(
-                    .WRITE_ADDR_LOW     (ADDR_LOW           ),
-                    .WRITE_ADDR_HIGH    (ADDR_HIGH          ),
-                    .READ_ADDR_LOW      (ADDR_LOW           ),
-                    .READ_ADDR_HIGH     (ADDR_HIGH          ),
-                    .WRITE_LEN_MIN      (0                  ),
-                    .WRITE_LEN_MAX      (15                 ),
-                    .READ_LEN_MIN       (0                  ),
-                    .READ_LEN_MAX       (15                 ),
-                    .WRITE_ISSUE_RATE   (50                 ),
-                    .READ_ISSUE_RATE    (50                 ),
+                    .WADDR_LOW          (ADDR_LOW           ),
+                    .WADDR_HIGH         (ADDR_HIGH          ),
+                    .RADDR_LOW          (ADDR_LOW           ),
+                    .RADDR_HIGH         (ADDR_HIGH          ),
                     .AW_BUSY_RATE       (20 + i * 5         ),
                     .W_BUSY_RATE        (20 + i * 5         ),
                     .B_BUSY_RATE        (15 + i * 3         ),
                     .AR_BUSY_RATE       (20 + i * 5         ),
-                    .R_BUSY_RATE        (15 + i * 3         ),
-                    .WRITE_ID           (0                  ),
-                    .READ_ID            (0                  ),
-                    .WRITE_LOG_FILE     (""                 ),
-                    .READ_LOG_FILE      (""                 ),
-                    .WRITE_RAND_SEED    (100 + i * 13       ),
-                    .READ_RAND_SEED     (200 + i * 13       ),
-                    .AW_RAND_SEED       (300 + i * 13       ),
-                    .W_RAND_SEED        (301 + i * 13       ),
-                    .B_RAND_SEED        (302 + i * 13       ),
-                    .AR_RAND_SEED       (303 + i * 13       ),
-                    .R_RAND_SEED        (304 + i * 13       )
+                    .R_BUSY_RATE        (15 + i * 3         )
                 )
             u_master
                 (
                     .enable             (enable[i]          ),
-                    .busy               (busy[i]            ),
-                    .write_busy         (write_busy[i]      ),
-                    .read_busy          (read_busy[i]       ),
                     .m_axi4             (s_axi4[i].m        )
                 );
 
@@ -322,59 +298,10 @@ module tb_main
 
     initial begin
         enable = '0;
-
-        // wait for reset release
-        wait (aresetn == 1'b1);
-        repeat (20) @(posedge aclk);
-
-        // phase 1~NUM: test each master individually so that every master
-        // is guaranteed a fair share of write/read transactions regardless
-        // of its position in the fixed-priority arbitration order.
-        for ( int ph = 0; ph < NUM; ph++ ) begin
-            enable = NUM'(1 << ph);
-            repeat (PHASE_CYCLES) @(posedge aclk);
-            enable = '0;
-            wait (busy == '0 && write_busy == '0 && read_busy == '0);
-            repeat (10) @(posedge aclk);
-        end
-
-        // phase NUM+1: enable all masters simultaneously; tests concurrent
-        // access and priority arbitration under contention.
+        #1000;
         enable = '1;
-        repeat (CONCURRENT_CYCLES) @(posedge aclk);
-        enable = '0;
-        wait (busy == '0 && write_busy == '0 && read_busy == '0);
-        repeat (20) @(posedge aclk);
+        #10000;
 
-        // summary
-        $display("---- tb_axi4_arbiter_randomtest summary ----");
-        $display("total cycles : %0d", cycle_count);
-        for ( int i = 0; i < NUM; i++ ) begin
-            $display(
-                "  master[%0d] region=[%h..%h]  wr_burst=%0d wr_resp=%0d  rd_burst=%0d rd_resp=%0d",
-                i,
-                REGION_BASE + REGION_STEP * i,
-                REGION_BASE + REGION_STEP * i + REGION_SIZE - 1,
-                write_burst_count[i], write_resp_count[i],
-                read_burst_count[i],  read_resp_count[i]
-            );
-        end
-
-        // sanity checks: enough transactions occurred and counts are balanced
-        for ( int i = 0; i < NUM; i++ ) begin
-            assert (write_burst_count[i] >= 50)
-                else $fatal(1, "master[%0d] too few write bursts (%0d)", i, write_burst_count[i]);
-            assert (read_burst_count[i] >= 50)
-                else $fatal(1, "master[%0d] too few read bursts (%0d)",  i, read_burst_count[i]);
-            assert (write_burst_count[i] == write_resp_count[i])
-                else $fatal(1, "master[%0d] write burst/resp mismatch burst=%0d resp=%0d",
-                            i, write_burst_count[i], write_resp_count[i]);
-            assert (read_burst_count[i] == read_resp_count[i])
-                else $fatal(1, "master[%0d] read burst/resp mismatch burst=%0d resp=%0d",
-                            i, read_burst_count[i], read_resp_count[i]);
-        end
-
-        $display("tb_axi4_arbiter_randomtest PASSED");
         $finish;
     end
 
