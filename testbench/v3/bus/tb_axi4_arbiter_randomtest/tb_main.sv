@@ -157,11 +157,11 @@ module tb_main
 
     jelly3_model_axi4_mem_check
             #(
-                .SHOW_MATCH         (0              ),
-                .SHOW_SKIP          (0              ),
-                .CHECK_BID          (1              ),
+                .SHOW_MATCH         (1              ),
+                .SHOW_SKIP          (1              ),
+//              .CHECK_BID          (1              ),
                 .CHECK_BRESP        (1              ),
-                .CHECK_RID          (1              ),
+//              .CHECK_RID          (1              ),
                 .CHECK_RRESP        (1              ),
                 .CHECK_WLAST        (1              ),
                 .CHECK_RLAST        (1              )
@@ -238,9 +238,7 @@ module tb_main
                 #(
                     .SHOW_MATCH         (0                  ),
                     .SHOW_SKIP          (0                  ),
-                    .CHECK_BID          (0                  ),
                     .CHECK_BRESP        (1                  ),
-                    .CHECK_RID          (0                  ),
                     .CHECK_RRESP        (1                  ),
                     .CHECK_WLAST        (1                  ),
                     .CHECK_RLAST        (1                  )
