@@ -134,18 +134,18 @@ module jelly3_model_axi4_m
             // aw
             if ( !awvalid || m_axi4.awready ) begin
                 if ( can_issue(AW_BUSY_RATE) && aw_queue.size() > 0 ) begin
-                    awid    <= id_t'($urandom());
-                    awaddr  <= addr_t'($urandom_range(WADDR_LOW, WADDR_HIGH)) & ADDR_MASK;
-                    awlen   <= aw_queue[0];
-                    awsize  <= size_t'($clog2(STRB_BITS));
-                    awburst <= burst_t'(1);
-                    awlock  <= lock_t'(0);
-                    awcache <= cache_t'(0);
-                    awprot  <= prot_t'(1);
-                    awqos   <= qos_t'($urandom());
-                    awregion <= region_t'($urandom());
-                    awuser  <= awuser_t'($urandom());
-                    awvalid <= 1'b1;
+                    awid     <= id_t'($urandom());
+                    awaddr   <= addr_t'($urandom_range(WADDR_LOW, WADDR_HIGH)) & ADDR_MASK;
+                    awlen    <= aw_queue[0];
+                    awsize   <= size_t'($clog2(STRB_BITS));
+                    awburst  <= burst_t'(2'b01);        // INCR
+                    awlock   <= lock_t'(1'b0);
+                    awcache  <= cache_t'(4'b0001);      // Normal, non-cacheable
+                    awprot   <= prot_t'(3'b001);        // Data access, non-secure, not fetch
+                    awqos    <= qos_t'($urandom());
+                    awregion <= region_t'(4'b0000);     // No region
+                    awuser   <= awuser_t'($urandom());
+                    awvalid  <= 1'b1;
                     aw_queue.pop_front();
                 end
                 else begin
@@ -157,7 +157,7 @@ module jelly3_model_axi4_m
             if ( !wvalid || m_axi4.wready ) begin
                 if ( can_issue(W_BUSY_RATE) && w_queue.size() > 0 ) begin
                     wdata   <= data_t'($urandom());
-                    wstrb   <= '1;//strb_t'($urandom());
+                    wstrb   <= strb_t'($urandom());
                     wlast   <= w_queue[0];
                     wuser   <= wuser_t'($urandom());
                     wvalid  <= 1'b1;
@@ -178,12 +178,12 @@ module jelly3_model_axi4_m
                     araddr   <= addr_t'($urandom_range(RADDR_LOW, RADDR_HIGH)) & ADDR_MASK;
                     arlen    <= len_t'($urandom_range(0, 3));
                     arsize   <= size_t'($clog2(STRB_BITS));
-                    arburst  <= burst_t'(1);
-                    arlock   <= lock_t'(0);
-                    arcache  <= cache_t'(0);
-                    arprot   <= prot_t'(1);
+                    arburst  <= burst_t'(2'b01);        // INCR
+                    arlock   <= lock_t'(1'b0);
+                    arcache  <= cache_t'(4'b0001);      // Normal, non-cacheable
+                    arprot   <= prot_t'(3'b001);        // Data access, non-secure, not fetch
                     arqos    <= qos_t'($urandom());
-                    arregion <= region_t'($urandom());
+                    arregion <= region_t'(4'b0000);     // No region
                     aruser   <= aruser_t'($urandom());
                     arvalid  <= 1'b1;
                 end
