@@ -75,7 +75,7 @@ module jelly3_model_axi4s_dump
                     frame_start();
                 end
                 if ( fp != 0) begin
-                    for ( int i = 0; i < COMPONENTS; ++i ) begin
+                    for ( int i = 0; i < COMPONENTS; i++ ) begin
                         logic [COMPONENTS-1:0][DATA_BITS-1:0]  data;
                         data = (COMPONENTS*DATA_BITS)'(mon_axi4s.tdata);
                         if ( ENDIAN ) begin
