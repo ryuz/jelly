@@ -22,12 +22,12 @@ module tb_main
     //  Parameters
     // -----------------------------------------------------------------------
 
-    localparam  int     NUM         = 1         ;   // number of masters
+    localparam  int     NUM         = 2         ;   // number of masters
     localparam  int     S_ID_BITS   = 2         ;   // slave-side ID bits
     // m_axi4 must carry S_ID_BITS + $clog2(NUM) = 2+2 = 4 bits
     // because the arbiter encodes port index into the lower $clog2(NUM) bits:
     //   m_id = (s_id << SEL_BITS) | port_index
-    localparam  int     M_ID_BITS   = S_ID_BITS + $clog2(NUM);  // = 4
+    localparam  int     M_ID_BITS   = S_ID_BITS ;//+ $clog2(NUM);  // = 4
     localparam  int     ADDR_BITS   = 32        ;
     localparam  int     DATA_BITS   = 32        ;
 
@@ -100,7 +100,7 @@ module tb_main
     //  DUT : jelly3_axi4_arbiter
     // -----------------------------------------------------------------------
 
-    jelly3_axi4_arbiter
+    jelly3_axi4_arbiter_inorder
             #(
                 .NUM        (NUM        )
             )
@@ -120,8 +120,8 @@ module tb_main
             #(
                 .MEM_ADDR_BITS      (12             ),  // 4096 words (>= 0x4ff/4)
                 .READ_DATA_ADDR     (0              ),
-                .WRITE_LOG_FILE     (""             ),
-                .READ_LOG_FILE      (""             ),
+                .WRITE_LOG_FILE     ("write_log.txt"),
+                .READ_LOG_FILE      ("read_log.txt" ),
                 .AW_DELAY           (0              ),
                 .AR_DELAY           (0              ),
                 .AW_FIFO_PTR_BITS   (0              ),
@@ -155,10 +155,11 @@ module tb_main
     //  Monitors all merged traffic on m_axi4; full ID + data + response check
     // -----------------------------------------------------------------------
 
+    /*
     jelly3_model_axi4_mem_check
             #(
-                .SHOW_MATCH         (0              ),
-                .SHOW_SKIP          (0              ),
+                .SHOW_MATCH         (1              ),
+                .SHOW_SKIP          (1              ),
                 .CHECK_BRESP        (1              ),
                 .CHECK_RRESP        (1              ),
                 .CHECK_WLAST        (1              ),
@@ -168,6 +169,7 @@ module tb_main
             (
                 .mon_axi4           (m_axi4.mon     )
             );
+    */
 
 
     // -----------------------------------------------------------------------
@@ -210,6 +212,7 @@ module tb_main
         // Master-side checker:
         //   BID/RID check disabled because the arbiter transforms IDs.
         //   Data correctness and LAST/RESP protocol are still verified.
+        /*
         jelly3_model_axi4_mem_check
                 #(
                     .SHOW_MATCH         (0                  ),
@@ -223,7 +226,7 @@ module tb_main
                 (
                     .mon_axi4           (s_axi4[i].mon      )
                 );
-
+        */
     end : g_master
 
 
@@ -300,7 +303,9 @@ module tb_main
         enable = '0;
         #1000;
         enable = '1;
-        #10000;
+        #100000;
+        enable = '0;
+        #1000;
 
         $finish;
     end

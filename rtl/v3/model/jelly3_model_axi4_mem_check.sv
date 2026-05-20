@@ -101,7 +101,7 @@ module jelly3_model_axi4_mem_check
                 end
             end
             if ( error ) begin
-                $display("ERROR: addr=%h strb=%b data=%h expected=%h", addr, mem[addr].strb, data, mem[addr].data);
+                $display("%t ERROR: addr=%h strb=%b data=%h expected=%h", $time(), addr, mem[addr].strb, data, mem[addr].data);
             end
             else if ( SHOW_MATCH && match ) begin
                 $display("MATCH: addr=%h strb=%b data=%h expected=%h", addr, mem[addr].strb, data, mem[addr].data);
@@ -161,6 +161,7 @@ module jelly3_model_axi4_mem_check
         end
         else begin
             if ( mon_axi4.awvalid && mon_axi4.awready ) begin
+//              $display("awaddr=%h awlen=%h", mon_axi4.awaddr, mon_axi4.awlen);
                 aw_queue.push_back( '{ mon_axi4.awaddr, mon_axi4.awlen } );
                 b_queue.push_back( mon_axi4.awlen );
             end
@@ -217,7 +218,7 @@ module jelly3_model_axi4_mem_check
 
             if ( mon_axi4.rvalid && mon_axi4.rready ) begin
                 if ( CHECK_RRESP && mon_axi4.rresp != 2'b00 ) begin
-                    $display("ERROR: rresp=%b expected=00", mon_axi4.rresp);
+                    $display("%t ERROR: rresp=%b expected=00", $time(), mon_axi4.rresp);
                 end
 
                 if ( !rbusy ) begin
