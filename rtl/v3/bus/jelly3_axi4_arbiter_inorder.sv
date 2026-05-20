@@ -46,12 +46,6 @@ module jelly3_axi4_arbiter_inorder
     localparam  type    aruser_t = logic [m_axi4.ARUSER_BITS-1:0];
     localparam  type    ruser_t  = logic [m_axi4.RUSER_BITS -1:0];
 
-    // Structure to carry both selector and original ID information
-    typedef struct packed {
-        sel_t   sel;
-        id_t    id;
-    } sel_id_t;
-
 
     // assign for packed array
     id_t      [NUM-1:0] s_axi4_awid      ;
@@ -147,13 +141,19 @@ module jelly3_axi4_arbiter_inorder
     end
 
 
+    // Structure to carry both selector and original ID information
+    typedef struct packed {
+        sel_t   sel;
+        id_t    id;
+    } sel_id_t;
+
     // response destination queues
-    sel_id_t   bsel_s_data  ;
-    logic      bsel_s_valid ;
-    logic      bsel_s_ready ;
-    sel_id_t   bsel_m_data  ;
-    logic      bsel_m_valid ;
-    logic      bsel_m_ready ;
+    sel_id_t   bfifo_s_data     ;
+    logic      bfifo_s_valid    ;
+    logic      bfifo_s_ready    ;
+    sel_id_t   bfifo_m_data     ;
+    logic      bfifo_m_valid    ;
+    logic      bfifo_m_ready    ;
     jelly3_stream_fifo
             #(
                 .ASYNC          (0                      ),
@@ -168,26 +168,26 @@ module jelly3_axi4_arbiter_inorder
                 .s_reset        (~m_axi4.aresetn        ),
                 .s_clk          (m_axi4.aclk            ),
                 .s_cke          (m_axi4.aclken          ),
-                .s_data         (bsel_s_data            ),
-                .s_valid        (bsel_s_valid           ),
-                .s_ready        (bsel_s_ready           ),
+                .s_data         (bfifo_s_data           ),
+                .s_valid        (bfifo_s_valid          ),
+                .s_ready        (bfifo_s_ready          ),
                 .s_free_size    (                       ),
 
                 .m_reset        (~m_axi4.aresetn        ),
                 .m_clk          (m_axi4.aclk            ),
                 .m_cke          (m_axi4.aclken          ),
-                .m_data         (bsel_m_data            ),
-                .m_valid        (bsel_m_valid           ),
-                .m_ready        (bsel_m_ready           ),
+                .m_data         (bfifo_m_data           ),
+                .m_valid        (bfifo_m_valid          ),
+                .m_ready        (bfifo_m_ready          ),
                 .m_data_size    (                       )
             );
 
-    sel_id_t   rsel_s_data  ;
-    logic      rsel_s_valid ;
-    logic      rsel_s_ready ;
-    sel_id_t   rsel_m_data  ;
-    logic      rsel_m_valid ;
-    logic      rsel_m_ready ;
+    sel_id_t   rfifo_s_data  ;
+    logic      rfifo_s_valid ;
+    logic      rfifo_s_ready ;
+    sel_id_t   rfifo_m_data  ;
+    logic      rfifo_m_valid ;
+    logic      rfifo_m_ready ;
     jelly3_stream_fifo
             #(
                 .ASYNC          (0                      ),
@@ -202,116 +202,132 @@ module jelly3_axi4_arbiter_inorder
                 .s_reset        (~m_axi4.aresetn        ),
                 .s_clk          (m_axi4.aclk            ),
                 .s_cke          (m_axi4.aclken          ),
-                .s_data         (rsel_s_data            ),
-                .s_valid        (rsel_s_valid           ),
-                .s_ready        (rsel_s_ready           ),
+                .s_data         (rfifo_s_data            ),
+                .s_valid        (rfifo_s_valid           ),
+                .s_ready        (rfifo_s_ready           ),
                 .s_free_size    (                       ),
 
                 .m_reset        (~m_axi4.aresetn        ),
                 .m_clk          (m_axi4.aclk            ),
                 .m_cke          (m_axi4.aclken          ),
-                .m_data         (rsel_m_data            ),
-                .m_valid        (rsel_m_valid           ),
-                .m_ready        (rsel_m_ready           ),
+                .m_data         (rfifo_m_data            ),
+                .m_valid        (rfifo_m_valid           ),
+                .m_ready        (rfifo_m_ready           ),
                 .m_data_size    (                       )
             );
 
-
-    // write arbiter
-    logic   write_busy       ;
-    sel_t   write_sel        ;
-    logic   write_req_valid  ;
-    sel_t   write_req_sel    ;
-    logic   write_start_ack  ;
-
-    always_ff @(posedge m_axi4.aclk) begin
-        if ( ~m_axi4.aresetn ) begin
-            write_busy      <= 1'b0;
-            write_sel       <= 'x;
-            write_req_valid <= 1'b0;
-            write_req_sel   <= 'x;
-        end
-        else if ( m_axi4.aclken ) begin
-            if ( !write_busy && !write_req_valid ) begin
-                if ( bsel_s_ready ) begin
-                    for ( int i = 0; i < NUM; i++ ) begin
-                        if ( s_axi4_awvalid[i] && s_axi4_wvalid[i] ) begin
-                            write_req_valid <= 1'b1;
-                            write_req_sel   <= sel_t'(i);
-                            break;
-                        end
-                    end
-                end
-            end
-
-            if ( write_req_valid && !(s_axi4_awvalid[write_req_sel] && s_axi4_wvalid[write_req_sel]) ) begin
-                write_req_valid <= 1'b0;
-            end
-
-            if ( write_start_ack ) begin
-                write_sel       <= write_req_sel;
-                write_busy      <= ~s_axi4_wlast[write_req_sel];
-                write_req_valid <= 1'b0;
-            end
-            else if ( write_busy && s_axi4_wvalid[write_sel] && m_axi4.wready && s_axi4_wlast[write_sel] ) begin
-                write_busy <= 1'b0;
-            end
-        end
-    end
+    // Write Arbiter
+    logic   wbusy       ;
+    sel_t   wsel        ;
 
     always_comb begin
         s_axi4_awready = '0;
         s_axi4_wready  = '0;
 
-        if ( write_req_valid ) begin
-            s_axi4_awready[write_req_sel] = m_axi4.awready && m_axi4.wready;
-            s_axi4_wready [write_req_sel] = m_axi4.awready && m_axi4.wready;
+        if ( (!m_axi4.awvalid || m_axi4.awready) && (!wbusy || (m_axi4.wlast && m_axi4.wready)) && (!bfifo_s_valid || bfifo_s_ready) ) begin
+            for ( int i = 0; i < NUM; i++ ) begin
+                if ( s_axi4_awvalid[i] && s_axi4_wvalid[i] ) begin
+                    s_axi4_awready[i] = 1'b1;
+                    s_axi4_wready [i] = 1'b1;
+                    break;
+                end
+            end
         end
-
-        if ( write_busy ) begin
-            s_axi4_wready[write_sel] = m_axi4.wready;
+        else if ( wbusy ) begin
+            s_axi4_wready[wsel] = !m_axi4.wvalid || m_axi4.wready;
         end
     end
 
-    assign write_start_ack = write_req_valid && s_axi4_awvalid[write_req_sel] && s_axi4_wvalid[write_req_sel]
-                                && m_axi4.awready && m_axi4.wready;
+    always_ff @(posedge m_axi4.aclk) begin
+        if ( ~m_axi4.aresetn ) begin
+            m_axi4.awid      <= 'x  ;
+            m_axi4.awaddr    <= 'x  ;
+            m_axi4.awlen     <= 'x  ;
+            m_axi4.awsize    <= 'x  ;
+            m_axi4.awburst   <= 'x  ;
+            m_axi4.awlock    <= 'x  ;
+            m_axi4.awcache   <= 'x  ;
+            m_axi4.awprot    <= 'x  ;
+            m_axi4.awqos     <= 'x  ;
+            m_axi4.awregion  <= 'x  ;
+            m_axi4.awuser    <= 'x  ;
+            m_axi4.awvalid   <= 1'b0;
+            m_axi4.wdata     <= 'x  ;
+            m_axi4.wstrb     <= 'x  ;
+            m_axi4.wlast     <= 'x  ;
+            m_axi4.wuser     <= 'x  ;
+            m_axi4.wvalid    <= 1'b0;
+            bfifo_s_data     <= 'x  ;
+            bfifo_s_valid    <= 1'b0;
+            wbusy            <= 1'b0;
+            wsel             <= 'x  ;
+        end
+        else if ( m_axi4.aclken ) begin
+            if ( m_axi4.awready ) begin
+                m_axi4.awid      <= 'x  ;
+                m_axi4.awaddr    <= 'x  ;
+                m_axi4.awlen     <= 'x  ;
+                m_axi4.awsize    <= 'x  ;
+                m_axi4.awburst   <= 'x  ;
+                m_axi4.awlock    <= 'x  ;
+                m_axi4.awcache   <= 'x  ;
+                m_axi4.awprot    <= 'x  ;
+                m_axi4.awqos     <= 'x  ;
+                m_axi4.awregion  <= 'x  ;
+                m_axi4.awuser    <= 'x  ;
+                m_axi4.awvalid   <= 1'b0;
+            end
+            if ( m_axi4.wready ) begin
+                m_axi4.wdata     <= 'x  ;
+                m_axi4.wstrb     <= 'x  ;
+                m_axi4.wlast     <= 'x  ;
+                m_axi4.wuser     <= 'x  ;
+                m_axi4.wvalid    <= 1'b0;
+                if ( m_axi4.wvalid && m_axi4.wlast ) begin
+                    wbusy <= 1'b0;
+                    wsel  <= 'x  ;
+                end
+            end
+            if ( bfifo_s_ready ) begin
+                bfifo_s_data  <= 'x  ;
+                bfifo_s_valid <= 1'b0;
+            end
 
-    assign m_axi4.awid     = id_t'(M_AWID);
-    assign m_axi4.awaddr   = s_axi4_awaddr  [write_req_sel]                                           ;
-    assign m_axi4.awlen    = s_axi4_awlen   [write_req_sel]                                           ;
-    assign m_axi4.awsize   = s_axi4_awsize  [write_req_sel]                                           ;
-    assign m_axi4.awburst  = s_axi4_awburst [write_req_sel]                                           ;
-    assign m_axi4.awlock   = s_axi4_awlock  [write_req_sel]                                           ;
-    assign m_axi4.awcache  = s_axi4_awcache [write_req_sel]                                           ;
-    assign m_axi4.awprot   = s_axi4_awprot  [write_req_sel]                                           ;
-    assign m_axi4.awqos    = s_axi4_awqos   [write_req_sel]                                           ;
-    assign m_axi4.awregion = s_axi4_awregion[write_req_sel]                                           ;
-    assign m_axi4.awuser   = s_axi4_awuser  [write_req_sel]                                           ;
-    assign m_axi4.awvalid  = write_req_valid && s_axi4_awvalid[write_req_sel] && s_axi4_wvalid[write_req_sel];
+            for ( int i = 0; i < NUM; i++ ) begin
+                if ( s_axi4_awready[i] ) begin
+                    m_axi4.awid      <= id_t'(M_AWID)       ;
+                    m_axi4.awaddr    <= s_axi4_awaddr  [i]  ;
+                    m_axi4.awlen     <= s_axi4_awlen   [i]  ;
+                    m_axi4.awsize    <= s_axi4_awsize  [i]  ;
+                    m_axi4.awburst   <= s_axi4_awburst [i]  ;
+                    m_axi4.awlock    <= s_axi4_awlock  [i]  ;
+                    m_axi4.awcache   <= s_axi4_awcache [i]  ;
+                    m_axi4.awprot    <= s_axi4_awprot  [i]  ;
+                    m_axi4.awqos     <= s_axi4_awqos   [i]  ;
+                    m_axi4.awregion  <= s_axi4_awregion[i]  ;
+                    m_axi4.awuser    <= s_axi4_awuser  [i]  ;
+                    m_axi4.awvalid   <= s_axi4_awvalid [i]  ;
+                    bfifo_s_data.id  <= s_axi4_awid    [i]  ;
+                    bfifo_s_data.sel <= sel_t'(i)           ;
+                    bfifo_s_valid    <= s_axi4_awvalid [i]  ;
+                    wbusy            <= s_axi4_awvalid [i]  ;
+                    wsel             <= sel_t'(i)           ;
+                    break;
+                end
+            end
 
-    assign m_axi4.wdata    = write_busy ? s_axi4_wdata [write_sel] : s_axi4_wdata [write_req_sel];
-    assign m_axi4.wstrb    = write_busy ? s_axi4_wstrb [write_sel] : s_axi4_wstrb [write_req_sel];
-    assign m_axi4.wlast    = write_busy ? s_axi4_wlast [write_sel] : s_axi4_wlast [write_req_sel];
-    assign m_axi4.wuser    = write_busy ? s_axi4_wuser [write_sel] : s_axi4_wuser [write_req_sel];
-    assign m_axi4.wvalid   = write_busy ? s_axi4_wvalid[write_sel] : (write_req_valid && s_axi4_awvalid[write_req_sel] && s_axi4_wvalid[write_req_sel]);
-
-    assign bsel_s_data  = '{sel: write_req_sel, id: s_axi4_awid[write_req_sel]};
-    assign bsel_s_valid = write_start_ack;
-
-
-    // write response route
-    logic   b_accept;
-    always_comb begin
-        b_accept = 1'b0;
-        if ( bsel_m_valid ) begin
-            if ( !s_axi4_bvalid[bsel_m_data.sel] || s_axi4_bready[bsel_m_data.sel] ) begin
-                b_accept = m_axi4.bvalid;
+            for ( int i = 0; i < NUM; i++ ) begin
+                if ( s_axi4_wready[i] ) begin
+                    m_axi4.wdata     <= s_axi4_wdata   [i];
+                    m_axi4.wstrb     <= s_axi4_wstrb   [i];
+                    m_axi4.wlast     <= s_axi4_wlast   [i] && s_axi4_wvalid[i];
+                    m_axi4.wuser     <= s_axi4_wuser   [i];
+                    m_axi4.wvalid    <= s_axi4_wvalid  [i];
+                    break;
+                end
             end
         end
     end
-
-    assign m_axi4.bready = bsel_m_valid && (!s_axi4_bvalid[bsel_m_data.sel] || s_axi4_bready[bsel_m_data.sel]);
-    assign bsel_m_ready  = b_accept;
 
     always_ff @(posedge m_axi4.aclk) begin
         if ( ~m_axi4.aresetn ) begin
@@ -322,7 +338,7 @@ module jelly3_axi4_arbiter_inorder
         end
         else if ( m_axi4.aclken ) begin
             for ( int i = 0; i < NUM; i++ ) begin
-                if ( s_axi4_bvalid[i] && s_axi4_bready[i] ) begin
+                if ( s_axi4_bready[i] ) begin
                     s_axi4_bid   [i] <= 'x;
                     s_axi4_bresp [i] <= 'x;
                     s_axi4_buser [i] <= 'x;
@@ -330,121 +346,134 @@ module jelly3_axi4_arbiter_inorder
                 end
             end
 
-            if ( b_accept ) begin
-                s_axi4_bid   [bsel_m_data.sel] <= bsel_m_data.id;
-                s_axi4_bresp [bsel_m_data.sel] <= m_axi4.bresp;
-                s_axi4_buser [bsel_m_data.sel] <= m_axi4.buser;
-                s_axi4_bvalid[bsel_m_data.sel] <= 1'b1;
-            end
-        end
-    end
-
-
-    // read arbiter
-    logic   read_req_valid;
-    sel_t   read_req_sel;
-    logic   read_start_ack;
-
-    always_ff @(posedge m_axi4.aclk) begin
-        if ( ~m_axi4.aresetn ) begin
-            read_req_valid <= 1'b0;
-            read_req_sel   <= 'x;
-        end
-        else if ( m_axi4.aclken ) begin
-            if ( !read_req_valid ) begin
-                if ( rsel_s_ready ) begin
-                    for ( int i = 0; i < NUM; i++ ) begin
-                        if ( s_axi4_arvalid[i] ) begin
-                            read_req_valid <= 1'b1;
-                            read_req_sel   <= sel_t'(i);
-                            break;
-                        end
+            for ( int i = 0; i < NUM; i++ ) begin
+                if ( bfifo_m_valid && bfifo_m_data.sel == sel_t'(i) ) begin
+                    if ( !s_axi4_bvalid[i] || s_axi4_bready[i] ) begin
+                        s_axi4_bid    [i] <= bfifo_m_data.id ;
+                        s_axi4_bresp  [i] <= m_axi4.bresp    ;
+                        s_axi4_buser  [i] <= m_axi4.buser    ;
+                        s_axi4_bvalid [i] <= m_axi4.bvalid   ;
                     end
                 end
             end
-
-            if ( read_req_valid && !s_axi4_arvalid[read_req_sel] ) begin
-                read_req_valid <= 1'b0;
-            end
-
-            if ( read_start_ack ) begin
-                read_req_valid <= 1'b0;
-            end
         end
     end
 
+    assign bfifo_m_ready = m_axi4.bvalid && (!s_axi4_bvalid[bfifo_m_data.sel] || s_axi4_bready[bfifo_m_data.sel]);
+    assign m_axi4.bready = bfifo_m_valid && (!s_axi4_bvalid[bfifo_m_data.sel] || s_axi4_bready[bfifo_m_data.sel]);
+
+
+    // Read Arbiter
     always_comb begin
         s_axi4_arready = '0;
-        if ( read_req_valid ) begin
-            s_axi4_arready[read_req_sel] = m_axi4.arready;
-        end
-    end
-
-    assign read_start_ack = read_req_valid && s_axi4_arvalid[read_req_sel] && m_axi4.arready;
-
-    assign m_axi4.arid     = id_t'(M_ARID);
-    assign m_axi4.araddr   = s_axi4_araddr  [read_req_sel];
-    assign m_axi4.arlen    = s_axi4_arlen   [read_req_sel];
-    assign m_axi4.arsize   = s_axi4_arsize  [read_req_sel];
-    assign m_axi4.arburst  = s_axi4_arburst [read_req_sel];
-    assign m_axi4.arlock   = s_axi4_arlock  [read_req_sel];
-    assign m_axi4.arcache  = s_axi4_arcache [read_req_sel];
-    assign m_axi4.arprot   = s_axi4_arprot  [read_req_sel];
-    assign m_axi4.arqos    = s_axi4_arqos   [read_req_sel];
-    assign m_axi4.arregion = s_axi4_arregion[read_req_sel];
-    assign m_axi4.aruser   = s_axi4_aruser  [read_req_sel];
-    assign m_axi4.arvalid  = read_req_valid && s_axi4_arvalid[read_req_sel];
-
-    assign rsel_s_data  = '{sel: read_req_sel, id: s_axi4_arid[read_req_sel]};
-    assign rsel_s_valid = read_start_ack;
-
-
-    // read response route
-    logic   r_accept;
-    always_comb begin
-        r_accept = 1'b0;
-        if ( rsel_m_valid ) begin
-            if ( !s_axi4_rvalid[rsel_m_data.sel] || s_axi4_rready[rsel_m_data.sel] ) begin
-                r_accept = m_axi4.rvalid;
+        if ( (!m_axi4.arvalid || m_axi4.arready) && !rfifo_s_valid ) begin
+            for ( int i = 0; i < NUM; i++ ) begin
+                if ( s_axi4_arvalid[i] ) begin
+                    s_axi4_arready[i] = 1'b1;
+                    break;
+                end
             end
         end
     end
 
-    // R destination selection follows AR issue order. This assumes no R interleave.
-    assign m_axi4.rready = rsel_m_valid && (!s_axi4_rvalid[rsel_m_data.sel] || s_axi4_rready[rsel_m_data.sel]);
-    assign rsel_m_ready  = r_accept && m_axi4.rlast;
+    always_ff @(posedge m_axi4.aclk) begin
+        if ( ~m_axi4.aresetn ) begin
+            m_axi4.arid      <= 'x  ;
+            m_axi4.araddr    <= 'x  ;
+            m_axi4.arlen     <= 'x  ;
+            m_axi4.arsize    <= 'x  ;
+            m_axi4.arburst   <= 'x  ;
+            m_axi4.arlock    <= 'x  ;
+            m_axi4.arcache   <= 'x  ;
+            m_axi4.arprot    <= 'x  ;
+            m_axi4.arqos     <= 'x  ;
+            m_axi4.arregion  <= 'x  ;
+            m_axi4.aruser    <= 'x  ;
+            m_axi4.arvalid   <= 1'b0;
+            rfifo_s_data     <= 'x  ;
+            rfifo_s_valid    <= 1'b0;
+        end
+        else if ( m_axi4.aclken ) begin
+            if ( m_axi4.arready ) begin
+                m_axi4.arid      <= 'x  ;
+                m_axi4.araddr    <= 'x  ;
+                m_axi4.arlen     <= 'x  ;
+                m_axi4.arsize    <= 'x  ;
+                m_axi4.arburst   <= 'x  ;
+                m_axi4.arlock    <= 'x  ;
+                m_axi4.arcache   <= 'x  ;
+                m_axi4.arprot    <= 'x  ;
+                m_axi4.arqos     <= 'x  ;
+                m_axi4.arregion  <= 'x  ;
+                m_axi4.aruser    <= 'x  ;
+                m_axi4.arvalid   <= 1'b0;
+            end
+            if ( rfifo_s_ready ) begin
+                rfifo_s_data  <= 'x  ;
+                rfifo_s_valid <= 1'b0;
+            end
+
+            for ( int i = 0; i < NUM; i++ ) begin
+                if ( s_axi4_arready[i] ) begin
+                    m_axi4.arid      <= id_t'(M_ARID)       ;
+                    m_axi4.araddr    <= s_axi4_araddr  [i]  ;
+                    m_axi4.arlen     <= s_axi4_arlen   [i]  ;
+                    m_axi4.arsize    <= s_axi4_arsize  [i]  ;
+                    m_axi4.arburst   <= s_axi4_arburst [i]  ;
+                    m_axi4.arlock    <= s_axi4_arlock  [i]  ;
+                    m_axi4.arcache   <= s_axi4_arcache [i]  ;
+                    m_axi4.arprot    <= s_axi4_arprot  [i]  ;
+                    m_axi4.arqos     <= s_axi4_arqos   [i]  ;
+                    m_axi4.arregion  <= s_axi4_arregion[i]  ;
+                    m_axi4.aruser    <= s_axi4_aruser  [i]  ;
+                    m_axi4.arvalid   <= s_axi4_arvalid [i]  ;
+                    rfifo_s_data.id  <= s_axi4_arid    [i]  ;
+                    rfifo_s_data.sel <= sel_t'(i)           ;
+                    rfifo_s_valid    <= s_axi4_arvalid [i]  ;
+                    break;
+                end
+            end
+        end
+    end
 
     always_ff @(posedge m_axi4.aclk) begin
         if ( ~m_axi4.aresetn ) begin
             s_axi4_rid    <= 'x;
-            s_axi4_rdata  <= 'x;
             s_axi4_rresp  <= 'x;
+            s_axi4_rdata  <= 'x;
             s_axi4_rlast  <= 'x;
             s_axi4_ruser  <= 'x;
             s_axi4_rvalid <= '0;
         end
         else if ( m_axi4.aclken ) begin
             for ( int i = 0; i < NUM; i++ ) begin
-                if ( s_axi4_rvalid[i] && s_axi4_rready[i] ) begin
+                if ( s_axi4_rready[i] ) begin
                     s_axi4_rid   [i] <= 'x;
-                    s_axi4_rdata [i] <= 'x;
                     s_axi4_rresp [i] <= 'x;
+                    s_axi4_rdata [i] <= 'x;
                     s_axi4_rlast [i] <= 'x;
                     s_axi4_ruser [i] <= 'x;
                     s_axi4_rvalid[i] <= 1'b0;
                 end
             end
 
-            if ( r_accept ) begin
-                s_axi4_rid   [rsel_m_data.sel] <= rsel_m_data.id;
-                s_axi4_rdata [rsel_m_data.sel] <= m_axi4.rdata;
-                s_axi4_rresp [rsel_m_data.sel] <= m_axi4.rresp;
-                s_axi4_rlast [rsel_m_data.sel] <= m_axi4.rlast;
-                s_axi4_ruser [rsel_m_data.sel] <= m_axi4.ruser;
-                s_axi4_rvalid[rsel_m_data.sel] <= 1'b1;
+            for ( int i = 0; i < NUM; i++ ) begin
+                if ( rfifo_m_valid && rfifo_m_data.sel == sel_t'(i) ) begin
+                    if ( !s_axi4_rvalid[i] || s_axi4_rready[i] ) begin
+                        s_axi4_rid    [i] <= rfifo_m_data.id ;
+                        s_axi4_rresp  [i] <= m_axi4.rresp    ;
+                        s_axi4_rdata  [i] <= m_axi4.rdata    ;
+                        s_axi4_rlast  [i] <= m_axi4.rlast    ;
+                        s_axi4_ruser  [i] <= m_axi4.ruser    ;
+                        s_axi4_rvalid [i] <= m_axi4.rvalid   ;
+                    end
+                end
             end
         end
     end
+
+    assign rfifo_m_ready = m_axi4.rvalid && m_axi4.rlast && (!s_axi4_rvalid[rfifo_m_data.sel] || s_axi4_rready[rfifo_m_data.sel]);
+    assign m_axi4.rready = rfifo_m_valid && (!s_axi4_rvalid[rfifo_m_data.sel] || s_axi4_rready[rfifo_m_data.sel]);
 
 endmodule
 

@@ -47,7 +47,7 @@ module jelly3_axi4_arbiter
     localparam  int     SEL_IDX_BITS = NUM > 1 ? $clog2(NUM) : 1;
     typedef logic [SEL_IDX_BITS-1:0] sel_idx_t;
 
-    localparam  id_t    SEL_MASK = id_t'((1 << SEL_BITS) - 1);
+    localparam  id_t    SEL_MASK = (SEL_BITS > 0) ? (~id_t'(0) >> (m_axi4.ID_BITS - SEL_BITS)) : id_t'(0);
 
 
     // assign for packed array
@@ -250,6 +250,7 @@ module jelly3_axi4_arbiter
     assign m_axi4.bready = s_axi4_bready[bsel];
     always_comb begin
         for ( int i = 0; i < NUM; i++ ) begin
+            s_axi4_bid   [i] = m_axi4.bid >> SEL_BITS;
             s_axi4_bresp [i] = m_axi4.bresp;
             s_axi4_buser [i] = m_axi4.buser;
             s_axi4_bvalid[i] = m_axi4.bvalid && (bsel == sel_idx_t'(i));
@@ -260,6 +261,20 @@ module jelly3_axi4_arbiter
 
     // read arbiter
     // read はシンプルに添え字の小さい方から順に処理する
+
+    logic ar_ready;
+    assign ar_ready = !m_axi4.arvalid || m_axi4.arready;
+
+    always_comb begin
+        s_axi4_arready = '0;
+        for ( int i = 0; i < NUM; i++ ) begin
+            if ( ar_ready && s_axi4_arvalid[i] ) begin
+                s_axi4_arready[i] = 1'b1;
+                break;
+            end
+        end
+    end
+
     always_ff @(posedge m_axi4.aclk) begin
         if ( ~m_axi4.aresetn ) begin
             m_axi4.arid     <= 'x;
@@ -280,7 +295,7 @@ module jelly3_axi4_arbiter
                 m_axi4.arvalid  <= 1'b0;
             end
 
-            if ( !m_axi4.arvalid || m_axi4.arready ) begin
+            if ( ar_ready ) begin
                 for ( int i = 0; i < NUM; i++ ) begin
                     if ( s_axi4_arvalid[i] ) begin
                         m_axi4.arid     <= (s_axi4_arid[i] << SEL_BITS) | id_t'(i);
@@ -305,18 +320,17 @@ module jelly3_axi4_arbiter
     sel_idx_t   rsel    ;
     assign rsel = sel_idx_t'(m_axi4.rid & SEL_MASK);
 
-    assign m_axi4.rready = s_axi4_rready[bsel];
+    assign m_axi4.rready = s_axi4_rready[rsel];
     always_comb begin
         for ( int i = 0; i < NUM; i++ ) begin
+            s_axi4_rid   [i] = m_axi4.rid >> SEL_BITS;
             s_axi4_rresp [i] = m_axi4.rresp;
             s_axi4_rlast [i] = m_axi4.rlast;
             s_axi4_rdata [i] = m_axi4.rdata;
             s_axi4_ruser [i] = m_axi4.ruser;
-            s_axi4_rvalid[i] = m_axi4.rvalid && (bsel == sel_idx_t'(i));
+            s_axi4_rvalid[i] = m_axi4.rvalid && (rsel == sel_idx_t'(i));
         end
     end
-
-
 
 
 endmodule
