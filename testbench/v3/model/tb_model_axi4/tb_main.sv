@@ -80,6 +80,7 @@ module tb_main
                 .READ_DATA_ADDR      (0                   ),
                 .WRITE_LOG_FILE      ("axi4_write_log.txt"),
                 .READ_LOG_FILE       ("axi4_read_log.txt" ),
+                .LOG_TIMESTAMP       (1                   ),
                 .AW_DELAY            (0                   ),
                 .AR_DELAY            (0                   ),
                 .AW_FIFO_PTR_BITS    (0                   ),
