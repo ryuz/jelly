@@ -23,7 +23,7 @@ module tb_main
     localparam  int     WADDR_HIGH      = 'h0000_01ff;
     localparam  int     RADDR_LOW       = 'h0000_0100;
     localparam  int     RADDR_HIGH      = 'h0000_01ff;
-    localparam  int     TEST_CYCLES     = 500;
+    localparam  int     TEST_CYCLES     = 100000;
     localparam  int     WRITE_ID        = 3;
     localparam  int     READ_ID         = 5;
 
@@ -90,8 +90,8 @@ module tb_main
                 .AW_BUSY_RATE        (15                  ),
                 .W_BUSY_RATE         (15                  ),
                 .B_BUSY_RATE         (15                  ),
-                .AR_BUSY_RATE        (0                   ),
-                .R_BUSY_RATE         (0                   ),
+                .AR_BUSY_RATE        (15                  ),
+                .R_BUSY_RATE         (15                  ),
                 .AW_RAND_SEED        (400                 ),
                 .W_RAND_SEED         (401                 ),
                 .B_RAND_SEED         (402                 ),
@@ -105,8 +105,8 @@ module tb_main
 
     jelly3_model_axi4_mem_check
             #(
-                .SHOW_MATCH          (1                   ),
-                .SHOW_SKIP           (1                   ),
+                .SHOW_MATCH          (0                   ),
+                .SHOW_SKIP           (0                   ),
                 .CHECK_BRESP         (1                   ),
                 .CHECK_RRESP         (1                   ),
                 .CHECK_WLAST         (1                   ),

@@ -82,7 +82,6 @@ module jelly3_model_axi4_mem_check
                 read_queue[i].dirty = 1'b1;
             end
         end
-
 //      $display("write_start: addr=%h strb=%b data=%h, writers=%0d", addr, strb, data, mem[addr].writers);
     endtask
 
@@ -112,7 +111,13 @@ module jelly3_model_axi4_mem_check
         input len_t   len
     );
         for ( int i = 0; i < int'(len) + 1; i++ ) begin
-            read_queue.push_back( '{ addr + i*DATA_BYTES, 1'b0 } );
+            if ( mem.exists(addr) && mem[addr].writers > 0 ) begin
+                read_queue.push_back( '{ addr, 1'b1 } );
+            end
+            else begin
+                read_queue.push_back( '{ addr, 1'b0 } );
+            end
+            addr += DATA_BYTES;
         end
     endtask
 
