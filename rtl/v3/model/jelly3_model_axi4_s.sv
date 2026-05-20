@@ -17,6 +17,7 @@ module jelly3_model_axi4_s
             parameter   bit     READ_DATA_ADDR   = 0                    ,      // リード結果をアドレスとする
             parameter   string  WRITE_LOG_FILE   = ""                   ,
             parameter   string  READ_LOG_FILE    = ""                   ,
+            parameter   bit     LOG_TIMESTAMP    = 0                    ,
             parameter   int     AW_DELAY         = 0                    ,
             parameter   int     AR_DELAY         = 0                    ,
             parameter   int     AW_FIFO_PTR_BITS = 0                    ,
@@ -420,6 +421,7 @@ module jelly3_model_axi4_s
                 end
                 
                 if ( w_fp != 0 ) begin
+                    if ( LOG_TIMESTAMP ) $fwrite(w_fp, "%t ", $time());
                     $fdisplay(w_fp, "%h %h %h", sig_awaddr, axi4_wdata, axi4_wstrb);
                 end
             end
@@ -482,6 +484,7 @@ module jelly3_model_axi4_s
             
             if ( axi4_rvalid && axi4_rready ) begin
                 if ( r_fp != 0 ) begin
+                    if ( LOG_TIMESTAMP ) $fwrite(r_fp, "%t ", $time());
                     $fdisplay(r_fp, "%h %h", reg_araddr, axi4_rdata);
                 end
             end
