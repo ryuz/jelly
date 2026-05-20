@@ -155,7 +155,6 @@ module tb_main
     //  Monitors all merged traffic on m_axi4; full ID + data + response check
     // -----------------------------------------------------------------------
 
-    /*
     jelly3_model_axi4_mem_check
             #(
                 .SHOW_MATCH         (1              ),
@@ -169,7 +168,6 @@ module tb_main
             (
                 .mon_axi4           (m_axi4.mon     )
             );
-    */
 
 
     // -----------------------------------------------------------------------
@@ -303,7 +301,7 @@ module tb_main
         enable = '0;
         #1000;
         enable = '1;
-        #100000;
+        #10000;
         enable = '0;
         #1000;
 

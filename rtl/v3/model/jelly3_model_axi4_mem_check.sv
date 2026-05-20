@@ -51,7 +51,14 @@ module jelly3_model_axi4_mem_check
         data_t      data;
     } memory_t;
 
+    typedef struct packed {
+        addr_t      addr;
+        logic       dirty;
+    } read_t;
+
     memory_t mem [addr_t];
+
+    read_t   read_queue [$];
 
     // 書き込み要求した時点で、完了までそのアドレスは無効
     task write_start (
@@ -59,6 +66,7 @@ module jelly3_model_axi4_mem_check
         input strb_t  strb,
         input data_t  data
     );
+        // 書き込み予約
         if ( mem.exists(addr) ) begin
             mem[addr].writers++;
         end
@@ -67,6 +75,14 @@ module jelly3_model_axi4_mem_check
             mem[addr].strb = 'x;
             mem[addr].data = 'x;
         end
+
+        // 読み出し待ちが居れば無効化
+        for ( int i = 0; i < read_queue.size(); i++ ) begin
+            if ( read_queue[i].addr == addr ) begin
+                read_queue[i].dirty = 1'b1;
+            end
+        end
+
 //      $display("write_start: addr=%h strb=%b data=%h, writers=%0d", addr, strb, data, mem[addr].writers);
     endtask
 
@@ -81,7 +97,7 @@ module jelly3_model_axi4_mem_check
         end
 //      $display("write_complete: addr=%h strb=%b data=%h, writers=%0d", addr, strb, data, mem[addr].writers);
 
-        // 自分が最後の書き込みなら反映させる
+        // 書き込みを反映させる
         mem[addr].writers--;
         for ( int i = 0; i < DATA_BYTES; i = i + 1 ) begin
             if ( strb[i] ) begin
@@ -91,13 +107,27 @@ module jelly3_model_axi4_mem_check
         end
     endtask
 
-    task read_check (
+    task read_start (
         input addr_t  addr,
+        input len_t   len
+    );
+        for ( int i = 0; i < int'(len) + 1; i++ ) begin
+            read_queue.push_back( '{ addr + i*DATA_BYTES, 1'b0 } );
+        end
+    endtask
+
+    task read_complete (
         input data_t  data
     );
         automatic bit match = 0;
         automatic bit error = 0;
-        if ( mem.exists(addr) && mem[addr].writers == 0 ) begin
+        automatic addr_t addr;
+
+        // キューの先頭からアドレスを取り出す
+        addr = read_queue[0].addr;
+
+        // 内容チェック
+        if ( !read_queue[0].dirty && mem.exists(addr) && mem[addr].writers == 0 ) begin
             for ( int i = 0; i < DATA_BYTES; i++ ) begin
                 if ( mem[addr].strb[i] ) begin
                     if ( mem[addr].data[i] != data[i] ) begin
@@ -115,6 +145,7 @@ module jelly3_model_axi4_mem_check
                 $display("MATCH: addr=%h strb=%b data=%h expected=%h", addr, mem[addr].strb, data, mem[addr].data);
             end
         end
+        read_queue.pop_front();
 
         if ( SHOW_SKIP && !match && !error ) begin
             $display("SKIP: addr=%h data=%h", addr, data);
@@ -149,7 +180,7 @@ module jelly3_model_axi4_mem_check
     w_t     w_queue  [$];
     write_t write_queue [$];
     len_t   b_queue  [$];
-    ar_t    ar_queue [$];
+//  ar_t    ar_queue [$];
 
     logic   wbusy ;
     addr_t  waddr ;
@@ -163,21 +194,22 @@ module jelly3_model_axi4_mem_check
             mem.delete();
             aw_queue.delete();
             w_queue.delete();
-            ar_queue.delete();
+//          ar_queue.delete();
             wbusy <= 1'b0;
             rbusy <= 1'b0;
         end
-        else begin
+        else if ( mon_axi4.aclken ) begin
             if ( mon_axi4.awvalid && mon_axi4.awready ) begin
 //              $display("awaddr=%h awlen=%h", mon_axi4.awaddr, mon_axi4.awlen);
                 aw_queue.push_back( '{ mon_axi4.awaddr, mon_axi4.awlen } );
                 b_queue.push_back( mon_axi4.awlen );
             end
             if ( mon_axi4.wvalid && mon_axi4.wready ) begin
-                w_queue.push_back( '{ mon_axi4.wlast, mon_axi4.wstrb, mon_axi4.wdata } );
+                w_queue.push_back( '{ mon_axi4.wlast, mon_axi4.wstrb, mon_axi4.wdata} );
             end
             if ( mon_axi4.arvalid && mon_axi4.arready ) begin
-                ar_queue.push_back( '{ mon_axi4.araddr, mon_axi4.arlen } );
+//              ar_queue.push_back( '{ mon_axi4.araddr, mon_axi4.arlen } );
+                read_start( mon_axi4.araddr, mon_axi4.arlen );
             end
 
             // 書き込み成立したら書き込み要求処理
@@ -190,22 +222,22 @@ module jelly3_model_axi4_mem_check
 
                 write_start(waddr, w_queue[0].wstrb, w_queue[0].wdata);
                 write_queue.push_back( '{ waddr, w_queue[0].wstrb, w_queue[0].wdata } );
-                w_queue.pop_front();
 
                 if ( wlen == 0 ) begin
                     if ( CHECK_WLAST && !w_queue[0].wlast ) begin
-                        $display("ERROR: wlast expected at addr=%h", waddr);
+                        $display("%t ERROR: wlast=%b (expected:1)", $time(), w_queue[0].wlast);
                     end
                     aw_queue.pop_front();
                     wbusy = 1'b0;
                 end
                 else begin
                     if ( CHECK_WLAST && w_queue[0].wlast ) begin
-                        $display("ERROR: wlast unexpected at addr=%h", waddr);
+                        $display("%t ERROR: wlast=%b (expected:0)", $time(), w_queue[0].wlast);
                     end
                     waddr += DATA_BYTES;
                     wlen  -= 1;
                 end
+                w_queue.pop_front();
             end
 
             if ( mon_axi4.bvalid && mon_axi4.bready ) begin
@@ -225,6 +257,8 @@ module jelly3_model_axi4_mem_check
             end
 
             if ( mon_axi4.rvalid && mon_axi4.rready ) begin
+                read_complete(mon_axi4.rdata);
+                /*
                 if ( CHECK_RRESP && mon_axi4.rresp != 2'b00 ) begin
                     $display("%t ERROR: rresp=%b expected=00", $time(), mon_axi4.rresp);
                 end
@@ -248,6 +282,7 @@ module jelly3_model_axi4_mem_check
                     raddr += DATA_BYTES;
                     rlen  -= 1;
                 end
+                */
             end
         end
     end

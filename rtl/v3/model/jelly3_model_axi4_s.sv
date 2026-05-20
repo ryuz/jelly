@@ -461,6 +461,7 @@ module jelly3_model_axi4_s
                 reg_araddr <= reg_araddr + (1 << reg_arsize);
                 reg_arlen  <= reg_arlen - 1'b1              ;
                 reg_rlast  <= ((reg_arlen - 1'b1) == 0)     ;
+                reg_rdata  <= READ_DATA_ADDR ? AXI_DATA_BITS'(reg_araddr + (1 << reg_arsize)) : mem[MEM_ADDR_BITS'((reg_araddr + (1 << reg_arsize)) >> AXI_DATA_SIZE)];
                 if ( reg_rlast ) begin
                     reg_arbusy <= 1'b0;
                     reg_rvalid <= 1'b0;
@@ -475,6 +476,7 @@ module jelly3_model_axi4_s
                 reg_arsize <= axi4_arsize       ;
                 
                 reg_rlast  <= (axi4_arlen == 0) ;
+                reg_rdata  <= READ_DATA_ADDR ? AXI_DATA_BITS'(axi4_araddr) : mem[MEM_ADDR_BITS'(axi4_araddr >> AXI_DATA_SIZE)];
                 reg_rvalid <= 1'b1              ;
             end
             
@@ -490,10 +492,7 @@ module jelly3_model_axi4_s
     assign axi4_arready = (!reg_arbusy && !(axi4_rvalid & !axi4_rready)) || (reg_rlast && axi4_rvalid && axi4_rready);
     
     assign axi4_rid     = axi4_rvalid ? reg_arid : {AXI_ID_BITS{1'bx}};
-    assign axi4_rdata   = READ_DATA_ADDR                                                  ? AXI_DATA_BITS'(reg_araddr)                       :
-                          (axi4_rvalid && (int'(reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[MEM_ADDR_BITS'(reg_araddr >> AXI_DATA_SIZE)] :
-                          {AXI_DATA_BITS{1'bx}};
-    
+    assign axi4_rdata   = axi4_rvalid ? reg_rdata : {AXI_DATA_BITS{1'bx}};
     assign axi4_rlast   = axi4_rvalid ? reg_rlast : 1'bx;
     assign axi4_rvalid  = reg_rvalid;
     

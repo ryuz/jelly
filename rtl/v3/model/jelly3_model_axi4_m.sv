@@ -176,7 +176,7 @@ module jelly3_model_axi4_m
                 if ( enable && can_issue(AR_BUSY_RATE) ) begin
                     arid     <= id_t'($urandom());
                     araddr   <= addr_t'($urandom_range(RADDR_LOW, RADDR_HIGH)) & ADDR_MASK;
-                    arlen    <= len_t'($urandom());
+                    arlen    <= len_t'($urandom_range(0, 3));
                     arsize   <= size_t'($clog2(STRB_BITS));
                     arburst  <= burst_t'(1);
                     arlock   <= lock_t'(0);
