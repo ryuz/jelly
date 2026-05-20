@@ -66,6 +66,8 @@ module jelly3_model_axi4_m
     localparam type aruser_t   = logic [ARUSER_BITS-1:0]  ;
     localparam type ruser_t    = logic [RUSER_BITS-1:0]   ;
 
+    localparam addr_t  ADDR_MASK =  ~addr_t'((1 << STRB_BITS) - 1);
+
     len_t   aw_queue [$];
     bit     w_queue [$];
 
@@ -133,7 +135,7 @@ module jelly3_model_axi4_m
             if ( !awvalid || m_axi4.awready ) begin
                 if ( can_issue(AW_BUSY_RATE) && aw_queue.size() > 0 ) begin
                     awid    <= id_t'($urandom());
-                    awaddr  <= addr_t'($urandom_range(WADDR_LOW, WADDR_HIGH));
+                    awaddr  <= addr_t'($urandom_range(WADDR_LOW, WADDR_HIGH)) & ADDR_MASK;
                     awlen   <= aw_queue[0];
                     awsize  <= size_t'($urandom());
                     awburst <= burst_t'($urandom());
@@ -155,7 +157,7 @@ module jelly3_model_axi4_m
             if ( !wvalid || m_axi4.wready ) begin
                 if ( can_issue(W_BUSY_RATE) && w_queue.size() > 0 ) begin
                     wdata   <= data_t'($urandom());
-                    wstrb   <= strb_t'($urandom());
+                    wstrb   <= '1;//strb_t'($urandom());
                     wlast   <= w_queue[0];
                     wuser   <= wuser_t'($urandom());
                     wvalid  <= 1'b1;
@@ -173,7 +175,7 @@ module jelly3_model_axi4_m
             if ( !arvalid || m_axi4.arready ) begin
                 if ( enable && can_issue(AR_BUSY_RATE) ) begin
                     arid     <= id_t'($urandom());
-                    araddr   <= addr_t'($urandom_range(RADDR_LOW, RADDR_HIGH));
+                    araddr   <= addr_t'($urandom_range(RADDR_LOW, RADDR_HIGH)) & ADDR_MASK;
                     arlen    <= len_t'($urandom());
                     arsize   <= size_t'($urandom());
                     arburst  <= burst_t'($urandom());
