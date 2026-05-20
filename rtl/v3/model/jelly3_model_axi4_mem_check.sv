@@ -46,6 +46,7 @@ module jelly3_model_axi4_mem_check
     localparam  type    resp_t         = logic  [RESP_BITS-1:0] ;
 
     typedef struct packed {
+        int         writers;
         strb_t      strb;
         data_t      data;
     } memory_t;
@@ -53,28 +54,35 @@ module jelly3_model_axi4_mem_check
     memory_t mem [addr_t];
 
     // 書き込み要求した時点で、完了までそのアドレスは無効
-    task write_request (
+    task write_start (
         input addr_t  addr,
         input strb_t  strb,
         input data_t  data
     );
-//      $display("write_request: addr=%h strb=%b data=%h", addr, strb, data);
         if ( mem.exists(addr) ) begin
-            for ( int i = 0; i < DATA_BYTES; i = i + 1 ) begin
-                if ( strb[i] ) begin
-                    mem[addr].strb[i] = 1'b0;
-                end
-            end
+            mem[addr].writers++;
         end
+        else begin
+            mem[addr].writers = 1;
+            mem[addr].strb = 'x;
+            mem[addr].data = 'x;
+        end
+//      $display("write_start: addr=%h strb=%b data=%h, writers=%0d", addr, strb, data, mem[addr].writers);
     endtask
 
     // 書き込みが完了したときに、メモリに反映
-    task write_memory (
+    task write_complete (
         input addr_t  addr,
         input strb_t  strb,
         input data_t  data
     );
-//      $display("write_memory: addr=%h strb=%b data=%h", addr, strb, data);
+        if ( !mem.exists(addr) || mem[addr].writers <= 0 ) begin
+            $display("%t ERROR: write to non-existing address %h", $time(), addr);
+        end
+//      $display("write_complete: addr=%h strb=%b data=%h, writers=%0d", addr, strb, data, mem[addr].writers);
+
+        // 自分が最後の書き込みなら反映させる
+        mem[addr].writers--;
         for ( int i = 0; i < DATA_BYTES; i = i + 1 ) begin
             if ( strb[i] ) begin
                 mem[addr].strb[i] = 1'b1;
@@ -89,8 +97,8 @@ module jelly3_model_axi4_mem_check
     );
         automatic bit match = 0;
         automatic bit error = 0;
-        if ( mem.exists(addr) ) begin
-            for ( int i = 0; i < DATA_BYTES; i = i + 1 ) begin
+        if ( mem.exists(addr) && mem[addr].writers == 0 ) begin
+            for ( int i = 0; i < DATA_BYTES; i++ ) begin
                 if ( mem[addr].strb[i] ) begin
                     if ( mem[addr].data[i] != data[i] ) begin
                         error = 1;
@@ -101,7 +109,7 @@ module jelly3_model_axi4_mem_check
                 end
             end
             if ( error ) begin
-                $display("%t ERROR: addr=%h strb=%b data=%h expected=%h", $time(), addr, mem[addr].strb, data, mem[addr].data);
+                $display("%t ERROR(miss match): addr=%h strb=%b data=%h expected=%h", $time(), addr, mem[addr].strb, data, mem[addr].data);
             end
             else if ( SHOW_MATCH && match ) begin
                 $display("MATCH: addr=%h strb=%b data=%h expected=%h", addr, mem[addr].strb, data, mem[addr].data);
@@ -180,7 +188,7 @@ module jelly3_model_axi4_mem_check
                     wbusy = 1'b1;
                 end
 
-                write_request(waddr, w_queue[0].wstrb, w_queue[0].wdata);
+                write_start(waddr, w_queue[0].wstrb, w_queue[0].wdata);
                 write_queue.push_back( '{ waddr, w_queue[0].wstrb, w_queue[0].wdata } );
                 w_queue.pop_front();
 
@@ -210,7 +218,7 @@ module jelly3_model_axi4_mem_check
                 end
 
                 for ( int i = 0; i < int'(b_queue[0]) + 1; i++ ) begin
-                    write_memory(write_queue[0].waddr, write_queue[0].wstrb, write_queue[0].wdata);
+                    write_complete(write_queue[0].waddr, write_queue[0].wstrb, write_queue[0].wdata);
                     write_queue.pop_front();
                 end
                 b_queue.pop_front();
