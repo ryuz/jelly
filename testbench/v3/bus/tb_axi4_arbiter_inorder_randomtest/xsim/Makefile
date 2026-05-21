@@ -48,12 +48,3 @@ vcd2fst:
 clean:
 	-rm -fr xsim.dir
 	-rm -fr .Xil
-
-.PHONY: distclean
-distclean: clean
-	-rm -f *.pb
-	-rm -f *.jou
-	-rm -f *.log
-	-rm -f *_log.txt
-	-rm -f *.wdb
-	-rm -f *.vcd

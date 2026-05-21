@@ -17,6 +17,7 @@ module jelly3_model_axi4_s
             parameter   bit     READ_DATA_ADDR   = 0                    ,      // リード結果をアドレスとする
             parameter   string  WRITE_LOG_FILE   = ""                   ,
             parameter   string  READ_LOG_FILE    = ""                   ,
+            parameter   bit     LOG_TIMESTAMP    = 0                    ,
             parameter   int     AW_DELAY         = 0                    ,
             parameter   int     AR_DELAY         = 0                    ,
             parameter   int     AW_FIFO_PTR_BITS = 0                    ,
@@ -420,6 +421,7 @@ module jelly3_model_axi4_s
                 end
                 
                 if ( w_fp != 0 ) begin
+                    if ( LOG_TIMESTAMP ) $fwrite(w_fp, "%t ", $time());
                     $fdisplay(w_fp, "%h %h %h", sig_awaddr, axi4_wdata, axi4_wstrb);
                 end
             end
@@ -461,6 +463,7 @@ module jelly3_model_axi4_s
                 reg_araddr <= reg_araddr + (1 << reg_arsize);
                 reg_arlen  <= reg_arlen - 1'b1              ;
                 reg_rlast  <= ((reg_arlen - 1'b1) == 0)     ;
+                reg_rdata  <= READ_DATA_ADDR ? AXI_DATA_BITS'(reg_araddr + (1 << reg_arsize)) : mem[MEM_ADDR_BITS'((reg_araddr + (1 << reg_arsize)) >> AXI_DATA_SIZE)];
                 if ( reg_rlast ) begin
                     reg_arbusy <= 1'b0;
                     reg_rvalid <= 1'b0;
@@ -475,11 +478,13 @@ module jelly3_model_axi4_s
                 reg_arsize <= axi4_arsize       ;
                 
                 reg_rlast  <= (axi4_arlen == 0) ;
+                reg_rdata  <= READ_DATA_ADDR ? AXI_DATA_BITS'(axi4_araddr) : mem[MEM_ADDR_BITS'(axi4_araddr >> AXI_DATA_SIZE)];
                 reg_rvalid <= 1'b1              ;
             end
             
             if ( axi4_rvalid && axi4_rready ) begin
                 if ( r_fp != 0 ) begin
+                    if ( LOG_TIMESTAMP ) $fwrite(r_fp, "%t ", $time());
                     $fdisplay(r_fp, "%h %h", reg_araddr, axi4_rdata);
                 end
             end
@@ -490,10 +495,7 @@ module jelly3_model_axi4_s
     assign axi4_arready = (!reg_arbusy && !(axi4_rvalid & !axi4_rready)) || (reg_rlast && axi4_rvalid && axi4_rready);
     
     assign axi4_rid     = axi4_rvalid ? reg_arid : {AXI_ID_BITS{1'bx}};
-    assign axi4_rdata   = READ_DATA_ADDR                                                  ? AXI_DATA_BITS'(reg_araddr)                       :
-                          (axi4_rvalid && (int'(reg_araddr >> AXI_DATA_SIZE) < MEM_SIZE)) ? mem[MEM_ADDR_BITS'(reg_araddr >> AXI_DATA_SIZE)] :
-                          {AXI_DATA_BITS{1'bx}};
-    
+    assign axi4_rdata   = axi4_rvalid ? reg_rdata : {AXI_DATA_BITS{1'bx}};
     assign axi4_rlast   = axi4_rvalid ? reg_rlast : 1'bx;
     assign axi4_rvalid  = reg_rvalid;
     

@@ -24,7 +24,7 @@ module tb_main
 
     localparam  int     NUM         = 4         ;   // number of masters
     localparam  int     S_ID_BITS   = 2         ;   // slave-side ID bits
-    localparam  int     M_ID_BITS   = S_ID_BITS + $clog2(NUM);
+    localparam  int     M_ID_BITS   = S_ID_BITS ;//+ $clog2(NUM);  // = 4
     localparam  int     ADDR_BITS   = 32        ;
     localparam  int     DATA_BITS   = 32        ;
 
@@ -94,7 +94,7 @@ module tb_main
     //  DUT : jelly3_axi4_arbiter
     // -----------------------------------------------------------------------
 
-    jelly3_axi4_arbiter
+    jelly3_axi4_arbiter_inorder
             #(
                 .NUM        (NUM        )
             )
@@ -112,7 +112,7 @@ module tb_main
 
     jelly3_model_axi4_s
             #(
-                .MEM_ADDR_BITS      (12                     ),  // 4096 words (>= 0x4ff/4)
+                .MEM_ADDR_BITS      (12                     ),
                 .READ_DATA_ADDR     (0                      ),
                 .WRITE_LOG_FILE     ("axi4_write_log.txt"   ),
                 .READ_LOG_FILE      ("axi4_read_log.txt"    ),
@@ -127,7 +127,7 @@ module tb_main
                 .W_BUSY_RATE        (15                     ),
                 .B_BUSY_RATE        (15                     ),
                 .AR_BUSY_RATE       (15                     ),
-                .R_BUSY_RATE        (15                     ),  // must be 0: arbiter R-buf does not clear on non-last beats
+                .R_BUSY_RATE        (15                     ),
                 .AW_RAND_SEED       (600                    ),
                 .W_RAND_SEED        (601                    ),
                 .B_RAND_SEED        (602                    ),
