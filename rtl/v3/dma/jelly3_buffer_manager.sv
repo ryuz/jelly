@@ -14,19 +14,19 @@
 // バッファ管理
 module jelly3_buffer_manager
         #(
-            parameter   int     BUFFER_NUM   = 3                                        ,
-            parameter   int     READER_NUM   = 1                                        ,
-            parameter   int     ADDR_BITS    = 32                                       ,
-            parameter   type    addr_t       = logic [ADDR_BITS-1:0]                    ,
-            parameter   int     REFCNT_BITS  = 4                                        ,
-            parameter   type    refcnt_t     = logic [REFCNT_BITS-1:0]                  ,
-            parameter   int     INDEX_BITS   = $clog2(BUFFER_NUM)                       ,
-            parameter   type    index_t      = logic [INDEX_BITS-1:0]                   ,
-            parameter   int     REGADR_BITS  = 8                                        ,
-            parameter   type    regadr_t     = logic [REGADR_BITS-1:0]                  ,
-            parameter           CORE_ID      = 32'h527a_0004                            ,
-            parameter           CORE_VERSION = 32'h0000_0000                            ,
-            parameter   addr_t  INIT_ADDR [BUFFER_NUM] = '{default: '0}
+            parameter   int                         BUFFER_NUM   = 3                        ,
+            parameter   int                         READER_NUM   = 1                        ,
+            parameter   int                         ADDR_BITS    = 32                       ,
+            parameter   type                        addr_t       = logic [ADDR_BITS-1:0]    ,
+            parameter   int                         REFCNT_BITS  = 4                        ,
+            parameter   type                        refcnt_t     = logic [REFCNT_BITS-1:0]  ,
+            parameter   int                         INDEX_BITS   = $clog2(BUFFER_NUM)       ,
+            parameter   type                        index_t      = logic [INDEX_BITS-1:0]   ,
+            parameter   int                         REGADR_BITS  = 8                        ,
+            parameter   type                        regadr_t     = logic [REGADR_BITS-1:0]  ,
+            parameter                               CORE_ID      = 32'h527a_0004            ,
+            parameter                               CORE_VERSION = 32'h0000_0000            ,
+            parameter   addr_t  [BUFFER_NUM-1:0]    INIT_ADDR    = '0                       
         )
         (
             jelly3_axi4l_if.s                               s_axi4l         ,
