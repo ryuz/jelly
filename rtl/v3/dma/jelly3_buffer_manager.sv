@@ -99,7 +99,7 @@ module jelly3_buffer_manager
             end
             bvalid <= 1'b0;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             if ( s_axi4l.bready ) begin
                 bvalid <= 1'b0;
             end
@@ -132,7 +132,7 @@ module jelly3_buffer_manager
             rdata  <= 'x;
             rvalid <= 1'b0;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             if ( s_axi4l.rready ) begin
                 rdata  <= 'x;
                 rvalid <= 1'b0;

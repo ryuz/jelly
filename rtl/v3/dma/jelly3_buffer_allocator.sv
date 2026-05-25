@@ -72,7 +72,7 @@ module jelly3_buffer_allocator
             reg_release <= '0;
             bvalid      <= 1'b0;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             reg_request <= '0;
             reg_release <= '0;
             if ( s_axi4l.bready ) begin
@@ -106,7 +106,7 @@ module jelly3_buffer_allocator
             rdata  <= 'x;
             rvalid <= 1'b0;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             if ( s_axi4l.rready ) begin
                 rdata  <= 'x;
                 rvalid <= 1'b0;
