@@ -15,7 +15,7 @@
 module jelly3_sum_tree
         #(
             parameter   int     N            = 16                                       ,
-            parameter   int     UNIT         = 2                                        ,
+            parameter   int     UNIT         = 2                                        ,   // 1度に加算する数
             parameter   int     USER_BITS    = 1                                        ,
             parameter   type    user_t       = logic [USER_BITS-1:0]                    ,
             parameter   int     S_DATA_BITS  = 8                                        ,
@@ -39,7 +39,7 @@ module jelly3_sum_tree
             output  var logic               m_valid 
         );
     
-    localparam  int     M = (N + UNIT) / UNIT;
+    localparam  int     M = (N + UNIT - 1) / UNIT;
 
     // input data cast
     m_data_t    [M*UNIT-1:0]   in_data  ;
