@@ -3,6 +3,9 @@
 
 
 module tb_main
+        #(
+            parameter   bit     IS_SIGNED           = 1'b0
+        )
         (
             input   var logic   reset,
             input   var logic   clk
@@ -75,7 +78,8 @@ module tb_main
                 .M                  (M          ),
                 .MAX_COLS           (MAX_COLS   ),
                 .RAM_TYPE           ("block"    ),
-                .BYPASS_SIZE        (1'b1       )
+                .BYPASS_SIZE        (1'b1       ),
+                .IS_SIGNED          (IS_SIGNED  )
             )
         u_img_max_pooling
             (

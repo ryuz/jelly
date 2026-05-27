@@ -19,7 +19,8 @@ module jelly3_img_max_pooling
             parameter   int     MC          = M - 1         ,
             parameter   int     MAX_COLS    = 4096          ,
             parameter           RAM_TYPE    = "block"       ,
-            parameter   bit     BYPASS_SIZE = 1'b1          
+            parameter   bit     BYPASS_SIZE = 1'b1          ,
+            parameter   bit     IS_SIGNED   = 1'b0          
         )
         (
             jelly3_mat_if.s                 s_img   ,
@@ -173,6 +174,7 @@ module jelly3_img_max_pooling
                         .USER_BITS  (1                  ),
                         .DATA_BITS  (CH_BITS            ),
                         .data_t     (ch_t               ),
+                        .IS_SIGNED  (IS_SIGNED          ),
                         .LATENCY    (H_LATENCY          )
                     )
                 u_max_tree
@@ -382,6 +384,7 @@ module jelly3_img_max_pooling
                         .USER_BITS  (1                  ),
                         .DATA_BITS  (CH_BITS            ),
                         .data_t     (ch_t               ),
+                        .IS_SIGNED  (IS_SIGNED          ),
                         .LATENCY    (V_LATENCY          )
                     )
                 u_max_tree

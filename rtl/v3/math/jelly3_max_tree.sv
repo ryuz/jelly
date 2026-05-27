@@ -20,6 +20,7 @@ module jelly3_max_tree
             parameter   type    user_t       = logic [USER_BITS-1:0]                    ,
             parameter   int     DATA_BITS    = 8                                        ,
             parameter   type    data_t       = logic [DATA_BITS-1:0]                    ,
+            parameter   bit     IS_SIGNED    = (data_t'(-1) < 0)                        ,
             parameter   int     LATENCY      = ($clog2(N)+$clog2(UNIT)-1)/$clog2(UNIT)  
         )
         (
@@ -37,14 +38,17 @@ module jelly3_max_tree
             output  var logic               m_valid 
         );
 
-    localparam  bit     IS_SIGNED = (data_t'(-1) < 0);
     localparam  data_t  MIN_VALUE = IS_SIGNED ? (data_t'(1) << ($bits(data_t) - 1)) : data_t'(0);
 
     localparam  int     M = (N + UNIT - 1) / UNIT;
 
-    // max all 
+    // max with explicit signedness control
     function    automatic   data_t  max(input data_t v0, input data_t v1);
-        return v0 > v1 ? v0 : v1;
+        if ( IS_SIGNED ) begin
+            return $signed(v0) > $signed(v1) ? v0 : v1;
+        end else begin
+            return $unsigned(v0) > $unsigned(v1) ? v0 : v1;
+        end
     endfunction
 
     // max all 

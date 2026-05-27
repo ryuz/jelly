@@ -2,7 +2,11 @@
 `default_nettype none
 
 
-module tb_top();
+module tb_top
+        #(
+            parameter   bit     IS_SIGNED           = 1'b0
+        )
+        ();
 
     initial begin
         $dumpfile("tb_top.vcd");
@@ -21,6 +25,9 @@ module tb_top();
     initial #(RATE*100) reset = 1'b0;
 
     tb_main
+            #(
+                .IS_SIGNED          (IS_SIGNED  )
+            )
         u_tb_main
             (
                 .reset,

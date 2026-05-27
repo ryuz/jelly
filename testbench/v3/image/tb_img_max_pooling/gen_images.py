@@ -16,21 +16,27 @@ def reflect101(index: int, size: int) -> int:
     return value
 
 
-def generate_input(width: int, height: int):
+def generate_input(width: int, height: int, mode: str = "unsigned"):
     image = []
     for y in range(height):
         row = []
         for x in range(width):
-            row.append([
-                (x * 17 + y * 3) & 0xFF,
-                (x * 5 + y * 29 + 11) & 0xFF,
-                (x * 13 + y * 7 + 19) & 0xFF,
-            ])
+            if mode == "signed":
+                # Generate signed values: -128 to 127
+                r = ((x * 17 + y * 3) & 0xFF) - 128
+                g = ((x * 5 + y * 29 + 11) & 0xFF) - 128
+                b = ((x * 13 + y * 7 + 19) & 0xFF) - 128
+            else:
+                # Generate unsigned values: 0 to 255
+                r = (x * 17 + y * 3) & 0xFF
+                g = (x * 5 + y * 29 + 11) & 0xFF
+                b = (x * 13 + y * 7 + 19) & 0xFF
+            row.append([r, g, b])
         image.append(row)
     return image
 
 
-def pooling_samples(image, n: int, m: int, operation: str):
+def pooling_samples(image, n: int, m: int, operation: str, mode: str = "unsigned"):
     height = len(image)
     width = len(image[0]) if height > 0 else 0
 
@@ -44,13 +50,14 @@ def pooling_samples(image, n: int, m: int, operation: str):
 
             out_pix = [0, 0, 0]
             for ch in range(3):
-                acc = 0
+                acc = -128 if mode == "signed" else 0
                 for dy in range(n):
                     for dx in range(m):
                         sy = reflect101(y - dy, height)
                         sx = reflect101(x - dx, width)
                         val = image[sy][sx][ch]
                         if operation == "max":
+                            # Python's > operator works correctly for both signed and unsigned values
                             if val > acc:
                                 acc = val
                         else:
@@ -84,26 +91,39 @@ def main():
     parser.add_argument("--n", type=int, default=3)
     parser.add_argument("--m", type=int, default=3)
     parser.add_argument("--operation", choices=["or", "max"], default="max")
+    parser.add_argument("--mode", choices=["signed", "unsigned"], default="unsigned")
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--expected", type=Path, required=True)
     args = parser.parse_args()
 
-    src_img = generate_input(args.width, args.height)
+    src_img = generate_input(args.width, args.height, args.mode)
 
     src_pixels = []
     for y in range(args.height):
         for x in range(args.width):
-            src_pixels.append(src_img[y][x])
+            val = src_img[y][x]
+            # Convert to unsigned byte representation for PPM
+            src_pixels.append([
+                (v & 0xFF) if v >= 0 else (v + 256)
+                for v in val
+            ])
 
     args.input.parent.mkdir(parents=True, exist_ok=True)
     args.expected.parent.mkdir(parents=True, exist_ok=True)
 
     write_ppm(args.input, args.width, args.height, src_pixels)
 
-    exp_pixels = pooling_samples(src_img, args.n, args.m, args.operation)
+    exp_pixels = pooling_samples(src_img, args.n, args.m, args.operation, args.mode)
+    # Convert expected output to unsigned representation
+    exp_pixels_unsigned = []
+    for pix in exp_pixels:
+        exp_pixels_unsigned.append([
+            (v & 0xFF) if v >= 0 else (v + 256)
+            for v in pix
+        ])
     exp_width = pooled_size(args.width, args.m)
     exp_height = pooled_size(args.height, args.n)
-    write_ppm(args.expected, exp_width, exp_height, exp_pixels)
+    write_ppm(args.expected, exp_width, exp_height, exp_pixels_unsigned)
 
 
 if __name__ == "__main__":
