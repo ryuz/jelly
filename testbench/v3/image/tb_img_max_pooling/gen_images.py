@@ -61,6 +61,12 @@ def pooling_samples(image, n: int, m: int, operation: str):
     return samples
 
 
+def pooled_size(length: int, kernel: int) -> int:
+    if length < kernel:
+        return length
+    return length // kernel
+
+
 def write_ppm(path: Path, width: int, height: int, pixels):
     with path.open("w", encoding="ascii") as fp:
         fp.write("P3\n")
@@ -95,7 +101,9 @@ def main():
     write_ppm(args.input, args.width, args.height, src_pixels)
 
     exp_pixels = pooling_samples(src_img, args.n, args.m, args.operation)
-    write_ppm(args.expected, args.width, args.height, exp_pixels)
+    exp_width = pooled_size(args.width, args.m)
+    exp_height = pooled_size(args.height, args.n)
+    write_ppm(args.expected, exp_width, exp_height, exp_pixels)
 
 
 if __name__ == "__main__":
