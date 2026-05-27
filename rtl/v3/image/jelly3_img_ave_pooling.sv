@@ -13,18 +13,20 @@
 
 module jelly3_img_ave_pooling
         #(
-            parameter   int     N               = 2             ,
-            parameter   int     M               = 2             ,
-            parameter   int     NC              = N - 1         ,
-            parameter   int     MC              = M - 1         ,
-            parameter   int     MAX_COLS        = 4096          ,
-            parameter           RAM_TYPE        = "block"       ,
-            parameter   bit     BYPASS_SIZE     = 1'b1          ,
-            parameter   int     SCALE_MUL_BITS  = 16            ,
-            parameter   logic   [SCALE_MUL_BITS-1:0]
-                                SCALE_MUL       = SCALE_MUL_BITS'(1),
-            parameter   int     SCALE_SHIFT     = 0             ,
-            parameter   bit     ROUNDING        = 1'b0          
+            parameter   int         N               = 2                         ,
+            parameter   int         M               = 2                         ,
+            parameter   int         NC              = N - 1                     ,
+            parameter   int         MC              = M - 1                     ,
+            parameter   int         MAX_COLS        = 4096                      ,
+            parameter               RAM_TYPE        = "block"                   ,
+            parameter   bit         BYPASS_SIZE     = 1'b1                      ,
+            parameter   bit         S_SIGNED        = 1'b0                      ,
+            parameter   bit         M_SIGNED        = 1'b0                      ,
+            parameter   int         SCALE_MUL_BITS  = 16                        ,
+            parameter   type        scale_mul_t     = logic [SCALE_MUL_BITS-1:0],
+            parameter   scale_mul_t SCALE_MUL       = scale_mul_t'(1)           ,
+            parameter   int         SCALE_SHIFT     = 0                         ,
+            parameter   bit         ROUNDING        = 1'b0                      
         )
         (
             jelly3_mat_if.s                 s_img   ,
@@ -68,16 +70,18 @@ module jelly3_img_ave_pooling
     localparam  int     V_LATENCY   = (N > 1) ? (($clog2(N) + $clog2(TREE_UNIT) - 1) / $clog2(TREE_UNIT)) : 1;
     localparam  int     REDUCED_MAX_COLS = (MAX_COLS + M - 1) / M;
 
-    localparam  int     H_SUM_BITS  = S_CH_BITS + ((M > 1) ? $clog2(M) : 0);
+    localparam  int     C_CH_BITS   = S_CH_BITS + (S_SIGNED ? 0 : 1);
+    localparam  int     H_SUM_BITS  = C_CH_BITS + ((M > 1) ? $clog2(M) : 0);
     localparam  int     V_SUM_BITS  = H_SUM_BITS + ((N > 1) ? $clog2(N) : 0);
     localparam  int     SCALED_BITS = V_SUM_BITS + SCALE_MUL_BITS + 1;
 
     localparam  type    n_t         = logic [N_BITS-1:0]        ;
     localparam  type    m_t         = logic [M_BITS-1:0]        ;
-    localparam  type    h_sum_t     = logic [H_SUM_BITS-1:0]    ;
-    localparam  type    v_sum_t     = logic [V_SUM_BITS-1:0]    ;
+    localparam  type    c_ch_t      = logic signed [C_CH_BITS-1:0]  ;
+    localparam  type    h_sum_t     = logic signed [H_SUM_BITS-1:0] ;
+    localparam  type    v_sum_t     = logic signed [V_SUM_BITS-1:0] ;
     localparam  type    h_data_t    = h_sum_t [S_CH_DEPTH-1:0]  ;
-    localparam  type    scaled_t    = logic [SCALED_BITS-1:0]   ;
+    localparam  type    scaled_t    = logic signed [SCALED_BITS-1:0];
 
     function automatic s_cols_t calc_pool_cols(input s_cols_t cols);
         int v;
@@ -105,12 +109,20 @@ module jelly3_img_ave_pooling
         end
     endfunction
 
+    function automatic c_ch_t to_calc_ch(input s_ch_t value);
+        begin
+            to_calc_ch = S_SIGNED ? c_ch_t'($signed(value)) : c_ch_t'($unsigned(value));
+        end
+    endfunction
+
     function automatic m_ch_t scale_and_clip(input v_sum_t value);
         scaled_t mul_val;
         scaled_t adj_val;
         scaled_t shr_val;
+        scaled_t min_val;
+        scaled_t max_val;
         begin
-            mul_val = scaled_t'(value) * scaled_t'(SCALE_MUL);
+            mul_val = scaled_t'(value) * scaled_t'($signed(SCALE_MUL));
             if ( ROUNDING && SCALE_SHIFT > 0 ) begin
                 adj_val = mul_val + (scaled_t'(1) << (SCALE_SHIFT-1));
             end
@@ -119,20 +131,35 @@ module jelly3_img_ave_pooling
             end
 
             if ( SCALE_SHIFT >= SCALED_BITS ) begin
-                shr_val = '0;
+                shr_val = adj_val[SCALED_BITS-1] ? scaled_t'('1) : scaled_t'('0);
             end
             else begin
-                shr_val = adj_val >> SCALE_SHIFT;
+                shr_val = adj_val >>> SCALE_SHIFT;
             end
 
-            if ( M_CH_BITS >= SCALED_BITS ) begin
-                scale_and_clip = m_ch_t'(shr_val);
-            end
-            else if ( shr_val > scaled_t'(m_ch_t'('1)) ) begin
-                scale_and_clip = m_ch_t'('1);
+            if ( M_SIGNED ) begin
+                min_val = scaled_t'({1'b1, {(M_CH_BITS-1){1'b0}}});
+                max_val = scaled_t'({1'b0, {(M_CH_BITS-1){1'b1}}});
+                if ( shr_val > max_val ) begin
+                    scale_and_clip = m_ch_t'({1'b0, {(M_CH_BITS-1){1'b1}}});
+                end
+                else if ( shr_val < min_val ) begin
+                    scale_and_clip = m_ch_t'({1'b1, {(M_CH_BITS-1){1'b0}}});
+                end
+                else begin
+                    scale_and_clip = m_ch_t'(shr_val);
+                end
             end
             else begin
-                scale_and_clip = m_ch_t'(shr_val);
+                if ( shr_val < scaled_t'('0) ) begin
+                    scale_and_clip = '0;
+                end
+                else if ( shr_val > scaled_t'(m_ch_t'('1)) ) begin
+                    scale_and_clip = m_ch_t'('1);
+                end
+                else begin
+                    scale_and_clip = m_ch_t'(shr_val);
+                end
             end
         end
     endfunction
@@ -214,7 +241,7 @@ module jelly3_img_ave_pooling
     logic           [H_LATENCY-1:0] h_select_pipe        ;
     logic           [H_LATENCY-1:0] h_bypass_pipe        ;
 
-    s_ch_t  [S_TAPS-1:0][S_CH_DEPTH-1:0][M-1:0] h_tree_s_data;
+    c_ch_t  [S_TAPS-1:0][S_CH_DEPTH-1:0][M-1:0] h_tree_s_data;
     h_sum_t [S_TAPS-1:0][S_CH_DEPTH-1:0]        h_tree_data  ;
     logic   [S_TAPS-1:0][S_CH_DEPTH-1:0]        h_tree_valid_i;
     logic                                        h_tree_valid ;
@@ -226,15 +253,15 @@ module jelly3_img_ave_pooling
     for ( genvar tap = 0; tap < S_TAPS; tap++ ) begin : h_tap_loop
         for ( genvar ch = 0; ch < S_CH_DEPTH; ch++ ) begin : h_ch_loop
             for ( genvar x = 0; x < M; x++ ) begin : h_x_loop
-                assign h_tree_s_data[tap][ch][x] = colbuf_data[tap][x][ch];
+                assign h_tree_s_data[tap][ch][x] = to_calc_ch(colbuf_data[tap][x][ch]);
             end
             jelly3_sum_tree
                     #(
                         .N          (M                  ),
                         .UNIT       (TREE_UNIT          ),
                         .USER_BITS  (1                  ),
-                        .S_DATA_BITS(S_CH_BITS          ),
-                        .s_data_t   (s_ch_t             ),
+                        .S_DATA_BITS(C_CH_BITS          ),
+                        .s_data_t   (c_ch_t             ),
                         .M_DATA_BITS(H_SUM_BITS         ),
                         .m_data_t   (h_sum_t            ),
                         .LATENCY    (H_LATENCY          )
@@ -337,7 +364,7 @@ module jelly3_img_ave_pooling
         h_valid_stream     = h_tree_valid && h_select_pipe[H_LATENCY-1];
         for ( int tap = 0; tap < S_TAPS; tap++ ) begin
             for ( int ch = 0; ch < S_CH_DEPTH; ch++ ) begin
-                h_data_stream[tap][ch] = h_bypass_pipe[H_LATENCY-1] ? h_sum_t'(colbuf_data[tap][MC][ch]) : h_tree_data[tap][ch];
+                h_data_stream[tap][ch] = h_bypass_pipe[H_LATENCY-1] ? h_sum_t'(to_calc_ch(colbuf_data[tap][MC][ch])) : h_tree_data[tap][ch];
             end
         end
     end
