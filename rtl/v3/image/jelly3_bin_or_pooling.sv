@@ -11,7 +11,7 @@
 `default_nettype none
 
 
-module jelly3_img_max_pooling
+module jelly3_bin_or_pooling
         #(
             parameter   int     N           = 2             ,
             parameter   int     M           = 2             ,
@@ -205,16 +205,14 @@ module jelly3_img_max_pooling
 
             for ( int tap = 0; tap < TAPS; tap++ ) begin
                 for ( int ch = 0; ch < CH_DEPTH; ch++ ) begin
-                    ch_t    max_val;
-                    max_val = img_blk_data[tap][0][0][ch];
+                    ch_t    or_val;
+                    or_val = '0;
                     for ( int y = 0; y < N; y++ ) begin
                         for ( int x = 0; x < M; x++ ) begin
-                            if ( img_blk_data[tap][y][x][ch] > max_val ) begin
-                                max_val = img_blk_data[tap][y][x][ch];
-                            end
+                            or_val = or_val | img_blk_data[tap][y][x][ch];
                         end
                     end
-                    st0_data[tap][ch] <= max_val;
+                    st0_data[tap][ch] <= or_val;
                 end
             end
 
