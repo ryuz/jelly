@@ -143,7 +143,7 @@ module jelly3_bin_or_pooling
     logic                           st1_valid           ;
 
     always_ff @(posedge s_img.clk) begin
-        if ( s_img.reset || m_img.reset ) begin
+        if ( s_img.reset ) begin
             st0_n_count      <= 'x;
             st0_m_count      <= 'x;
             st0_rows         <= 'x;

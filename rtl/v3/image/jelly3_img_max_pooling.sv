@@ -215,7 +215,7 @@ module jelly3_img_max_pooling
     logic                           h_valid_stream       ;
 
     always_ff @(posedge s_img.clk) begin
-        if ( s_img.reset || m_img.reset ) begin
+        if ( s_img.reset ) begin
             h_m_count        <= '0;
             h_rows_pipe      <= 'x;
             h_cols_pipe      <= 'x;
@@ -428,7 +428,7 @@ module jelly3_img_max_pooling
     logic                           v_valid_stream       ;
 
     always_ff @(posedge s_img.clk) begin
-        if ( s_img.reset || m_img.reset ) begin
+        if ( s_img.reset ) begin
             v_n_count        <= '0;
             v_row_select     <= 1'b0;
             v_frame_active   <= 1'b0;
@@ -445,6 +445,17 @@ module jelly3_img_max_pooling
             v_select_pipe    <= '0;
             v_bypass_pipe    <= '0;
             v_row_index      <= '0;
+
+            m_img.rows       <= 'x;
+            m_img.cols       <= 'x;
+            m_img.row_first  <= 'x;
+            m_img.row_last   <= 'x;
+            m_img.col_first  <= 'x;
+            m_img.col_last   <= 'x;
+            m_img.de         <= 'x;
+            m_img.user       <= 'x;
+            m_img.data       <= 'x;
+            m_img.valid      <= 1'b0;
         end
         else if ( s_img.cke ) begin
             if ( rowbuf_valid && rowbuf_col_first && |rowbuf_de ) begin
@@ -526,21 +537,6 @@ module jelly3_img_max_pooling
             for ( int ch = 0; ch < CH_DEPTH; ch++ ) begin
                 v_data_stream[tap][ch] = v_bypass_pipe[V_LATENCY-1] ? rowbuf_data[tap][NC][ch] : v_tree_data[tap][ch];
             end
-        end
-    end
-
-    always_ff @(posedge s_img.clk) begin
-        if ( s_img.reset || m_img.reset ) begin
-            m_img.rows       <= 'x;
-            m_img.cols       <= 'x;
-            m_img.row_first  <= 'x;
-            m_img.row_last   <= 'x;
-            m_img.col_first  <= 'x;
-            m_img.col_last   <= 'x;
-            m_img.de         <= 'x;
-            m_img.user       <= 'x;
-            m_img.data       <= 'x;
-            m_img.valid      <= 1'b0;
         end
     end
 
