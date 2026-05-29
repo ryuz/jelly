@@ -72,7 +72,7 @@ module jelly3_mat_buf_row
     localparam  int     MEM_ADDR_BITS = $clog2(MAX_COLS)                    ;
     localparam  int     MEM_DATA_BITS = $bits(user_t) + $bits(data_t) * TAPS;
     localparam  int     MEMS          = ROWS - 1                            ;
-    localparam  int     LINE_SEL_BITS = $clog2(MEMS)                        ;
+    localparam  int     LINE_SEL_BITS = MEMS > 1 ? $clog2(MEMS) : 1         ;
     localparam  int     POS_BITS      = $clog2(MEMS+1)                      ;
 
     localparam  type    mem_we_t      = logic [MEMS-1:0]                    ;
