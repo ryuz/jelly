@@ -62,6 +62,9 @@ color/Mandrill_128x128.pgm: color/Mandrill.bmp
 color/Mandrill_256x256_bayer10.pgm: color/Mandrill.bmp
 	${TOOL_DIR}/img2pgm.py $< $@ --width 256 --height 256 --bayer --depth 10
 
+color/Mandrill_640x480_bayer10.pgm: color/Mandrill.bmp
+	${TOOL_DIR}/img2pgm.py $< $@ --width 640 --height 480 --bayer --depth 10
+
 
 mono/BOAT_256x256.pgm: mono/BOAT.bmp     
 	${TOOL_DIR}/img2pgm.py $< $@ --width 256 --height 256

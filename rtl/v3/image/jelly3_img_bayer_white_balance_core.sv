@@ -35,9 +35,14 @@ module jelly3_img_bayer_white_balance_core
             jelly3_mat_if.m                 m_img       
         );
 
-    localparam  int DE_BITS   = s_img.DE_BITS;
-    localparam  int USER_BITS = s_img.USER_BITS;
+    localparam  int     ROWS_BITS = s_img.ROWS_BITS     ;
+    localparam  int     COLS_BITS = s_img.COLS_BITS     ;
+    localparam  int     TAPS      = s_img.TAPS          ;
+    localparam  int     DE_BITS   = s_img.DE_BITS       ;
+    localparam  int     USER_BITS = s_img.USER_BITS     ;
 
+    localparam  type    rows_t    = logic    [ROWS_BITS-1:0];
+    localparam  type    cols_t    = logic    [COLS_BITS-1:0];
     localparam  type    de_t      = logic    [DE_BITS  -1:0];
     localparam  type    user_t    = logic    [USER_BITS-1:0];
 
@@ -57,6 +62,8 @@ module jelly3_img_bayer_white_balance_core
         return calc_t'(v);
     endfunction
 
+    rows_t      st0_cols        ;
+    cols_t      st0_rows        ;
     logic       st0_row_first   ;
     logic       st0_row_last    ;
     logic       st0_col_first   ;
@@ -66,6 +73,8 @@ module jelly3_img_bayer_white_balance_core
     user_t      st0_user        ;
     logic       st0_valid       ;
 
+    rows_t      st1_cols        ;
+    cols_t      st1_rows        ;
     phase_t     st1_phase       ;
     logic       st1_row_first   ;
     logic       st1_row_last    ;
@@ -76,6 +85,8 @@ module jelly3_img_bayer_white_balance_core
     user_t      st1_user        ;
     logic       st1_valid       ;
 
+    rows_t      st2_cols        ;
+    cols_t      st2_rows        ;
     coeff_t     st2_coeff       ;
     logic       st2_row_first   ;
     logic       st2_row_last    ;
@@ -86,6 +97,8 @@ module jelly3_img_bayer_white_balance_core
     user_t      st2_user        ;
     logic       st2_valid       ;
 
+    rows_t      st3_cols        ;
+    cols_t      st3_rows        ;
     logic       st3_row_first   ;
     logic       st3_row_last    ;
     logic       st3_col_first   ;
@@ -95,6 +108,8 @@ module jelly3_img_bayer_white_balance_core
     user_t      st3_user        ;
     logic       st3_valid       ;
 
+    rows_t      st4_cols        ;
+    cols_t      st4_rows        ;
     logic       st4_row_first   ;
     logic       st4_row_last    ;
     logic       st4_col_first   ;
@@ -106,6 +121,8 @@ module jelly3_img_bayer_white_balance_core
 
     always_ff @(posedge s_img.clk) begin
         if ( s_img.reset ) begin
+            st0_cols      <= 'x;
+            st0_rows      <= 'x;
             st0_row_first <= 'x;
             st0_row_last  <= 'x;
             st0_col_first <= 'x;
@@ -115,6 +132,8 @@ module jelly3_img_bayer_white_balance_core
             st0_user      <= 'x;
             st0_valid     <= 1'b0;
 
+            st1_cols      <= 'x;
+            st1_rows      <= 'x;
             st1_phase     <= 'x;
             st1_row_first <= 'x;
             st1_row_last  <= 'x;
@@ -125,6 +144,8 @@ module jelly3_img_bayer_white_balance_core
             st1_user      <= 'x;
             st1_valid     <= 1'b0;
 
+            st2_cols      <= 'x;
+            st2_rows      <= 'x;
             st2_coeff     <= 'x;
             st2_row_first <= 'x;
             st2_row_last  <= 'x;
@@ -135,6 +156,8 @@ module jelly3_img_bayer_white_balance_core
             st2_user      <= 'x;
             st2_valid     <= 1'b0;
 
+            st3_cols      <= 'x;
+            st3_rows      <= 'x;
             st3_row_first <= 'x;
             st3_row_last  <= 'x;
             st3_col_first <= 'x;
@@ -144,6 +167,8 @@ module jelly3_img_bayer_white_balance_core
             st3_user      <= 'x;
             st3_valid     <= 1'b0;
 
+            st4_cols      <= 'x;
+            st4_rows      <= 'x;
             st4_row_first <= 'x;
             st4_row_last  <= 'x;
             st4_col_first <= 'x;
@@ -155,6 +180,8 @@ module jelly3_img_bayer_white_balance_core
         end
         else if ( s_img.cke ) begin
             // stage0 (wait for parameter update)
+            st0_rows      <= s_img.rows             ;
+            st0_cols      <= s_img.cols             ;
             st0_row_first <= s_img.row_first        ;
             st0_row_last  <= s_img.row_last         ;
             st0_col_first <= s_img.col_first        ;
@@ -175,6 +202,8 @@ module jelly3_img_bayer_white_balance_core
                     st1_phase[1] <= ~st1_phase[1];
                 end
             end
+            st1_rows      <= st0_rows       ;
+            st1_cols      <= st0_cols       ;
             st1_row_first <= st0_row_first  ;
             st1_row_last  <= st0_row_last   ;
             st1_col_first <= st0_col_first  ;
@@ -185,6 +214,8 @@ module jelly3_img_bayer_white_balance_core
             st1_valid     <= st0_valid      ;
 
             // stage2
+            st2_rows      <= st1_rows       ;
+            st2_cols      <= st1_cols       ;
             st2_coeff     <= coeff_t'(1 << COEFF_Q);
             st2_row_first <= st1_row_first  ;
             st2_row_last  <= st1_row_last   ;
@@ -200,6 +231,8 @@ module jelly3_img_bayer_white_balance_core
             end
 
             // stage3
+            st3_rows      <= st2_rows       ;
+            st3_cols      <= st2_cols       ;
             st3_row_first <= st2_row_first  ;
             st3_row_last  <= st2_row_last   ;
             st3_col_first <= st2_col_first  ;
@@ -211,6 +244,8 @@ module jelly3_img_bayer_white_balance_core
             st3_data <= calc_mul(st2_data, st2_coeff);
 
             // stage4
+            st4_rows      <= st3_rows       ;
+            st4_cols      <= st3_cols       ;
             st4_row_first <= st3_row_first  ;
             st4_row_last  <= st3_row_last   ;
             st4_col_first <= st3_col_first  ;
@@ -224,6 +259,8 @@ module jelly3_img_bayer_white_balance_core
         end
     end
 
+    assign m_img.rows      = st4_rows               ;
+    assign m_img.cols      = st4_cols               ;
     assign m_img.row_first = st4_row_first          ;
     assign m_img.row_last  = st4_row_last           ;
     assign m_img.col_first = st4_col_first          ;

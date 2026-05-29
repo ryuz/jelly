@@ -26,6 +26,8 @@ ifeq ($(WITH_NINJA),Yes)
 CMAKE_FLAGS += -GNinja
 endif
 
+IMG_FILE = ../../../../../../data/images/standard_images/color/Mandrill_640x480_bayer10.pgm
+
 
 all: build run
 
@@ -57,6 +59,8 @@ run:
 coverage:
 	verilator_coverage --annotate annotated coverage.dat
 
+.PHONY : img
+img: $(IMG_FILE)
 
-../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm:
-	make -C ../../../../../../data/images/windowswallpaper Penguins_640x480_bayer10.pgm
+$(IMG_FILE):
+	make -C ../../../../../../data/images/standard_images color/Mandrill_640x480_bayer10.pgm

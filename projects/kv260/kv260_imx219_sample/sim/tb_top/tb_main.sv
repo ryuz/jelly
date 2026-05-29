@@ -109,16 +109,16 @@ module tb_main
 
     localparam DATA_WIDTH      = 10;
 
-//    localparam FILE_NAME       = "../../../../../../data/images/windowswallpaper/Penguins_640x480_bayer10.pgm";
-//    localparam FILE_IMG_WIDTH  = 640;
-//    localparam FILE_IMG_HEIGHT = 480;
+    localparam FILE_NAME       = "../../../../../../data/images/standard_images/color/Mandrill_640x480_bayer10.pgm";
+    localparam FILE_IMG_WIDTH  = 640;
+    localparam FILE_IMG_HEIGHT = 480;
 
 //    localparam FILE_NAME       = "../../imx219_820x616_raw10.pgm";
 //    localparam FILE_IMG_WIDTH  = 820;
 //    localparam FILE_IMG_HEIGHT = 616;
-    localparam FILE_NAME       = "../../imx219_640x480_raw10.pgm";
-    localparam FILE_IMG_WIDTH  = 640;
-    localparam FILE_IMG_HEIGHT = 480;
+//    localparam FILE_NAME       = "../../imx219_640x480_raw10.pgm";
+//    localparam FILE_IMG_WIDTH  = 640;
+//    localparam FILE_IMG_HEIGHT = 480;
 
 //    localparam SIM_IMG_WIDTH  = 640/2;//128;//256;
 //    localparam SIM_IMG_HEIGHT = 480/2;//64; //256;
