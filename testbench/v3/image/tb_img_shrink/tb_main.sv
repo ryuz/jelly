@@ -17,14 +17,14 @@ module tb_main
     localparam  int     IMG_WIDTH        = 256  ;
     localparam  int     IMG_HEIGHT       = 256  ;
 
-    localparam  int     N                = 3    ;
-    localparam  int     M                = 3    ;
+    localparam  int     N                = 2    ;
+    localparam  int     M                = 2    ;
     localparam  int     MAX_COLS         = 1024 ;
 
     localparam  int     SCALE_MUL_BITS   = 16;
     localparam  logic [SCALE_MUL_BITS-1:0]
-                        SCALE_MUL        = SCALE_MUL_BITS'(16'd28);
-    localparam  int     SCALE_SHIFT      = 8;
+                        SCALE_MUL        = SCALE_MUL_BITS'(16'd1);
+    localparam  int     SCALE_SHIFT      = 2;
 
     logic   cke = 1'b1;
 
