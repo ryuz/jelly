@@ -17,6 +17,8 @@ module jelly3_bin_or_pooling
             parameter   int     M           = 2             ,
             parameter   int     NC          = N - 1         ,
             parameter   int     MC          = M - 1         ,
+            parameter   int     SN          = N             ,
+            parameter   int     SM          = M             ,
             parameter   int     MAX_COLS    = 4096          ,
             parameter           RAM_TYPE    = "block"       ,
             parameter   bit     BYPASS_SIZE = 1'b1          
@@ -42,8 +44,14 @@ module jelly3_bin_or_pooling
     localparam  type    cols_t    = logic [COLS_BITS-1:0]   ;
     localparam  int     N_BITS    = (N > 1) ? $clog2(N) : 1 ;
     localparam  int     M_BITS    = (M > 1) ? $clog2(M) : 1 ;
+    localparam  int     SN_BITS   = (SN > 1) ? $clog2(SN) : 1 ;
+    localparam  int     SM_BITS   = (SM > 1) ? $clog2(SM) : 1 ;
+    localparam  int     SNC       = SN - 1                  ;
+    localparam  int     SMC       = SM - 1                  ;
     localparam  type    n_t       = logic [N_BITS-1:0]      ;
     localparam  type    m_y       = logic [M_BITS-1:0]      ;
+    localparam  type    sn_t      = logic [SN_BITS-1:0]     ;
+    localparam  type    sm_t      = logic [SM_BITS-1:0]     ;
 
 
     rows_t                          img_blk_rows        ;
@@ -110,8 +118,8 @@ module jelly3_bin_or_pooling
             );
 
 
-    n_t                             st0_n_count         ;
-    m_y                             st0_m_count         ;
+    sn_t                            st0_n_count         ;
+    sm_t                            st0_m_count         ;
     rows_t                          st0_rows            ;
     cols_t                          st0_cols            ;
     logic                           st0_row_first       ;
@@ -178,7 +186,7 @@ module jelly3_bin_or_pooling
             end
             else if ( img_blk_valid && img_blk_col_first ) begin
                 st0_n_count <= st0_n_count + 1'b1;
-                if ( st0_n_count == n_t'(N - 1) ) begin
+                if ( st0_n_count == sn_t'(SN - 1) ) begin
                     st0_n_count <= '0;
                 end
             end
@@ -188,7 +196,7 @@ module jelly3_bin_or_pooling
             end
             else if ( img_blk_valid && |img_blk_de ) begin
                 st0_m_count <= st0_m_count + 1'b1;
-                if ( st0_m_count == m_y'(M - 1) ) begin
+                if ( st0_m_count == sm_t'(SM - 1) ) begin
                     st0_m_count <= '0;
                 end
             end
@@ -223,7 +231,7 @@ module jelly3_bin_or_pooling
             st1_row_last  <= st0_row_last                                                ;
             st1_col_first <= st0_col_first                                               ;
             st1_col_last  <= st0_col_last                                                ;
-            st1_de        <= st0_de & de_t'({DE_BITS{st0_n_count == n_t'(NC) && st0_m_count == m_y'(MC)}});
+            st1_de        <= st0_de & de_t'({DE_BITS{st0_n_count == sn_t'(SNC) && st0_m_count == sm_t'(SMC)}});
             st1_user      <= st0_user                                                    ;
             st1_data      <= st0_data                                                    ;
             st1_valid     <= st0_valid                                                   ;

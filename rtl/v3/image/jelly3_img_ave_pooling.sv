@@ -17,6 +17,8 @@ module jelly3_img_ave_pooling
             parameter   int         M               = 2                         ,
             parameter   int         NC              = N - 1                     ,
             parameter   int         MC              = M - 1                     ,
+            parameter   int         SN              = N                         ,
+            parameter   int         SM              = M                         ,
             parameter   int         MAX_COLS        = 4096                      ,
             parameter               RAM_TYPE        = "block"                   ,
             parameter   bit         BYPASS_SIZE     = 1'b1                      ,
@@ -65,10 +67,14 @@ module jelly3_img_ave_pooling
 
     localparam  int     N_BITS      = (N > 1) ? $clog2(N) : 1   ;
     localparam  int     M_BITS      = (M > 1) ? $clog2(M) : 1   ;
+    localparam  int     SN_BITS     = (SN > 1) ? $clog2(SN) : 1  ;
+    localparam  int     SM_BITS     = (SM > 1) ? $clog2(SM) : 1  ;
+    localparam  int     SNC         = SN - 1                     ;
+    localparam  int     SMC         = SM - 1                     ;
     localparam  int     TREE_UNIT   = 2                         ;
     localparam  int     H_LATENCY   = (M > 1) ? (($clog2(M) + $clog2(TREE_UNIT) - 1) / $clog2(TREE_UNIT)) : 1;
     localparam  int     V_LATENCY   = (N > 1) ? (($clog2(N) + $clog2(TREE_UNIT) - 1) / $clog2(TREE_UNIT)) : 1;
-    localparam  int     REDUCED_MAX_COLS = (MAX_COLS + M - 1) / M;
+    localparam  int     REDUCED_MAX_COLS = (MAX_COLS + SM - 1) / SM;
 
     localparam  int     C_CH_BITS   = S_CH_BITS + (S_SIGNED ? 0 : 1);
     localparam  int     H_SUM_BITS  = C_CH_BITS + ((M > 1) ? $clog2(M) : 0);
@@ -77,6 +83,8 @@ module jelly3_img_ave_pooling
 
     localparam  type    n_t         = logic [N_BITS-1:0]        ;
     localparam  type    m_t         = logic [M_BITS-1:0]        ;
+    localparam  type    sn_t        = logic [SN_BITS-1:0]       ;
+    localparam  type    sm_t        = logic [SM_BITS-1:0]       ;
     localparam  type    c_ch_t      = logic signed [C_CH_BITS-1:0]  ;
     localparam  type    h_sum_t     = logic signed [H_SUM_BITS-1:0] ;
     localparam  type    v_sum_t     = logic signed [V_SUM_BITS-1:0] ;
@@ -91,7 +99,7 @@ module jelly3_img_ave_pooling
                 calc_pool_cols = cols;
             end
             else begin
-                calc_pool_cols = s_cols_t'(v / M);
+                calc_pool_cols = s_cols_t'(v / SM);
             end
         end
     endfunction
@@ -104,7 +112,7 @@ module jelly3_img_ave_pooling
                 calc_pool_rows = rows;
             end
             else begin
-                calc_pool_rows = s_rows_t'(v / N);
+                calc_pool_rows = s_rows_t'(v / SN);
             end
         end
     endfunction
@@ -225,9 +233,9 @@ module jelly3_img_ave_pooling
             );
 
 
-    m_t                             h_m_count            ;
+    sm_t                            h_m_count            ;
     logic                           h_bypass_in          ;
-    m_t                             h_cur_m_count        ;
+    sm_t                            h_cur_m_count        ;
     logic                           h_select_in          ;
 
     s_rows_t        [H_LATENCY-1:0] h_rows_pipe          ;
@@ -248,7 +256,7 @@ module jelly3_img_ave_pooling
 
     assign h_bypass_in   = BYPASS_SIZE && (int'(colbuf_cols) < M);
     assign h_cur_m_count = colbuf_col_first ? '0 : h_m_count;
-    assign h_select_in   = colbuf_valid && (|colbuf_de) && (h_bypass_in || (h_cur_m_count == m_t'(MC)));
+    assign h_select_in   = colbuf_valid && (|colbuf_de) && (h_bypass_in || (h_cur_m_count == sm_t'(SMC)));
 
     for ( genvar tap = 0; tap < S_TAPS; tap++ ) begin : h_tap_loop
         for ( genvar ch = 0; ch < S_CH_DEPTH; ch++ ) begin : h_ch_loop
@@ -312,7 +320,7 @@ module jelly3_img_ave_pooling
         end
         else if ( s_img.cke ) begin
             if ( colbuf_valid && |colbuf_de ) begin
-                if ( h_bypass_in || (h_cur_m_count == m_t'(M - 1)) ) begin
+                if ( h_bypass_in || (h_cur_m_count == sm_t'(SM - 1)) ) begin
                     h_m_count <= '0;
                 end
                 else begin
@@ -432,11 +440,11 @@ module jelly3_img_ave_pooling
             );
 
 
-    n_t                             v_n_count            ;
+    sn_t                            v_n_count            ;
     logic                           v_row_select         ;
     logic                           v_frame_active       ;
     logic                           v_bypass_in          ;
-    n_t                             v_cur_n_count        ;
+    sn_t                            v_cur_n_count        ;
     logic                           v_row_select_in      ;
     logic                           v_select_in          ;
 
@@ -458,7 +466,7 @@ module jelly3_img_ave_pooling
 
     assign v_bypass_in   = BYPASS_SIZE && (int'(rowbuf_rows) < N);
     assign v_cur_n_count = rowbuf_row_first && rowbuf_col_first ? '0 : v_n_count;
-    assign v_row_select_in = rowbuf_col_first ? (v_bypass_in || (v_cur_n_count == n_t'(NC))) : v_row_select;
+    assign v_row_select_in = rowbuf_col_first ? (v_bypass_in || (v_cur_n_count == sn_t'(SNC))) : v_row_select;
     assign v_select_in   = rowbuf_valid && (|rowbuf_de) && v_row_select_in;
 
     for ( genvar tap = 0; tap < S_TAPS; tap++ ) begin : v_tap_loop
@@ -531,13 +539,13 @@ module jelly3_img_ave_pooling
         end
         else if ( s_img.cke ) begin
             if ( rowbuf_valid && rowbuf_col_first && |rowbuf_de ) begin
-                if ( v_bypass_in || (v_cur_n_count == n_t'(N - 1)) ) begin
+                if ( v_bypass_in || (v_cur_n_count == sn_t'(SN - 1)) ) begin
                     v_n_count <= '0;
                 end
                 else begin
                     v_n_count <= v_cur_n_count + 1'b1;
                 end
-                v_row_select <= v_bypass_in || (v_cur_n_count == n_t'(NC));
+                v_row_select <= v_bypass_in || (v_cur_n_count == sn_t'(SNC));
             end
 
             v_rows_pipe[0]      <= rowbuf_rows      ;
