@@ -5,6 +5,7 @@ use std::error::Error;
 use std::thread;
 use std::time::Duration;
 
+use clap::Parser;
 use jelly_mem_access::*;
 
 use opencv::{
@@ -108,6 +109,39 @@ const REG_IMG_COLMAT_CURRENT_CLIP_MIN2     : usize = 0xa4;
 const REG_IMG_COLMAT_CURRENT_CLIP_MAX2     : usize = 0xa5;
 
 
+#[derive(Parser, Debug)]
+#[command(name = "kv260_imx219_sample")]
+#[command(about = "KV260 IMX219 Camera Sample", long_about = None)]
+struct Args {
+     /// Camera width (default: 1280)
+    #[arg(short = 'W', long, default_value_t = 1280)]
+    width: i32,
+
+     /// Camera height (default: 720)
+    #[arg(short = 'H', long, default_value_t = 720)]
+    height: i32,
+
+     /// Frame rate in fps (default: 60)
+    #[arg(short = 'f', long, default_value_t = 60)]
+    frame_rate: i32,
+
+     /// Exposure time in ms (default: 20)
+    #[arg(short = 'e', long, default_value_t = 20)]
+    exposure: i32,
+
+     /// Analog gain (default: 20)
+    #[arg(short = 'a', long, default_value_t = 20)]
+    a_gain: i32,
+
+     /// Digital gain (default: 0)
+    #[arg(short = 'd', long, default_value_t = 0)]
+    d_gain: i32,
+
+     /// Binning mode (default: true)
+    #[arg(short = 'b', long, default_value_t = true)]
+    binning: bool,
+}
+
 /*
 fn wait_1us() {
     thread::sleep(Duration::from_micros(1));
@@ -139,18 +173,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let view_scale : i32      = 4;
     */
 
+    let args = Args::parse();
     let pixel_clock: f64 = 91000000.0;
-    let binning: bool = true;
-    let width: i32 = 1280;
-    let height: i32 = 720;
+    let binning: bool = args.binning;
+    let width: i32 = args.width;
+    let height: i32 = args.height;
+    let frame_rate: i32 = args.frame_rate;
+    let exposure: i32 = args.exposure;
+    let a_gain: i32 = args.a_gain;
+    let d_gain: i32 = args.d_gain;
     let aoi_x: i32 = -1;
     let aoi_y: i32 = -1;
     let flip_h: bool = false;
     let flip_v: bool = false;
-    let frame_rate: i32 = 60;
-    let exposure: i32 = 20;
-    let a_gain: i32 = 20;
-    let d_gain: i32 = 0;
     let bayer_phase: i32 = 0;
     let display_gamma: f32 = 2.2;
     let inv_display_gamma: f32 = 1.0 / display_gamma;
@@ -350,7 +385,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             0,
             0,
             0,
-            Some(100000),
+            Some(1000000),
         )?;
 
         let mut buf = vec![VecN::<u8, 4>::new(0, 0, 0, 0); (width * height) as usize];
@@ -367,7 +402,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    vdmaw.wait_for_stop(Some(10000))?;
+    vdmaw.wait_for_stop(Some(1000000))?;
 
     // 取り込み停止
     unsafe {
