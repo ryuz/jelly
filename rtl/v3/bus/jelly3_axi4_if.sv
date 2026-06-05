@@ -700,7 +700,7 @@ end
         else begin
             count_aw <= count_aw + issue_aw    - issue_b        ;
             count_w  <= count_w  + issue_wlast - issue_b        ;
-            count_wc <= count_wc + issue_w     - issue_awlen    ;
+            count_wc <= count_wc + issue_awlen - issue_w        ;
             count_ar <= count_ar + issue_ar    - issue_rlast    ;
             count_rc <= count_rc + issue_arlen - issue_r        ;
 
