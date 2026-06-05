@@ -687,7 +687,6 @@ end
     int         count_w;
     int         count_wc;
     int         count_ar;
-    int         count_r;
     int         count_rc;
 
     always_ff @(posedge aclk) begin
@@ -696,7 +695,6 @@ end
             count_w      <= 0;
             count_wc     <= 0;
             count_ar     <= 0;
-            count_r      <= 0;
             count_rc     <= 0;
         end
         else begin
