@@ -10,7 +10,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-module jelly3_axi4s_debug_monitor
+module jelly3_axi4_debug_monitor
         #(
             parameter   int     COUNTER_BITS = 16                               ,
             parameter   type    counter_t    = logic signed [COUNTER_BITS-1:0]  ,
