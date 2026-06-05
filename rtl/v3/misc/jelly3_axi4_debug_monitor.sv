@@ -53,7 +53,7 @@ module jelly3_axi4_debug_monitor
 
     (* MARK_DEBUG=DEBUG *)  logic       error_aw    ;
     (* MARK_DEBUG=DEBUG *)  logic       error_wl    ;
-    (* MARK_DEBUG=DEBUG *)  logic       error_wc    ;
+    (* MARK_DEBUG=DEBUG *)  logic       check_wc    ;
     (* MARK_DEBUG=DEBUG *)  logic       error_ar    ;
     (* MARK_DEBUG=DEBUG *)  logic       error_rc    ;
 
@@ -71,7 +71,7 @@ module jelly3_axi4_debug_monitor
             busy_rc  <= 1'b0;
             error_aw <= 1'b0;
             error_wl <= 1'b0;
-            error_wc <= 1'b0;
+            check_wc <= 1'b0;
             error_ar <= 1'b0;
             error_rc <= 1'b0;
 
@@ -80,7 +80,7 @@ module jelly3_axi4_debug_monitor
             // count
             count_aw <= count_aw + counter_t'(issue_aw   ) - counter_t'(issue_b    );
             count_wl <= count_wl + counter_t'(issue_wlast) - counter_t'(issue_b    );
-            count_wc <= count_wc + counter_t'(issue_w    ) - counter_t'(issue_awlen);
+            count_wc <= count_wc + counter_t'(issue_awlen) - counter_t'(issue_w    );
             count_ar <= count_ar + counter_t'(issue_ar   ) - counter_t'(issue_rlast);
             count_rc <= count_rc + counter_t'(issue_arlen) - counter_t'(issue_r    );
 
@@ -94,7 +94,7 @@ module jelly3_axi4_debug_monitor
             // error
             if ( count_aw + counter_t'(issue_aw   ) < counter_t'(issue_b    ) ) error_aw <= 1'b1;
             if ( count_wl + counter_t'(issue_wlast) < counter_t'(issue_b    ) ) error_wl <= 1'b1;
-            if ( count_wc + counter_t'(issue_w    ) < counter_t'(issue_awlen) ) error_wc <= 1'b1;
+            if ( count_wc + counter_t'(issue_awlen) < counter_t'(issue_w    ) ) check_wc <= 1'b1;   // 厳密には負になっても良い
             if ( count_ar + counter_t'(issue_ar   ) < counter_t'(issue_rlast) ) error_ar <= 1'b1;
             if ( count_rc + counter_t'(issue_arlen) < counter_t'(issue_r    ) ) error_rc <= 1'b1;
         end
