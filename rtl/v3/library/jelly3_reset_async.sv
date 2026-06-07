@@ -15,7 +15,7 @@ module jelly3_reset_async
         #(
             parameter   bit     IN_LOW_ACTIVE    = 0,   // in_reset が負論理の時 1 にする
             parameter   bit     OUT_LOW_ACTIVE   = 0,   // out_reset が負論理の時 1 にする
-            parameter   int     ASYNC_REGS       = 0    // 内部の非同期リセットレジスタ数
+            parameter   int     ASYNC_REGS       = 3    // 内部の非同期リセットレジスタ数
         )
         (
             input   var logic   clk         ,
