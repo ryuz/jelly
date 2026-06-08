@@ -8,10 +8,10 @@ TOP_MODULE = tb_top
 SIM_LIB_DIRS += ..
 
 FLAGS  = --binary -j 0
-#FLAGS += --assert
+FLAGS += --assert
 FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
 FLAGS += -D__VERILATOR__
-#FLAGS += -D__SIMULATION__
+FLAGS += -D__SIMULATION__
 FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
 FLAGS += -Wno-SIDEEFFECT
 
