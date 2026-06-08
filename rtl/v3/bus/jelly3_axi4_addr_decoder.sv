@@ -227,7 +227,7 @@ module jelly3_axi4_addr_decoder
     end
 
     assign s_axi4.awready = (s_axi4.wvalid  && (!write_busy || (s_axi4.bvalid && s_axi4.bready)));
-    assign s_axi4.wready  = (s_axi4.awvalid && (!write_busy || (s_axi4.bvalid && s_axi4.bready))) && &(~m_wvalid | m_wready);
+    assign s_axi4.wready  = (s_axi4.awvalid && (!write_busy || (s_axi4.bvalid && s_axi4.bready))) || |(w_maskbit & (~m_wvalid | m_wready));
 
 
 
@@ -291,7 +291,7 @@ module jelly3_axi4_addr_decoder
         end
         else begin
             // finish
-            for ( int i = 0; i < NUM; i++ ) begin
+            for ( int i = 0; i < NUM+1; i++ ) begin
                 if ( m_arready[i] ) begin
                     m_arvalid[i] <= 1'b0;
                 end
@@ -447,7 +447,7 @@ module jelly3_axi4_addr_decoder
     assign ax4_other.arregion = m_arregion      ;
     assign ax4_other.aruser   = m_aruser        ;
     assign ax4_other.arvalid  = m_arvalid [NUM] ;
-    assign ax4_other.rready   = 1'b1            ;
+    assign ax4_other.rready   = !s_axi4.rvalid || s_axi4.rready;
 
     assign m_awready[NUM] = ax4_other.awready  ;
     assign m_wready [NUM] = ax4_other.wready   ;

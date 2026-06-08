@@ -101,8 +101,9 @@ module tb_main
     initial begin
         enable = 1;
         #100000;
+//      #325;
         enable = 0;
-        #1000;
+        #10000;
         $finish();
     end
 

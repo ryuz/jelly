@@ -111,6 +111,9 @@ module jelly3_model_axi4_m
         return ($urandom_range(0, 99) >= busy_rate);
     endfunction
 
+    int aw_queue_size;
+    always_comb aw_queue_size = aw_queue.size();
+
     always_ff @(posedge m_axi4.aclk) begin
         if ( !m_axi4.aresetn ) begin
             awvalid <= 1'b0;
