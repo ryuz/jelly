@@ -83,9 +83,9 @@ module tb_main
     jelly3_model_axi4_m
             #(
                 .WADDR_LOW      (32'h0000   ),
-                .WADDR_HIGH     (32'h3fff   ),
+                .WADDR_HIGH     (32'h1fff   ),
                 .RADDR_LOW      (32'h0000   ),
-                .RADDR_HIGH     (32'h3fff   ),
+                .RADDR_HIGH     (32'h1fff   ),
                 .AW_BUSY_RATE   (20         ),
                 .W_BUSY_RATE    (20         ),
                 .B_BUSY_RATE    (20         ),

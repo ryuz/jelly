@@ -336,7 +336,7 @@ module jelly3_axi4_addr_decoder
 
             // response
             for ( int i = 0; i < NUM+1; i++ ) begin
-                if ( m_rvalid[i] ) begin
+                if ( m_rvalid[i] && (!s_axi4.rvalid || s_axi4.rready) ) begin
                     s_axi4.rid    <= m_rid  [i];
                     s_axi4.rdata  <= m_rdata[i];
                     s_axi4.rresp  <= m_rresp[i];
@@ -349,10 +349,19 @@ module jelly3_axi4_addr_decoder
     end
 
     for ( genvar i = 0; i < NUM; i++ ) begin
-        assign m_axi4[i].araddr  = m_arvalid[i] ? m_araddr : 'x;
-        assign m_axi4[i].arprot  = m_arvalid[i] ? m_arprot : 'x;
-        assign m_axi4[i].arvalid = m_arvalid[i];
-        assign m_axi4[i].rready  = !s_axi4.rvalid || s_axi4.rready;
+        assign m_axi4[i].arid     = m_arvalid[i] ? m_arid     : 'x;
+        assign m_axi4[i].araddr   = m_arvalid[i] ? m_araddr   : 'x;
+        assign m_axi4[i].arlen    = m_arvalid[i] ? m_arlen    : 'x;
+        assign m_axi4[i].arsize   = m_arvalid[i] ? m_arsize   : 'x;
+        assign m_axi4[i].arburst  = m_arvalid[i] ? m_arburst  : 'x;
+        assign m_axi4[i].arlock   = m_arvalid[i] ? m_arlock   : 'x;
+        assign m_axi4[i].arcache  = m_arvalid[i] ? m_arcache  : 'x;
+        assign m_axi4[i].arprot   = m_arvalid[i] ? m_arprot   : 'x;
+        assign m_axi4[i].arqos    = m_arvalid[i] ? m_arqos    : 'x;
+        assign m_axi4[i].arregion = m_arvalid[i] ? m_arregion : 'x;
+        assign m_axi4[i].aruser   = m_arvalid[i] ? m_aruser   : 'x;
+        assign m_axi4[i].arvalid  = m_arvalid[i];
+        assign m_axi4[i].rready   = !s_axi4.rvalid || s_axi4.rready;
     end
 
     assign s_axi4.arready = !read_busy || (s_axi4.rlast && s_axi4.rvalid && s_axi4.rready);
