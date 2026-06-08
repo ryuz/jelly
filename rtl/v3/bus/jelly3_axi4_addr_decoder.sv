@@ -20,7 +20,7 @@ module jelly3_axi4_addr_decoder
             jelly3_axi4_if.s    s_axi4,
             jelly3_axi4_if.m    m_axi4 [NUM]
         );
-    
+
     localparam int DEC_MASK_BITS = DEC_ADDR_BITS > 0 ? DEC_ADDR_BITS : s_axi4.ADDR_BITS;
     typedef logic [DEC_MASK_BITS-1:0] mask_t;
     function [DEC_MASK_BITS-1:0] dec_addr_mask(input [s_axi4.ADDR_BITS-1:0] addr);
@@ -83,12 +83,12 @@ module jelly3_axi4_addr_decoder
     end
 
     // write channel
-    logic           m_awready   [NUM+1];
-    logic           m_wready    [NUM+1];
-    id_t            m_bid       [NUM+1];
-    resp_t          m_bresp     [NUM+1];
-    buser_t         m_buser     [NUM+1];
-    logic           m_bvalid    [NUM+1];
+    logic   [NUM:0]     m_awready;
+    logic   [NUM:0]     m_wready ;
+    id_t    [NUM:0]     m_bid    ;
+    resp_t  [NUM:0]     m_bresp  ;
+    buser_t [NUM:0]     m_buser  ;
+    logic   [NUM:0]     m_bvalid ;
     for ( genvar i = 0; i < NUM; i++ ) begin
         assign m_awready[i] = m_axi4[i].awready ;
         assign m_wready [i] = m_axi4[i].wready  ;
@@ -100,8 +100,7 @@ module jelly3_axi4_addr_decoder
 
 
     logic               write_busy  ;
-    logic               w_ready     ;
-    logic   [NUM:0]     w_select    ;
+    logic   [NUM:0]     w_maskbit  ;
 
     id_t                m_awid      ;
     addr_t              m_awaddr    ;
@@ -123,11 +122,10 @@ module jelly3_axi4_addr_decoder
 
     always_ff @(posedge s_axi4.aclk) begin
         if ( ~s_axi4.aresetn ) begin
-            write_busy <= 1'b0  ;
-            w_ready    <= 1'b0  ;
-            w_select   <= '0    ;
-            m_awvalid  <= '0    ;
-            m_wvalid   <= '0    ;
+            write_busy   <= 1'b0    ;
+            w_maskbit    <= '0      ;
+            m_awvalid    <= '0      ;
+            m_wvalid     <= '0      ;
 
             s_axi4.bid    <= 'x     ;
             s_axi4.bresp  <= 'x     ;
@@ -141,11 +139,10 @@ module jelly3_axi4_addr_decoder
                     m_awvalid[i] <= 1'b0;
                 end
                 if ( m_wready[i] ) begin
-                    m_wvalid[i] <= 1'b0;
+                    m_wvalid[i]  <= 1'b0;
                 end
                 if ( s_axi4.wlast && s_axi4.wvalid && s_axi4.wready ) begin
-                    w_ready  <= 1'b0 ;
-                    w_select <= '0   ;
+                    w_maskbit <= '0   ;
                 end
             end
             if ( s_axi4.bvalid && s_axi4.bready ) begin
@@ -163,8 +160,8 @@ module jelly3_axi4_addr_decoder
                 m_wlast <= s_axi4.wlast ;
                 m_wuser <= s_axi4.wuser ;
                 for ( int i = 0; i < NUM+1; i++ ) begin
-                    if ( s_axi4.wready && w_select[i] ) begin
-                        m_wvalid[i] <= s_axi4.wvalid;
+                    if ( s_axi4.wready && w_maskbit[i] ) begin
+                        m_wvalid[i]  <= s_axi4.wvalid;
                     end
                 end
             end
@@ -172,7 +169,6 @@ module jelly3_axi4_addr_decoder
             // start
             if ( s_axi4.awvalid && s_axi4.awready && s_axi4.wvalid && s_axi4.wready ) begin
                 write_busy <= 1'b1;
-                w_ready    <= !s_axi4.wlast  ;
                 m_awid     <= s_axi4.awid    ;
                 m_awaddr   <= s_axi4.awaddr  ;
                 m_awlen    <= s_axi4.awlen   ;
@@ -190,7 +186,7 @@ module jelly3_axi4_addr_decoder
                 m_wuser    <= s_axi4.wuser   ;
                 for ( int i = 0; i < NUM+1; i++ ) begin
                     if ( awaddr_match[i] ) begin
-                        w_select [i] <= !s_axi4.wlast;
+                        w_maskbit[i] <= !s_axi4.wlast;
                         m_awvalid[i] <= 1'b1;
                         m_wvalid [i] <= 1'b1;
                     end
@@ -231,7 +227,7 @@ module jelly3_axi4_addr_decoder
     end
 
     assign s_axi4.awready = (s_axi4.wvalid  && (!write_busy || (s_axi4.bvalid && s_axi4.bready)));
-    assign s_axi4.wready  = (s_axi4.awvalid && (!write_busy || (s_axi4.bvalid && s_axi4.bready))) || w_ready;
+    assign s_axi4.wready  = (s_axi4.awvalid && (!write_busy || (s_axi4.bvalid && s_axi4.bready))) && &(~m_wvalid | m_wready);
 
 
 
@@ -253,19 +249,19 @@ module jelly3_axi4_addr_decoder
         assign m_rvalid [i] = m_axi4[i].rvalid;
     end
 
-    logic       read_busy           ;
-    id_t        m_arid              ;
-    addr_t      m_araddr            ;
-    len_t       m_arlen             ;
-    size_t      m_arsize            ;
-    burst_t     m_arburst           ;
-    lock_t      m_arlock            ;
-    cache_t     m_arcache           ;
-    prot_t      m_arprot            ;
-    qos_t       m_arqos             ;
-    region_t    m_arregion          ;
-    aruser_t    m_aruser            ;
-    logic       m_arvalid   [NUM+1] ;
+    logic               read_busy   ;
+    id_t                m_arid      ;
+    addr_t              m_araddr    ;
+    len_t               m_arlen     ;
+    size_t              m_arsize    ;
+    burst_t             m_arburst   ;
+    lock_t              m_arlock    ;
+    cache_t             m_arcache   ;
+    prot_t              m_arprot    ;
+    qos_t               m_arqos     ;
+    region_t            m_arregion  ;
+    aruser_t            m_aruser    ;
+    logic   [NUM:0]     m_arvalid   ;
 
     always_ff @(posedge s_axi4.aclk) begin
         if ( ~s_axi4.aresetn ) begin
