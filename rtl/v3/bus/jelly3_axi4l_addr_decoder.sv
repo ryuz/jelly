@@ -28,8 +28,15 @@ module jelly3_axi4l_addr_decoder
         return DEC_MASK_BITS'(addr) & DEC_MASK_BITS'(DEC_ADDR_MASK);
     endfunction
 
-    logic   [s_axi4l.ADDR_BITS-1:0]  addr_base   [NUM];
-    logic   [s_axi4l.ADDR_BITS-1:0]  addr_high   [NUM];
+    localparam type addr_t   = logic [s_axi4l.ADDR_BITS  -1:0];
+    localparam type prot_t   = logic [s_axi4l.PROT_BITS  -1:0];
+    localparam type data_t   = logic [s_axi4l.DATA_BITS  -1:0];
+    localparam type strb_t   = logic [s_axi4l.STRB_BITS  -1:0];
+    localparam type resp_t   = logic [s_axi4l.RESP_BITS  -1:0];
+
+
+    addr_t  addr_base   [NUM];
+    addr_t  addr_high   [NUM];
     for ( genvar i = 0; i < NUM; i++ ) begin
         assign addr_base[i] = m_axi4l[i].addr_base;
         assign addr_high[i] = m_axi4l[i].addr_high;
@@ -46,6 +53,7 @@ module jelly3_axi4l_addr_decoder
               && dec_addr_mask(s_axi4l.awaddr) <= dec_addr_mask(addr_high[i]) ) begin
                 awaddr_match[i] = 1'b1;
                 awaddr_other    = 1'b0;
+                break;
             end
         end
     end
@@ -60,40 +68,46 @@ module jelly3_axi4l_addr_decoder
               && dec_addr_mask(s_axi4l.araddr) <= dec_addr_mask(addr_high[i]) ) begin
                 araddr_match[i] = 1'b1;
                 araddr_other    = 1'b0;
+                break;
             end
         end
     end
     
     // write
-    logic                           m_awready     [NUM];
-    logic                           m_wready      [NUM];
-    logic   [s_axi4l.RESP_BITS-1:0] m_bresp       [NUM];
-    logic                           m_bvalid      [NUM];
+    logic   m_awready     [NUM];
+    logic   m_wready      [NUM];
+    resp_t  m_bresp       [NUM];
+    logic   m_bvalid      [NUM];
     for ( genvar i = 0; i < NUM; i++ ) begin
         assign m_awready[i] = m_axi4l[i].awready;
-        assign m_wready [i] = m_axi4l[i].wready;
-        assign m_bresp[i]   = m_axi4l[i].bresp;
-        assign m_bvalid[i]  = m_axi4l[i].bvalid;
+        assign m_wready [i] = m_axi4l[i].wready ;
+        assign m_bresp[i]   = m_axi4l[i].bresp  ;
+        assign m_bvalid[i]  = m_axi4l[i].bvalid ;
     end
 
-    logic                           write_busy;
-    logic   [s_axi4l.ADDR_BITS-1:0] m_awaddr;
-    logic   [s_axi4l.PROT_BITS-1:0] m_awprot;
-    logic                           m_awvalid     [NUM];
-    logic   [s_axi4l.STRB_BITS-1:0] m_wstrb;
-    logic   [s_axi4l.DATA_BITS-1:0] m_wdata;
-    logic                           m_wvalid      [NUM];
+    logic       write_busy          ;
+    addr_t      m_awaddr            ;
+    prot_t      m_awprot            ;
+    logic       m_awvalid   [NUM]   ;
+    strb_t      m_wstrb             ;
+    data_t      m_wdata             ;
+    logic       m_wvalid    [NUM]   ;
 
     always_ff @(posedge s_axi4l.aclk ) begin
         if ( ~s_axi4l.aresetn ) begin
-            write_busy  <= 1'b0;
+            write_busy  <= 1'b0 ;
+            m_awaddr    <= 'x   ;
+            m_awprot    <= 'x   ;
             for ( int i = 0; i < NUM; i++ ) begin
                 m_awvalid[i] <= 1'b0;
             end
+            m_wstrb     <= 'x   ;
+            m_wdata     <= 'x   ;
             for ( int i = 0; i < NUM; i++ ) begin
                 m_wvalid[i] <= 1'b0;
             end
-            s_axi4l.bvalid <= 1'b0;
+            s_axi4l.bresp  <= 'x    ;
+            s_axi4l.bvalid <= 1'b0  ;
         end
         else begin
             // finish
@@ -156,10 +170,10 @@ module jelly3_axi4l_addr_decoder
 
 
     // read
-    logic                           m_arready    [NUM];
-    logic   [s_axi4l.RESP_BITS-1:0] m_rresp      [NUM];
-    logic   [s_axi4l.DATA_BITS-1:0] m_rdata      [NUM];
-    logic                           m_rvalid     [NUM];
+    logic   m_arready   [NUM];
+    resp_t  m_rresp     [NUM];
+    data_t  m_rdata     [NUM];
+    logic   m_rvalid    [NUM];
     for ( genvar i = 0; i < NUM; i++ ) begin
         assign m_arready[i] = m_axi4l[i].arready;
         assign m_rresp[i]   = m_axi4l[i].rresp;
@@ -167,16 +181,20 @@ module jelly3_axi4l_addr_decoder
         assign m_rvalid[i]  = m_axi4l[i].rvalid;
     end
 
-    logic                           read_busy;
-    logic   [s_axi4l.ADDR_BITS-1:0] m_araddr;
-    logic   [s_axi4l.PROT_BITS-1:0] m_arprot;
-    logic                           m_arvalid   [NUM];
+    logic   read_busy           ;
+    addr_t  m_araddr            ;
+    prot_t  m_arprot            ;
+    logic   m_arvalid   [NUM]   ;
     always_ff @(posedge s_axi4l.aclk ) begin
         if ( ~s_axi4l.aresetn ) begin
-            read_busy  <= 1'b0;
+            read_busy <= 1'b0;
+            m_araddr  <= 'x;
+            m_arprot  <= 'x;
             for ( int i = 0; i < NUM; i++ ) begin
                 m_arvalid[i] <= 1'b0;
             end
+            s_axi4l.rdata  <= 'x;
+            s_axi4l.rresp  <= 'x;
             s_axi4l.rvalid <= 1'b0;
         end
         else begin

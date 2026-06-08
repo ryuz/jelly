@@ -20,7 +20,7 @@ module jelly3_axi4_addr_decoder
             jelly3_axi4_if.s    s_axi4,
             jelly3_axi4_if.m    m_axi4 [NUM]
         );
-
+    
     localparam int DEC_MASK_BITS = DEC_ADDR_BITS > 0 ? DEC_ADDR_BITS : s_axi4.ADDR_BITS;
     typedef logic [DEC_MASK_BITS-1:0] mask_t;
     function [DEC_MASK_BITS-1:0] dec_addr_mask(input [s_axi4.ADDR_BITS-1:0] addr);
@@ -54,269 +54,418 @@ module jelly3_axi4_addr_decoder
     end
 
     // address decode
-    logic [NUM-1:0] awaddr_match;
-    logic           awaddr_other;
+    logic [NUM:0]   awaddr_match;
     always_comb begin
-        awaddr_match = '0;
-        awaddr_other = 1'b1;
+        awaddr_match      = '0;
+        awaddr_match[NUM] = 1'b1;
         for ( int i = 0; i < NUM; i++ ) begin
             if ( dec_addr_mask(s_axi4.awaddr) >= dec_addr_mask(addr_base[i])
               && dec_addr_mask(s_axi4.awaddr) <= dec_addr_mask(addr_high[i]) ) begin
-                awaddr_match[i] = 1'b1;
-                awaddr_other    = 1'b0;
+                awaddr_match[i]   = 1'b1;
+                awaddr_match[NUM] = 1'b0;
+                break;
             end
         end
     end
 
-    logic [NUM-1:0] araddr_match;
-    logic           araddr_other;
+    logic [NUM:0]   araddr_match;
     always_comb begin
-        araddr_match = '0;
-        araddr_other = 1'b1;
+        araddr_match      = '0;
+        araddr_match[NUM] = 1'b1;
         for ( int i = 0; i < NUM; i++ ) begin
             if ( dec_addr_mask(s_axi4.araddr) >= dec_addr_mask(addr_base[i])
               && dec_addr_mask(s_axi4.araddr) <= dec_addr_mask(addr_high[i]) ) begin
-                araddr_match[i] = 1'b1;
-                araddr_other    = 1'b0;
+                araddr_match[i]   = 1'b1;
+                araddr_match[NUM] = 1'b0;
+                break;
             end
         end
     end
 
     // write channel
-    logic [NUM-1:0] m_awready;
-    logic [NUM-1:0] m_wready;
-    id_t            m_bid    [NUM];
-    resp_t          m_bresp  [NUM];
-    buser_t         m_buser  [NUM];
-    logic [NUM-1:0] m_bvalid;
+    logic           m_awready   [NUM+1];
+    logic           m_wready    [NUM+1];
+    id_t            m_bid       [NUM+1];
+    resp_t          m_bresp     [NUM+1];
+    buser_t         m_buser     [NUM+1];
+    logic           m_bvalid    [NUM+1];
     for ( genvar i = 0; i < NUM; i++ ) begin
-        assign m_awready[i] = m_axi4[i].awready;
-        assign m_wready [i] = m_axi4[i].wready;
-        assign m_bid    [i] = m_axi4[i].bid;
-        assign m_bresp  [i] = m_axi4[i].bresp;
-        assign m_buser  [i] = m_axi4[i].buser;
-        assign m_bvalid [i] = m_axi4[i].bvalid;
+        assign m_awready[i] = m_axi4[i].awready ;
+        assign m_wready [i] = m_axi4[i].wready  ;
+        assign m_bid    [i] = m_axi4[i].bid     ;
+        assign m_bresp  [i] = m_axi4[i].bresp   ;
+        assign m_buser  [i] = m_axi4[i].buser   ;
+        assign m_bvalid [i] = m_axi4[i].bvalid  ;
     end
 
-    logic           write_busy;
-    logic [NUM-1:0] write_sel;
-    logic           write_other;
 
-    id_t            write_other_bid;
-    logic           write_other_bvalid;
+    logic               write_busy  ;
+    logic               w_ready     ;
+    logic   [NUM:0]     w_select    ;
 
-    logic [NUM-1:0] m_awvalid;
-    logic [NUM-1:0] m_wvalid;
+    id_t                m_awid      ;
+    addr_t              m_awaddr    ;
+    len_t               m_awlen     ;
+    size_t              m_awsize    ;
+    burst_t             m_awburst   ;
+    lock_t              m_awlock    ;
+    cache_t             m_awcache   ;
+    prot_t              m_awprot    ;
+    qos_t               m_awqos     ;
+    region_t            m_awregion  ;
+    awuser_t            m_awuser    ;
+    logic   [NUM:0]     m_awvalid   ;
+    data_t              m_wdata     ;
+    strb_t              m_wstrb     ;
+    logic               m_wlast     ;
+    wuser_t             m_wuser     ;
+    logic   [NUM:0]     m_wvalid    ;
 
     always_ff @(posedge s_axi4.aclk) begin
         if ( ~s_axi4.aresetn ) begin
-            write_busy        <= 1'b0;
-            write_sel         <= '0;
-            write_other       <= 1'b0;
-            write_other_bid   <= '0;
-            write_other_bvalid<= 1'b0;
+            write_busy <= 1'b0  ;
+            w_ready    <= 1'b0  ;
+            w_select   <= '0    ;
+            m_awvalid  <= '0    ;
+            m_wvalid   <= '0    ;
+
+            s_axi4.bid    <= 'x     ;
+            s_axi4.bresp  <= 'x     ;
+            s_axi4.buser  <= 'x     ;
+            s_axi4.bvalid <= 1'b0   ;
         end
         else begin
-            if ( !write_busy && s_axi4.awvalid && s_axi4.awready ) begin
-                write_busy      <= 1'b1;
-                write_sel       <= awaddr_match;
-                write_other     <= awaddr_other;
-                write_other_bid <= s_axi4.awid;
+            // finish
+            for ( int i = 0; i < NUM+1; i++ ) begin
+                if ( m_awready[i] ) begin
+                    m_awvalid[i] <= 1'b0;
+                end
+                if ( m_wready[i] ) begin
+                    m_wvalid[i] <= 1'b0;
+                end
+                if ( s_axi4.wlast && s_axi4.wvalid && s_axi4.wready ) begin
+                    w_ready  <= 1'b0 ;
+                    w_select <= '0   ;
+                end
+            end
+            if ( s_axi4.bvalid && s_axi4.bready ) begin
+                write_busy    <= 1'b0   ;
+                s_axi4.bid    <= 'x     ;
+                s_axi4.bresp  <= 'x     ;
+                s_axi4.buser  <= 'x     ;
+                s_axi4.bvalid <= 1'b0   ;
             end
 
-            if ( write_busy && write_other && s_axi4.wvalid && s_axi4.wready && s_axi4.wlast ) begin
-                write_other_bvalid <= 1'b1;
+            // write data
+            if ( s_axi4.wready ) begin
+                m_wdata <= s_axi4.wdata ;
+                m_wstrb <= s_axi4.wstrb ;
+                m_wlast <= s_axi4.wlast ;
+                m_wuser <= s_axi4.wuser ;
+                for ( int i = 0; i < NUM+1; i++ ) begin
+                    if ( s_axi4.wready && w_select[i] ) begin
+                        m_wvalid[i] <= s_axi4.wvalid;
+                    end
+                end
             end
 
-            if ( write_other_bvalid && s_axi4.bready ) begin
-                write_other_bvalid <= 1'b0;
-                write_busy         <= 1'b0;
+            // start
+            if ( s_axi4.awvalid && s_axi4.awready && s_axi4.wvalid && s_axi4.wready ) begin
+                write_busy <= 1'b1;
+                w_ready    <= !s_axi4.wlast  ;
+                m_awid     <= s_axi4.awid    ;
+                m_awaddr   <= s_axi4.awaddr  ;
+                m_awlen    <= s_axi4.awlen   ;
+                m_awsize   <= s_axi4.awsize  ;
+                m_awburst  <= s_axi4.awburst ;
+                m_awlock   <= s_axi4.awlock  ;
+                m_awcache  <= s_axi4.awcache ;
+                m_awprot   <= s_axi4.awprot  ;
+                m_awqos    <= s_axi4.awqos   ;
+                m_awregion <= s_axi4.awregion;
+                m_awuser   <= s_axi4.awuser  ;
+                m_wdata    <= s_axi4.wdata   ;
+                m_wstrb    <= s_axi4.wstrb   ;
+                m_wlast    <= s_axi4.wlast   ;
+                m_wuser    <= s_axi4.wuser   ;
+                for ( int i = 0; i < NUM+1; i++ ) begin
+                    if ( awaddr_match[i] ) begin
+                        w_select [i] <= !s_axi4.wlast;
+                        m_awvalid[i] <= 1'b1;
+                        m_wvalid [i] <= 1'b1;
+                    end
+                end
             end
 
-            for ( int i = 0; i < NUM; i++ ) begin
-                if ( write_busy && !write_other && write_sel[i] && m_bvalid[i] && s_axi4.bready ) begin
-                    write_busy <= 1'b0;
+            // response
+            for ( int i = 0; i < NUM+1; i++ ) begin
+                if ( m_bvalid[i] ) begin
+                    s_axi4.bid    <= m_bid  [i];
+                    s_axi4.bresp  <= m_bresp[i];
+                    s_axi4.buser  <= m_buser[i];
+                    s_axi4.bvalid <= 1'b1;
                 end
             end
         end
     end
 
-    logic           s_bvalid_sel;
-    id_t            s_bid_sel;
-    resp_t          s_bresp_sel;
-    buser_t         s_buser_sel;
-    always_comb begin
-        s_bvalid_sel = 1'b0;
-        s_bid_sel    = 'x;
-        s_bresp_sel  = 'x;
-        s_buser_sel  = 'x;
-        for ( int i = 0; i < NUM; i++ ) begin
-            if ( write_sel[i] && m_bvalid[i] ) begin
-                s_bvalid_sel = 1'b1;
-                s_bid_sel    = m_bid[i];
-                s_bresp_sel  = m_bresp[i];
-                s_buser_sel  = m_buser[i];
-            end
-        end
-    end
-
-    assign s_axi4.awready = !write_busy && (awaddr_other || |(awaddr_match & m_awready));
-    assign s_axi4.wready  = write_busy && (write_other || |(write_sel & m_wready));
-
-    assign s_axi4.bid     = write_other_bvalid ? write_other_bid : s_bid_sel;
-    assign s_axi4.bresp   = write_other_bvalid ? resp_t'('0)     : s_bresp_sel;
-    assign s_axi4.buser   = write_other_bvalid ? buser_t'('0)    : s_buser_sel;
-    assign s_axi4.bvalid  = write_other_bvalid || s_bvalid_sel;
-
     for ( genvar i = 0; i < NUM; i++ ) begin
-        assign m_axi4[i].awid     = m_awvalid[i] ? s_axi4.awid     : 'x;
-        assign m_axi4[i].awaddr   = m_awvalid[i] ? s_axi4.awaddr   : 'x;
-        assign m_axi4[i].awlen    = m_awvalid[i] ? s_axi4.awlen    : 'x;
-        assign m_axi4[i].awsize   = m_awvalid[i] ? s_axi4.awsize   : 'x;
-        assign m_axi4[i].awburst  = m_awvalid[i] ? s_axi4.awburst  : 'x;
-        assign m_axi4[i].awlock   = m_awvalid[i] ? s_axi4.awlock   : 'x;
-        assign m_axi4[i].awcache  = m_awvalid[i] ? s_axi4.awcache  : 'x;
-        assign m_axi4[i].awprot   = m_awvalid[i] ? s_axi4.awprot   : 'x;
-        assign m_axi4[i].awqos    = m_awvalid[i] ? s_axi4.awqos    : 'x;
-        assign m_axi4[i].awregion = m_awvalid[i] ? s_axi4.awregion : 'x;
-        assign m_axi4[i].awuser   = m_awvalid[i] ? s_axi4.awuser   : 'x;
+        assign m_axi4[i].awid     = m_awvalid[i] ? m_awid     : 'x;
+        assign m_axi4[i].awaddr   = m_awvalid[i] ? m_awaddr   : 'x;
+        assign m_axi4[i].awlen    = m_awvalid[i] ? m_awlen    : 'x;
+        assign m_axi4[i].awsize   = m_awvalid[i] ? m_awsize   : 'x;
+        assign m_axi4[i].awburst  = m_awvalid[i] ? m_awburst  : 'x;
+        assign m_axi4[i].awlock   = m_awvalid[i] ? m_awlock   : 'x;
+        assign m_axi4[i].awcache  = m_awvalid[i] ? m_awcache  : 'x;
+        assign m_axi4[i].awprot   = m_awvalid[i] ? m_awprot   : 'x;
+        assign m_axi4[i].awqos    = m_awvalid[i] ? m_awqos    : 'x;
+        assign m_axi4[i].awregion = m_awvalid[i] ? m_awregion : 'x;
+        assign m_axi4[i].awuser   = m_awvalid[i] ? m_awuser   : 'x;
         assign m_axi4[i].awvalid  = m_awvalid[i];
-
-        assign m_axi4[i].wdata    = m_wvalid[i]  ? s_axi4.wdata    : 'x;
-        assign m_axi4[i].wstrb    = m_wvalid[i]  ? s_axi4.wstrb    : 'x;
-        assign m_axi4[i].wlast    = m_wvalid[i]  ? s_axi4.wlast    : 'x;
-        assign m_axi4[i].wuser    = m_wvalid[i]  ? s_axi4.wuser    : 'x;
+        assign m_axi4[i].wdata    = m_wvalid[i]  ? m_wdata    : 'x;
+        assign m_axi4[i].wstrb    = m_wvalid[i]  ? m_wstrb    : 'x;
+        assign m_axi4[i].wlast    = m_wvalid[i]  ? m_wlast    : 'x;
+        assign m_axi4[i].wuser    = m_wvalid[i]  ? m_wuser    : 'x;
         assign m_axi4[i].wvalid   = m_wvalid[i];
-
-        assign m_axi4[i].bready   = write_busy && !write_other && write_sel[i] ? s_axi4.bready : 1'b0;
+        assign m_axi4[i].bready   = 1'b1;   // 前のコマンドが終わらないと次を要求しないので常に受け取れる
     end
 
-    assign m_awvalid = (!write_busy && s_axi4.awvalid && !awaddr_other) ? awaddr_match : '0;
-    assign m_wvalid  = ( write_busy && s_axi4.wvalid && !write_other) ? write_sel : '0;
+    assign s_axi4.awready = (s_axi4.wvalid  && (!write_busy || (s_axi4.bvalid && s_axi4.bready)));
+    assign s_axi4.wready  = (s_axi4.awvalid && (!write_busy || (s_axi4.bvalid && s_axi4.bready))) || w_ready;
+
 
 
     // read channel
-    logic [NUM-1:0] m_arready;
-    id_t            m_rid    [NUM];
-    data_t          m_rdata  [NUM];
-    resp_t          m_rresp  [NUM];
-    logic [NUM-1:0] m_rlast;
-    ruser_t         m_ruser  [NUM];
-    logic [NUM-1:0] m_rvalid;
+    logic       m_arready   [NUM+1];
+    id_t        m_rid       [NUM+1];
+    data_t      m_rdata     [NUM+1];
+    resp_t      m_rresp     [NUM+1];
+    logic       m_rlast     [NUM+1];
+    ruser_t     m_ruser     [NUM+1];
+    logic       m_rvalid    [NUM+1];
     for ( genvar i = 0; i < NUM; i++ ) begin
         assign m_arready[i] = m_axi4[i].arready;
-        assign m_rid   [i]  = m_axi4[i].rid;
-        assign m_rdata [i]  = m_axi4[i].rdata;
-        assign m_rresp [i]  = m_axi4[i].rresp;
-        assign m_rlast [i]  = m_axi4[i].rlast;
-        assign m_ruser [i]  = m_axi4[i].ruser;
-        assign m_rvalid[i]  = m_axi4[i].rvalid;
+        assign m_rid    [i] = m_axi4[i].rid;
+        assign m_rdata  [i] = m_axi4[i].rdata;
+        assign m_rresp  [i] = m_axi4[i].rresp;
+        assign m_rlast  [i] = m_axi4[i].rlast;
+        assign m_ruser  [i] = m_axi4[i].ruser;
+        assign m_rvalid [i] = m_axi4[i].rvalid;
     end
 
-    logic           read_busy;
-    logic [NUM-1:0] read_sel;
-    logic           read_other;
-
-    id_t            read_other_rid;
-    len_t           read_other_len;
-    len_t           read_other_count;
-    logic           read_other_rvalid;
-
-    logic [NUM-1:0] m_arvalid;
+    logic       read_busy           ;
+    id_t        m_arid              ;
+    addr_t      m_araddr            ;
+    len_t       m_arlen             ;
+    size_t      m_arsize            ;
+    burst_t     m_arburst           ;
+    lock_t      m_arlock            ;
+    cache_t     m_arcache           ;
+    prot_t      m_arprot            ;
+    qos_t       m_arqos             ;
+    region_t    m_arregion          ;
+    aruser_t    m_aruser            ;
+    logic       m_arvalid   [NUM+1] ;
 
     always_ff @(posedge s_axi4.aclk) begin
         if ( ~s_axi4.aresetn ) begin
-            read_busy         <= 1'b0;
-            read_sel          <= '0;
-            read_other        <= 1'b0;
-            read_other_rid    <= '0;
-            read_other_len    <= '0;
-            read_other_count  <= '0;
-            read_other_rvalid <= 1'b0;
+            read_busy  <= 1'b0;
+
+            m_arid     <= 'x;
+            m_araddr   <= 'x;
+            m_arlen    <= 'x;
+            m_arsize   <= 'x;
+            m_arburst  <= 'x;
+            m_arlock   <= 'x;
+            m_arcache  <= 'x;
+            m_arprot   <= 'x;
+            m_arqos    <= 'x;
+            m_arregion <= 'x;
+            m_aruser   <= 'x;
+            for ( int i = 0; i < NUM+1; i++ ) begin
+                m_arvalid[i] <= 1'b0;
+            end
+
+            s_axi4.rid    <= 'x;
+            s_axi4.rdata  <= 'x;
+            s_axi4.rresp  <= 'x;
+            s_axi4.rlast  <= 'x;
+            s_axi4.ruser  <= 'x;
+            s_axi4.rvalid <= 1'b0;
         end
         else begin
-            if ( !read_busy && s_axi4.arvalid && s_axi4.arready ) begin
-                read_busy      <= 1'b1;
-                read_sel       <= araddr_match;
-                read_other     <= araddr_other;
-                read_other_rid <= s_axi4.arid;
-                if ( araddr_other ) begin
-                    read_other_len    <= s_axi4.arlen;
-                    read_other_count  <= '0;
-                    read_other_rvalid <= 1'b1;
-                end
-            end
-
-            if ( read_other_rvalid && s_axi4.rready ) begin
-                if ( read_other_count >= read_other_len ) begin
-                    read_other_rvalid <= 1'b0;
-                    read_busy         <= 1'b0;
-                end
-                else begin
-                    read_other_count <= read_other_count + len_t'(1);
-                end
-            end
-
+            // finish
             for ( int i = 0; i < NUM; i++ ) begin
-                if ( read_busy && !read_other && read_sel[i] && m_rvalid[i] && s_axi4.rready && m_rlast[i] ) begin
-                    read_busy <= 1'b0;
+                if ( m_arready[i] ) begin
+                    m_arvalid[i] <= 1'b0;
+                end
+            end
+            if ( s_axi4.rready ) begin
+                s_axi4.rvalid <= 1'b0;
+            end
+            if ( s_axi4.rlast && s_axi4.rvalid && s_axi4.rready ) begin
+                read_busy     <= 1'b0;
+                s_axi4.rid    <= 'x;
+                s_axi4.rdata  <= 'x;
+                s_axi4.rresp  <= 'x;
+                s_axi4.rlast  <= 'x;
+                s_axi4.ruser  <= 'x;
+                s_axi4.rvalid <= 1'b0;
+            end
+
+            // start
+            if ( s_axi4.arvalid && s_axi4.arready ) begin
+                read_busy  <= 1'b1;
+                m_arid     <= s_axi4.arid       ;
+                m_araddr   <= s_axi4.araddr     ;
+                m_arlen    <= s_axi4.arlen      ;
+                m_arsize   <= s_axi4.arsize     ;
+                m_arburst  <= s_axi4.arburst    ;
+                m_arlock   <= s_axi4.arlock     ;
+                m_arcache  <= s_axi4.arcache    ;
+                m_arprot   <= s_axi4.arprot     ;
+                m_arqos    <= s_axi4.arqos      ;
+                m_arregion <= s_axi4.arregion   ;
+                m_aruser   <= s_axi4.aruser     ;
+                for ( int i = 0; i < NUM+1; i++ ) begin
+                    if ( araddr_match[i] ) begin
+                        m_arvalid[i] <= 1'b1;
+                    end
+                end
+            end
+
+            // response
+            for ( int i = 0; i < NUM+1; i++ ) begin
+                if ( m_rvalid[i] ) begin
+                    s_axi4.rid    <= m_rid  [i];
+                    s_axi4.rdata  <= m_rdata[i];
+                    s_axi4.rresp  <= m_rresp[i];
+                    s_axi4.rlast  <= m_rlast[i];
+                    s_axi4.ruser  <= m_ruser[i];
+                    s_axi4.rvalid <= 1'b1;
                 end
             end
         end
     end
-
-    logic           s_rvalid_sel;
-    id_t            s_rid_sel;
-    data_t          s_rdata_sel;
-    resp_t          s_rresp_sel;
-    logic           s_rlast_sel;
-    ruser_t         s_ruser_sel;
-    always_comb begin
-        s_rvalid_sel = 1'b0;
-        s_rid_sel    = 'x;
-        s_rdata_sel  = 'x;
-        s_rresp_sel  = 'x;
-        s_rlast_sel  = 'x;
-        s_ruser_sel  = 'x;
-        for ( int i = 0; i < NUM; i++ ) begin
-            if ( read_sel[i] && m_rvalid[i] ) begin
-                s_rvalid_sel = 1'b1;
-                s_rid_sel    = m_rid[i];
-                s_rdata_sel  = m_rdata[i];
-                s_rresp_sel  = m_rresp[i];
-                s_rlast_sel  = m_rlast[i];
-                s_ruser_sel  = m_ruser[i];
-            end
-        end
-    end
-
-    assign s_axi4.arready = !read_busy && (araddr_other || |(araddr_match & m_arready));
-
-    assign s_axi4.rid     = read_other_rvalid ? read_other_rid : s_rid_sel;
-    assign s_axi4.rdata   = read_other_rvalid ? data_t'('0)    : s_rdata_sel;
-    assign s_axi4.rresp   = read_other_rvalid ? resp_t'('0)    : s_rresp_sel;
-    assign s_axi4.rlast   = read_other_rvalid ? (read_other_count >= read_other_len) : s_rlast_sel;
-    assign s_axi4.ruser   = read_other_rvalid ? ruser_t'('0)   : s_ruser_sel;
-    assign s_axi4.rvalid  = read_other_rvalid || s_rvalid_sel;
 
     for ( genvar i = 0; i < NUM; i++ ) begin
-        assign m_axi4[i].arid     = m_arvalid[i] ? s_axi4.arid     : 'x;
-        assign m_axi4[i].araddr   = m_arvalid[i] ? s_axi4.araddr   : 'x;
-        assign m_axi4[i].arlen    = m_arvalid[i] ? s_axi4.arlen    : 'x;
-        assign m_axi4[i].arsize   = m_arvalid[i] ? s_axi4.arsize   : 'x;
-        assign m_axi4[i].arburst  = m_arvalid[i] ? s_axi4.arburst  : 'x;
-        assign m_axi4[i].arlock   = m_arvalid[i] ? s_axi4.arlock   : 'x;
-        assign m_axi4[i].arcache  = m_arvalid[i] ? s_axi4.arcache  : 'x;
-        assign m_axi4[i].arprot   = m_arvalid[i] ? s_axi4.arprot   : 'x;
-        assign m_axi4[i].arqos    = m_arvalid[i] ? s_axi4.arqos    : 'x;
-        assign m_axi4[i].arregion = m_arvalid[i] ? s_axi4.arregion : 'x;
-        assign m_axi4[i].aruser   = m_arvalid[i] ? s_axi4.aruser   : 'x;
-        assign m_axi4[i].arvalid  = m_arvalid[i];
-
-        assign m_axi4[i].rready   = read_busy && !read_other && read_sel[i] ? s_axi4.rready : 1'b0;
+        assign m_axi4[i].araddr  = m_arvalid[i] ? m_araddr : 'x;
+        assign m_axi4[i].arprot  = m_arvalid[i] ? m_arprot : 'x;
+        assign m_axi4[i].arvalid = m_arvalid[i];
+        assign m_axi4[i].rready  = !s_axi4.rvalid || s_axi4.rready;
     end
 
-    assign m_arvalid = (!read_busy && s_axi4.arvalid && !araddr_other) ? araddr_match : '0;
+    assign s_axi4.arready = !read_busy || (s_axi4.rlast && s_axi4.rvalid && s_axi4.rready);
+
+
+    // other address
+    jelly3_axi4_if
+            #(
+                .ID_BITS            (s_axi4.ID_BITS         ),
+                .ADDR_BITS          (s_axi4.ADDR_BITS       ),
+                .DATA_BITS          (s_axi4.DATA_BITS       ),
+                .BYTE_BITS          (s_axi4.BYTE_BITS       ),
+                .STRB_BITS          (s_axi4.STRB_BITS       ),
+                .LEN_BITS           (s_axi4.LEN_BITS        ),
+                .SIZE_BITS          (s_axi4.SIZE_BITS       ),
+                .BURST_BITS         (s_axi4.BURST_BITS      ),
+                .LOCK_BITS          (s_axi4.LOCK_BITS       ),
+                .CACHE_BITS         (s_axi4.CACHE_BITS      ),
+                .PROT_BITS          (s_axi4.PROT_BITS       ),
+                .QOS_BITS           (s_axi4.QOS_BITS        ),
+                .REGION_BITS        (s_axi4.REGION_BITS     ),
+                .RESP_BITS          (s_axi4.RESP_BITS       ),
+                .USE_ID             (s_axi4.USE_ID          ),
+                .USE_SIZE           (s_axi4.USE_SIZE        ),
+                .USE_BURST          (s_axi4.USE_BURST       ),
+                .USE_LOCK           (s_axi4.USE_LOCK        ),
+                .USE_CACHE          (s_axi4.USE_CACHE       ),
+                .USE_PROT           (s_axi4.USE_PROT        ),
+                .USE_QOS            (s_axi4.USE_QOS         ),
+                .USE_REGION         (s_axi4.USE_REGION      ),
+                .USE_RESP           (s_axi4.USE_RESP        ),
+                .USE_USER           (s_axi4.USE_USER        ),
+                .USER_REQ_BITS      (s_axi4.USER_REQ_BITS   ),
+                .USER_DATA_BITS     (s_axi4.USER_DATA_BITS  ),
+                .USER_RESP_BITS     (s_axi4.USER_RESP_BITS  ),
+                .AWUSER_BITS        (s_axi4.AWUSER_BITS     ),
+                .WUSER_BITS         (s_axi4.WUSER_BITS      ),
+                .BUSER_BITS         (s_axi4.BUSER_BITS      ),
+                .ARUSER_BITS        (s_axi4.ARUSER_BITS     ),
+                .RUSER_BITS         (s_axi4.RUSER_BITS      ),
+                .LIMIT_AW           (s_axi4.LIMIT_AW        ),
+                .LIMIT_W            (s_axi4.LIMIT_W         ),
+                .LIMIT_WC           (s_axi4.LIMIT_WC        ),
+                .LIMIT_AR           (s_axi4.LIMIT_AR        ),
+                .LIMIT_R            (s_axi4.LIMIT_R         ),
+                .LIMIT_RC           (s_axi4.LIMIT_RC        ),
+                .ALLOW_WDATA_X      (s_axi4.ALLOW_WDATA_X   ),
+                .ALLOW_RDATA_X      (s_axi4.ALLOW_RDATA_X   ),
+                .DEVICE             (s_axi4.DEVICE          ),
+                .SIMULATION         (s_axi4.SIMULATION      ),
+                .DEBUG              (s_axi4.DEBUG           )
+            )
+        ax4_other
+            (
+                .aresetn            (s_axi4.aresetn         ),
+                .aclk               (s_axi4.aclk            ),
+                .aclken             (s_axi4.aclken          )
+            );
+
+    assign ax4_other.awid     = m_awid          ;
+    assign ax4_other.awaddr   = m_awaddr        ;
+    assign ax4_other.awlen    = m_awlen         ;
+    assign ax4_other.awsize   = m_awsize        ;
+    assign ax4_other.awburst  = m_awburst       ;
+    assign ax4_other.awlock   = m_awlock        ;
+    assign ax4_other.awcache  = m_awcache       ;
+    assign ax4_other.awprot   = m_awprot        ;
+    assign ax4_other.awqos    = m_awqos         ;
+    assign ax4_other.awregion = m_awregion      ;
+    assign ax4_other.awuser   = m_awuser        ;
+    assign ax4_other.awvalid  = m_awvalid [NUM] ;
+    assign ax4_other.wdata    = m_wdata         ;
+    assign ax4_other.wstrb    = m_wstrb         ;
+    assign ax4_other.wlast    = m_wlast         ;
+    assign ax4_other.wuser    = m_wuser         ;
+    assign ax4_other.wvalid   = m_wvalid  [NUM] ;
+    assign ax4_other.bready   = 1'b1            ;
+    assign ax4_other.arid     = m_arid          ;
+    assign ax4_other.araddr   = m_araddr        ;
+    assign ax4_other.arlen    = m_arlen         ;
+    assign ax4_other.arsize   = m_arsize        ;
+    assign ax4_other.arburst  = m_arburst       ;
+    assign ax4_other.arlock   = m_arlock        ;
+    assign ax4_other.arcache  = m_arcache       ;
+    assign ax4_other.arprot   = m_arprot        ;
+    assign ax4_other.arqos    = m_arqos         ;
+    assign ax4_other.arregion = m_arregion      ;
+    assign ax4_other.aruser   = m_aruser        ;
+    assign ax4_other.arvalid  = m_arvalid [NUM] ;
+    assign ax4_other.rready   = 1'b1            ;
+
+    assign m_awready[NUM] = ax4_other.awready  ;
+    assign m_wready [NUM] = ax4_other.wready   ;
+    assign m_bid    [NUM] = ax4_other.bid      ;
+    assign m_bresp  [NUM] = ax4_other.bresp    ;
+    assign m_buser  [NUM] = ax4_other.buser    ;
+    assign m_bvalid [NUM] = ax4_other.bvalid   ;
+    assign m_arready[NUM] = ax4_other.arready  ;
+    assign m_rid    [NUM] = ax4_other.rid      ;
+    assign m_rdata  [NUM] = ax4_other.rdata    ;
+    assign m_rresp  [NUM] = ax4_other.rresp    ;
+    assign m_rlast  [NUM] = ax4_other.rlast    ;
+    assign m_ruser  [NUM] = ax4_other.ruser    ;
+    assign m_rvalid [NUM] = ax4_other.rvalid   ;
+
+    jelly3_axi4_terminator
+            #(
+                .READ_VALUE ('0             )
+            )
+        u_axi4_terminator
+            (
+                .s_axi4     (ax4_other.s    )
+            );
 
 
 `ifdef __SIMULATION__
