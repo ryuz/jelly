@@ -40,7 +40,6 @@ module jelly3_axi4l_addr_decoder
     logic              awaddr_other;
     always_comb begin
         awaddr_match = '0;
-        awaddr_other = 1'b0;
         awaddr_other = 1'b1;
         for ( int i = 0; i < NUM; i++ ) begin
             if ( dec_addr_mask(s_axi4l.awaddr) >= dec_addr_mask(addr_base[i])
@@ -55,7 +54,6 @@ module jelly3_axi4l_addr_decoder
     logic              araddr_other;
     always_comb begin
         araddr_match = '0;
-        araddr_other = 1'b0;
         araddr_other = 1'b1;
         for ( int i = 0; i < NUM; i++ ) begin
             if ( dec_addr_mask(s_axi4l.araddr) >= dec_addr_mask(addr_base[i])
