@@ -405,10 +405,7 @@ module jelly3_axi4_addr_decoder
                 .LIMIT_R            (s_axi4.LIMIT_R         ),
                 .LIMIT_RC           (s_axi4.LIMIT_RC        ),
                 .ALLOW_WDATA_X      (s_axi4.ALLOW_WDATA_X   ),
-                .ALLOW_RDATA_X      (s_axi4.ALLOW_RDATA_X   ),
-                .DEVICE             (s_axi4.DEVICE          ),
-                .SIMULATION         (s_axi4.SIMULATION      ),
-                .DEBUG              (s_axi4.DEBUG           )
+                .ALLOW_RDATA_X      (s_axi4.ALLOW_RDATA_X   )
             )
         ax4_other
             (
