@@ -232,13 +232,13 @@ module jelly3_axi4_addr_decoder
 
 
     // read channel
-    logic       m_arready   [NUM+1];
-    id_t        m_rid       [NUM+1];
-    data_t      m_rdata     [NUM+1];
-    resp_t      m_rresp     [NUM+1];
-    logic       m_rlast     [NUM+1];
-    ruser_t     m_ruser     [NUM+1];
-    logic       m_rvalid    [NUM+1];
+    logic   [NUM:0]     m_arready   ;
+    id_t    [NUM:0]     m_rid       ;
+    data_t  [NUM:0]     m_rdata     ;
+    resp_t  [NUM:0]     m_rresp     ;
+    logic   [NUM:0]     m_rlast     ;
+    ruser_t [NUM:0]     m_ruser     ;
+    logic   [NUM:0]     m_rvalid    ;
     for ( genvar i = 0; i < NUM; i++ ) begin
         assign m_arready[i] = m_axi4[i].arready;
         assign m_rid    [i] = m_axi4[i].rid;
