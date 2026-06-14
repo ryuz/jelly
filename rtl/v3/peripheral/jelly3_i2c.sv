@@ -30,7 +30,7 @@ module jelly3_i2c
         );
 
     // register address
-    parameter   type        regadr_t = logic [2:0];
+    localparam  type        regadr_t = logic [2:0];
 
     localparam  regadr_t    REGADR_STATUS  = 3'b000;
     localparam  regadr_t    REGADR_CONTROL = 3'b001;
