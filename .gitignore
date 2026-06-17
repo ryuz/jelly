@@ -2,7 +2,7 @@
 # special file
 .*
 !.gitignore
-!.python-version
+#!.python-version
 !.vitis-version
 !.cargo
 !.readthedocs.yaml
