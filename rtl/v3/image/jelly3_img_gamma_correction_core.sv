@@ -40,27 +40,26 @@ module jelly3_img_gamma_correction_core
     m_data_t mem_dout;
     jelly3_ram_simple_dualport
             #(
-                .ADDR_BITS      (S_DATA_BITS),
-                .addr_t         (s_data_t   ),
-                .WE_BITS        (1          ),
-                .we_t           (logic      ),
-                .DATA_BITS      (M_DATA_BITS),
-                .data_t         (m_data_t   ),
-                .RAM_TYPE       (RAM_TYPE   ),
-                .DOUT_REG       (1'b1       )
+                .ADDR_BITS      ($bits(s_data_t)),
+                .addr_t         (s_data_t       ),
+                .WE_BITS        (1              ),
+                .DATA_BITS      ($bits(m_data_t)),
+                .data_t         (m_data_t       ),
+                .RAM_TYPE       (RAM_TYPE       ),
+                .DOUT_REG       (1'b1           )
             )
         u_ram_simple_dualport
             (
-                .wr_clk         (mem_clk     ),
-                .wr_en          (mem_en      ),
-                .wr_addr        (mem_addr    ),
-                .wr_din         (mem_din     ),
+                .wr_clk         (mem_clk        ),
+                .wr_en          (mem_en         ),
+                .wr_addr        (mem_addr       ),
+                .wr_din         (mem_din        ),
 
-                .rd_clk         (clk         ),
-                .rd_en          (cke         ),
-                .rd_regcke      (cke         ),
-                .rd_addr        (s_data      ),
-                .rd_dout        (mem_dout    )
+                .rd_clk         (clk            ),
+                .rd_en          (cke            ),
+                .rd_regcke      (cke            ),
+                .rd_addr        (s_data         ),
+                .rd_dout        (mem_dout       )
             );
 
     s_data_t st0_data;

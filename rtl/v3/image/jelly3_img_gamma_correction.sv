@@ -131,7 +131,7 @@ module jelly3_img_gamma_correction
             s_axi4l.rdata  <= 'x;
             s_axi4l.rvalid <= 1'b0;
         end
-        else begin
+        else if ( s_axi4l.aclken ) begin
             // auto clear update bit
             if ( update_ack && !reg_ctl_control[2] ) begin
                 reg_ctl_control[1] <= 1'b0;
