@@ -197,6 +197,7 @@ module jelly3_img_bayer_white_balance
                 REGADR_PARAM_COEFF3:   s_axi4l.rdata <= axi4l_data_t'(reg_param_coeff[3] );
                 default:               s_axi4l.rdata <= '0;
                 endcase
+                s_axi4l.rvalid <= 1'b1;
             end
         end
     end
