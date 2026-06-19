@@ -90,19 +90,19 @@ checksum = "9b919933a397b79c37e33b77bb2aa3dc8eb6e165ad809e58ff75bc7db2e34574"
 
 [[package]]
 name = "jelly-lib"
-version = "0.2.0"
+version = "0.2.2"
 dependencies = [
  "jelly-mem_access",
  "libc",
  "libm",
- "nix 0.30.1",
+ "nix 0.31.3",
 ]
 
 [[package]]
 name = "jelly-mem_access"
-version = "0.2.5"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3e5a54c5ef3f2cd906250807781294bd4d432697f8a531fa302c7a63d15b5bf"
+checksum = "5319f50cc9812e44c49917da7f1afa0a8ec3c3b5b9b267c6fb0ed1477e8b4eb6"
 dependencies = [
  "delegate",
  "libc",
@@ -130,9 +130,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.176"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58f929b4d672ea937a23a1ab494143d968337a5f47e56d0815df1e0890ddf174"
+checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "libm"
@@ -160,9 +160,9 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.30.1"
+version = "0.31.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74523f3a35e05aba87a1d978330aef40f67b0304ac79c1c00b294c9830543db6"
+checksum = "cf20d2fde8ff38632c426f1165ed7436270b44f199fc55284c38276f9db47c3d"
 dependencies = [
  "bitflags",
  "cfg-if",
