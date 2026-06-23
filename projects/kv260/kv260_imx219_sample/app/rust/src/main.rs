@@ -275,26 +275,26 @@ fn main() -> Result<(), Box<dyn Error>> {
         // [6022, -2314,  394]
         // [-936,  4728,  310]
         // [ 300, -4324, 8126]
-
-        println!("REG_IMG_COLMAT_PARAM_MATRIX00  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX00 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX01  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX01 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX02  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX02 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX03  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX03 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX10  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX10 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX11  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX11 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX12  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX12 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX13  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX13 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX20  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX20 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX21  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX21 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX22  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX22 ));
-        println!("REG_IMG_COLMAT_PARAM_MATRIX23  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX23 ));
-        println!("REG_IMG_COLMAT_PARAM_CLIP_MIN0 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN0));
-        println!("REG_IMG_COLMAT_PARAM_CLIP_MAX0 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX0));
-        println!("REG_IMG_COLMAT_PARAM_CLIP_MIN1 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN1));
-        println!("REG_IMG_COLMAT_PARAM_CLIP_MAX1 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX1));
-        println!("REG_IMG_COLMAT_PARAM_CLIP_MIN2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN2));
-        println!("REG_IMG_COLMAT_PARAM_CLIP_MAX2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX2));
-
+        if false {
+            println!("REG_IMG_COLMAT_PARAM_MATRIX00  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX00 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX01  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX01 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX02  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX02 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX03  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX03 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX10  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX10 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX11  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX11 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX12  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX12 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX13  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX13 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX20  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX20 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX21  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX21 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX22  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX22 ));
+            println!("REG_IMG_COLMAT_PARAM_MATRIX23  : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_MATRIX23 ));
+            println!("REG_IMG_COLMAT_PARAM_CLIP_MIN0 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN0));
+            println!("REG_IMG_COLMAT_PARAM_CLIP_MAX0 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX0));
+            println!("REG_IMG_COLMAT_PARAM_CLIP_MIN1 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN1));
+            println!("REG_IMG_COLMAT_PARAM_CLIP_MAX1 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX1));
+            println!("REG_IMG_COLMAT_PARAM_CLIP_MIN2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MIN2));
+            println!("REG_IMG_COLMAT_PARAM_CLIP_MAX2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX2));
+        }
         
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX22,  6022 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX21, -2314 * 65536 / 4096);
@@ -325,9 +325,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_CTL_CONTROL, 3); // update & enable
 
-
+ 
         // Gamma Correction
+        let gamma = 2.2;
+        let tone = true;
         for i in 0..1024 {
+            // ガンマ補正
+            let mut v = ((i as f64 / 1023.0).powf(1.0/gamma) * 1023.0).round() as usize;
+
+            // トーンカーブ補正
+            if tone {
+                v = 3 * (v * v) - 2 * (v * v * v);
+            }
+
+            // テーブル書き込み
+            v = v.clamp(0, 1023);
             reg_gamma.write_reg(1024*1+i, i);   // B
             reg_gamma.write_reg(1024*2+i, i);   // G
             reg_gamma.write_reg(1024*3+i, i);   // R
