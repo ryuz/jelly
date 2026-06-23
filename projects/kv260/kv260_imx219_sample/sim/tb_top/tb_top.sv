@@ -105,9 +105,10 @@ module tb_top();
     localparam  axi4l_addr_t    ADR_GPIO   = axi4l_addr_t'(40'ha000_0000);
     localparam  axi4l_addr_t    ADR_FMTR   = axi4l_addr_t'(40'ha010_0000);
     localparam  axi4l_addr_t    ADR_WDMA   = axi4l_addr_t'(40'ha021_0000);
-    localparam  axi4l_addr_t    ADR_WB     = axi4l_addr_t'(40'ha012_1000);
-    localparam  axi4l_addr_t    ADR_DEMOS  = axi4l_addr_t'(40'ha012_2000);
-    localparam  axi4l_addr_t    ADR_COLMAT = axi4l_addr_t'(40'ha012_4000);
+    localparam  axi4l_addr_t    ADR_WB     = axi4l_addr_t'(40'ha030_1000);
+    localparam  axi4l_addr_t    ADR_DEMOS  = axi4l_addr_t'(40'ha030_2000);
+    localparam  axi4l_addr_t    ADR_COLMAT = axi4l_addr_t'(40'ha030_3000);
+    localparam  axi4l_addr_t    ADR_GAMMA  = axi4l_addr_t'(40'ha032_0000);
 
     jelly3_axi4l_accessor
             #(
@@ -127,6 +128,15 @@ module tb_top();
     /* verilator lint_off WIDTHEXPAND */
     initial begin
         axi4l_data_t    rdata;
+        #(RATE100*200);
+        $display("id read");
+        u_axi4l.read_reg(ADR_GPIO,   0, rdata);
+        u_axi4l.read_reg(ADR_FMTR,   0, rdata);
+        u_axi4l.read_reg(ADR_WDMA,   0, rdata);
+        u_axi4l.read_reg(ADR_WB,     0, rdata);
+        u_axi4l.read_reg(ADR_DEMOS,  0, rdata);
+        u_axi4l.read_reg(ADR_COLMAT, 0, rdata);
+        u_axi4l.read_reg(ADR_GAMMA,  0, rdata);
         
         #(RATE100*200);
         $display("start");

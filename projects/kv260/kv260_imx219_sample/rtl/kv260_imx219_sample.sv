@@ -218,14 +218,8 @@ module kv260_imx219_sample
     // address map
     assign {axi4l_dec[DEC_GPIO].addr_base, axi4l_dec[DEC_GPIO].addr_high} = {40'ha000_0000, 40'ha000_ffff};
     assign {axi4l_dec[DEC_FMTR].addr_base, axi4l_dec[DEC_FMTR].addr_high} = {40'ha010_0000, 40'ha010_ffff};
-    assign {axi4l_dec[DEC_RGB ].addr_base, axi4l_dec[DEC_RGB ].addr_high} = {40'ha012_0000, 40'ha012_ffff};
     assign {axi4l_dec[DEC_WDMA].addr_base, axi4l_dec[DEC_WDMA].addr_high} = {40'ha021_0000, 40'ha021_ffff};
-
-//    assign wb_gid_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h000);   // 0x80000000-0x8000ffff
-//    assign wb_fmtr_stb_i  = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h010);   // 0x80100000-0x8010ffff
-//    assign wb_rgb_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h012);   // 0x80120000-0x8012ffff
-//    assign wb_sel_stb_i   = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h013);   // 0x80130000-0x8013ffff
-//    assign wb_vdmaw_stb_i = wb_peri_stb_i & (wb_peri_adr_i[24:13] == 12'h021);   // 0x80210000-0x8021ffff
+    assign {axi4l_dec[DEC_RGB ].addr_base, axi4l_dec[DEC_RGB ].addr_high} = {40'ha030_0000, 40'ha03f_ffff};
 
     jelly3_axi4l_addr_decoder
             #(
@@ -283,7 +277,7 @@ module kv260_imx219_sample
                 axi4l_dec[DEC_GPIO].rvalid <= 1'b0;
             end
             if ( axi4l_dec[DEC_GPIO].arvalid && axi4l_dec[DEC_GPIO].arready ) begin
-                case ( axi4l_dec[DEC_GPIO].awaddr[5:3] )
+                case ( axi4l_dec[DEC_GPIO].araddr[5:3] )
                 0:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(32'h01234567)     ;
                 1:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_sw_reset)     ;
                 2:          axi4l_dec[DEC_GPIO].rdata  <= axi4l_dec[DEC_GPIO].DATA_BITS'(reg_cam_enable)   ;
@@ -344,209 +338,6 @@ module kv260_imx219_sample
                 .m_axi4s            (axi4s_csi2         )
             );
     
-
-    /*
-    (* KEEP = "true" *)
-    logic               rxbyteclkhs;
-    logic               clkoutphy_out;
-    logic               pll_lock_out;
-    logic               system_rst_out;
-    logic               init_done;
-    
-    logic               cl_rxclkactivehs;
-    logic               cl_stopstate;
-    logic               cl_enable         = 1;
-    logic               cl_rxulpsclknot;
-    logic               cl_ulpsactivenot;
-    
-    (* mark_debug=DEBUG *)  logic   [7:0]       dl0_rxdatahs;
-    (* mark_debug=DEBUG *)  logic               dl0_rxvalidhs;
-    (* mark_debug=DEBUG *)  logic               dl0_rxactivehs;
-    (* mark_debug=DEBUG *)  logic               dl0_rxsynchs;
-    
-    logic               dl0_forcerxmode   = 0;
-    logic               dl0_stopstate;
-    logic               dl0_enable        = 1;
-    logic               dl0_ulpsactivenot;
-    
-    logic               dl0_rxclkesc;
-    logic               dl0_rxlpdtesc;
-    logic               dl0_rxulpsesc;
-    logic   [3:0]       dl0_rxtriggeresc;
-    logic   [7:0]       dl0_rxdataesc;
-    logic               dl0_rxvalidesc;
-    
-    logic               dl0_errsoths;
-    logic               dl0_errsotsynchs;
-    logic               dl0_erresc;
-    logic               dl0_errsyncesc;
-    logic               dl0_errcontrol;
-    
-    (* mark_debug=DEBUG *)  logic   [7:0]       dl1_rxdatahs;
-    (* mark_debug=DEBUG *)  logic               dl1_rxvalidhs;
-    (* mark_debug=DEBUG *)  logic               dl1_rxactivehs;
-    (* mark_debug=DEBUG *)  logic               dl1_rxsynchs;
-    
-    logic               dl1_forcerxmode   = 0;
-    logic               dl1_stopstate;
-    logic               dl1_enable        = 1;
-    logic               dl1_ulpsactivenot;
-    
-    logic               dl1_rxclkesc;
-    logic               dl1_rxlpdtesc;
-    logic               dl1_rxulpsesc;
-    logic   [3:0]       dl1_rxtriggeresc;
-    logic   [7:0]       dl1_rxdataesc;
-    logic               dl1_rxvalidesc;
-    
-    logic               dl1_errsoths;
-    logic               dl1_errsotsynchs;
-    logic               dl1_erresc;
-    logic               dl1_errsyncesc;
-    logic               dl1_errcontrol;
-    
-    mipi_dphy_cam
-        u_mipi_dphy_cam
-            (
-                .core_clk           (sys_clk200),
-                .core_rst           (sys_reset | reg_sw_reset),
-                .rxbyteclkhs        (rxbyteclkhs),
-                
-                .clkoutphy_out      (clkoutphy_out),
-                .pll_lock_out       (pll_lock_out),
-                .system_rst_out     (system_rst_out),
-                .init_done          (init_done),
-                
-                .cl_rxclkactivehs   (cl_rxclkactivehs),
-                .cl_stopstate       (cl_stopstate),
-                .cl_enable          (cl_enable),
-                .cl_rxulpsclknot    (cl_rxulpsclknot),
-                .cl_ulpsactivenot   (cl_ulpsactivenot),
-                
-                .dl0_rxdatahs       (dl0_rxdatahs),
-                .dl0_rxvalidhs      (dl0_rxvalidhs),
-                .dl0_rxactivehs     (dl0_rxactivehs),
-                .dl0_rxsynchs       (dl0_rxsynchs),
-                
-                .dl0_forcerxmode    (dl0_forcerxmode),
-                .dl0_stopstate      (dl0_stopstate),
-                .dl0_enable         (dl0_enable),
-                .dl0_ulpsactivenot  (dl0_ulpsactivenot),
-                
-                .dl0_rxclkesc       (dl0_rxclkesc),
-                .dl0_rxlpdtesc      (dl0_rxlpdtesc),
-                .dl0_rxulpsesc      (dl0_rxulpsesc),
-                .dl0_rxtriggeresc   (dl0_rxtriggeresc),
-                .dl0_rxdataesc      (dl0_rxdataesc),
-                .dl0_rxvalidesc     (dl0_rxvalidesc),
-                
-                .dl0_errsoths       (dl0_errsoths),
-                .dl0_errsotsynchs   (dl0_errsotsynchs),
-                .dl0_erresc         (dl0_erresc),
-                .dl0_errsyncesc     (dl0_errsyncesc),
-                .dl0_errcontrol     (dl0_errcontrol),
-                
-                .dl1_rxdatahs       (dl1_rxdatahs),
-                .dl1_rxvalidhs      (dl1_rxvalidhs),
-                .dl1_rxactivehs     (dl1_rxactivehs),
-                .dl1_rxsynchs       (dl1_rxsynchs),
-                
-                .dl1_forcerxmode    (dl1_forcerxmode),
-                .dl1_stopstate      (dl1_stopstate),
-                .dl1_enable         (dl1_enable),
-                .dl1_ulpsactivenot  (dl1_ulpsactivenot),
-                
-                .dl1_rxclkesc       (dl1_rxclkesc),
-                .dl1_rxlpdtesc      (dl1_rxlpdtesc),
-                .dl1_rxulpsesc      (dl1_rxulpsesc),
-                .dl1_rxtriggeresc   (dl1_rxtriggeresc),
-                .dl1_rxdataesc      (dl1_rxdataesc),
-                .dl1_rxvalidesc     (dl1_rxvalidesc),
-                
-                .dl1_errsoths       (dl1_errsoths),
-                .dl1_errsotsynchs   (dl1_errsotsynchs),
-                .dl1_erresc         (dl1_erresc),
-                .dl1_errsyncesc     (dl1_errsyncesc),
-                .dl1_errcontrol     (dl1_errcontrol),
-                
-                .clk_rxp            (cam_clk_p),
-                .clk_rxn            (cam_clk_n),
-                .data_rxp           (cam_data_p),
-                .data_rxn           (cam_data_n)
-           );
-    
-    wire        dphy_clk   = rxbyteclkhs;
-    wire        dphy_reset = system_rst_out;
-    
-
-    
-    // ----------------------------------------
-    //  CSI-2
-    // ----------------------------------------
-
-    logic axi4s_cam_aresetn;
-    logic axi4s_cam_aclk   ;
-    assign axi4s_cam_aresetn = ~sys_reset;
-    assign axi4s_cam_aclk    = sys_clk200;
-
-    jelly3_axi4s_if
-            #(
-                .DATA_BITS  (10     ),
-                .DEBUG      (DEBUG  )
-            )
-        axi4s_csi2
-            (
-                .aresetn    (axi4s_cam_aresetn),
-                .aclk       (axi4s_cam_aclk   ),
-                .aclken     (1'b1             )
-            );
-    
-    logic           mipi_ecc_corrected;
-    logic           mipi_ecc_error;
-    logic           mipi_ecc_valid;
-    logic           mipi_crc_error;
-    logic           mipi_crc_valid;
-    logic           mipi_packet_lost;
-    logic           mipi_fifo_overflow;
-    
-    jelly2_mipi_csi2_rx
-            #(
-                .LANES              (2  ),
-                .DATA_WIDTH         (10 ),
-                .M_FIFO_ASYNC       (1  ),
-                .M_FIFO_PTR_WIDTH   (10 )
-            )
-        u_mipi_csi2_rx
-            (
-                .aresetn            (~sys_reset),
-                .aclk               (sys_clk250),
-
-                .param_data_type    (reg_csi_data_type),
-
-                .ecc_corrected      (mipi_ecc_corrected),
-                .ecc_error          (mipi_ecc_error),
-                .ecc_valid          (mipi_ecc_valid),
-                .crc_error          (mipi_crc_error),
-                .crc_valid          (mipi_crc_valid),
-                .packet_lost        (mipi_packet_lost),
-                .fifo_overflow      (mipi_fifo_overflow),
-                
-                .rxreseths          (dphy_reset),
-                .rxbyteclkhs        (dphy_clk),
-                .rxdatahs           ({dl1_rxdatahs,   dl0_rxdatahs  }),
-                .rxvalidhs          ({dl1_rxvalidhs,  dl0_rxvalidhs }),
-                .rxactivehs         ({dl1_rxactivehs, dl0_rxactivehs}),
-                .rxsynchs           ({dl1_rxsynchs,   dl0_rxsynchs  }),
-                
-                .m_axi4s_aresetn    (axi4s_cam_aresetn  ),
-                .m_axi4s_aclk       (axi4s_cam_aclk     ),
-                .m_axi4s_tuser      (axi4s_csi2.tuser   ),
-                .m_axi4s_tlast      (axi4s_csi2.tlast   ),
-                .m_axi4s_tdata      (axi4s_csi2.tdata   ),
-                .m_axi4s_tvalid     (axi4s_csi2.tvalid  ),
-                .m_axi4s_tready     (1'b1)  // (axi4s_csi2.tready)
-            );
-    */
     
     // format regularizer
     logic   [WIDTH_BITS-1:0]    fmtr_param_width;
@@ -585,7 +376,6 @@ module kv260_imx219_sample
             );
     
 
-
     // 現像
    jelly3_axi4s_if
             #(
@@ -607,7 +397,7 @@ module kv260_imx219_sample
             )
         u_video_raw_to_rgb
             (
-                .aclken         (1'b1               ), 
+                .aclken         (1'b1               ),
                 .in_update_req  (1'b1               ),
                 .param_width    (fmtr_param_width   ),
                 .param_height   (fmtr_param_height  ),
@@ -617,129 +407,6 @@ module kv260_imx219_sample
 
                 .s_axi4l        (axi4l_dec[DEC_RGB].s)
             );
-
-
-    /*
-    // 現像
-    logic   [0:0]               axi4s_rgb_tuser;
-    logic                       axi4s_rgb_tlast;
-    logic   [39:0]              axi4s_rgb_tdata;
-    logic                       axi4s_rgb_tvalid;
-    logic                       axi4s_rgb_tready;
-    
-    logic   [WB_DAT_WIDTH-1:0]  wb_rgb_dat_o;
-    logic                       wb_rgb_stb_i;
-    logic                       wb_rgb_ack_o;
-    
-    video_raw_to_rgb
-            #(
-                
-                .TUSER_WIDTH        (1),
-                .DATA_WIDTH         (10),
-                .X_WIDTH            (X_WIDTH),
-                .Y_WIDTH            (Y_WIDTH),
-                .WB_ADR_WIDTH       (10),
-                .WB_DAT_WIDTH       (WB_DAT_WIDTH)
-            )
-        u_video_raw_to_rgb
-            (
-                .aresetn            (axi4s_cam_aresetn),
-                .aclk               (axi4s_cam_aclk),
-                
-                .in_update_req      (1'b1),
-
-                .param_width        (fmtr_param_width),
-                .param_height       (fmtr_param_height),
-
-                .s_axi4s_tuser      (axi4s_fmtr_tuser),
-                .s_axi4s_tlast      (axi4s_fmtr_tlast),
-                .s_axi4s_tdata      (axi4s_fmtr_tdata),
-                .s_axi4s_tvalid     (axi4s_fmtr_tvalid),
-                .s_axi4s_tready     (axi4s_fmtr_tready),
-                
-                .m_axi4s_tuser      (axi4s_rgb_tuser),
-                .m_axi4s_tlast      (axi4s_rgb_tlast),
-                .m_axi4s_tdata      (axi4s_rgb_tdata),
-                .m_axi4s_tvalid     (axi4s_rgb_tvalid),
-                .m_axi4s_tready     (axi4s_rgb_tready),
-
-                .s_wb_rst_i         (wb_peri_rst_i),
-                .s_wb_clk_i         (wb_peri_clk_i),
-                .s_wb_adr_i         (wb_peri_adr_i[9:0]),
-                .s_wb_dat_o         (wb_rgb_dat_o),
-                .s_wb_dat_i         (wb_peri_dat_i),
-                .s_wb_we_i          (wb_peri_we_i),
-                .s_wb_sel_i         (wb_peri_sel_i),
-                .s_wb_stb_i         (wb_rgb_stb_i),
-                .s_wb_ack_o         (wb_rgb_ack_o)
-            );
-    
-
-    // 出力切り替え
-    logic   [0:0]               axi4s_sel_tuser;
-    logic                       axi4s_sel_tlast;
-    logic   [31:0]              axi4s_sel_tdata;
-    logic                       axi4s_sel_tvalid;
-    logic                       axi4s_sel_tready;
-    
-    logic   [1:0]               reg_sel_fmt;
-
-    logic   [WB_DAT_WIDTH-1:0]  wb_sel_dat_o;
-    logic                       wb_sel_stb_i;
-    logic                       wb_sel_ack_o;
-    always_ff @(posedge wb_peri_clk_i) begin
-        if ( wb_peri_rst_i ) begin
-            reg_sel_fmt <= '0;
-        end
-        else begin
-            if ( wb_sel_stb_i && wb_peri_we_i ) begin
-                reg_sel_fmt <= wb_peri_dat_i[1:0];
-            end
-        end
-    end
-    assign wb_sel_dat_o = WB_DAT_WIDTH'(reg_sel_fmt);
-    assign wb_sel_ack_o = wb_sel_stb_i;
-
-    assign axi4s_sel_tuser  = axi4s_rgb_tuser ;
-    assign axi4s_sel_tlast  = axi4s_rgb_tlast ;
-    assign axi4s_sel_tvalid = axi4s_rgb_tvalid;
-    assign axi4s_rgb_tready = axi4s_sel_tready;
-
-    always_comb begin
-        case ( reg_sel_fmt )
-        2'b00: begin // ARGB
-                axi4s_sel_tdata = {
-                    axi4s_rgb_tdata[39:32],
-                    axi4s_rgb_tdata[29:22],
-                    axi4s_rgb_tdata[19:12],
-                    axi4s_rgb_tdata[ 9: 2]
-                };
-            end
-        2'b01: begin // RGB10bit
-                axi4s_sel_tdata = {
-                    2'b00,
-                    axi4s_rgb_tdata[29:0]
-                };
-            end
-        2'b10: begin // RAW S32
-            axi4s_sel_tdata = {
-                22'd0,
-                axi4s_rgb_tdata[39:30]
-            };
-        end
-        2'b11: begin // RAW S32
-            axi4s_sel_tdata = {
-                1'b0,
-                axi4s_rgb_tdata[39:30],
-                axi4s_rgb_tdata[39:30],
-                axi4s_rgb_tdata[39:30],
-                axi4s_rgb_tdata[39]
-            };
-        end
-        endcase
-    end
-    */
-
 
     // FIFO
     jelly3_axi4s_if

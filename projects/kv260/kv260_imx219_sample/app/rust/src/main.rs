@@ -108,6 +108,18 @@ const REG_IMG_COLMAT_CURRENT_CLIP_MAX1     : usize = 0xa3;
 const REG_IMG_COLMAT_CURRENT_CLIP_MIN2     : usize = 0xa4;
 const REG_IMG_COLMAT_CURRENT_CLIP_MAX2     : usize = 0xa5;
 
+// Gamma Correction
+const REG_IMG_GAMMA_CORE_ID        : usize = 0x00;
+const REG_IMG_GAMMA_CORE_VERSION   : usize = 0x01;
+const REG_IMG_GAMMA_CTL_CONTROL    : usize = 0x04;
+const REG_IMG_GAMMA_CTL_STATUS     : usize = 0x05;
+const REG_IMG_GAMMA_CTL_INDEX      : usize = 0x07;
+const REG_IMG_GAMMA_PARAM_ENABLE   : usize = 0x08;
+const REG_IMG_GAMMA_CURRENT_ENABLE : usize = 0x18;
+const REG_IMG_GAMMA_CFG_TBL_ADDR   : usize = 0x80;
+const REG_IMG_GAMMA_CFG_TBL_SIZE   : usize = 0x81;
+const REG_IMG_GAMMA_CFG_TBL_WIDTH  : usize = 0x82;
+
 
 #[derive(Parser, Debug)]
 #[command(name = "kv260_imx219_sample")]
@@ -217,12 +229,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("uio_pl_peri phys addr : 0x{:x}", uio_acc.phys_addr());
     println!("uio_pl_peri size      : 0x{:x}", uio_acc.size());
 
-    let reg_gid    = uio_acc.subclone(0x00000000, 0x400);
-    let reg_fmtr   = uio_acc.subclone(0x00100000, 0x400);
-    let reg_wb     = uio_acc.subclone(0x00121000, 0x400);
-    let reg_demos  = uio_acc.subclone(0x00122000, 0x400);
-    let reg_colmat = uio_acc.subclone(0x00123000, 0x400);
-    let reg_wdma   = uio_acc.subclone(0x00210000, 0x400);
+    let reg_gid    = uio_acc.subclone(0x0000_0000, 0x00400);
+    let reg_fmtr   = uio_acc.subclone(0x0010_0000, 0x00400);
+    let reg_wdma   = uio_acc.subclone(0x0021_0000, 0x00400);
+    let reg_wb     = uio_acc.subclone(0x0030_1000, 0x00400);
+    let reg_demos  = uio_acc.subclone(0x0030_2000, 0x00400);
+    let reg_colmat = uio_acc.subclone(0x0030_3000, 0x00400);
+    let reg_gamma  = uio_acc.subclone(0x0032_0000, 0x10000);
 
     println!("CORE ID");
     unsafe {
@@ -245,7 +258,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF1 ,  4096); // white balance G
             reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF2 ,  4096); // white balance G
             reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_COEFF3 , 10428); // white balance B
-            reg_wb.write_reg(REG_IMG_BAYER_WB_CTL_CONTROL, 3); // update & enable
+            reg_wb.write_reg(REG_IMG_BAYER_WB_CTL_CONTROL,       3); // update & enable
         }
         else {
             reg_wb.write_reg(REG_IMG_BAYER_WB_PARAM_OFFSET0,    0); // black level R
@@ -311,6 +324,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         */
 
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_CTL_CONTROL, 3); // update & enable
+
+
+        // Gamma Correction
+        for i in 0..1024 {
+            reg_gamma.write_reg(1024*1+i, i);   // B
+            reg_gamma.write_reg(1024*2+i, i);   // G
+            reg_gamma.write_reg(1024*3+i, i);   // R
+        }
+        reg_gamma.write_reg(REG_IMG_GAMMA_PARAM_ENABLE, 7);
+        reg_gamma.write_reg(REG_IMG_GAMMA_CTL_CONTROL, 3);
     }
 
 

@@ -206,10 +206,10 @@ int main(int argc, char *argv[])
 
     auto reg_gpio   = uio_acc.GetAccessor(0x00000000);
     auto reg_fmtr   = uio_acc.GetAccessor(0x00100000);
-    auto reg_wb     = uio_acc.GetAccessor(0x00121000);
-    auto reg_demos  = uio_acc.GetAccessor(0x00122000);
-    auto reg_colmat = uio_acc.GetAccessor(0x00123000);
     auto reg_wdma   = uio_acc.GetAccessor(0x00210000);
+    auto reg_wb     = uio_acc.GetAccessor(0x00301000);
+    auto reg_demos  = uio_acc.GetAccessor(0x00302000);
+    auto reg_colmat = uio_acc.GetAccessor(0x00303000);
     
 #if 1
     std::cout << "CORE ID" << std::endl;

@@ -14,8 +14,8 @@
 
 module video_raw_to_rgb
         #(
-            parameter   int     WIDTH_BITS  = 10                        ,
-            parameter   int     HEIGHT_BITS = 9                         ,
+            parameter   int     WIDTH_BITS  = 14                        ,
+            parameter   int     HEIGHT_BITS = 12                        ,
             parameter   type    width_t     = logic [WIDTH_BITS-1:0]    ,
             parameter   type    height_t    = logic [HEIGHT_BITS-1:0]   ,
             parameter   int     M_CH_DEPTH  = 4                         ,
@@ -54,7 +54,8 @@ module video_raw_to_rgb
     localparam DEC_WB     = 0;
     localparam DEC_DEMOS  = 1;
     localparam DEC_COLMAT = 2;
-    localparam DEC_NUM    = 3;
+    localparam DEC_GAMMA  = 3;
+    localparam DEC_NUM    = 4;
 
     jelly3_axi4l_if
             #(
@@ -69,14 +70,15 @@ module video_raw_to_rgb
             );
     
     // address map
-    assign {axi4l_dec[DEC_WB    ].addr_base, axi4l_dec[DEC_WB    ].addr_high} = {40'ha012_1000, 40'ha012_1fff};
-    assign {axi4l_dec[DEC_DEMOS ].addr_base, axi4l_dec[DEC_DEMOS ].addr_high} = {40'ha012_2000, 40'ha012_2fff};
-    assign {axi4l_dec[DEC_COLMAT].addr_base, axi4l_dec[DEC_COLMAT].addr_high} = {40'ha012_3000, 40'ha012_3fff};
+    assign {axi4l_dec[DEC_WB    ].addr_base, axi4l_dec[DEC_WB    ].addr_high} = {40'ha030_1000, 40'ha030_1fff};
+    assign {axi4l_dec[DEC_DEMOS ].addr_base, axi4l_dec[DEC_DEMOS ].addr_high} = {40'ha030_2000, 40'ha030_2fff};
+    assign {axi4l_dec[DEC_COLMAT].addr_base, axi4l_dec[DEC_COLMAT].addr_high} = {40'ha030_3000, 40'ha030_3fff};
+    assign {axi4l_dec[DEC_GAMMA ].addr_base, axi4l_dec[DEC_GAMMA ].addr_high} = {40'ha032_0000, 40'ha032_ffff};
 
     jelly3_axi4l_addr_decoder
             #(
                 .NUM            (DEC_NUM    ),
-                .DEC_ADDR_BITS  (16         )
+                .DEC_ADDR_BITS  (20         )
             )
         u_axi4l_addr_decoder
             (
@@ -310,109 +312,53 @@ module video_raw_to_rgb
                 .m_mat          (img_clamp.m        )
             );
     
-    assign img_sink.row_first   = img_clamp.row_first;
-    assign img_sink.row_last    = img_clamp.row_last ;
-    assign img_sink.col_first   = img_clamp.col_first;
-    assign img_sink.col_last    = img_clamp.col_last ;
-    assign img_sink.de          = img_clamp.de       ;
-    assign img_sink.data        = img_clamp.data     ;
-    assign img_sink.user        = img_clamp.user     ;
-    assign img_sink.valid       = img_clamp.valid    ;
 
-
-
-    /*
-    wire    [WB_DAT_WIDTH-1:0]          wb_colmat_dat_o;
-    wire                                wb_colmat_stb_i;
-    wire                                wb_colmat_ack_o;
-    
-    jelly2_img_color_matrix
+    // -------------------------------------
+    //  gamma correction
+    // -------------------------------------
+    jelly3_mat_if
             #(
-                .USER_WIDTH             (TUSER_WIDTH+10),
-                .DATA_WIDTH             (DATA_WIDTH),
-                .INTERNAL_WIDTH         (DATA_WIDTH+2),
-                
-                .COEFF_INT_WIDTH        (9),
-                .COEFF_FRAC_WIDTH       (16),
-                .COEFF3_INT_WIDTH       (9),
-                .COEFF3_FRAC_WIDTH      (16),
-                .STATIC_COEFF           (1),
-                .DEVICE                 (DEVICE),
-                
-                .WB_ADR_WIDTH           (8),
-                .WB_DAT_WIDTH           (WB_DAT_WIDTH),
-                
-                .INIT_PARAM_MATRIX00    (25'h010000),
-                .INIT_PARAM_MATRIX01    (25'h000000),
-                .INIT_PARAM_MATRIX02    (25'h000000),
-                .INIT_PARAM_MATRIX03    (25'h000000),
-                .INIT_PARAM_MATRIX10    (25'h000000),
-                .INIT_PARAM_MATRIX11    (25'h010000),
-                .INIT_PARAM_MATRIX12    (25'h000000),
-                .INIT_PARAM_MATRIX13    (25'h000000),
-                .INIT_PARAM_MATRIX20    (25'h000000),
-                .INIT_PARAM_MATRIX21    (25'h000000),
-                .INIT_PARAM_MATRIX22    (25'h010000),
-                .INIT_PARAM_MATRIX23    (25'h000000),
-                .INIT_PARAM_CLIP_MIN0   ({DATA_WIDTH{1'b0}}),
-                .INIT_PARAM_CLIP_MAX0   ({DATA_WIDTH{1'b1}}),
-                .INIT_PARAM_CLIP_MIN1   ({DATA_WIDTH{1'b0}}),
-                .INIT_PARAM_CLIP_MAX1   ({DATA_WIDTH{1'b1}}),
-                .INIT_PARAM_CLIP_MIN2   ({DATA_WIDTH{1'b0}}),
-                .INIT_PARAM_CLIP_MAX2   ({DATA_WIDTH{1'b1}})
+                .CH_BITS        (M_CH_BITS          ),
+                .CH_DEPTH       (M_CH_DEPTH         )
             )
-        i_img_color_matrix
+         img_gamma
             (
-                .reset                  (reset),
-                .clk                    (clk),
-                .cke                    (cke),
-                
-                .in_update_req          (in_update_req),
-                
-                .s_wb_rst_i             (s_wb_rst_i),
-                .s_wb_clk_i             (s_wb_clk_i),
-                .s_wb_adr_i             (s_wb_adr_i[7:0]),
-                .s_wb_dat_i             (s_wb_dat_i),
-                .s_wb_dat_o             (wb_colmat_dat_o),
-                .s_wb_we_i              (s_wb_we_i),
-                .s_wb_sel_i             (s_wb_sel_i),
-                .s_wb_stb_i             (wb_colmat_stb_i),
-                .s_wb_ack_o             (wb_colmat_ack_o),
-                
-                .s_img_row_first        (img_demos_row_first),
-                .s_img_row_last         (img_demos_row_last),
-                .s_img_col_first        (img_demos_col_first),
-                .s_img_col_last         (img_demos_col_last),
-                .s_img_de               (img_demos_de),
-                .s_img_user             ({img_demos_user, img_demos_raw}),
-                .s_img_color0           (img_demos_r),
-                .s_img_color1           (img_demos_g),
-                .s_img_color2           (img_demos_b),
-                .s_img_valid            (img_demos_valid),
-                
-                .m_img_row_first        (img_sink_row_first),
-                .m_img_row_last         (img_sink_row_last),
-                .m_img_col_first        (img_sink_col_first),
-                .m_img_col_last         (img_sink_col_last),
-                .m_img_de               (img_sink_de),
-                .m_img_user             ({img_sink_user, img_sink_data[DATA_WIDTH*3 +: DATA_WIDTH]}),
-                .m_img_color0           (img_sink_data[DATA_WIDTH*2 +: DATA_WIDTH]),
-                .m_img_color1           (img_sink_data[DATA_WIDTH*1 +: DATA_WIDTH]),
-                .m_img_color2           (img_sink_data[DATA_WIDTH*0 +: DATA_WIDTH]),
-                .m_img_valid            (img_sink_valid)
+                .reset          (img_src.reset      ),
+                .clk            (img_src.clk        ),
+                .cke            (img_src.cke        )
             );
-    
-    assign wb_demos_stb_i  = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 0);
-    assign wb_colmat_stb_i = s_wb_stb_i & (s_wb_adr_i[WB_ADR_WIDTH-1:8] == 1);
-    
-    assign s_wb_dat_o      = wb_demos_stb_i  ? wb_demos_dat_o  :
-                             wb_colmat_stb_i ? wb_colmat_dat_o :
-                             '0;
-    
-    assign s_wb_ack_o      = wb_demos_stb_i  ? wb_demos_ack_o  :
-                             wb_colmat_stb_i ? wb_colmat_ack_o :
-                             s_wb_stb_i;
-    */
+
+    jelly3_img_gamma_correction
+            #(
+                .CH_DEPTH           (M_CH_DEPTH                 ),
+                .S_DATA_BITS        (M_CH_BITS                  ),
+                .M_DATA_BITS        (M_CH_BITS                  ),
+                .REGADR_BITS        (14                         ),
+                .RAM_TYPE           ("block"                    ),
+                .INIT_CTL_CONTROL   (3'b000                     ),
+                .INIT_PARAM_ENABLE  ('0                         )
+            )
+        u_img_gamma_correction
+            (
+                .in_update_req      (in_update_req              ),
+                
+                .s_img              (img_clamp.s                ),
+                .m_img              (img_gamma.m                ),
+
+                .s_axi4l            (axi4l_dec[DEC_GAMMA ].s    )
+            );
+
+
+    assign img_sink.row_first   = img_gamma.row_first;
+    assign img_sink.row_last    = img_gamma.row_last ;
+    assign img_sink.col_first   = img_gamma.col_first;
+    assign img_sink.col_last    = img_gamma.col_last ;
+    assign img_sink.de          = img_gamma.de       ;
+    assign img_sink.data        = img_gamma.data     ;
+    assign img_sink.user        = img_gamma.user     ;
+    assign img_sink.valid       = img_gamma.valid    ;
+
+
     
 endmodule
 
