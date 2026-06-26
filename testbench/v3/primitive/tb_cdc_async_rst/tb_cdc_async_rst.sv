@@ -19,8 +19,11 @@ module tb_cdc_async_rst();
     
     parameter   DEST_SYNC_FF    = 4         ;
     parameter   RST_ACTIVE_HIGH = 1         ;
-//  parameter   DEVICE          = "RTL"     ;
+`ifdef __VIVADOSIM__
     parameter   DEVICE          = "ULTRASCALE_PLUS";
+`else
+    parameter   DEVICE          = "RTL"     ;
+`endif
     parameter   SIMULATION      = "false"   ;
     parameter   DEBUG           = "false"   ;
 
