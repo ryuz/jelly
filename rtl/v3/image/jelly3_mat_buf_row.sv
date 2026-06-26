@@ -176,16 +176,24 @@ module jelly3_mat_buf_row
                             first_idx    = idx;
                         end
                         else if ( first_detect ) begin
-                            if ( string'(BORDER_MODE) == "REPLICATE" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            if ( BORDER_MODE == "REPLICATE" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(first_idx);
                             end
-                            else if ( string'(BORDER_MODE) == "REFLECT" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "REFLECT" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(first_idx + (first_idx - idx) - 1);
                             end
-                            else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "REFLECT_101" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(first_idx + (first_idx - idx));
                             end
-                            else if ( string'(BORDER_MODE) == "CONSTANT" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "CONSTANT" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_data[idx] <= {TAPS{BORDER_VALUE}};
                             end
                             else begin
@@ -204,16 +212,24 @@ module jelly3_mat_buf_row
                             last_idx    = idx;
                         end
                         else if ( last_detect ) begin
-                            if ( string'(BORDER_MODE) == "REPLICATE" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            if ( BORDER_MODE == "REPLICATE" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(last_idx);
                             end
-                            else if ( string'(BORDER_MODE) == "REFLECT" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "REFLECT" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(last_idx - (idx - last_idx) + 1);
                             end
-                            else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "REFLECT_101" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(last_idx - (idx - last_idx));
                             end
-                            else if ( string'(BORDER_MODE) == "CONSTANT" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "CONSTANT" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_data[idx] <= {TAPS{BORDER_VALUE}};
                             end
                             else begin

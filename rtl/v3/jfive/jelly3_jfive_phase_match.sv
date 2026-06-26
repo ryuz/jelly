@@ -30,10 +30,12 @@ module jelly3_jfive_phase_match
         );
 
     if ( $bits(phase_t) == 1 && THREADS > 4
-          && ( string'(DEVICE) == "ULTRASCALE"
-            || string'(DEVICE) == "ULTRASCALE_PLUS"
-            || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
-            || string'(DEVICE) == "ULTRASCALE_PLUS_ES2") ) begin : xilinx
+        // verilator lint_off WIDTHEXPAND
+          && ( DEVICE == "ULTRASCALE"
+            || DEVICE == "ULTRASCALE_PLUS"
+            || DEVICE == "ULTRASCALE_PLUS_ES1"
+            || DEVICE == "ULTRASCALE_PLUS_ES2") ) begin : xilinx
+        // verilator lint_on WIDTHEXPAND
 
         localparam int  CC_BITS = (THREADS + 1) / 2;
 

@@ -50,7 +50,9 @@ module jelly3_ram_singleport
     
     logic   [$bits(data_t)-1:0]     tmp_dout;
     
-    if ( string'(MODE) == "WRITE_FIRST" ) begin : blk_wf
+    // verilator lint_off WIDTHEXPAND
+    if ( MODE == "WRITE_FIRST" ) begin : blk_wf
+    // verilator lint_on WIDTHEXPAND
         // write first
         for ( genvar i = 0; i < $bits(we_t); i++ ) begin : loop_we
             always_ff @ ( posedge clk ) begin
@@ -66,7 +68,9 @@ module jelly3_ram_singleport
             end
         end
     end
-    else if ( string'(MODE) == "READ_FIRST" ) begin : blk_rf
+    // verilator lint_off WIDTHEXPAND
+    else if ( MODE == "READ_FIRST" ) begin : blk_rf
+    // verilator lint_on WIDTHEXPAND
         // read first
         for ( genvar i = 0; i < $bits(we_t); i++ ) begin : loop_we
             always_ff @( posedge clk ) begin
@@ -79,7 +83,9 @@ module jelly3_ram_singleport
             end
         end
     end
-    else if ( string'(MODE) == "NO_CHANGE" ) begin : blk_nc1
+    // verilator lint_off WIDTHEXPAND
+    else if ( MODE == "NO_CHANGE" ) begin : blk_nc1
+    // verilator lint_on WIDTHEXPAND
         // no change
         for ( genvar i = 0; i < $bits(we_t); i++ ) begin : loop_we1
             always_ff @ ( posedge clk ) begin

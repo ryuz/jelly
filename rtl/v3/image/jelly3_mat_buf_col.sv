@@ -60,8 +60,10 @@ module jelly3_mat_buf_col
             output  var logic                           m_mat_valid         
         );
     
-    localparam  bit     REFLECT     = string'(BORDER_MODE) == "REFLECT" || string'(BORDER_MODE) == "REFLECT_101";
-    localparam  int     REF101      = string'(BORDER_MODE) == "REFLECT_101" ? 1 : 0;
+    // verilator lint_off WIDTHEXPAND
+    localparam  bit     REFLECT     = BORDER_MODE == "REFLECT" || BORDER_MODE == "REFLECT_101";
+    localparam  int     REF101      = BORDER_MODE == "REFLECT_101" ? 1 : 0;
+    // verilator lint_on WIDTHEXPAND
     localparam  int     A           = ENDIAN ? COLS-1 - ANCHOR : ANCHOR;
     localparam  int     L_MARGIN0   = A;
     localparam  int     R_MARGIN0   = COLS-A;
@@ -124,16 +126,24 @@ module jelly3_mat_buf_col
                 next0_sel    = '0;
                 for ( int i = 0; i < L*TAPS; i++ ) begin
                     next0_data0[L*TAPS-1 - i] = 'x;
-                    if ( string'(BORDER_MODE) == "CONSTANT" ) begin
+                    // verilator lint_off WIDTHEXPAND
+                    if ( BORDER_MODE == "CONSTANT" ) begin
+                    // verilator lint_on WIDTHEXPAND
                         next0_data0[L*TAPS-1 - i] = BORDER_VALUE;
                     end
-                    else if ( string'(BORDER_MODE) == "REPLICATE" ) begin
+                    // verilator lint_off WIDTHEXPAND
+                    else if ( BORDER_MODE == "REPLICATE" ) begin
+                    // verilator lint_on WIDTHEXPAND
                         next0_data0[L*TAPS-1 - i] = next0_data0[L*TAPS];
                     end
-                    else if ( string'(BORDER_MODE) == "REFLECT" ) begin
+                    // verilator lint_off WIDTHEXPAND
+                    else if ( BORDER_MODE == "REFLECT" ) begin
+                    // verilator lint_on WIDTHEXPAND
                         next0_data0[L*TAPS-1 - i] = next0_data0[L*TAPS + i];
                     end
-                    else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
+                    // verilator lint_off WIDTHEXPAND
+                    else if ( BORDER_MODE == "REFLECT_101" ) begin
+                    // verilator lint_on WIDTHEXPAND
                         next0_data0[L*TAPS-1 - i] = next0_data0[L*TAPS + 1 + i];
                     end
                 end
@@ -142,16 +152,24 @@ module jelly3_mat_buf_col
             if ( st0_border ) begin
                 for ( int i = 0; i < TAPS; i++ ) begin
                     next0_data1[(BUFS-1)*TAPS + i] = 'x;
-                    if ( string'(BORDER_MODE) == "CONSTANT" ) begin
+                    // verilator lint_off WIDTHEXPAND
+                    if ( BORDER_MODE == "CONSTANT" ) begin
+                    // verilator lint_on WIDTHEXPAND
                         next0_data1[(BUFS-1)*TAPS + i] = BORDER_VALUE;
                     end
-                    else if ( string'(BORDER_MODE) == "REPLICATE" ) begin
+                    // verilator lint_off WIDTHEXPAND
+                    else if ( BORDER_MODE == "REPLICATE" ) begin
+                    // verilator lint_on WIDTHEXPAND
                         next0_data1[(BUFS-1)*TAPS + i] = st0_data1[(BUFS-pos)*TAPS-1];
                     end
-                    else if ( string'(BORDER_MODE) == "REFLECT" ) begin
+                    // verilator lint_off WIDTHEXPAND
+                    else if ( BORDER_MODE == "REFLECT" ) begin
+                    // verilator lint_on WIDTHEXPAND
                         next0_data1[(BUFS-1)*TAPS + i] = st0_data1[(BUFS-pos)*TAPS-1 - (pos*TAPS+i)];
                     end
-                    else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
+                    // verilator lint_off WIDTHEXPAND
+                    else if ( BORDER_MODE == "REFLECT_101" ) begin
+                    // verilator lint_on WIDTHEXPAND
                         next0_data1[(BUFS-1)*TAPS + i] = st0_data1[(BUFS-pos)*TAPS-1 - (pos*TAPS+i)-1];
                     end
                 end

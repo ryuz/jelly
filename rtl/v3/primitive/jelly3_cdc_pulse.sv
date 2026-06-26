@@ -30,19 +30,22 @@ module jelly3_cdc_pulse
             input   var logic   src_rst     
         );
 
-    if (   string'(DEVICE) == "SPARTAN6"
-        || string'(DEVICE) == "VIRTEX6"
-        || string'(DEVICE) == "7SERIES"
-        || string'(DEVICE) == "ULTRASCALE"
-        || string'(DEVICE) == "ULTRASCALE_PLUS"
-        || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
-        || string'(DEVICE) == "ULTRASCALE_PLUS_ES2"
-        || string'(DEVICE) == "VERSAL_AI_CORE"
-        || string'(DEVICE) == "VERSAL_AI_CORE_ES1"
-        || string'(DEVICE) == "VERSAL_AI_CORE_ES2"
-        || string'(DEVICE) == "VERSAL_PRIME"
-        || string'(DEVICE) == "VERSAL_PRIME_ES1"
-        || string'(DEVICE) == "VERSAL_PRIME_ES2"
+    if (
+        // verilator lint_off WIDTHEXPAND
+           DEVICE == "SPARTAN6"
+        || DEVICE == "VIRTEX6"
+        || DEVICE == "7SERIES"
+        || DEVICE == "ULTRASCALE"
+        || DEVICE == "ULTRASCALE_PLUS"
+        || DEVICE == "ULTRASCALE_PLUS_ES1"
+        || DEVICE == "ULTRASCALE_PLUS_ES2"
+        || DEVICE == "VERSAL_AI_CORE"
+        || DEVICE == "VERSAL_AI_CORE_ES1"
+        || DEVICE == "VERSAL_AI_CORE_ES2"
+        || DEVICE == "VERSAL_PRIME"
+        || DEVICE == "VERSAL_PRIME_ES1"
+        || DEVICE == "VERSAL_PRIME_ES2"
+        // verilator lint_on WIDTHEXPAND
     ) begin : xilinx
         xpm_cdc_pulse
                 #(

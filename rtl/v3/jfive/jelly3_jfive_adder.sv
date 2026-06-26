@@ -62,10 +62,14 @@ module jelly3_jfive_adder
     logic   s_msbc;
     logic   s_cout;
     rval_t  s_dout;
-    if (       string'(DEVICE) == "ULTRASCALE"
-            || string'(DEVICE) == "ULTRASCALE_PLUS"
-            || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
-            || string'(DEVICE) == "ULTRASCALE_PLUS_ES2" ) begin : xilinx
+    if (
+        // verilator lint_off WIDTHEXPAND
+               DEVICE == "ULTRASCALE"
+            || DEVICE == "ULTRASCALE_PLUS"
+            || DEVICE == "ULTRASCALE_PLUS_ES1"
+            || DEVICE == "ULTRASCALE_PLUS_ES2" ) begin : xilinx
+        // verilator lint_on WIDTHEXPAND
+
         // carry chain
         logic   cc_cin;
         rval_t  cc_sin;

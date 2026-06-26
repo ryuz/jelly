@@ -39,13 +39,16 @@ module jelly3_flipflops
     end
     else begin : flipflops
         // Xilinx
-        if ( string'(DEVICE) == "SPARTAN6"
-                || string'(DEVICE) == "VIRTEX6"
-                || string'(DEVICE) == "7SERIES"
-                || string'(DEVICE) == "ULTRASCALE"
-                || string'(DEVICE) == "ULTRASCALE_PLUS"
-                || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
-                || string'(DEVICE) == "ULTRASCALE_PLUS_ES2") begin : xilinx
+        if (
+            // verilator lint_off WIDTHEXPAND
+                   DEVICE == "SPARTAN6"
+                || DEVICE == "VIRTEX6"
+                || DEVICE == "7SERIES"
+                || DEVICE == "ULTRASCALE"
+                || DEVICE == "ULTRASCALE_PLUS"
+                || DEVICE == "ULTRASCALE_PLUS_ES1"
+                || DEVICE == "ULTRASCALE_PLUS_ES2") begin : xilinx
+            // verilator lint_on WIDTHEXPAND
 
             for ( genvar i = 0; i < DATA_BITS; i++ ) begin : loop
                 if ( ASYNC_RESET ) begin : async_reset
@@ -157,7 +160,9 @@ module jelly3_flipflops
         end
 
         // debug
-        if ( string'(DEBUG) == "true" ) begin : debug
+        // verilator lint_off WIDTHEXPAND
+        if ( DEBUG == "true" ) begin : debug
+        // verilator lint_on WIDTHEXPAND
             (* MARK_DEBUG = "true" *)   data_t   dbg_dout;
             assign dbg_dout = dout;
         end
