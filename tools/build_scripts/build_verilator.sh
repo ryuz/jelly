@@ -1,6 +1,6 @@
 #! /bin/bash
 
-VERILATOR_VERSION=5.046
+VERILATOR_VERSION=5.048
 
 git clone https://github.com/verilator/verilator.git -b v${VERILATOR_VERSION} verilator-${VERILATOR_VERSION}
 cd verilator-${VERILATOR_VERSION}
