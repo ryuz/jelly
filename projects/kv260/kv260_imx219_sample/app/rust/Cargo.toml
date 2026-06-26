@@ -7,12 +7,13 @@ edition = "2021"
 
 [dependencies]
 
-clap = { version = "4.4", features = ["derive"] }
+clap = { version = "4.6.1", features = ["derive"] }
 opencv = "0.93.5"
 
-jelly-mem_access = "0.2.7"
+jelly-mem_access = "0.2.9"
+jelly-lib        = "0.2.4"
 #jelly-mem_access = { path = "../../../../../rust/mem_access" }
-jelly-lib        = { path = "../../../../../rust/lib" }
+#jelly-lib        = { path = "../../../../../rust/lib" }
 #jelly-lib         = { git = "https://github.com/ryuz/jelly-lib-rs.git", rev = "a719c9b" }
 #jelly-pac        = { path = "../../../../../rust/pac" }
 #jelly-pac         = { git = "https://github.com/ryuz/jelly-pac-rs.git", rev = "6a62e64"}

@@ -340,9 +340,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             // テーブル書き込み
             v = v.clamp(0, 1023);
-            reg_gamma.write_reg(1024*1+i, i);   // B
-            reg_gamma.write_reg(1024*2+i, i);   // G
-            reg_gamma.write_reg(1024*3+i, i);   // R
+            reg_gamma.write_reg(1024*1+i, v);   // B
+            reg_gamma.write_reg(1024*2+i, v);   // G
+            reg_gamma.write_reg(1024*3+i, v);   // R
         }
         reg_gamma.write_reg(REG_IMG_GAMMA_PARAM_ENABLE, 7);
         reg_gamma.write_reg(REG_IMG_GAMMA_CTL_CONTROL, 3);
