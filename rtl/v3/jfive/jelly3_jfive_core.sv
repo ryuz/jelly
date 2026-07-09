@@ -247,6 +247,7 @@ module jelly3_jfive_core
     logic               id_load                 ;
     logic               id_store                ;
     logic               id_branch               ;
+    logic               id_csr                  ;
     logic               id_adder_sub            ;
     logic               id_adder_imm_en         ;
     rval_t              id_adder_imm_val        ;
@@ -262,6 +263,10 @@ module jelly3_jfive_core
     pc_t                id_branch_pc            ;
     size_t              id_mem_size             ;
     logic               id_mem_unsigned         ;
+    logic   [1:0]       id_csr_mode             ;
+    logic   [11:0]      id_csr_csr              ;
+    logic               id_csr_imm_en           ;
+    rval_t              id_csr_imm_val          ;
     logic               id_valid                ;
     logic               id_ready                ;
     
@@ -330,6 +335,7 @@ module jelly3_jfive_core
                 .m_load                 (id_load                ),
                 .m_store                (id_store               ),
                 .m_branch               (id_branch              ),
+                .m_csr                  (id_csr                 ),
                 .m_adder_sub            (id_adder_sub           ),
                 .m_adder_imm_en         (id_adder_imm_en        ),
                 .m_adder_imm_val        (id_adder_imm_val       ),
@@ -345,9 +351,13 @@ module jelly3_jfive_core
                 .m_branch_pc            (id_branch_pc           ),
                 .m_mem_size             (id_mem_size            ),
                 .m_mem_unsigned         (id_mem_unsigned        ),
+                .m_csr_mode             (id_csr_mode            ),
+                .m_csr_csr              (id_csr_csr             ),
+                .m_csr_imm_en           (id_csr_imm_en          ),
+                .m_csr_imm_val          (id_csr_imm_val         ),
                 .m_valid                (id_valid               ),
                 .m_ready                (id_ready               )
-        );
+            );
 
 
 
@@ -446,6 +456,7 @@ module jelly3_jfive_core
                 .s_load                 (id_load                ),
                 .s_store                (id_store               ),
                 .s_branch               (id_branch              ),
+                .s_csr                  (id_csr                 ),
                 .s_adder_sub            (id_adder_sub           ),
                 .s_adder_imm_en         (id_adder_imm_en        ),
                 .s_adder_imm_val        (id_adder_imm_val       ),
@@ -461,6 +472,10 @@ module jelly3_jfive_core
                 .s_branch_pc            (id_branch_pc           ),
                 .s_mem_size             (id_mem_size            ),
                 .s_mem_unsigned         (id_mem_unsigned        ),
+                .s_csr_mode             (id_csr_mode            ),
+                .s_csr_csr              (id_csr_csr             ),
+                .s_csr_imm_en           (id_csr_imm_en          ),
+                .s_csr_imm_val          (id_csr_imm_val         ),
                 .s_valid                (id_valid               ),
                 .s_ready                (id_ready               )
         );
