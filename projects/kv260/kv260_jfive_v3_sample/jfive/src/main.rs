@@ -28,7 +28,7 @@ pub fn hart_id() -> u32 {
 }
 
 
-const PRINT_ID : u32 = 3;
+const PRINT_ID : u32 = 2;
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn main(id: u32) -> ! {
