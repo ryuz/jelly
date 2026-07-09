@@ -12,18 +12,36 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
     loop {}
 }
 
+use core::arch::asm;
+
+#[inline(always)]
+pub fn hart_id() -> u32 {
+    let hart_id: u32;
+    unsafe {
+        asm!(
+            "csrr {0}, mhartid",
+            out(reg) hart_id,
+            options(nomem, nostack, preserves_flags)
+        );
+    }
+    hart_id
+}
+
+
+const PRINT_ID : u32 = 3;
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn main(id: u32) -> ! {
-    if id == 0 {
+    if id == PRINT_ID {
         uart_init();
         println!("Hello JFive!");
+        println!("hart_id: {}", hart_id());
     }
 
     let mut f : f32 = 1.0;
     let mut count: u32 = 0;
     loop {
-        if id == 0 {
+        if id == PRINT_ID {
             count += 1;
             println!("count: {}", count);
             println!("{}", f);
