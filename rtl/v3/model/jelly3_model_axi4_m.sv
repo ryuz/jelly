@@ -149,7 +149,8 @@ module jelly3_model_axi4_m
                     awregion <= region_t'(4'b0000);     // No region
                     awuser   <= awuser_t'($urandom());
                     awvalid  <= 1'b1;
-                    aw_queue.pop_front();
+                 // aw_queue.pop_front();
+                    aw_queue.delete(0);  // 古い Verilator対策
                 end
                 else begin
                     awvalid <= 1'b0;
@@ -164,7 +165,8 @@ module jelly3_model_axi4_m
                     wlast   <= w_queue[0];
                     wuser   <= wuser_t'($urandom());
                     wvalid  <= 1'b1;
-                    w_queue.pop_front();
+        //          w_queue.pop_front();
+                    w_queue.delete(0);  // 古い Verilator対策
                 end
                 else begin
                     wvalid <= 1'b0;
