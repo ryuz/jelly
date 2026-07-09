@@ -30,12 +30,10 @@ Jelly 内のサンプルプログラムの紹介です。
   - [Kria KV260 で カメラ画像(IMX219) を動かすサンプル](projects/kv260/kv260_imx219/README.md)
 - projects/kv260/kv260_imx219_hls_sample
   - [Kria KV260 で カメラ画像(IMX219) をHLSで画像を処理してみるサンプル](projects/kv260/kv260_imx219_hls_sample/README.md)
-- projects/kv260/kv260_rtos_sample  
+- projects/kv260/kv260_rtos_sample
   - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260/kv260_rtos/README.md)
 - projects/kv260/kv260_jfive_simple_controller
-  - [Kria KV260 で 自作RISC-V(4段パイプライン)を200MHzで試すサンプル](projects/kv260/kv260_jfive_simple_controller/README.md)
-- projects/kv260/kv260_jfive_micro_controller
-  - [Kria KV260 で 自作RISC-V(6段パイプライン)を250MHzで試すサンプル](projects/kv260/kv260_jfive_micro_controller/README.md)
+  - [Kria KV260 で JFive (RISC-V) で ハードウェアマルチスレッドを動かすサンプル](projects/kv260/kv260_jfive_v3_sample/README.md)
 - projects/kv260/kv260_rtos
   - [Kria KV260 で FPGA化した リアルタイムOS を試すサンプル](projects/kv260/kv260_rtos/README.md)
   - Interface 2023年10月号付録 [FPGAマガジン No.1](https://fpga.tokyo/real-time-os-on-fpga/)で記事にしております
@@ -151,7 +149,7 @@ Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみた�
 ブロック図などは[Webサイト](http://ryuz.my.coocan.jp/legacy/jelly/index.html)の方にあります。
 
 
-### RISV-V 互換プロセッサ
+### RISV-V 互換プロセッサ(JFive)
 
 /rtl/jfive
 
@@ -165,6 +163,7 @@ Verilogの勉強を始めた頃に Spartan-3 向けに試しに書いてみた�
 - [Kria KV260 で RISC-V 風のバレルプロセッサ](https://github.com/ryuz/jelly/tree/master/projects/kv260/kv260_jfive_v3_sample)
 
 などになります。
+
 
 ### FPGA化リアルタイムOS
 
