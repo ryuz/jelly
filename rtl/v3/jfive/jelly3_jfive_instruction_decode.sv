@@ -86,6 +86,7 @@ module jelly3_jfive_instruction_decode
             output  var logic                   m_load              ,
             output  var logic                   m_store             ,
             output  var logic                   m_branch            ,
+            output  var logic                   m_csr               ,
 
             output  var logic                   m_adder_sub         ,
             output  var logic                   m_adder_imm_en      ,
@@ -107,6 +108,11 @@ module jelly3_jfive_instruction_decode
 
             output  var size_t                  m_mem_size          ,
             output  var logic                   m_mem_unsigned      ,
+
+            output  var logic   [1:0]           m_csr_mode          ,
+            output  var logic   [11:0]          m_csr_csr           ,
+            output  var logic                   m_csr_imm_en        ,
+            output  var rval_t                  m_csr_imm_val       ,
 
             output  var logic                   m_valid             ,
             input   var logic                   m_ready             
@@ -177,6 +183,8 @@ module jelly3_jfive_instruction_decode
     localparam  opcode_t    OPCODE_FENCE    = 7'b0001111;
     localparam  opcode_t    OPCODE_ECALL    = 7'b1110011;
     localparam  opcode_t    OPCODE_EBREAK   = 7'b1110011;
+
+    localparam  opcode_t    OPCODE_CSR      = 7'b1110011;
 
     // funct3
     localparam  funct3_t    FUNCT3_JALR     = 3'b000;
@@ -291,6 +299,7 @@ module jelly3_jfive_instruction_decode
     logic           st1_load                ;
     logic           st1_store               ;
     logic           st1_alu                 ;
+    logic           st1_csr                 ;
 
     wire    opcode_t                st1_opcode  = st1_instr[6:0]   ;
     wire    ridx_t                  st1_rd_idx  = st1_instr[11:7]  ;
@@ -305,6 +314,7 @@ module jelly3_jfive_instruction_decode
     wire    logic   signed  [31:0]  st1_imm_u = {st1_instr[31:12], 12'd0}                                               ;
     wire    logic   signed  [20:0]  st1_imm_j = {st1_instr[31], st1_instr[19:12], st1_instr[20], st1_instr[30:21], 1'b0};
     wire    logic           [4:0]   st1_shamt = st1_instr[24:20]                                                        ;
+    wire    logic           [4:0]   st1_uimm  = st1_instr[19:15]                                                        ;
 
 
     // stage 2
@@ -330,6 +340,7 @@ module jelly3_jfive_instruction_decode
     logic           st2_load                ;
     logic           st2_store               ;
     logic           st2_branch              ;
+    logic           st2_csr                 ;
 
     logic           st2_adder_sub           ;
     logic           st2_adder_imm_en        ;
@@ -342,6 +353,12 @@ module jelly3_jfive_instruction_decode
 
     logic   [2:0]   st2_branch_mode         ;
     pc_t            st2_branch_pc           ;
+
+    logic   [1:0]   st2_csr_mode            ;
+    logic   [11:0]  st2_csr_csr             ;
+    logic           st2_csr_imm_en          ;
+    rval_t          st2_csr_imm_val         ;
+
 
     wire    opcode_t                st2_opcode  = st2_instr[6:0]   ;
     wire    ridx_t                  st2_rd_idx  = st2_instr[11:7]  ;
@@ -390,7 +407,8 @@ module jelly3_jfive_instruction_decode
                          || s_opcode[6:2] == OPCODE_LOAD  [6:2]
                          || s_opcode[6:2] == OPCODE_ALUI  [6:2]
                          || s_opcode[6:2] == OPCODE_ALU   [6:2]
-                         || s_opcode[6:2] == OPCODE_FENCE [6:2]);
+                         || s_opcode[6:2] == OPCODE_FENCE [6:2]
+                         || s_opcode[6:2] == OPCODE_CSR   [6:2]);
 
             st0_rs1_en <= s_valid
                         && (s_opcode[6:2] == OPCODE_JALR  [6:2]
@@ -399,7 +417,8 @@ module jelly3_jfive_instruction_decode
                          || s_opcode[6:2] == OPCODE_STORE [6:2]
                          || s_opcode[6:2] == OPCODE_ALUI  [6:2]
                          || s_opcode[6:2] == OPCODE_ALU   [6:2]
-                         || s_opcode[6:2] == OPCODE_FENCE [6:2]);
+                         || s_opcode[6:2] == OPCODE_FENCE [6:2]
+                         || (s_opcode[6:2] == OPCODE_CSR  [6:2] && s_funct3[2] == 1'b0));
 
             st0_rs2_en <= s_valid
                         && (s_opcode[6:2] == OPCODE_BRANCH[6:2]
@@ -421,6 +440,7 @@ module jelly3_jfive_instruction_decode
     wire    logic   signed  [31:0]  st0_imm_u = {st0_instr[31:12], 12'd0}                                               ;
     wire    logic   signed  [20:0]  st0_imm_j = {st0_instr[31], st0_instr[19:12], st0_instr[20], st0_instr[30:21], 1'b0};
     wire    logic           [4:0]   st0_shamt = st0_instr[24:20]                                                        ;
+    wire    logic           [4:0]   st0_uimm  = st0_instr[19:15]                                                        ;
 
 
 
@@ -454,8 +474,6 @@ module jelly3_jfive_instruction_decode
             st1_rd_en     <= 'x  ;
             st1_rs1_en    <= 'x  ;
             st1_rs2_en    <= 'x  ;
-            st1_lui       <= 'x  ;
-            st1_auipc     <= 'x  ;
             st1_pre_stall <= 1'b0;
             st1_valid     <= 1'b0;
         end
@@ -467,8 +485,6 @@ module jelly3_jfive_instruction_decode
             st1_rd_en     <= st0_rd_en  && (st0_rd_idx  != 0);
             st1_rs1_en    <= st0_rs1_en && (st0_rs1_idx != 0);
             st1_rs2_en    <= st0_rs2_en && (st0_rs2_idx != 0);
-            st1_lui       <= st0_opcode[6:2] == OPCODE_LUI[6:2];
-            st1_auipc     <= st0_opcode[6:2] == OPCODE_AUIPC[6:2];
             st1_pre_stall <= sig1_pre_stall;
             st1_valid     <= st0_valid;
         end
@@ -484,6 +500,7 @@ module jelly3_jfive_instruction_decode
             st1_load    <= 1'bx;
             st1_store   <= 1'bx;
             st1_alu     <= 1'bx;
+            st1_csr     <= 1'bx;
         end
         else if ( cke & s_ready ) begin
             st1_lui     <= st0_opcode[6:2] == OPCODE_LUI[6:2];
@@ -494,6 +511,7 @@ module jelly3_jfive_instruction_decode
             st1_load    <= st0_opcode[6:2] == OPCODE_LOAD[6:2];
             st1_store   <= st0_opcode[6:2] == OPCODE_STORE[6:2];
             st1_alu     <= st0_opcode[6:2] == OPCODE_ALU[6:2] || st0_opcode[6:2] == OPCODE_ALUI[6:2];
+            st1_csr     <= st0_opcode[6:2] == OPCODE_CSR[6:2];
         end
     end
 
@@ -505,7 +523,7 @@ module jelly3_jfive_instruction_decode
                 .ADDR_BITS      ($bits(id_t) + $bits(ridx_t)),
                 .DATA_BITS      ($bits(rval_t)              ),
                 .ZERO_REG       (1'b0                       ),
-                .REGISTERS      (THREADS * 32               ), 
+                .REGISTERS      (THREADS * 32               ),
                 .RAM_TYPE       ("distributed"              ),
                 .DEVICE         (DEVICE                     ),
                 .SIMULATION     (SIMULATION                 ),
@@ -530,9 +548,6 @@ module jelly3_jfive_instruction_decode
                                     st1_rs1_val
                                 })
             );
-
-                                                  ;
-
 
 
     // -----------------------------------------
@@ -602,7 +617,7 @@ module jelly3_jfive_instruction_decode
                 st2_rd_en   <= st1_rd_en    ;
                 if ( st1_lui ) begin
                     st2_rd_val <= rval_t'(st1_imm_u);
-                end 
+                end
                 else if ( st1_auipc ) begin
                     st2_rd_val <= rval_t'(st1_pc) + rval_t'(st1_imm_u);
                 end
@@ -656,6 +671,7 @@ module jelly3_jfive_instruction_decode
             st2_load      <= st1_opcode[6:2] == OPCODE_LOAD[6:2];
             st2_store     <= st1_opcode[6:2] == OPCODE_STORE[6:2];
             st2_branch    <= st1_jal || st1_jalr || st1_branch;
+            st2_csr       <= st1_csr;
 
             // adder
             st2_adder_sub   <= (st1_opcode[6:4] == OPCODE_JALR  [6:4] && !st1_opcode[2])    // JALR
@@ -683,6 +699,12 @@ module jelly3_jfive_instruction_decode
             if ( st1_jal  ) st2_branch_mode <= 3'b010;
             if ( st1_jalr ) st2_branch_mode <= 3'b011;
             st2_branch_pc <= st1_pc + (st1_jal ? pc_t'(st1_imm_j) : pc_t'(st1_imm_b));
+
+            // scr
+            st2_csr_mode     <= st1_funct3[1:0];
+            st2_csr_csr      <= st1_imm_i[11:0];
+            st2_csr_imm_en   <= st1_funct3[2];
+            st2_csr_imm_val  <= rval_t'(st1_uimm);
         end
     end
 
@@ -718,6 +740,7 @@ module jelly3_jfive_instruction_decode
     assign m_load               = st2_load                  ;
     assign m_store              = st2_store                 ;
     assign m_branch             = st2_branch                ;
+    assign m_csr                = st2_csr                   ;
 
     assign m_adder_sub          = st2_adder_sub             ;
     assign m_adder_imm_en       = st2_adder_imm_en          ;
@@ -740,6 +763,10 @@ module jelly3_jfive_instruction_decode
     assign m_mem_size           = st2_funct3[1:0]           ;
     assign m_mem_unsigned       = st2_funct3[2]             ;
 
+    assign m_csr_mode           = st2_csr_mode              ;
+    assign m_csr_csr            = st2_csr_csr               ;
+    assign m_csr_imm_en         = st2_csr_imm_en            ;
+    assign m_csr_imm_val        = st2_csr_imm_val           ;
 
 endmodule
 
