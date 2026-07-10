@@ -148,8 +148,8 @@ module jelly3_axi4l_wider
     // -------------------------------------------------------------------------
     //  Read path
     // -------------------------------------------------------------------------
-    logic   r_busy;
-    logic   r_arvalid;
+    logic       r_busy;
+    logic       r_arvalid;
     m_addr_t    r_addr;
     m_prot_t    r_prot;
     lane_t      r_lane;
