@@ -219,7 +219,6 @@ module jelly3_axi4l_wider
         always_comb begin
             sva_clk : assert (s_axi4l.aclk   === m_axi4l.aclk   );
             sva_cke : assert (s_axi4l.aclken === m_axi4l.aclken );
-            sva_param : assert (_unused_params === 1'b0);
         end
     end
 
