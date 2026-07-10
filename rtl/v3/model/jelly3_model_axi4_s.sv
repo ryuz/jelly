@@ -13,6 +13,7 @@
 module jelly3_model_axi4_s
         #(
             parameter   int     MEM_ADDR_BITS    = 16                   ,
+            parameter   int     MEM_MASK_BITS    = MEM_ADDR_BITS        ,
             parameter   int     MEM_SIZE         = (1 << MEM_ADDR_BITS) ,
             parameter   bit     READ_DATA_ADDR   = 0                    ,      // リード結果をアドレスとする
             parameter   string  WRITE_LOG_FILE   = ""                   ,
@@ -40,13 +41,21 @@ module jelly3_model_axi4_s
             jelly3_axi4_if.s    s_axi4         
         );
     
-    localparam  int     AXI_ID_BITS   = s_axi4.ID_BITS          ;
-    localparam  int     AXI_ADDR_BITS = s_axi4.ADDR_BITS        ;
-    localparam  int     AXI_QOS_BITS  = s_axi4.QOS_BITS         ;
-    localparam  int     AXI_LEN_BITS  = s_axi4.LEN_BITS         ;
-    localparam  int     AXI_DATA_BITS = s_axi4.DATA_BITS        ;
-    localparam  int     AXI_STRB_BITS = s_axi4.STRB_BITS        ;
-    localparam  int     AXI_DATA_SIZE = $clog2(AXI_STRB_BITS)   ;
+    localparam  int     ID_BITS   = s_axi4.ID_BITS          ;
+    localparam  type    id_t      = logic [ID_BITS-1:0]     ;
+    localparam  int     ADDR_BITS = s_axi4.ADDR_BITS        ;
+    localparam  type    addr_t    = logic [ADDR_BITS-1:0]   ;
+    localparam  int     QOS_BITS  = s_axi4.QOS_BITS         ;
+    localparam  type    qos_t     = logic [QOS_BITS-1:0]    ;
+    localparam  int     LEN_BITS  = s_axi4.LEN_BITS         ;
+    localparam  type    len_t     = logic [LEN_BITS-1:0]    ;
+    localparam  int     SIZE_BITS = s_axi4.SIZE_BITS        ;
+    localparam  type    size_t    = logic [SIZE_BITS-1:0]   ;
+    localparam  int     DATA_BITS = s_axi4.DATA_BITS        ;
+    localparam  type    data_t     = logic [DATA_BITS-1:0]  ;
+    localparam  int     STRB_BITS = s_axi4.STRB_BITS        ;
+    localparam  type    strb_t     = logic [STRB_BITS-1:0]  ;
+    localparam  int     DATA_SIZE = $clog2(STRB_BITS)       ;
     
     
     // -------------------------------------
@@ -95,35 +104,35 @@ module jelly3_model_axi4_s
     //  insert fifo
     // -------------------------------------
     
-    logic   [AXI_ID_BITS-1:0]       axi4_fifo_awid      ;
-    logic   [AXI_ADDR_BITS-1:0]     axi4_fifo_awaddr    ;
-    logic   [AXI_LEN_BITS-1:0]      axi4_fifo_awlen     ;
-    logic   [2:0]                   axi4_fifo_awsize    ;
-    logic                           axi4_fifo_awvalid   ;
-    logic                           axi4_fifo_awready   ;
+    id_t        axi4_fifo_awid      ;
+    addr_t      axi4_fifo_awaddr    ;
+    len_t       axi4_fifo_awlen     ;
+    size_t      axi4_fifo_awsize    ;
+    logic       axi4_fifo_awvalid   ;
+    logic       axi4_fifo_awready   ;
     
-    logic   [AXI_DATA_BITS-1:0]     axi4_wdata          ;
-    logic   [AXI_STRB_BITS-1:0]     axi4_wstrb          ;
-    logic                           axi4_wlast          ;
-    logic                           axi4_wvalid         ;
-    logic                           axi4_wready         ;
+    data_t      axi4_wdata          ;
+    strb_t      axi4_wstrb          ;
+    logic       axi4_wlast          ;
+    logic       axi4_wvalid         ;
+    logic       axi4_wready         ;
     
-    logic    [AXI_ID_BITS-1:0]      axi4_bid            ;
-    logic                           axi4_bvalid         ;
-    logic                           axi4_bready         ;
+    id_t        axi4_bid            ;
+    logic       axi4_bvalid         ;
+    logic       axi4_bready         ;
     
-    logic   [AXI_ID_BITS-1:0]       axi4_fifo_arid      ;
-    logic   [AXI_ADDR_BITS-1:0]     axi4_fifo_araddr    ;
-    logic   [AXI_LEN_BITS-1:0]      axi4_fifo_arlen     ;
-    logic   [2:0]                   axi4_fifo_arsize    ;
-    logic                           axi4_fifo_arvalid   ;
-    logic                           axi4_fifo_arready   ;
+    id_t        axi4_fifo_arid      ;
+    addr_t      axi4_fifo_araddr    ;
+    len_t       axi4_fifo_arlen     ;
+    size_t      axi4_fifo_arsize    ;
+    logic       axi4_fifo_arvalid   ;
+    logic       axi4_fifo_arready   ;
     
-    logic   [AXI_ID_BITS-1:0]       axi4_rid            ;
-    logic   [AXI_DATA_BITS-1:0]     axi4_rdata          ;
-    logic                           axi4_rlast          ;
-    logic                           axi4_rvalid         ;
-    logic                           axi4_rready         ;
+    id_t        axi4_rid            ;
+    data_t      axi4_rdata          ;
+    logic       axi4_rlast          ;
+    logic       axi4_rvalid         ;
+    logic       axi4_rready         ;
     
     // aw
     logic                           s_axi4_awready_tmp   ;
@@ -261,19 +270,19 @@ module jelly3_model_axi4_s
     //  insert deleay
     // -------------------------------------
     
-    logic   [AXI_ID_BITS-1:0]       axi4_awid       ;
-    logic   [AXI_ADDR_BITS-1:0]     axi4_awaddr     ;
-    logic   [AXI_LEN_BITS-1:0]      axi4_awlen      ;
-    logic   [2:0]                   axi4_awsize     ;
-    logic                           axi4_awvalid    ;
-    logic                           axi4_awready    ;
+    id_t        axi4_awid       ;
+    addr_t      axi4_awaddr     ;
+    len_t       axi4_awlen      ;
+    size_t      axi4_awsize     ;
+    logic       axi4_awvalid    ;
+    logic       axi4_awready    ;
     
-    logic   [AXI_ID_BITS-1:0]       axi4_arid       ;
-    logic   [AXI_ADDR_BITS-1:0]     axi4_araddr     ;
-    logic   [AXI_LEN_BITS-1:0]      axi4_arlen      ;
-    logic   [2:0]                   axi4_arsize     ;
-    logic                           axi4_arvalid    ;
-    logic                           axi4_arready    ;
+    id_t        axi4_arid       ;
+    addr_t      axi4_araddr     ;
+    len_t       axi4_arlen      ;
+    size_t      axi4_arsize     ;
+    logic       axi4_arvalid    ;
+    logic       axi4_arready    ;
     
     // aw
     jelly3_data_delay
@@ -335,9 +344,8 @@ module jelly3_model_axi4_s
     
     
     // memory
-    localparam  MEM_BITS       = $clog2(MEM_SIZE);
-    localparam  MEM_ADDR_MASK  = ((1 << MEM_BITS) - 1);
-    logic   [AXI_DATA_BITS-1:0]    mem     [MEM_SIZE-1:0];
+    localparam  MEM_BITS   = $clog2(MEM_SIZE);
+    data_t      mem     [MEM_SIZE-1:0];
 
     initial begin
         for ( int i = 0; i < MEM_SIZE; ++i ) begin
@@ -346,12 +354,12 @@ module jelly3_model_axi4_s
     end
 
     // write
-    logic                           reg_awbusy  ;
-    logic   [AXI_ID_BITS-1:0]       reg_awid    ;
-    logic   [AXI_ADDR_BITS-1:0]     reg_awaddr  ;
-    logic   [AXI_LEN_BITS-1:0]      reg_awlen   ;
-    logic   [2:0]                   reg_awsize  ;
-    logic                           reg_bvalid  ;
+    logic       reg_awbusy  ;
+    id_t        reg_awid    ;
+    addr_t      reg_awaddr  ;
+    len_t       reg_awlen   ;
+    size_t      reg_awsize  ;
+    logic       reg_bvalid  ;
     
     always_ff @( posedge s_axi4.aclk ) begin
         if ( !s_axi4.aresetn ) begin
@@ -407,15 +415,15 @@ module jelly3_model_axi4_s
     
     
     // memory write
-    logic   [AXI_ADDR_BITS-1:0]    sig_awaddr;
+    addr_t                  sig_awaddr;
     assign sig_awaddr = reg_awbusy ? reg_awaddr : axi4_awaddr;
     always_ff @( posedge s_axi4.aclk ) begin
         if ( s_axi4.aclken ) begin
             if ( s_axi4.aresetn && axi4_wvalid && axi4_wready ) begin
-                if ( int'(sig_awaddr >> AXI_DATA_SIZE) < MEM_SIZE ) begin
-                    for ( int i = 0; i < AXI_STRB_BITS; i++ ) begin
+                if ( int'(sig_awaddr >> DATA_SIZE) < MEM_SIZE ) begin
+                    for ( int i = 0; i < STRB_BITS; i++ ) begin
                         if ( axi4_wstrb[i] ) begin
-                            mem[MEM_ADDR_BITS'(sig_awaddr >> AXI_DATA_SIZE)][i*8 +: 8] <= axi4_wdata[i*8 +: 8];
+                            mem[MEM_ADDR_BITS'(sig_awaddr >> DATA_SIZE)][i*8 +: 8] <= axi4_wdata[i*8 +: 8];
                         end
                     end
                 end
@@ -438,14 +446,14 @@ module jelly3_model_axi4_s
     
     
     // read
-    logic                           reg_arbusy  ;
-    logic   [AXI_ID_BITS-1:0]       reg_arid    ;
-    logic   [AXI_ADDR_BITS-1:0]     reg_araddr  ;
-    logic   [AXI_LEN_BITS-1:0]      reg_arlen   ;
-    logic   [2:0]                   reg_arsize  ;
-    logic                           reg_rlast   ;
-    logic   [AXI_DATA_BITS-1:0]     reg_rdata   ;
-    logic                           reg_rvalid  ;
+    logic       reg_arbusy  ;
+    id_t        reg_arid    ;
+    addr_t      reg_araddr  ;
+    len_t       reg_arlen   ;
+    size_t      reg_arsize  ;
+    logic       reg_rlast   ;
+    data_t      reg_rdata   ;
+    logic       reg_rvalid  ;
     
     always_ff @( posedge s_axi4.aclk ) begin
         if ( !s_axi4.aresetn ) begin
@@ -463,7 +471,7 @@ module jelly3_model_axi4_s
                 reg_araddr <= reg_araddr + (1 << reg_arsize);
                 reg_arlen  <= reg_arlen - 1'b1              ;
                 reg_rlast  <= ((reg_arlen - 1'b1) == 0)     ;
-                reg_rdata  <= READ_DATA_ADDR ? AXI_DATA_BITS'(reg_araddr + (1 << reg_arsize)) : mem[MEM_ADDR_BITS'((reg_araddr + (1 << reg_arsize)) >> AXI_DATA_SIZE)];
+                reg_rdata  <= READ_DATA_ADDR ? data_t'(reg_araddr + (1 << reg_arsize)) : mem[MEM_ADDR_BITS'((reg_araddr + (1 << reg_arsize)) >> DATA_SIZE)];
                 if ( reg_rlast ) begin
                     reg_arbusy <= 1'b0;
                     reg_rvalid <= 1'b0;
@@ -478,7 +486,7 @@ module jelly3_model_axi4_s
                 reg_arsize <= axi4_arsize       ;
                 
                 reg_rlast  <= (axi4_arlen == 0) ;
-                reg_rdata  <= READ_DATA_ADDR ? AXI_DATA_BITS'(axi4_araddr) : mem[MEM_ADDR_BITS'(axi4_araddr >> AXI_DATA_SIZE)];
+                reg_rdata  <= READ_DATA_ADDR ? data_t'(axi4_araddr) : mem[MEM_ADDR_BITS'(axi4_araddr >> DATA_SIZE)];
                 reg_rvalid <= 1'b1              ;
             end
             
@@ -494,8 +502,8 @@ module jelly3_model_axi4_s
     
     assign axi4_arready = (!reg_arbusy && !(axi4_rvalid & !axi4_rready)) || (reg_rlast && axi4_rvalid && axi4_rready);
     
-    assign axi4_rid     = axi4_rvalid ? reg_arid : {AXI_ID_BITS{1'bx}};
-    assign axi4_rdata   = axi4_rvalid ? reg_rdata : {AXI_DATA_BITS{1'bx}};
+    assign axi4_rid     = axi4_rvalid ? reg_arid : {ID_BITS{1'bx}};
+    assign axi4_rdata   = axi4_rvalid ? reg_rdata : {DATA_BITS{1'bx}};
     assign axi4_rlast   = axi4_rvalid ? reg_rlast : 1'bx;
     assign axi4_rvalid  = reg_rvalid;
     
