@@ -57,6 +57,7 @@ module jelly3_model_axi4_s
     localparam  type    strb_t     = logic [STRB_BITS-1:0]  ;
     localparam  int     DATA_SIZE = $clog2(STRB_BITS)       ;
     
+    localparam  addr_t  MEM_ADDR_MASK = ((addr_t'(1) << MEM_MASK_BITS) - addr_t'(1));
     
     // -------------------------------------
     //  generate busy
@@ -416,14 +417,16 @@ module jelly3_model_axi4_s
     
     // memory write
     addr_t                  sig_awaddr;
+    addr_t                  sig_awmem_addr;
     assign sig_awaddr = reg_awbusy ? reg_awaddr : axi4_awaddr;
+    assign sig_awmem_addr = (sig_awaddr >> DATA_SIZE) & MEM_ADDR_MASK;
     always_ff @( posedge s_axi4.aclk ) begin
         if ( s_axi4.aclken ) begin
             if ( s_axi4.aresetn && axi4_wvalid && axi4_wready ) begin
-                if ( int'(sig_awaddr >> DATA_SIZE) < MEM_SIZE ) begin
+                if ( int'(sig_awmem_addr) < MEM_SIZE ) begin
                     for ( int i = 0; i < STRB_BITS; i++ ) begin
                         if ( axi4_wstrb[i] ) begin
-                            mem[MEM_ADDR_BITS'(sig_awaddr >> DATA_SIZE)][i*8 +: 8] <= axi4_wdata[i*8 +: 8];
+                            mem[MEM_ADDR_BITS'(sig_awmem_addr)][i*8 +: 8] <= axi4_wdata[i*8 +: 8];
                         end
                     end
                 end
@@ -454,6 +457,13 @@ module jelly3_model_axi4_s
     logic       reg_rlast   ;
     data_t      reg_rdata   ;
     logic       reg_rvalid  ;
+    addr_t      sig_arnext_addr;
+    addr_t      sig_ar_mem_addr;
+    addr_t      sig_arnext_mem_addr;
+
+    assign sig_arnext_addr     = reg_araddr + (1 << reg_arsize);
+    assign sig_ar_mem_addr     = (reg_araddr    >> DATA_SIZE) & MEM_ADDR_MASK;
+    assign sig_arnext_mem_addr = (sig_arnext_addr >> DATA_SIZE) & MEM_ADDR_MASK;
     
     always_ff @( posedge s_axi4.aclk ) begin
         if ( !s_axi4.aresetn ) begin
@@ -471,7 +481,7 @@ module jelly3_model_axi4_s
                 reg_araddr <= reg_araddr + (1 << reg_arsize);
                 reg_arlen  <= reg_arlen - 1'b1              ;
                 reg_rlast  <= ((reg_arlen - 1'b1) == 0)     ;
-                reg_rdata  <= READ_DATA_ADDR ? data_t'(reg_araddr + (1 << reg_arsize)) : mem[MEM_ADDR_BITS'((reg_araddr + (1 << reg_arsize)) >> DATA_SIZE)];
+                reg_rdata  <= READ_DATA_ADDR ? data_t'(sig_arnext_addr) : mem[MEM_ADDR_BITS'(sig_arnext_mem_addr)];
                 if ( reg_rlast ) begin
                     reg_arbusy <= 1'b0;
                     reg_rvalid <= 1'b0;
@@ -486,7 +496,7 @@ module jelly3_model_axi4_s
                 reg_arsize <= axi4_arsize       ;
                 
                 reg_rlast  <= (axi4_arlen == 0) ;
-                reg_rdata  <= READ_DATA_ADDR ? data_t'(axi4_araddr) : mem[MEM_ADDR_BITS'(axi4_araddr >> DATA_SIZE)];
+                reg_rdata  <= READ_DATA_ADDR ? data_t'(axi4_araddr) : mem[MEM_ADDR_BITS'((axi4_araddr >> DATA_SIZE) & MEM_ADDR_MASK)];
                 reg_rvalid <= 1'b1              ;
             end
             
