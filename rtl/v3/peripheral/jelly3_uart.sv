@@ -21,6 +21,8 @@ module jelly3_uart
             parameter   int         DIVIDER_BITS     = 8                        ,
             parameter   type        divider_t        = logic [DIVIDER_BITS-1:0] ,
             parameter   divider_t   INIT_DIVIDER     = 54-1                     ,
+            parameter   bit         SIM_FORCE_TX     = 0                        ,
+            parameter   bit         SIM_DISPLAY_TX   = 0                        ,
             parameter               DEVICE           = "RTL"                    ,
             parameter               SIMULATION       = "false"                  ,
             parameter               DEBUG            = "false"                  
@@ -177,12 +179,22 @@ module jelly3_uart
     assign s_axi4l.wready  = (~s_axi4l.bvalid || s_axi4l.bready) && s_axi4l.awvalid ;
     assign s_axi4l.bresp   = '0;
 
+    logic tx_status;
+    // verilator lint_off WIDTHEXPAND
+    if ( (SIMULATION == "true" || SIMULATION == "True" || SIMULATION == "TRUE") && SIM_FORCE_TX ) begin
+    // verilator lint_on WIDTHEXPAND
+        assign tx_status = 1'b1;
+    end
+    else begin
+        assign tx_status = tx_ready;
+    end
+
     // read
     always_ff @(posedge s_axi4l.aclk ) begin
         if ( s_axi4l.arvalid && s_axi4l.arready ) begin
             case ( regadr_read )
             REGADR_RX       : s_axi4l.rdata <= axi4l_data_t'(rx_data                );
-            REGADR_STATUS   : s_axi4l.rdata <= axi4l_data_t'({tx_ready, rx_valid}   );
+            REGADR_STATUS   : s_axi4l.rdata <= axi4l_data_t'({tx_status, rx_valid}   );
             REGADR_DIVIDER  : s_axi4l.rdata <= axi4l_data_t'(divider                );
             default:          s_axi4l.rdata <= '0;
             endcase
@@ -206,7 +218,17 @@ module jelly3_uart
     assign s_axi4l.arready = ~s_axi4l.rvalid || s_axi4l.rready;
     assign s_axi4l.rresp   = '0;
     
-    
+
+    // verilator lint_off WIDTHEXPAND
+    if ( (SIMULATION == "true" || SIMULATION == "True" || SIMULATION == "TRUE") && SIM_DISPLAY_TX ) begin
+    // verilator lint_on WIDTHEXPAND
+        always_ff @(posedge s_axi4l.aclk ) begin
+            if ( s_axi4l.aresetn && s_axi4l.aclken && tx_valid && tx_status ) begin
+                $write("%c", tx_data);
+            end
+        end
+    end
+
 endmodule
 
 `default_nettype wire

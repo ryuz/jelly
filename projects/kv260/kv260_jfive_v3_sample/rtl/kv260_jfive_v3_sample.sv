@@ -230,6 +230,8 @@ module kv260_jfive_v3_sample
                 .RAM_TYPE           ("distributed"          ),
                 .DIVIDER_BITS       (16                     ),
                 .INIT_DIVIDER       (16'(434-1)             ),  // 115200bps@400MHz
+                .SIM_FORCE_TX       (1                      ),
+                .SIM_DISPLAY_TX     (1                      ),
                 .DEVICE             (DEVICE                 ),
                 .SIMULATION         (SIMULATION             ),
                 .DEBUG              (DEBUG                  )
