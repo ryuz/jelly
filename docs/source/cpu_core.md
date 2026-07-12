@@ -411,7 +411,7 @@ WISHBONEバスはサイクル内でトランザクションが完結するため
 
 こちらに置いておきます。
 
-```eval_rst
+```{eval-rst}
 :download:`files/jelly_cpu.ods`
 ```
 
