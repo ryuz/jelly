@@ -1,3 +1,4 @@
+setuptools<81
 Sphinx==8.2.3
 sphinx-rtd-theme==3.0.2
 myst-parser==4.0.1
