@@ -1,0 +1,25 @@
+# Image Ver2
+
+## 概要
+
+Ver2 は `jelly2_` 系の Image 実装群です。
+
+## 実装配置
+
+- `rtl/v2/image`
+
+## 主要モジュール
+
+- `jelly2_axi4s_to_img_auto.sv`
+- `jelly2_img_blk_buffer.sv`
+- `jelly2_img_demosaic_acpi.sv`
+- `jelly2_img_color_matrix.sv`
+- `jelly2_img_filter2d.sv`
+- `jelly2_img_sobel_core.sv`
+- `jelly2_img_binarizer.sv`
+- `jelly2_img_selector.sv`
+
+## 利用指針
+
+- AXI4-Stream 接続の前段後段は `jelly2_axi4s_*` 系を利用すると構成が単純になります。
+- Video 系との接続は `rtl/v2/video` 章を合わせて参照してください。

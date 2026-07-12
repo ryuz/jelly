@@ -1,4 +1,4 @@
-# Video 関連
+# Video Ver1
 
 /rtl/video 以下にあるモジュール
 
@@ -63,7 +63,7 @@ AXI4-Stream Video を指定フォーマットに正規化する
 
 ### 動作説明
 
-主に画像入力デバイスの突然の切断やデータ欠け、フォーマット不一致などにより後段のDMAの転送データ数が合わずにデッドロックをおこすなどを防止する目的のものである。
+主に画像入力デバイスの突然の切断やデータ欠け、フォーマット不一致などにより後段のDMAの転送データ数が合わずにデッドロックをおこすなどを防止する目的のものです。
 
 
 
@@ -131,11 +131,11 @@ AXI4-Stream Video を AXI4 メモリバスに書き込み転送を行う
 
 ### 動作説明
 
-CTL_CONTROL の bit0 が1の時に画像データが来ると転送を行う。CTL_CONTROL の bit2 が1の場合は、PARAM_SIZE 分転送すると停止する(bit0は自動クリア)。
-そうでない場合は画像が来るたびに繰り返し転送を行う。
+CTL_CONTROL の bit0 が1の時に画像データが来ると転送を行います。CTL_CONTROL の bit2 が1の場合は、PARAM_SIZE 分転送すると停止する(bit0は自動クリア)。
+そうでない場合は画像が来るたびに繰り返し転送を行います。
 CTL_CONTROL の bit1 が1の時は転送開始や繰り返しのタイミングでパラメータが更新される。
 
-PARAM_SIZE は PARAM_WIDTH×PARAM_HEIGHT の倍数である必要があるが、設定次第で複数フレームの一括記録が可能である。
+PARAM_SIZE は PARAM_WIDTH×PARAM_HEIGHT の倍数である必要があるが、設定次第で複数フレームの一括記録が可能です。
 
 
 ## jelly_vdma_axi4_to_axi4s
@@ -170,9 +170,9 @@ AXI4 メモリバスから読み出して AXI4-Stream Video を出力
 
 ### 動作説明
 
-CTL_CONTROL の bit0 が1の時に画像データの読出しを行う。CTL_CONTROL の bit2 が1の場合は、PARAM_SIZE分転送すると停止する(bit0は自動クリア)。
-そうでない場合は画像が来るたびに繰り返し転送を行う。
+CTL_CONTROL の bit0 が1の時に画像データの読出しを行います。CTL_CONTROL の bit2 が1の場合は、PARAM_SIZE分転送すると停止する(bit0は自動クリア)。
+そうでない場合は画像が来るたびに繰り返し転送を行います。
 CTL_CONTROL の bit1 が1の時は転送開始や繰り返しのタイミングでパラメータが更新される。
 
-PARAM_SIZE は PARAM_WIDTH×PARAM_HEIGHT のサイズである必要がある。
+PARAM_SIZE は PARAM_WIDTH×PARAM_HEIGHT のサイズである必要があります。
 

@@ -17,6 +17,14 @@
 
 # -- Project information -----------------------------------------------------
 
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="pkg_resources is deprecated as an API.*",
+    category=UserWarning,
+)
+
 project = 'Jelly'
 copyright = '2020, Ryuz'
 author = 'Ryuz(https://github.com/ryuz/)'
@@ -28,14 +36,12 @@ author = 'Ryuz(https://github.com/ryuz/)'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'recommonmark',
+    'myst_parser',
     'sphinx_markdown_tables',
     'sphinxcontrib.blockdiag',
     'sphinxcontrib.seqdiag',
     'sphinxcontrib.actdiag',
-    'sphinxcontrib.nwdiag',
-    'sphinxcontrib.rackdiag',
-    'sphinxcontrib.packetdiag'
+    'sphinxcontrib.nwdiag'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -61,9 +67,7 @@ exclude_patterns = []
 #
 #html_theme = 'alabaster'
 
-import sphinx_rtd_theme
 html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 html_style = "css/my_theme.css"
 
@@ -74,21 +78,10 @@ html_static_path = ['_static']
 
 
 
-from recommonmark.parser import CommonMarkParser
-source_parsers = {
-    '.md': CommonMarkParser,
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
 }
 
-source_suffix = ['.rst', '.md']
-
-
-from recommonmark.transform import AutoStructify
-
-github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
-def setup(app):
-    app.add_config_value('recommonmark_config', {
-            'url_resolver': lambda url: github_doc_root + url,
-            'auto_toc_tree_section': 'Contents',
-            }, True)
-    app.add_transform(AutoStructify)
+myst_heading_anchors = 3
 

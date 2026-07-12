@@ -1,0 +1,25 @@
+# Library Ver3
+
+## 概要
+
+Ver3 は `jelly3_` 系の共通ライブラリ群です。型とインタフェース整合を重視しています。
+
+## 実装配置
+
+- `rtl/v3/library`
+
+## 主要モジュール
+
+- `jelly3_fifo_async.sv`
+- `jelly3_fifo_sync.sv`
+- `jelly3_stream_fifo.sv`
+- `jelly3_stream_width_convert.sv`
+- `jelly3_ram_simple_dualport.sv`
+- `jelly3_address_generator_nd.sv`
+- `jelly3_capacity_buffer.sv`
+- `jelly3_reset_sync.sv`
+
+## 移行観点
+
+- Ver3 は `jelly3_` 系 image/video/dma と共通設計で扱うことを推奨します。
+- Ver2 の個別変換ロジックは、Ver3 の stream 系ユーティリティへ段階移行できます。

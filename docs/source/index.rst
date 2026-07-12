@@ -10,14 +10,14 @@ Welcome to Jelly's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   overview
-   dma_modules
-   video_modules
-   image_modules
-   library_modules
+   introduction
+   architecture
+   projects/index
 
-   cpu_core
-   cpu_system
+   common/index
+
+   implementation/index
+   appendix/index
 
 Indices and tables
 ==================
