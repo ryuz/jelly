@@ -73,9 +73,9 @@ module jelly3_img_morphology_filter
     logic   [N-1:0][M-1:0]  core_param_filter   ;
 
     // handshake with core domain
-    index_t         update_index;
-    logic           update_ack;
-    index_t         ctl_index;
+    index_t         update_index    ;
+    logic           update_ack      ;
+    index_t         ctl_index       ;
 
     jelly_param_update_master
             #(
@@ -137,7 +137,7 @@ module jelly3_img_morphology_filter
                 default: ;
                 endcase
                 for ( int i = 0; i < N; i++ ) begin
-                    if ( regadr_write == REGADR_PARAM_FILTER + regadr_t'(i))
+                    if ( regadr_write == REGADR_PARAM_FILTER + regadr_t'(i) ) begin
                         reg_param_filter[i] <= M'(write_mask(axi4l_data_t'(reg_param_filter[i]), s_axi4l.wdata, s_axi4l.wstrb));
                     end
                 end
@@ -160,7 +160,7 @@ module jelly3_img_morphology_filter
                 default:                 s_axi4l.rdata <= '0;
                 endcase
                 for ( int i = 0; i < N; i++ ) begin
-                    if ( regadr_read == REGADR_PARAM_FILTER + regadr_t'(i))
+                    if ( regadr_read == REGADR_PARAM_FILTER + regadr_t'(i) ) begin
                         s_axi4l.rdata <= axi4l_data_t'(reg_param_filter[i]);
                     end
                 end
@@ -183,8 +183,8 @@ module jelly3_img_morphology_filter
     // -------------------------------------
 
     // handshake with registers domain
-    logic   update_trig;
-    logic   update_en;
+    logic   update_trig ;
+    logic   update_en   ;
     assign  update_trig = (s_img.valid & s_img.row_first & s_img.col_first);
 
     jelly_param_update_slave
@@ -282,7 +282,7 @@ module jelly3_img_morphology_filter
                 (
                     .enable         (enable[i]              ),
                     .param_dilation (core_param_dilation[i] ),
-                    .param_filter   (core_param_filter[i]   ),
+                    .param_filter   (core_param_filter      ),
                     .s_img          (img_morph[i]           ),
                     .m_img          (img_morph[i+1]         )
                 );
