@@ -5,9 +5,9 @@
 MicroBlazeが無償で利用でき、ZynqにARMコアが搭載され、今となっては過去の遺物となってしまっていますが、私が Jelly システムを作り始めたきっかけは「CPUを書いてみたい」が発端だったのと、今でも rtl/v1/mipsi フォルダの下に当時RTLを覚えたばかりの頃に書いたCPUのRTLコードが居座っていますので、当時 HTML で書いた説明文を今風に Markdown に書き直してみたいと思います。
 
 
-![spartan3e_starter](images/spartan3e_starter.jpg)
-![mmc](images/mmc.jpg)
-![cq_frk_s3e2](images/cq_frk_s3e2.jpg)
+![spartan3e_starter](../../images/spartan3e_starter.jpg)
+![mmc](../../images/mmc.jpg)
+![cq_frk_s3e2](../../images/cq_frk_s3e2.jpg)
 
 
 ## Jelly-CPUの特徴
@@ -26,7 +26,7 @@ MicroBlazeが無償で利用でき、ZynqにARMコアが搭載され、今とな
 
 ## CPUコアのブロック図
 
-![cpu_core_block](images/cpu_core_block.gif)
+![cpu_core_block](../../images/cpu_core_block.gif)
 
 典型的な教科書どおり５段パイプラインのアーキテクチャで、コア部はハーバードアーキテクチャ(命令バスとデータバスが別)にしています。
 
@@ -41,7 +41,7 @@ MicroBlazeが無償で利用でき、ZynqにARMコアが搭載され、今とな
 
 ### CPUトップの説明図
 
-![cpu_top_block](images/cpu_top_block.gif)
+![cpu_top_block](../../images/cpu_top_block.gif)
 
 CPUコアの外に、密結合メモリ(TCM)とキャッシュを搭載しています。TCMとキャッシュはオプションで切り離しも可能です。
 
@@ -53,7 +53,7 @@ FPGAの内蔵デュアルポートRAMを行かして、２つのポートを命�
 
 ### Spartan3e statrer kit でのシステムの説明図
 
-![spartan3e_block](images/spartan3e_block.gif)
+![spartan3e_block](../../images/spartan3e_block.gif)
 
 今回のボードにはRS-232Cが２ポートあるのをいいことに、デバッグポートはUART経由で制御するようにしています。パソコン側はUSBシリアルなどを買ってきて、増設すればどうにでもなります。ひとまず、プログラムダウンロードやレジスタ制御、ハードウェアブレークなど、将来デバッガ機能を一通り作れる機能を準備しています。
 

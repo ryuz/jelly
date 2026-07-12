@@ -7,5 +7,4 @@ glossary
 faq
 known_limitations
 changelog
-legacy_reference
 ```
