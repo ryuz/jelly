@@ -62,7 +62,7 @@ module jelly3_img_morphology_filter_core
                 .COLS               (M                  ),
                 .MAX_COLS           (MAX_COLS           ),
                 .RAM_TYPE           (RAM_TYPE           ),
-                .BORDER_MODE        ("REFLECT_101"      ),
+                .BORDER_MODE        ("REPLICATE"        ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
             )
         u_mat_buf_blk
