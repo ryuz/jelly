@@ -12,6 +12,12 @@
 dma/index
 video/index
 image/index
+gpu/index
 library/index
 cpu/index
+math/index
+rtos/index
+model/index
+peripheral/index
+primitive/index
 ```
