@@ -12,15 +12,12 @@ Welcome to Jelly's documentation!
 
    introduction
    architecture
+   projects/index
 
    common/index
-   workflow/index
 
    implementation/index
-   migration/index
    appendix/index
-
-   overview
 
 Indices and tables
 ==================
