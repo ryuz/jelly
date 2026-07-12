@@ -11,6 +11,7 @@ Processing steps:
 from __future__ import annotations
 
 import argparse
+import time
 from pathlib import Path
 
 import cv2
@@ -55,6 +56,8 @@ def main() -> None:
 
     kernel = np.ones((3, 3), dtype=np.uint8)
 
+    t0 = time.perf_counter()
+
     # 1) opening part
     stage1_erode = cv2.erode(img, kernel, iterations=1)
     stage2_dilate = cv2.dilate(stage1_erode, kernel, iterations=1)
@@ -62,6 +65,8 @@ def main() -> None:
     # 2) closing part
     stage3_dilate = cv2.dilate(stage2_dilate, kernel, iterations=1)
     stage4_erode = cv2.erode(stage3_dilate, kernel, iterations=1)
+
+    elapsed_ms = (time.perf_counter() - t0) * 1000.0
 
     if not cv2.imwrite(str(args.output), stage4_erode):
         raise OSError(f"Failed to write output image: {args.output}")
@@ -83,6 +88,7 @@ def main() -> None:
     print("Output:", args.output)
     print("Kernel:", "3x3 ones")
     print("Pipeline: erode -> dilate -> dilate -> erode")
+    print(f"Morphology time: {elapsed_ms:.3f} ms")
 
 
 if __name__ == "__main__":
