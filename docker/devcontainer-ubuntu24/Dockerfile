@@ -123,10 +123,11 @@ RUN apt-get update \
         x11-apps \
         libtinfo6 libncurses6 \
         protobuf-compiler \
- && apt-get install -y \
+        gcc-arm-none-eabi libnewlib-arm-none-eabi \
+&& apt-get install -y \
         libopencv-dev:arm64 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+&& apt-get clean \
+&& rm -rf /var/lib/apt/lists/*
 
 # VS-Code Dev Container
 ARG USERNAME=vscode
@@ -163,7 +164,10 @@ RUN cargo install cross
 RUN cargo install evcxr_jupyter
 RUN cargo install verylup \
  && verylup setup
-RUN cargo install --git https://github.com/ryuz/jelly-fpga-loader.git --tag v0.1.0
+RUN cargo install --git https://github.com/ryuz/jelly-fpga-loader.git --tag v0.1.1
+RUN rustup target add armv7r-none-eabi
+RUN cargo install cargo-binutils
+RUN rustup component add llvm-tools
 
 RUN git clone https://github.com/ryuz/vitisenv.git -b v0.0.3 /home/$USERNAME/.vitisenv
 RUN echo '' >> /home/$USERNAME/.bashrc \

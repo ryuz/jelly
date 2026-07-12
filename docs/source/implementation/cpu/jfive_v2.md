@@ -1,0 +1,22 @@
+# CPU/SoC Ver2
+
+## 概要
+
+Ver2 は `jelly2_jfive_*` 系を中心とした CPU/SoC 実装です。
+
+## 実装配置
+
+- `rtl/v2/jfive`
+
+## 主要モジュール
+
+- `jelly2_jfive_simple_core.sv`
+- `jelly2_jfive_simple_controller.sv`
+- `jelly2_jfive_micro_core.sv`
+- `jelly2_jfive_micro_controller.sv`
+- `jelly2_register_file.sv`
+
+## 利用指針
+
+- Ver2 CPU は周辺を `rtl/v2/bus` と組み合わせる構成が基本です。
+- 先に CPU 単体検証を行い、その後 DMA/Video/Image 連携へ拡張する流れを推奨します。

@@ -1,0 +1,24 @@
+# CPU/SoC Ver3
+
+## 概要
+
+Ver3 は `jelly3_jfive_*` 系を中心とした CPU/SoC 実装です。
+
+## 実装配置
+
+- `rtl/v3/jfive`
+
+## 主要モジュール
+
+- `jelly3_jfive_core.sv`
+- `jelly3_jfive_controller.sv`
+- `jelly3_jfive_execution.sv`
+- `jelly3_jfive_instruction_decode.sv`
+- `jelly3_jfive_load_store.sv`
+- `jelly3_jfive_register_file.sv`
+- `jelly3_jfive32_pkg.sv`
+
+## 移行観点
+
+- Ver2 からの移行では命令デコード/実行ステージ単位で置換可能です。
+- Ver3 library/peripheral と同世代で揃えると保守性が向上します。

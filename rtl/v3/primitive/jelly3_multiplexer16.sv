@@ -22,13 +22,16 @@ module jelly3_multiplexer16
             output  var logic           dout
         );
 
-    if ( string'(DEVICE) == "SPARTAN6"
-            || string'(DEVICE) == "VIRTEX6"
-            || string'(DEVICE) == "7SERIES"
-            || string'(DEVICE) == "ULTRASCALE"
-            || string'(DEVICE) == "ULTRASCALE_PLUS"
-            || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
-            || string'(DEVICE) == "ULTRASCALE_PLUS_ES2") begin : xilinx    
+    if (
+            // verilator lint_off WIDTHEXPAND
+               DEVICE == "SPARTAN6"
+            || DEVICE == "VIRTEX6"
+            || DEVICE == "7SERIES"
+            || DEVICE == "ULTRASCALE"
+            || DEVICE == "ULTRASCALE_PLUS"
+            || DEVICE == "ULTRASCALE_PLUS_ES1"
+            || DEVICE == "ULTRASCALE_PLUS_ES2") begin : xilinx    
+            // verilator lint_on WIDTHEXPAND
         
         // XILINX XAPP522
         logic   [3:0]   l;

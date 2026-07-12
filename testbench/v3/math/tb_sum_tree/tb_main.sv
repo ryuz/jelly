@@ -12,7 +12,7 @@ module tb_main
     int     cycle = 0;
     always_ff @(posedge clk) begin
         cycle <= cycle + 1;
-        if ( cycle > 1000 ) begin
+        if ( cycle > 10000 ) begin
             $error("timeout");
         end
     end
@@ -111,7 +111,7 @@ module tb_main
                     ok_count <= ok_count + 1;
    //               $display("OK");
 
-                    if ( ok_count > 100 ) begin
+                    if ( ok_count > 1000 ) begin
                         $display("ALL-OK");
                         $finish();
                     end

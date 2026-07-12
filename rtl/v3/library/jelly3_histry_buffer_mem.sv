@@ -117,5 +117,6 @@ module jelly3_histry_buffer_mem
     
 endmodule
 
+`default_nettype wire
 
 // End of file

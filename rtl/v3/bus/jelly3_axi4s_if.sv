@@ -40,7 +40,7 @@ interface jelly3_axi4s_if
     // signals
     (* MARK_DEBUG=DEBUG *)  logic   [DATA_BITS-1:0]     tdata   ;
                             logic   [STRB_BITS-1:0]     tstrb   ;
-                            logic   [STRB_BITS-1:0]     tkeep   ;
+                            logic   [KEEP_BITS-1:0]     tkeep   ;
     (* MARK_DEBUG=DEBUG *)  logic                       tlast   ;
                             logic   [ID_BITS-1:0]       tid     ;
                             logic   [DEST_BITS-1:0]     tdest   ;

@@ -72,7 +72,7 @@ module jelly3_mat_buf_row
     localparam  int     MEM_ADDR_BITS = $clog2(MAX_COLS)                    ;
     localparam  int     MEM_DATA_BITS = $bits(user_t) + $bits(data_t) * TAPS;
     localparam  int     MEMS          = ROWS - 1                            ;
-    localparam  int     LINE_SEL_BITS = $clog2(MEMS)                        ;
+    localparam  int     LINE_SEL_BITS = MEMS > 1 ? $clog2(MEMS) : 1         ;
     localparam  int     POS_BITS      = $clog2(MEMS+1)                      ;
 
     localparam  type    mem_we_t      = logic [MEMS-1:0]                    ;
@@ -176,16 +176,24 @@ module jelly3_mat_buf_row
                             first_idx    = idx;
                         end
                         else if ( first_detect ) begin
-                            if ( string'(BORDER_MODE) == "REPLICATE" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            if ( BORDER_MODE == "REPLICATE" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(first_idx);
                             end
-                            else if ( string'(BORDER_MODE) == "REFLECT" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "REFLECT" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(first_idx + (first_idx - idx) - 1);
                             end
-                            else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "REFLECT_101" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(first_idx + (first_idx - idx));
                             end
-                            else if ( string'(BORDER_MODE) == "CONSTANT" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "CONSTANT" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_data[idx] <= {TAPS{BORDER_VALUE}};
                             end
                             else begin
@@ -204,16 +212,24 @@ module jelly3_mat_buf_row
                             last_idx    = idx;
                         end
                         else if ( last_detect ) begin
-                            if ( string'(BORDER_MODE) == "REPLICATE" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            if ( BORDER_MODE == "REPLICATE" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(last_idx);
                             end
-                            else if ( string'(BORDER_MODE) == "REFLECT" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "REFLECT" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(last_idx - (idx - last_idx) + 1);
                             end
-                            else if ( string'(BORDER_MODE) == "REFLECT_101" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "REFLECT_101" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_index[idx] <= index_t'(last_idx - (idx - last_idx));
                             end
-                            else if ( string'(BORDER_MODE) == "CONSTANT" ) begin
+                            // verilator lint_off WIDTHEXPAND
+                            else if ( BORDER_MODE == "CONSTANT" ) begin
+                            // verilator lint_on WIDTHEXPAND
                                 st0_data[idx] <= {TAPS{BORDER_VALUE}};
                             end
                             else begin

@@ -37,7 +37,7 @@ module jelly3_jfive_execution
             parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_LO    = '{32'h8000_0000, 32'h0000_0000}    ,
             parameter   rval_t  [LS_UNITS-1:0]  LS_ADDRS_HI    = '{32'hffff_ffff, 32'h7fff_ffff}    ,
             parameter   int                     LOAD_QUES      = 2                                  ,
-            parameter   int                     BUSY_RDS       = 3                                  ,
+            parameter   int                     BUSY_RDS       = 3 + LS_UNITS * (LOAD_QUES + 1)     ,
             parameter   bit                     RAW_HAZARD     = 1'b1                               ,
             parameter   bit                     WAW_HAZARD     = 1'b1                               ,
             parameter                           DEVICE         = "RTL"                              ,
@@ -69,7 +69,7 @@ module jelly3_jfive_execution
             output  var ridx_t                  wb_rd_idx           ,
             output  var rval_t                  wb_rd_val           ,
 
-            // data bus 
+            // data bus
             output  var addr_t  [LS_UNITS-1:0]  dbus_aaddr          ,
             output  var logic   [LS_UNITS-1:0]  dbus_awrite         ,
             output  var logic   [LS_UNITS-1:0]  dbus_aread          ,
@@ -83,7 +83,7 @@ module jelly3_jfive_execution
             input   var logic   [LS_UNITS-1:0]  dbus_rvalid         ,
             output  var logic   [LS_UNITS-1:0]  dbus_rready         ,
 
-            // output
+            // input
             input   var id_t                    s_id                ,
             input   var phase_t                 s_phase             ,
             input   var pc_t                    s_pc                ,
@@ -105,6 +105,7 @@ module jelly3_jfive_execution
             input   var logic                   s_load              ,
             input   var logic                   s_store             ,
             input   var logic                   s_branch            ,
+            input   var logic                   s_csr               ,
             input   var logic                   s_adder_sub         ,
             input   var logic                   s_adder_imm_en      ,
             input   var rval_t                  s_adder_imm_val     ,
@@ -120,6 +121,10 @@ module jelly3_jfive_execution
             input   var pc_t                    s_branch_pc         ,
             input   var size_t                  s_mem_size          ,
             input   var logic                   s_mem_unsigned      ,
+            input   var logic   [1:0]           s_csr_mode          ,
+            input   var logic   [11:0]          s_csr_csr           ,
+            input   var logic                   s_csr_imm_en        ,
+            input   var rval_t                  s_csr_imm_val       ,
             input   var logic                   s_valid             ,
             output  var logic                   s_ready
         );
@@ -168,7 +173,7 @@ module jelly3_jfive_execution
             );
 
     // match
-    logic       st0_match_eq    ;     
+    logic       st0_match_eq    ;
     jelly3_jfive_match
             #(
                 .XLEN           (XLEN               ),
@@ -178,7 +183,7 @@ module jelly3_jfive_execution
                 .DEBUG          (DEBUG              )
             )
         u_jfive_match
-        (
+            (
                 .reset          ,
                 .clk            ,
                 .cke            (cke & s_ready      ),
@@ -187,7 +192,7 @@ module jelly3_jfive_execution
                 .s_rs2_val      (s_rs2_val          ),
                 
                 .m_eq           (st0_match_eq       )
-        );
+            );
 
 
     // logical
@@ -282,6 +287,12 @@ module jelly3_jfive_execution
     rval_t              st0_mem_wdata           ;
     logic               st0_mem_valid           ;
     logic               st0_mem_valid_reg       ;
+    logic               st0_csr                 ;
+    logic               st0_csr_reg             ;
+    logic   [1:0]       st0_csr_mode            ;
+    logic   [11:0]      st0_csr_csr             ;
+    logic               st0_csr_imm_en          ;
+    rval_t              st0_csr_imm_val         ;
     logic               st0_valid_reg           ;
     logic               st0_valid               ;
     logic               st0_ready               ;
@@ -309,6 +320,7 @@ module jelly3_jfive_execution
             st0_load_reg            <= 1'b0     ;
             st0_store_reg           <= 1'b0     ;
             st0_branch_reg          <= 1'b0     ;
+            st0_csr_reg             <= 1'b0     ;
             st0_adder_sub           <= 'x       ;
             st0_adder_imm_en        <= 'x       ;
             st0_adder_imm_val       <= 'x       ;
@@ -327,6 +339,10 @@ module jelly3_jfive_execution
             st0_mem_wstrb           <= '0       ;
             st0_mem_wdata           <= 'x       ;
             st0_mem_valid_reg       <= 1'b0     ;
+            st0_csr_mode            <= 'x       ;
+            st0_csr_csr             <= 'x       ;
+            st0_csr_imm_en          <= 'x       ;
+            st0_csr_imm_val         <= 'x       ;
             st0_valid_reg           <= 1'b0     ;
         end
         else if ( cke && s_ready ) begin
@@ -351,6 +367,7 @@ module jelly3_jfive_execution
             st0_load_reg            <= s_load    & s_valid  ;
             st0_store_reg           <= s_store   & s_valid  ;
             st0_branch_reg          <= s_branch  & s_valid  ;
+            st0_csr_reg             <= s_csr     & s_valid  ;
             st0_adder_sub           <= s_adder_sub          ;
             st0_adder_imm_en        <= s_adder_imm_en       ;
             st0_adder_imm_val       <= s_adder_imm_val      ;
@@ -369,7 +386,11 @@ module jelly3_jfive_execution
             st0_mem_wstrb           <= s_store ? make_strb (s_mem_size, align_t'(s_rs1_val + s_adder_imm_val)) : '0;
             st0_mem_wdata           <= make_wdata(s_mem_size, s_rs2_val)            ;
             st0_mem_valid_reg       <= (s_load || s_store) && s_valid               ;
-            st0_valid_reg           <= s_valid                                      ;
+            st0_csr_mode            <= s_csr_mode           ;
+            st0_csr_csr             <= s_csr_csr            ;
+            st0_csr_imm_en          <= s_csr_imm_en         ;
+            st0_csr_imm_val         <= s_csr_imm_val        ;
+            st0_valid_reg           <= s_valid              ;
         end
     end
 
@@ -381,6 +402,7 @@ module jelly3_jfive_execution
     assign st0_store        = st0_store_reg     && st0_phase_en;
     assign st0_branch       = st0_branch_reg    && st0_phase_en;
     assign st0_mem_valid    = st0_mem_valid_reg && st0_phase_en;
+    assign st0_csr          = st0_csr_reg       && st0_phase_en;
     assign st0_valid        = st0_valid_reg     && st0_phase_en;
     assign st0_branch_valid = st0_branch  &&  st0_valid  && st0_ready;
 
@@ -476,6 +498,8 @@ module jelly3_jfive_execution
     rval_t  [LS_UNITS-1:0]                  load_rd_val ;
     logic   [LS_UNITS-1:0]                  load_valid  ;
     logic   [LS_UNITS-1:0]                  load_ready  ;
+    logic   [LS_UNITS-1:0]                  load_busy_en;
+
     for ( genvar i = 0; i < LS_UNITS; i++ ) begin : load_store
 
         jelly3_jfive_load_store
@@ -555,6 +579,8 @@ module jelly3_jfive_execution
                     .m_valid            (load_valid [i]             ),
                     .m_ready            (load_ready [i]             )
                 );
+        
+        assign load_busy_en[i] = load_valid[i] && !load_ready [i] && load_rd_en [i];
     end
 
     // control
@@ -608,6 +634,7 @@ module jelly3_jfive_execution
             st1_rd_idx  <= st0_rd_idx ;
             st1_rd_val  <= st0_adder   ? st0_adder_rd_val   :
                            st0_logical ? st0_logical_rd_val :
+                           st0_csr     ? rval_t'(st0_id)    :
                            st0_rd_val ;
             st1_rs1_en  <= st0_rs1_en ;
             st1_rs1_idx <= st0_rs1_idx;
@@ -690,9 +717,9 @@ module jelly3_jfive_execution
     end
 
     // busy
-    assign busy_id      = {que_id,     st0_id,     st1_id,     st2_id    };
-    assign busy_rd_en   = {que_rd_en,  st0_rd_en,  st1_rd_en,  st2_rd_en };
-    assign busy_rd_idx  = {que_rd_idx, st0_rd_idx, st1_rd_idx, st2_rd_idx};
+    assign busy_id      = {que_id,     st0_id,     st1_id,     st2_id    , load_id     };
+    assign busy_rd_en   = {que_rd_en,  st0_rd_en,  st1_rd_en,  st2_rd_en , load_busy_en};
+    assign busy_rd_idx  = {que_rd_idx, st0_rd_idx, st1_rd_idx, st2_rd_idx, load_rd_idx };
 
     // writeback
     always_comb begin

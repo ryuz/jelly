@@ -19,6 +19,7 @@ SIM_LIB_DIRS += ../../../rtl
 SIM_LIB_DIRS += ../../../../rtl
 
 VLOGFLAGS  = -sv
+VLOGFLAGS += --define __VIVADOSIM__
 VLOGFLAGS += --sourcelibext .v
 VLOGFLAGS += --sourcelibext .sv
 VLOGFLAGS += $(addprefix --sourcelibdir ,$(SIM_LIB_DIRS))

@@ -1,0 +1,5 @@
+all:
+{
+    zybo_z7_hub75e_sample.bit
+}
+

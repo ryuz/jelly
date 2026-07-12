@@ -103,6 +103,7 @@ module jelly3_img_bayer_black_level_core
                 .s_mat_col_last     (s_img.col_last     ),
                 .s_mat_de           (s_img.de           ),
                 .s_mat_user         (s_img.user         ),
+                .s_mat_data         ('0                 ),
                 .s_mat_valid        (s_img.valid        ),
                 
                 .m_mat_rows         (m_img.rows         ),
@@ -113,6 +114,7 @@ module jelly3_img_bayer_black_level_core
                 .m_mat_col_last     (m_img.col_last     ),
                 .m_mat_de           (m_img.de           ),
                 .m_mat_user         (m_img.user         ),
+                .m_mat_data         (                   ),
                 .m_mat_valid        (m_img.valid        )
             );
 

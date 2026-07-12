@@ -178,6 +178,8 @@ module tb_top();
         // リセット解除
         $display("reset release");
         u_axi4l_accessor.write_reg(0, 4, 1, 4'hf);
+        #10000000;
+        $finish;
     end
 
 

@@ -107,4 +107,6 @@ module jelly3_ram_simple_dualport
 endmodule
 
 
+`default_nettype wire
+
 // End of file

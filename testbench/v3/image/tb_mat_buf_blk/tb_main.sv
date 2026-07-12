@@ -130,8 +130,6 @@ module tb_main
                 .m_mat_valid         (mat_dst.valid     )
             );
     
-    assign mat_dst.rows = mat_src.rows;
-    assign mat_dst.cols = mat_src.cols;
 
 
     // --------------------------------------------------
@@ -139,8 +137,7 @@ module tb_main
     // --------------------------------------------------
 
 //  localparam          FILE_NAME       = "";
-    localparam          FILE_NAME       = "../../../../../data/images/windowswallpaper/Chrysanthemum_320x240.ppm";
-//  localparam          FILE_NAME       = "../../../../../data/images/windowswallpaper/Penguins_320x240.ppm";
+    localparam          FILE_NAME       = "../../../../../data/images/standard_images/color/Mandrill_320x240.ppm";
     localparam  int     FILE_IMG_WIDTH  = 320;
     localparam  int     FILE_IMG_HEIGHT = 240;
     localparam  int     IMG_WIDTH       = 320;

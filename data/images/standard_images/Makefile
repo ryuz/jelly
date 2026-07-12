@@ -47,8 +47,11 @@ $(MONO_FILES): mono.zip
 
 
 # convert
-color/Mandrill_256x256.ppm: color/Mandrill.bmp
-	${TOOL_DIR}/img2ppm.py $< $@ --width 256 --height 256
+color/Mandrill_512x512.ppm: color/Mandrill.bmp
+	${TOOL_DIR}/img2ppm.py $< $@ --width 512 --height 512
+
+color/Mandrill_320x240.ppm: color/Mandrill.bmp
+	${TOOL_DIR}/img2ppm.py $< $@ --width 320 --height 240
 
 color/Mandrill_256x256.pgm: color/Mandrill.bmp
 	${TOOL_DIR}/img2pgm.py $< $@ --width 256 --height 256
@@ -61,6 +64,9 @@ color/Mandrill_128x128.pgm: color/Mandrill.bmp
 
 color/Mandrill_256x256_bayer10.pgm: color/Mandrill.bmp
 	${TOOL_DIR}/img2pgm.py $< $@ --width 256 --height 256 --bayer --depth 10
+
+color/Mandrill_640x480_bayer10.pgm: color/Mandrill.bmp
+	${TOOL_DIR}/img2pgm.py $< $@ --width 640 --height 480 --bayer --depth 10
 
 
 mono/BOAT_256x256.pgm: mono/BOAT.bmp     

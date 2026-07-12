@@ -11,11 +11,11 @@ fn panic(_panic: &PanicInfo<'_>) -> ! {
 }
 
 
-extern{
+extern "C" {
     fn asm_test() -> i32;
 }
 
-static mut DATA : i32 = 0;
+// static mut DATA : i32 = 0;
 
 
 #[no_mangle]

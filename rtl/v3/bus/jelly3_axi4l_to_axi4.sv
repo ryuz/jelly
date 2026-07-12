@@ -26,7 +26,6 @@ module jelly3_axi4l_to_axi4
             parameter   bit     [BURST_BITS -1:0]   BURST      = 2'b01      ,
             parameter   bit     [LOCK_BITS  -1:0]   LOCK       = '0         ,
             parameter   bit     [CACHE_BITS -1:0]   CACHE      = '0         ,
-            parameter   bit     [PROT_BITS  -1:0]   PROT       = 3'b010     ,
             parameter   bit     [QOS_BITS   -1:0]   QOS        = '0         ,
             parameter   bit     [REGION_BITS-1:0]   REGION     = '0         ,
             parameter   bit     [AWUSER_BITS-1:0]   AWUSER     = '0         ,

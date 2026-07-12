@@ -22,6 +22,7 @@ module tb_main
     
     jelly3_stream_fifo_sr
             #(
+                .PTR_BITS       (2          ),
                 .DATA_BITS      (DATA_BITS  ),
                 .data_t         (data_t     )
             )

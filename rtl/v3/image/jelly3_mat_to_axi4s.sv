@@ -30,7 +30,12 @@ module jelly3_mat_to_axi4s
         end
         else begin
             m_axi4s.tuser    <= user_t'(s_mat.user << 1)            ;
-            m_axi4s.tuser[0] <= s_mat.row_first && s_mat.col_first  ;
+            if ( m_axi4s.tvalid ) begin
+                m_axi4s.tuser[0] <= 1'b0;
+            end
+            if ( s_mat.valid && s_mat.row_first && s_mat.col_first ) begin
+                m_axi4s.tuser[0] <= 1'b1;
+            end
             m_axi4s.tlast    <= s_mat.col_last                      ;
             m_axi4s.tdata    <= data_t'(s_mat.data)                 ;
             m_axi4s.tvalid   <= s_mat.de && s_mat.valid && s_mat.cke;

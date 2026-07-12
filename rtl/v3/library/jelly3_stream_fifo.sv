@@ -84,7 +84,9 @@ module jelly3_stream_fifo
                 );
     end
     else begin : sync
-        if ( string'(RAM_TYPE) == "register" ) begin : sr
+        // verilator lint_off WIDTHEXPAND
+        if ( RAM_TYPE == "register" ) begin : sr
+        // verilator lint_on WIDTHEXPAND
             jelly3_stream_fifo_sr
                     #(
                         .PTR_BITS       (PTR_BITS       ),

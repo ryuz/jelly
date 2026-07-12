@@ -33,19 +33,21 @@ module jelly3_shift_register
     
     
     if ( DEPTH > 1 && DEPTH <= 32
-          && ( string'(DEVICE) == "SPARTAN6"
-            || string'(DEVICE) == "VIRTEX6"
-            || string'(DEVICE) == "7SERIES"
-            || string'(DEVICE) == "ULTRASCALE"
-            || string'(DEVICE) == "ULTRASCALE_PLUS"
-            || string'(DEVICE) == "ULTRASCALE_PLUS_ES1"
-            || string'(DEVICE) == "ULTRASCALE_PLUS_ES2"
-            || string'(DEVICE) == "VERSAL_AI_CORE"
-            || string'(DEVICE) == "VERSAL_AI_CORE_ES1"
-            || string'(DEVICE) == "VERSAL_AI_CORE_ES2"
-            || string'(DEVICE) == "VERSAL_PRIME"
-            || string'(DEVICE) == "VERSAL_PRIME_ES1"
-            || string'(DEVICE) == "VERSAL_PRIME_ES2" ) ) begin : xilinx
+            // verilator lint_off WIDTHEXPAND
+          && ( DEVICE == "SPARTAN6"
+            || DEVICE == "VIRTEX6"
+            || DEVICE == "7SERIES"
+            || DEVICE == "ULTRASCALE"
+            || DEVICE == "ULTRASCALE_PLUS"
+            || DEVICE == "ULTRASCALE_PLUS_ES1"
+            || DEVICE == "ULTRASCALE_PLUS_ES2"
+            || DEVICE == "VERSAL_AI_CORE"
+            || DEVICE == "VERSAL_AI_CORE_ES1"
+            || DEVICE == "VERSAL_AI_CORE_ES2"
+            || DEVICE == "VERSAL_PRIME"
+            || DEVICE == "VERSAL_PRIME_ES1"
+            || DEVICE == "VERSAL_PRIME_ES2" ) ) begin : xilinx
+            // verilator lint_on WIDTHEXPAND
         if ( DEPTH <= 16 ) begin : srl16e
             logic   [3:0]   a;
             assign a = 4'(addr);
@@ -90,8 +92,10 @@ module jelly3_shift_register
         end
     end
     else if ( DEPTH > 1 && DEPTH <= 8
-          && ( string'(DEVICE) == "Topaz"
-            || string'(DEVICE) == "Titanium" ) ) begin : efinix
+          // verilator lint_off WIDTHEXPAND
+          && ( DEVICE == "Topaz"
+            || DEVICE == "Titanium" ) ) begin : efinix
+          // verilator lint_on WIDTHEXPAND
         logic   [2:0]   a;
         assign a = 3'(addr);
         for ( genvar i = 0; i < $bits(data_t); i++ ) begin : srl8

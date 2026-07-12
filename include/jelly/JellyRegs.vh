@@ -641,6 +641,22 @@
 `define REG_IMG_LK_ACC_OUT_DY0                  'h66
 `define REG_IMG_LK_ACC_OUT_DY1                  'h67
 
+`define REG_IMG_MOMENT_CORE_ID                  'h00
+`define REG_IMG_MOMENT_CORE_VERSION             'h01
+`define REG_IMG_MOMENT_IRQ_ENABLE               'h08
+`define REG_IMG_MOMENT_IRQ_STATUS               'h09
+`define REG_IMG_MOMENT_IRQ_CLR                  'h0a
+`define REG_IMG_MOMENT_IRQ_SET                  'h0b
+`define REG_IMG_MOMENT_OUT_VALID                'h20
+`define REG_IMG_MOMENT_OUT_READY                'h21
+`define REG_IMG_MOMENT_OUT_X_LO                 'h30
+`define REG_IMG_MOMENT_OUT_X_HI                 'h31
+`define REG_IMG_MOMENT_OUT_Y_LO                 'h32
+`define REG_IMG_MOMENT_OUT_Y_HI                 'h33
+`define REG_IMG_MOMENT_MOMENT_VALID             'h40
+`define REG_IMG_MOMENT_MOMENT_READY             'h41
+`define REG_IMG_MOMENT_MOMENT_DATA              'h50
+
 /* image selector */
 `define REG_IMG_SELECTOR_CORE_ID                'h00
 `define REG_IMG_SELECTOR_CORE_VERSION           'h01

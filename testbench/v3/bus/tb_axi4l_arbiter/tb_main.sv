@@ -64,6 +64,7 @@ module tb_main
     //  Model
     // -------------------------
 
+    /*
     jelly3_axi4l_terminator
             #(
                 .READ_VALUE (32'h87654321)
@@ -72,6 +73,33 @@ module tb_main
             (
                 .s_axi4l    (m_axi4l.s  )
             );
+    */
+
+    jelly3_model_axi4l_s
+            #(
+                .MEM_ADDR_BITS      (16             ),
+                .READ_DATA_ADDR     (1              ),
+                .WRITE_LOG_FILE     ("w_log.txt"    ),
+                .READ_LOG_FILE      ("r_log.txt"    ),
+                .AW_DELAY           (0              ),
+                .AR_DELAY           (0              ),
+                .AW_FIFO_PTR_BITS   (0              ),
+                .W_FIFO_PTR_BITS    (0              ),
+                .B_FIFO_PTR_BITS    (0              ),
+                .AR_FIFO_PTR_BITS   (0              ),
+                .R_FIFO_PTR_BITS    (0              ),
+                .AW_BUSY_RATE       (50             ),
+                .W_BUSY_RATE        (50             ),
+                .B_BUSY_RATE        (50             ),
+                .AR_BUSY_RATE       (50             ),
+                .R_BUSY_RATE        (50             ),
+                .AW_RAND_SEED       (50             )
+            )
+        u_model_axi4l_s
+            (
+                .s_axi4l            (m_axi4l.s      )
+            );
+
 
     int     cycle;
     localparam CYCLE_LIMIT = 1000;
