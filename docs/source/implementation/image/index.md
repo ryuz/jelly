@@ -9,7 +9,7 @@ Image 処理系の世代別リファレンスです。色変換、デモザイ�
 ```{toctree}
 :maxdepth: 1
 
-v1
-v2
-v3
+image_v1
+image_v2
+image_v3
 ```

@@ -9,7 +9,7 @@ Library は各世代の共通部品群を扱います。FIFO、RAM、幅変換�
 ```{toctree}
 :maxdepth: 1
 
-v1
-v2
-v3
+library_v1
+library_v2
+library_v3
 ```

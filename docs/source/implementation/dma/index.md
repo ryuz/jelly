@@ -9,7 +9,7 @@ DMA 系モジュールの世代別リファレンスです。Ver1 は既存運�
 ```{toctree}
 :maxdepth: 1
 
-v1
-v2
-v3
+dma_v1
+dma_v2
+dma_v3
 ```

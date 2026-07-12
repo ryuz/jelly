@@ -9,7 +9,7 @@ CPU/SoC 章ではソフトコアおよび周辺接続の世代差分を整理し
 ```{toctree}
 :maxdepth: 1
 
-v1
-v2
-v3
+cpu_v1
+jfive_v2
+jfive_v3
 ```

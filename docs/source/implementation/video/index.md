@@ -9,7 +9,7 @@ Video 信号処理系の世代別リファレンスです。入力整形、フ�
 ```{toctree}
 :maxdepth: 1
 
-v1
-v2
-v3
+video_v1
+video_v2
+video_v3
 ```
