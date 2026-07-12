@@ -155,7 +155,7 @@ module jelly3_img_morphology_filter_core
     initial begin
         sva_ch_bits    : assert ( $bits(ch_t) == 1 ) else $warning("$bits(ch_t) != 1");
         sva_data_bits   : assert ( $bits(ch_t) == s_img.DATA_BITS ) else $warning("$bits(ch_t) != s_img.DATA_BITS");
-        sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS * 2) else $warning("m_img.DATA_BITS != s_img.DATA_BITS * 2");
+        sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS) else $warning("m_img.DATA_BITS != s_img.DATA_BITS");
     end
     always_comb begin
         sva_connect_clk : assert (m_img.clk === s_img.clk);

@@ -130,7 +130,7 @@ module jelly3_axi4s_to_mat
                 m_mat.row_last  <= !blank && y_next  == param_rows;
                 m_mat.col_first <= x_count == '0;
                 m_mat.col_last  <= x_next == param_cols;
-                m_mat.de        <= !blank;
+                m_mat.de        <= {m_mat.DE_BITS{!blank}};
                 m_mat.user      <= s_axi4s.tuser >> 1;
                 m_mat.data      <= s_axi4s.tdata;
                 m_mat.valid     <= 1'b1;

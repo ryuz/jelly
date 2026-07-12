@@ -657,6 +657,16 @@
 `define REG_IMG_MOMENT_MOMENT_READY             'h41
 `define REG_IMG_MOMENT_MOMENT_DATA              'h50
 
+ /* morphology filter */
+`define REG_IMG_MORPHO_CORE_ID                  'h00
+`define REG_IMG_MORPHO_CORE_VERSION             'h01
+`define REG_IMG_MORPHO_CTL_CONTROL              'h04
+`define REG_IMG_MORPHO_CTL_STATUS               'h05
+`define REG_IMG_MORPHO_CTL_INDEX                'h07
+`define REG_IMG_MORPHO_PARAM_ENABLE             'h08
+`define REG_IMG_MORPHO_PARAM_DILATION           'h09
+`define REG_IMG_MORPHO_PARAM_FILTER             'h10
+
 /* image selector */
 `define REG_IMG_SELECTOR_CORE_ID                'h00
 `define REG_IMG_SELECTOR_CORE_VERSION           'h01
@@ -667,6 +677,34 @@
 /* ---------------------------------- */
 /*  Peripherals                       */
 /* ---------------------------------- */
+
+`define REG_PERIPHERAL_SYSCTL_CORE_ID           'h00
+`define REG_PERIPHERAL_SYSCTL_CORE_VERSION      'h01
+`define REG_PERIPHERAL_SYSCTL_CONFIG0           'h08
+`define REG_PERIPHERAL_SYSCTL_CONFIG1           'h09
+`define REG_PERIPHERAL_SYSCTL_CONFIG2           'h0a
+`define REG_PERIPHERAL_SYSCTL_CONFIG3           'h0b
+`define REG_PERIPHERAL_SYSCTL_CONFIG4           'h0c
+`define REG_PERIPHERAL_SYSCTL_CONFIG5           'h0d
+`define REG_PERIPHERAL_SYSCTL_CONFIG6           'h0e
+`define REG_PERIPHERAL_SYSCTL_CONFIG7           'h0f
+`define REG_PERIPHERAL_SYSCTL_CONTROL0          'h10
+`define REG_PERIPHERAL_SYSCTL_CONTROL1          'h11
+`define REG_PERIPHERAL_SYSCTL_CONTROL2          'h12
+`define REG_PERIPHERAL_SYSCTL_CONTROL3          'h13
+`define REG_PERIPHERAL_SYSCTL_CONTROL4          'h14
+`define REG_PERIPHERAL_SYSCTL_CONTROL5          'h15
+`define REG_PERIPHERAL_SYSCTL_CONTROL6          'h16
+`define REG_PERIPHERAL_SYSCTL_CONTROL7          'h17
+`define REG_PERIPHERAL_SYSCTL_MONITOR0          'h18
+`define REG_PERIPHERAL_SYSCTL_MONITOR1          'h19
+`define REG_PERIPHERAL_SYSCTL_MONITOR2          'h1a
+`define REG_PERIPHERAL_SYSCTL_MONITOR3          'h1b
+`define REG_PERIPHERAL_SYSCTL_MONITOR4          'h1c
+`define REG_PERIPHERAL_SYSCTL_MONITOR5          'h1d
+`define REG_PERIPHERAL_SYSCTL_MONITOR6          'h1e
+`define REG_PERIPHERAL_SYSCTL_MONITOR7          'h1f
+
 
 /* I2C */
 `define REG_PERIPHERAL_I2C_STATUS               'h00
