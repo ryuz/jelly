@@ -17,6 +17,14 @@
 
 # -- Project information -----------------------------------------------------
 
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="pkg_resources is deprecated as an API.*",
+    category=UserWarning,
+)
+
 project = 'Jelly'
 copyright = '2020, Ryuz'
 author = 'Ryuz(https://github.com/ryuz/)'
