@@ -119,7 +119,7 @@ module jelly3_img_morphology_filter_core
                 .COLS_BITS          (COLS_BITS          ),
                 .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
-                .LATENCY            (7                  ),
+                .LATENCY            (2                  ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
             )
         u_img_delay
