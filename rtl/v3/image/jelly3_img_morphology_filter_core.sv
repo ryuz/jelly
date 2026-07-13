@@ -49,7 +49,7 @@ module jelly3_img_morphology_filter_core
     logic                               img_blk_col_last    ;
     user_t                              img_blk_user        ;
     de_t                                img_blk_de          ;
-    ch_t    [TAPS-1:0][M-1:0][N-1:0]    img_blk_raw         ;
+    ch_t    [TAPS-1:0][M-1:0][N-1:0]    img_blk_data        ;
     logic                               img_blk_valid       ;
     
     jelly3_mat_buf_blk
@@ -62,7 +62,7 @@ module jelly3_img_morphology_filter_core
                 .COLS               (M                  ),
                 .MAX_COLS           (MAX_COLS           ),
                 .RAM_TYPE           (RAM_TYPE           ),
-                .BORDER_MODE        ("REFLECT_101"      ),
+                .BORDER_MODE        ("REPLICATE"        ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
             )
         u_mat_buf_blk
@@ -90,29 +90,26 @@ module jelly3_img_morphology_filter_core
                 .m_mat_col_last     (img_blk_col_last   ),
                 .m_mat_de           (img_blk_de         ),
                 .m_mat_user         (img_blk_user       ),
-                .m_mat_data         (img_blk_raw        ),
+                .m_mat_data         (img_blk_data       ),
                 .m_mat_valid        (img_blk_valid      )
             );
     
 
-
     for ( genvar tap = 0; tap < TAPS; tap++ ) begin : loop_calc
-        u_img_morphology_filter_calc
+        jelly3_img_morphology_filter_calc
             u_img_demosaic_acpi_g_calc
                 (
-                    .reset              (s_img.reset    ),
-                    .clk                (s_img.clk      ),
-                    .cke                (s_img.cke      ),
+                    .reset              (s_img.reset        ),
+                    .clk                (s_img.clk          ),
+                    .cke                (s_img.cke          ),
 
-                    .enable             (enable         ),
-                    .param_dilation     (param_dilation ),
-                    .param_filter       (param_filter   ),
+                    .enable             (enable             ),
+                    .param_dilation     (param_dilation     ),
+                    .param_filter       (param_filter       ),
                     
-                    .in_line_first      (img_blk_row_first & img_blk_valid  ),
-                    .in_pixel_first     (img_blk_col_first & img_blk_valid  ),
-                    .in_raw             (img_blk_raw[tap]                   ),
+                    .in_data            (img_blk_data[tap]  ),
                     
-                    .out_data           (m_img.data[tap])
+                    .out_data           (m_img.data[tap]    )
                 );
     end
     
@@ -122,7 +119,7 @@ module jelly3_img_morphology_filter_core
                 .COLS_BITS          (COLS_BITS          ),
                 .DE_BITS            (DE_BITS            ),
                 .USER_BITS          (USER_BITS          ),
-                .LATENCY            (7                  ),
+                .LATENCY            (2                  ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
             )
         u_img_delay
@@ -158,7 +155,7 @@ module jelly3_img_morphology_filter_core
     initial begin
         sva_ch_bits    : assert ( $bits(ch_t) == 1 ) else $warning("$bits(ch_t) != 1");
         sva_data_bits   : assert ( $bits(ch_t) == s_img.DATA_BITS ) else $warning("$bits(ch_t) != s_img.DATA_BITS");
-        sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS * 2) else $warning("m_img.DATA_BITS != s_img.DATA_BITS * 2");
+        sva_m_data_bits : assert ( m_img.DATA_BITS == s_img.DATA_BITS) else $warning("m_img.DATA_BITS != s_img.DATA_BITS");
     end
     always_comb begin
         sva_connect_clk : assert (m_img.clk === s_img.clk);
