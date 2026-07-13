@@ -124,6 +124,7 @@ module jelly3_jfive_load_store
     id_t        quein_id            ;
     pc_t        quein_pc            ;
     instr_t     quein_instr         ;
+    logic       quein_rd_en         ;
     ridx_t      quein_rd_idx        ;
     align_t     quein_align         ;
     size_t      quein_size          ;
@@ -134,6 +135,7 @@ module jelly3_jfive_load_store
     id_t        queout_id           ;
     pc_t        queout_pc           ;
     instr_t     queout_instr        ;
+    logic       queout_rd_en        ;
     ridx_t      queout_rd_idx       ;
     align_t     queout_align        ;
     size_t      queout_size         ;
@@ -174,6 +176,7 @@ module jelly3_jfive_load_store
                 .s_id           (quein_id           ),
                 .s_pc           (quein_pc           ),
                 .s_instr        (quein_instr        ),
+                .s_rd_en        (quein_rd_en        ),
                 .s_rd_idx       (quein_rd_idx       ),
                 .s_align        (quein_align        ),
                 .s_size         (quein_size         ),
@@ -184,6 +187,7 @@ module jelly3_jfive_load_store
                 .m_id           (queout_id          ),
                 .m_pc           (queout_pc          ),
                 .m_instr        (queout_instr       ),
+                .m_rd_en        (queout_rd_en       ),
                 .m_rd_idx       (queout_rd_idx      ),
                 .m_align        (queout_align       ),
                 .m_size         (queout_size        ),
@@ -195,11 +199,12 @@ module jelly3_jfive_load_store
     assign quein_id        = s_id                           ;
     assign quein_pc        = s_pc                           ;
     assign quein_instr     = s_instr                        ;
+    assign quein_rd_en     = s_rd_en                        ;
     assign quein_rd_idx    = s_rd_idx                       ;
     assign quein_align     = align_t'(s_addr)               ;
     assign quein_size      = s_size                         ;
     assign quein_unsigned  = s_unsigned                     ;
-    assign quein_valid     = s_rd_en && s_addr_valid && s_ready;
+    assign quein_valid     = s_rd && s_addr_valid && s_ready;
 
 
     
@@ -246,12 +251,12 @@ module jelly3_jfive_load_store
                 cmd0_pc     <= s_pc     ;
                 cmd0_instr  <= s_instr  ;
                 cmd0_aaddr  <= addr_t'(s_addr >> $clog2($bits(strb_t))) ;
-                cmd0_awrite <= s_addr_valid &&  s_wr        ;
-                cmd0_aread  <= s_addr_valid && !s_wr        ;
+                cmd0_awrite <= s_addr_valid && s_wr         ;
+                cmd0_aread  <= s_addr_valid && s_rd         ;
                 cmd0_avalid <= s_addr_valid                 ;
                 cmd0_wstrb  <= s_addr_valid ? s_wstrb : '0  ;
                 cmd0_wdata  <= s_wdata                      ;
-                cmd0_wvalid <= s_addr_valid &&  s_wr        ;
+                cmd0_wvalid <= s_addr_valid && s_wr         ;
             end
         end
     end
@@ -308,8 +313,8 @@ module jelly3_jfive_load_store
                     res0_id     <= queout_id     ;
                     res0_pc     <= queout_pc     ;
                     res0_instr  <= queout_instr  ;
-                    res0_rd_en  <= 1'b1          ;  
-                    res0_rd_idx <= queout_rd_idx;
+                    res0_rd_en  <= queout_rd_en  ;  
+                    res0_rd_idx <= queout_rd_idx ;
 
                     if ( queout_unsigned ) begin
                         case ( queout_size )
