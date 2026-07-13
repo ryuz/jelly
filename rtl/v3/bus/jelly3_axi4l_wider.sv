@@ -28,6 +28,7 @@ module jelly3_axi4l_wider
             parameter           DEBUG      = "false"    
         )
         (
+            input   var logic   endian  ,   // 0: little-endian lane mapping, 1: big-endian lane mapping
             jelly3_axi4l_if.s   s_axi4l ,
             jelly3_axi4l_if.m   m_axi4l 
         );
@@ -79,6 +80,17 @@ module jelly3_axi4l_wider
     end
     endfunction
 
+    function automatic lane_t convert_endian_lane(input lane_t lane, input logic lane_endian);
+    begin
+        if (LANE_NUM <= 1) begin
+            convert_endian_lane = '0;
+        end
+        else begin
+            convert_endian_lane = lane_endian ? lane_t'(LANE_NUM - 1 - int'(lane)) : lane;
+        end
+    end
+    endfunction
+
 
     // -------------------------------------------------------------------------
     //  Write path
@@ -118,14 +130,14 @@ module jelly3_axi4l_wider
 
             if (s_w_accept) begin
                 lane_t lane;
-                lane = addr_to_lane(s_axi4l.awaddr);
+                lane = convert_endian_lane(addr_to_lane(s_axi4l.awaddr), endian);
 
                 w_busy    <= 1'b1;
                 w_awvalid <= 1'b1;
                 w_wvalid  <= 1'b1;
                 w_addr    <= align_addr(s_axi4l.awaddr);
                 w_prot    <= m_prot_t'(s_axi4l.awprot);
-                w_data    <= m_data_t'(s_axi4l.wdata) << (int'(lane) * S_DATA_BITS);
+                w_data    <= m_data_t'({LANE_NUM{s_axi4l.wdata}});
                 w_strb    <= m_strb_t'(s_axi4l.wstrb) << (int'(lane) * S_STRB_BITS);
             end
         end
@@ -178,7 +190,7 @@ module jelly3_axi4l_wider
                 r_arvalid <= 1'b1;
                 r_addr    <= align_addr(s_axi4l.araddr);
                 r_prot    <= m_prot_t'(s_axi4l.arprot);
-                r_lane    <= addr_to_lane(s_axi4l.araddr);
+                r_lane    <= convert_endian_lane(addr_to_lane(s_axi4l.araddr), endian);
             end
         end
     end
@@ -203,6 +215,9 @@ module jelly3_axi4l_wider
         end
         if (S_DATA_BITS > M_DATA_BITS) begin
             $error("ERROR: s_axi4l.DATA_BITS must be less than or equal to m_axi4l.DATA_BITS");
+        end
+        if ((M_DATA_BITS % S_DATA_BITS) != 0) begin
+            $error("ERROR: m_axi4l.DATA_BITS must be multiple of s_axi4l.DATA_BITS");
         end
         if ((M_STRB_BITS % S_STRB_BITS) != 0) begin
             $error("ERROR: m_axi4l.STRB_BITS must be multiple of s_axi4l.STRB_BITS");
