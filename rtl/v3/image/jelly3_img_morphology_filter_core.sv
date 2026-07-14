@@ -17,6 +17,7 @@ module jelly3_img_morphology_filter_core
             parameter   int     N           = 3                     ,
             parameter   int     M           = 3                     ,
             parameter   int     MAX_COLS    = 1024                  ,
+            parameter   bit     RAM_SDP      = MAX_COLS > 64        ,
             parameter           RAM_TYPE    = "block"               ,
             parameter   bit     BYPASS_SIZE = 1'b1                  
         )
@@ -61,8 +62,9 @@ module jelly3_img_morphology_filter_core
                 .ROWS               (N                  ),
                 .COLS               (M                  ),
                 .MAX_COLS           (MAX_COLS           ),
-                .RAM_TYPE           (RAM_TYPE           ),
                 .BORDER_MODE        ("REPLICATE"        ),
+                .RAM_SDP            (RAM_SDP            ),
+                .RAM_TYPE           (RAM_TYPE           ),
                 .BYPASS_SIZE        (BYPASS_SIZE        )
             )
         u_mat_buf_blk
