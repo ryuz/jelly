@@ -91,7 +91,7 @@ module jelly3_axi4s_mat
     jelly3_skid_buffer
             #(
                 .BUF_SIZE       (4                  ),
-                .DATA_BITS      (m_axi4s.USER_BITS + 1 + m_axi4s.DATA_BITS),
+                .DATA_BITS      (m_axi4s.USER_BITS + 1 + m_axi4s.STRB_BITS + m_axi4s.DATA_BITS),
                 .M_REG          (M_REG              ),
                 .DEVICE         (DEVICE             ),
                 .SIMULATION     (SIMULATION         ),
@@ -106,6 +106,7 @@ module jelly3_axi4s_mat
                 .s_data         ({
                                     axi4s_dst.tuser,
                                     axi4s_dst.tlast,
+                                    axi4s_dst.tstrb,
                                     axi4s_dst.tdata
                                 }),
                 .s_valid        (axi4s_dst.tvalid && axi4s_dst.aclken),
@@ -114,6 +115,7 @@ module jelly3_axi4s_mat
                 .m_data         ({
                                     m_axi4s.tuser,
                                     m_axi4s.tlast,
+                                    m_axi4s.tstrb,
                                     m_axi4s.tdata
                                 }),
                 .m_valid        (m_axi4s.tvalid     ),

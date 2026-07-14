@@ -131,4 +131,7 @@ module jelly3_shift_register
 endmodule
 
 
+`default_nettype wire
+
+
 // end of file

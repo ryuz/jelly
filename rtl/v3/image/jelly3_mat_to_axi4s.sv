@@ -26,6 +26,7 @@ module jelly3_mat_to_axi4s
             m_axi4s.tuser  <= 'x    ;
             m_axi4s.tlast  <= 'x    ;
             m_axi4s.tdata  <= 'x    ;
+            m_axi4s.tstrb  <= 'x    ;
             m_axi4s.tvalid <= 1'b0  ;
         end
         else begin
@@ -38,6 +39,7 @@ module jelly3_mat_to_axi4s
             end
             m_axi4s.tlast    <= s_mat.col_last                          ;
             m_axi4s.tdata    <= data_t'(s_mat.data)                     ;
+            m_axi4s.tstrb    <= m_axi4s.STRB_BITS'({m_axi4s.STRB_BITS{s_mat.de}});
             m_axi4s.tvalid   <= |s_mat.de && s_mat.valid && s_mat.cke   ;
         end
     end
