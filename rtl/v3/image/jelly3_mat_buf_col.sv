@@ -174,11 +174,11 @@ module jelly3_mat_buf_col
                     end
                 end
             end
-            next0_last_pos = next0_last_pos + 1;
+            next0_last_pos = pos_t'(next0_last_pos + pos_t'(1));
 
             if ( s_mat_valid && s_mat_col_last ) begin
                 next0_border   = 1'b1;
-                next0_last_pos = 0;
+                next0_last_pos = '0;
             end
         end
 

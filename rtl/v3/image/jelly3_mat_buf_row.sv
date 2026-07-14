@@ -242,8 +242,15 @@ module jelly3_mat_buf_row
                 end
             end
 
+            // Keep stage consistency and describe selection as explicit muxes.
+            // This helps avoid unintended RAM inference on some synthesis tools.
             for ( int i = 0; i < ROWS; i++ ) begin
-                next1_data[i] = next0_data[next0_index[i]];
+                next1_data[i] = 'x;
+                for ( int j = 0; j < ROWS; j++ ) begin
+                    if ( st0_index[i] == index_t'(j) ) begin
+                        next1_data[i] = st0_data[j];
+                    end
+                end
             end
         end
 
