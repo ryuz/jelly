@@ -134,7 +134,7 @@ struct Args {
     height: i32,
 
      /// Frame rate in fps (default: 60)
-    #[arg(short = 'f', long, default_value_t = 60)]
+    #[arg(short = 'f', long, default_value_t = 30)]
     frame_rate: i32,
 
      /// Exposure time in ms (default: 20)
@@ -296,6 +296,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("REG_IMG_COLMAT_PARAM_CLIP_MAX2 : {}", reg_colmat.read_reg_i32(REG_IMG_COLMAT_PARAM_CLIP_MAX2));
         }
         
+        /*
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX22,  6022 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX21, -2314 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX20,   394 * 65536 / 4096);
@@ -308,7 +309,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX01, -4324 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX00,  8126 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX03,     0 * 65536 / 4096);
-        /*
+        */
+
+        
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX00,  6022 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX01, -2314 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX02,   394 * 65536 / 4096);
@@ -321,20 +324,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX21, -4324 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX22,  8126 * 65536 / 4096);
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_PARAM_MATRIX23,     0 * 65536 / 4096);
-        */
+        
 
         reg_colmat.write_reg_i64(REG_IMG_COLMAT_CTL_CONTROL, 3); // update & enable
 
  
         // Gamma Correction
-        let gamma = 2.2;
+        let gamma = 1.0;
         let tone = true;
         for i in 0..1024 {
             // ガンマ補正
             let mut v = ((i as f64 / 1023.0).powf(1.0/gamma) * 1023.0).round() as usize;
 
             // トーンカーブ補正
-            if tone {
+            if false {
                 v = 3 * (v * v) - 2 * (v * v * v);
             }
 
