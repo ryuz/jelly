@@ -138,7 +138,7 @@ module jelly3_img_morphology_filter_core
                 .s_mat_col_last     (img_blk_col_last   ),
                 .s_mat_de           (img_blk_de         ),
                 .s_mat_user         (img_blk_user       ),
-                .s_mat_data         ('x                 ),
+                .s_mat_data         ('0                 ),
                 .s_mat_valid        (img_blk_valid      ),
                 
                 .m_mat_rows         (m_img.rows         ),

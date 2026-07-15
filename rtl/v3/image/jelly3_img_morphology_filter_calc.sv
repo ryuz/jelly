@@ -39,13 +39,7 @@ module jelly3_img_morphology_filter_calc
     logic   st1_data        ;
     
     always_ff @(posedge clk) begin
-        if ( reset ) begin
-            st0_data    <= 'x   ;
-            st0_erode   <= 'x   ;
-            st0_dilate  <= 'x   ;
-            st1_data    <= 'x   ;
-        end
-        else if ( cke ) begin
+        if ( cke ) begin
             // stage0
             st0_data    <= in_data[M/2][N/2] ;
             st0_erode   <= &(in_data | ~param_filter);
