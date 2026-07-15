@@ -151,100 +151,121 @@ module jelly3_mat_buf_row
         data_t  [ROWS-1:0][TAPS-1:0]    st0_data        ;
         logic                           st0_valid       ;
 
-        index_t [ROWS-1:0]              st1_index       ;
         row_t   [ROWS-1:0]              st1_row         ;
         col_t                           st1_col         ;
         data_t  [ROWS-1:0][TAPS-1:0]    st1_data        ;
         logic                           st1_valid       ;
 
+        index_t [ROWS-1:0]              next0_index     ;
+        data_t  [ROWS-1:0][TAPS-1:0]    next0_data      ;
+        data_t  [ROWS-1:0][TAPS-1:0]    next1_data      ;
+
+        always_comb begin
+            for ( int i = 0; i < ROWS; i++ ) begin
+                next0_index[i] = index_t'(i);
+            end
+            next0_data = buf_data;
+
+            begin
+                logic first_detect;
+                int   first_idx;
+                first_detect = 1'b0;
+                first_idx    = 0;
+                for ( int idx = ANCHOR; idx >= 0; idx-- ) begin
+                    if ( buf_row[idx].first ) begin
+                        first_detect = 1'b1;
+                        first_idx    = idx;
+                    end
+                    else if ( first_detect ) begin
+                        // verilator lint_off WIDTHEXPAND
+                        if ( BORDER_MODE == "REPLICATE" ) begin
+                        // verilator lint_on WIDTHEXPAND
+                            next0_index[idx] = index_t'(first_idx);
+                        end
+                        // verilator lint_off WIDTHEXPAND
+                        else if ( BORDER_MODE == "REFLECT" ) begin
+                        // verilator lint_on WIDTHEXPAND
+                            next0_index[idx] = index_t'(first_idx + (first_idx - idx) - 1);
+                        end
+                        // verilator lint_off WIDTHEXPAND
+                        else if ( BORDER_MODE == "REFLECT_101" ) begin
+                        // verilator lint_on WIDTHEXPAND
+                            next0_index[idx] = index_t'(first_idx + (first_idx - idx));
+                        end
+                        // verilator lint_off WIDTHEXPAND
+                        else if ( BORDER_MODE == "CONSTANT" ) begin
+                        // verilator lint_on WIDTHEXPAND
+                            next0_data[idx] = {TAPS{BORDER_VALUE}};
+                        end
+                        else begin
+                            next0_data[idx] = 'x;
+                        end
+                    end
+                end
+            end
+
+            begin
+                logic last_detect;
+                int   last_idx;
+                last_detect = 1'b0;
+                last_idx    = 0;
+                for ( int idx = ANCHOR; idx < ROWS; idx++ ) begin
+                    if ( buf_row[idx].last ) begin
+                        last_detect = 1'b1;
+                        last_idx    = idx;
+                    end
+                    else if ( last_detect ) begin
+                        // verilator lint_off WIDTHEXPAND
+                        if ( BORDER_MODE == "REPLICATE" ) begin
+                        // verilator lint_on WIDTHEXPAND
+                            next0_index[idx] = index_t'(last_idx);
+                        end
+                        // verilator lint_off WIDTHEXPAND
+                        else if ( BORDER_MODE == "REFLECT" ) begin
+                        // verilator lint_on WIDTHEXPAND
+                            next0_index[idx] = index_t'(last_idx - (idx - last_idx) + 1);
+                        end
+                        // verilator lint_off WIDTHEXPAND
+                        else if ( BORDER_MODE == "REFLECT_101" ) begin
+                        // verilator lint_on WIDTHEXPAND
+                            next0_index[idx] = index_t'(last_idx - (idx - last_idx));
+                        end
+                        // verilator lint_off WIDTHEXPAND
+                        else if ( BORDER_MODE == "CONSTANT" ) begin
+                        // verilator lint_on WIDTHEXPAND
+                            next0_data[idx] = {TAPS{BORDER_VALUE}};
+                        end
+                        else begin
+                            next0_data[idx] = 'x;
+                        end
+                    end
+                end
+            end
+
+            // Keep stage consistency and describe selection as explicit muxes.
+            // This helps avoid unintended RAM inference on some synthesis tools.
+            for ( int i = 0; i < ROWS; i++ ) begin
+                next1_data[i] = 'x;
+                for ( int j = 0; j < ROWS; j++ ) begin
+                    if ( st0_index[i] == index_t'(j) ) begin
+                        next1_data[i] = st0_data[j];
+                    end
+                end
+            end
+        end
+
         always_ff @(posedge clk) begin
             if ( cke ) begin
                 // stage 0
-                for ( int i = 0; i < ROWS; i++ ) begin
-                    st0_index[i] <= index_t'(i);
-                end
+                st0_index <= next0_index;
                 st0_row   <= buf_row    ;
                 st0_col   <= buf_col    ;
-                st0_data  <= buf_data   ;
-
-                begin
-                    automatic logic first_detect = 1'b0;
-                    automatic int   first_idx = 0;
-                    for ( int idx = ANCHOR; idx >= 0; idx-- ) begin
-                        if ( buf_row[idx].first ) begin
-                            first_detect = 1'b1;
-                            first_idx    = idx;
-                        end
-                        else if ( first_detect ) begin
-                            // verilator lint_off WIDTHEXPAND
-                            if ( BORDER_MODE == "REPLICATE" ) begin
-                            // verilator lint_on WIDTHEXPAND
-                                st0_index[idx] <= index_t'(first_idx);
-                            end
-                            // verilator lint_off WIDTHEXPAND
-                            else if ( BORDER_MODE == "REFLECT" ) begin
-                            // verilator lint_on WIDTHEXPAND
-                                st0_index[idx] <= index_t'(first_idx + (first_idx - idx) - 1);
-                            end
-                            // verilator lint_off WIDTHEXPAND
-                            else if ( BORDER_MODE == "REFLECT_101" ) begin
-                            // verilator lint_on WIDTHEXPAND
-                                st0_index[idx] <= index_t'(first_idx + (first_idx - idx));
-                            end
-                            // verilator lint_off WIDTHEXPAND
-                            else if ( BORDER_MODE == "CONSTANT" ) begin
-                            // verilator lint_on WIDTHEXPAND
-                                st0_data[idx] <= {TAPS{BORDER_VALUE}};
-                            end
-                            else begin
-                                st0_data[idx] <= 'x;
-                            end
-                        end
-                    end
-                end
-                
-                begin
-                    automatic logic last_detect = 1'b0;
-                    automatic int   last_idx = 0;
-                    for ( int idx = ANCHOR; idx < ROWS; idx++ ) begin
-                        if ( buf_row[idx].last ) begin
-                            last_detect = 1'b1;
-                            last_idx    = idx;
-                        end
-                        else if ( last_detect ) begin
-                            // verilator lint_off WIDTHEXPAND
-                            if ( BORDER_MODE == "REPLICATE" ) begin
-                            // verilator lint_on WIDTHEXPAND
-                                st0_index[idx] <= index_t'(last_idx);
-                            end
-                            // verilator lint_off WIDTHEXPAND
-                            else if ( BORDER_MODE == "REFLECT" ) begin
-                            // verilator lint_on WIDTHEXPAND
-                                st0_index[idx] <= index_t'(last_idx - (idx - last_idx) + 1);
-                            end
-                            // verilator lint_off WIDTHEXPAND
-                            else if ( BORDER_MODE == "REFLECT_101" ) begin
-                            // verilator lint_on WIDTHEXPAND
-                                st0_index[idx] <= index_t'(last_idx - (idx - last_idx));
-                            end
-                            // verilator lint_off WIDTHEXPAND
-                            else if ( BORDER_MODE == "CONSTANT" ) begin
-                            // verilator lint_on WIDTHEXPAND
-                                st0_data[idx] <= {TAPS{BORDER_VALUE}};
-                            end
-                            else begin
-                                st0_data[idx] <= 'x;
-                            end
-                        end
-                    end
-                end
+                st0_data  <= next0_data ;
 
                 // stage 1
                 st1_row   <= st0_row    ;
                 st1_col   <= st0_col    ;
-                for ( int i = 0; i < ROWS; i++ ) begin
-                    st1_data[i] <= st0_data[st0_index[i]];
-                end
+                st1_data  <= next1_data ;
             end
         end
 
