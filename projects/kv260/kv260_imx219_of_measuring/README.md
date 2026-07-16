@@ -4,6 +4,10 @@
 
 Kria KV260 で Raspberry Pi Camera Module V2 (Sony IMX219) を用いてリアルタイムオプティカルフロー計測を行うサンプルです。Lucas-Kanade法を用いた動き検出とトラッキング機能を実装しています。
 
+
+[![デモ動画](https://img.youtube.com/vi/ozycavHsYV0/0.jpg)](https://www.youtube.com/watch?v=ozycavHsYV0)
+
+
 ## 機能
 
 - IMX219カメラ(1000fps)からのリアルタイム画像取得
