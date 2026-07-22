@@ -14,6 +14,8 @@ Kria KV260 で JFive (RISC-V 風の独自プロセッサ) でハードウェア�
 
 一方で、将来的な方向性としては、[ハードウェア RTOS](https://github.com/ryuz/jelly/tree/master/projects/kv260/kv260_rtos_sample) のようなものと組み合わせて、割り込みを使わないスレッドの起動／停止や、スレッド間同期などをハードウェアで実現するようなものを目指しています。
 
+![jfive_multithread](../../../docs/source/images/jfive_multithread.png)
+
 
 ## 環境
 
