@@ -39,7 +39,9 @@
             };
 
             udmabuf0 {
-                compatible = "ikwzm,udmabuf-0.10.a";
+//              compatible = "ikwzm,udmabuf-0.10.a";
+                compatible = "ikwzm,u-dma-buf";
+                device-name = "udmabuf0";
                 minor-number = <0>;
                 size = <0x03000000>;
             };
