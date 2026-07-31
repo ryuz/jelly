@@ -553,9 +553,9 @@ module top
 	(* MARK_DEBUG = "true" *)	wire			axi4s_csi2_tvalid;
 	(* MARK_DEBUG = "true" *)	wire			axi4s_csi2_tready;
 	
-	jelly_csi2_rx
+	jelly_mipi_csi2_rx
 			#(
-				.LANE_NUM				(2),
+				.LANES   				(2),
 				.DATA_WIDTH				(10),
 				.M_FIFO_ASYNC			(1)
 			)
@@ -649,7 +649,7 @@ module top
 	wire				wb_norm_stb_i;
 	wire				wb_norm_ack_o;
 	
-	jelly_video_normalizer
+	jelly_video_format_regularizer
 			#(
 				.WB_ADR_WIDTH			(8),
 				.WB_DAT_WIDTH			(32),
