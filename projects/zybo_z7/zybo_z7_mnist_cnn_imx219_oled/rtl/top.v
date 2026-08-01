@@ -664,8 +664,8 @@ module top
 				.M_SLAVE_REGS			(1),
 				.M_MASTER_REGS			(1),
 				
-				.INIT_CONTROL			(2'b00),
-				.INIT_SKIP				(1),
+				.INIT_CTL_CONTROL		(2'b00),
+				.INIT_CTL_SKIP			(1),
 				.INIT_PARAM_WIDTH		(X_NUM),
 				.INIT_PARAM_HEIGHT		(Y_NUM),
 				.INIT_PARAM_FILL		(10'd0),
