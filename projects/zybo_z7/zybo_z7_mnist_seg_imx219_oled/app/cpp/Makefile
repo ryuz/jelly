@@ -1,82 +1,75 @@
+BASE_NAME = zybo_z7_mnist_seg_imx219_oled
 
-TARGET    = zybo_z7_mnist_seg_imx219_oled.out
-DT_NAME   = zybo_z7_mnist_seg_imx219_oled
-BIT_NAME  = zybo_z7_mnist_seg_imx219_oled
+TARGET     = $(BASE_NAME).out
+ACCEL_NAME = $(BASE_NAME)
+BIT_FILE   = ../$(BASE_NAME).bit
+BIN_FILE   = $(BIT_FILE).bin
+DTBO_FILE  = ../$(BASE_NAME).dtbo
 
-DTS_FILE  = $(DT_NAME).dts
-DTBO_FILE = $(DT_NAME).dtbo
+ZYBO_Z7_SERVER_ADDRESS ?= 127.0.0.1:8051
+ZYBO_Z7_SSH_ADDRESS    ?= zybo-z7
 
-BIT_FILE  = $(BIT_NAME).bit
-BIF_FILE  = $(BIT_NAME).bif
-BIN_FILE  = $(BIT_FILE).bin
+# 実行環境のネイティブアーキテクチャを取得
+HOST_ARCH := $(shell uname -m)
 
-FIRMWARE_PATH = /lib/firmware
-DEVTREE_PATH  = /configfs/device-tree
+TARGET_ARCH := armv7l
+TARGET_TRIPLET := arm-linux-gnueabihf-
 
-CFLAGS  += -Wall -g -O0 `pkg-config --cflags opencv4` -I../../../../../include
-LDFLAGS += `pkg-config --libs opencv4`
+CFLAGS  += -Wall -g -O2 -I../../../../../include
+LDFLAGS += -g
+
+ifeq ($(HOST_ARCH),$(TARGET_ARCH))
+    CC  := gcc
+    CXX := g++
+    CFLAGS  += `pkg-config --cflags opencv4`
+    LDFLAGS += `pkg-config --libs opencv4`
+else
+    CC  = $(TARGET_TRIPLET)gcc
+    CXX = $(TARGET_TRIPLET)g++
+    CFLAGS  += -I/usr/include/opencv4
+	LDFLAGS += -L/usr/lib/$(TARGET_TRIPLET)
+    LDFLAGS += -lopencv_stitching -lopencv_alphamat -lopencv_aruco -lopencv_bgsegm -lopencv_bioinspired -lopencv_ccalib -lopencv_dnn_objdetect -lopencv_dnn_superres -lopencv_dpm -lopencv_face -lopencv_freetype -lopencv_fuzzy -lopencv_hdf -lopencv_hfs -lopencv_img_hash -lopencv_intensity_transform -lopencv_line_descriptor -lopencv_mcc -lopencv_quality -lopencv_rapid -lopencv_reg -lopencv_rgbd -lopencv_saliency -lopencv_stereo -lopencv_structured_light -lopencv_phase_unwrapping -lopencv_superres -lopencv_optflow -lopencv_surface_matching -lopencv_tracking -lopencv_highgui -lopencv_datasets -lopencv_text -lopencv_plot -lopencv_videostab -lopencv_videoio -lopencv_viz -lopencv_wechat_qrcode -lopencv_shape -lopencv_ml -lopencv_ximgproc -lopencv_video -lopencv_xobjdetect -lopencv_objdetect -lopencv_calib3d -lopencv_imgcodecs -lopencv_features2d -lopencv_dnn -lopencv_flann -lopencv_xphoto -lopencv_photo -lopencv_imgproc -lopencv_core
+endif
+
+
+RUN_OPT ?=
 
 OBJS = main.o
 
-
 .PHONY: all
-all: $(TARGET) $(DTBO_FILE) $(BIN_FILE)
+all: $(TARGET)
+
+.PHONY: build
+build: $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -rf $(TARGET) $(OBJS) $(DTBO_FILE) $(BIN_FILE)
+	rm -rf $(TARGET) $(OBJS)
 
 .PHONY: run
-run: $(TARGET) load
-	./$(TARGET)
+run: $(TARGET)
+	mkdir -p rec
+	./$(TARGET) $(RUN_OPT)
 
 $(TARGET): $(OBJS)
-	g++ -o $(TARGET) $(OBJS) $(LDFLAGS)
+	$(CXX) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 %.o : %.cpp
-	g++ $(CFLAGS) -c $< -o $@
+	$(CXX) $(CFLAGS) -c $< -o $@
 
-main.o: Ssd1331Control.h
+main.o: main.cpp
 
-$(DTBO_FILE): $(DTS_FILE)
-	dtc -I dts -O dtb -o $(DTBO_FILE) $(DTS_FILE)
-
-$(BIN_FILE): $(BIF_FILE) $(BIT_FILE)
-	bootgen -w -image $(BIF_FILE) -arch zynq -process_bitstream bin
-
-$(DEVTREE_PATH):
-	sudo mkdir -p /configfs
-	sudo mount -t configfs configfs /configfs
-
-
-.PHONY: mount
-mount: $(DEVTREE_PATH)
-
-.PHONY: umount
-umount: unload
-	@if [ -d $(DEVTREE_PATH) ] ; then \
-		echo umount configfs ; \
-		sudo umount /configfs ; \
-	fi
 
 .PHONY: load
-load: $(DEVTREE_PATH) $(DTBO_FILE) $(BIN_FILE) unload
-	sudo mkdir -p $(FIRMWARE_PATH)
-	sudo cp $(BIN_FILE) $(FIRMWARE_PATH)
-	sudo mkdir -p $(DEVTREE_PATH)/overlays/full
-	sudo cp $(DTBO_FILE) $(DEVTREE_PATH)/overlays/full/dtbo
-	sudo sh -c "echo 1 > $(DEVTREE_PATH)/overlays/full/status"
-	sleep 1
-	sudo rm /lib/firmware/$(BIN_FILE)
-	sudo chmod 666 /dev/i2c-0
-	sudo chmod 666 /dev/uio0*
-	sudo chmod 666 /dev/udmabuf0
+load:
+	make -C ..
+	jelly-fpga-loader overlay $(DTBO_FILE) --bin $(BIN_FILE) --ip $(ZYBO_Z7_SERVER_ADDRESS)
 
-.PHONY: unload
-unload:
-	@if [ -f /config/device-tree/overlays/full/status ] ; then \
-		echo unload ; \
-		sudo sh -c "echo 0 > $(DEVTREE_PATH)/overlays/full/status" ; \
-		sudo rmdir $(DEVTREE_PATH)/overlays/full ; \
-	fi
+.PHONY: remote_run
+remote_run: $(TARGET) load
+	scp $(TARGET) $(ZYBO_Z7_SSH_ADDRESS):/tmp/
+	ssh -Y -t $(ZYBO_Z7_SSH_ADDRESS) /tmp/$(TARGET) $(RUN_OPT)
 
+.PHONY: remote_rerun
+remote_rerun: $(TARGET)
+	ssh -Y -t $(ZYBO_Z7_SSH_ADDRESS) /tmp/$(TARGET) $(RUN_OPT)
