@@ -1,0 +1,9 @@
+[package]
+name = "zybo_z7_mnist_seg_imx219_oled"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+jelly-mem_access = "0.2.7"
+jelly-lib = "0.2.2"
+opencv = "0.93.5"
