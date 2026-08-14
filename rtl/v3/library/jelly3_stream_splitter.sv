@@ -66,8 +66,6 @@ module jelly3_stream_splitter
                 m_valid <= '0;
             end
             else if ( cke ) begin
-                m_data  <= 'x;
-                m_valid <= '0;
                 for ( int i = 0; i < NUM; i++ ) begin
                     if ( m_ready[i] ) begin
                         m_data [i] <= 'x;
