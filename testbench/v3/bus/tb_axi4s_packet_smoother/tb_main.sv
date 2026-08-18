@@ -19,7 +19,7 @@ module tb_main
     // -------------------------
 
     parameter   bit     ASYNC          = 1                  ;
-    parameter   int     FIFO_PTR_BITS  = 4;//9                  ;
+    parameter   int     FIFO_PTR_BITS  = 5;//9                  ;
     parameter           FIFO_RAM_TYPE  = "block"            ;
     parameter   int     FIFO_S_SYNC_FF = 2                  ;
     parameter   int     FIFO_M_SYNC_FF = 2                  ;
@@ -69,6 +69,9 @@ module tb_main
     //  Simulation
     // -------------------------
 
+    int    s_count = 0;
+    logic  s_end   = 0;
+
     always_ff @(posedge s_clk) begin
         if ( s_reset ) begin
             s_axi4s.tlast  <= 1'bx  ;
@@ -76,11 +79,18 @@ module tb_main
             s_axi4s.tvalid <= 1'b0  ;
         end
         else begin
+            if ( s_axi4s.tvalid && s_axi4s.tready && s_axi4s.tlast ) begin
+                s_count++;
+                if ( s_count >= 100 ) begin
+                    s_end = 1'b1;
+                end
+            end
+
             if ( s_axi4s.tvalid && s_axi4s.tready ) begin
                 s_axi4s.tdata <= s_axi4s.tdata + 1;
             end
             if ( !s_axi4s.tvalid || s_axi4s.tready ) begin
-                if ( $urandom_range(0, 1) != 0 ) begin
+                if ( !s_end && $urandom_range(0, 1) != 0 ) begin
                     s_axi4s.tlast  <= 1'($urandom_range(0, 100) == 0);
                     s_axi4s.tvalid <= 1'b1;
                 end
@@ -97,7 +107,32 @@ module tb_main
             m_axi4s.tready <= 1'b0;
         end
         else begin
-            m_axi4s.tready <= 1;//1'($urandom_range(0, 1));
+            m_axi4s.tready <= 1'($urandom_range(0, 100)!=0);
+        end
+    end
+
+
+    // -------------------------
+    //  log
+    // -------------------------
+
+    int  s_fp;
+    initial begin
+        s_fp = $fopen("axi4s_s_log.txt", "w");
+    end
+    always_ff @(posedge s_clk) begin
+        if ( s_axi4s.aresetn && s_axi4s.tvalid && s_axi4s.tready ) begin
+            $fdisplay(s_fp, "%h %b", s_axi4s.tdata, s_axi4s.tlast);
+        end
+    end
+
+    int  m_fp;
+    initial begin
+        m_fp = $fopen("axi4s_m_log.txt", "w");
+    end
+    always_ff @(posedge m_clk) begin
+        if ( m_axi4s.aresetn && m_axi4s.tvalid && m_axi4s.tready ) begin
+            $fdisplay(m_fp, "%h %b", m_axi4s.tdata, m_axi4s.tlast);
         end
     end
 

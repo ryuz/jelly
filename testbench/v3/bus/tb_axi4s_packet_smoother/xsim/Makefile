@@ -40,7 +40,7 @@ build:
 .PHONY: run
 run:
 	xsim $(TOP_MODULE) --R
-
+	diff axi4s_m_log.txt axi4s_s_log.txt
 
 .PHONY: vcd2fst
 vcd2fst:
