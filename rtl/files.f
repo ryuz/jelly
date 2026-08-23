@@ -740,6 +740,9 @@ rtl/v3/image/jelly3_img_mask_rect_core.sv
 rtl/v3/image/jelly3_img_max_pooling.sv
 rtl/v3/image/jelly3_img_moment_core.sv
 rtl/v3/image/jelly3_img_moment.sv
+rtl/v3/image/jelly3_img_morphology_filter_calc.sv
+rtl/v3/image/jelly3_img_morphology_filter_core.sv
+rtl/v3/image/jelly3_img_morphology_filter.sv
 rtl/v3/image/jelly3_img_region_rect_core.sv
 rtl/v3/image/jelly3_img_region_rect.sv
 rtl/v3/image/jelly3_img_selector_core.sv

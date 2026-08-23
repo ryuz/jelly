@@ -36,11 +36,11 @@ module tb_main
             input   var logic                           s_axi4l_rready  
         );
 
-    localparam          FILE_NAME       = "../../../../../data/images/windowswallpaper/Chrysanthemum_320x240_bayer10.pgm";
-    localparam  int     FILE_IMG_WIDTH  = 320;
-    localparam  int     FILE_IMG_HEIGHT = 240;
-    localparam  int     IMG_WIDTH       = 320;
-    localparam  int     IMG_HEIGHT      = 240;
+    localparam          FILE_NAME       = "../../../../../data/images/standard_images/color/Mandrill_256x256_bayer10.pgm";
+    localparam  int     FILE_IMG_WIDTH  = 256;
+    localparam  int     FILE_IMG_HEIGHT = 256;
+    localparam  int     IMG_WIDTH       = 256;
+    localparam  int     IMG_HEIGHT      = 256;
 
     localparam  bit     USE_DE       = 1    ;
     localparam  bit     USE_USER     = 0    ;

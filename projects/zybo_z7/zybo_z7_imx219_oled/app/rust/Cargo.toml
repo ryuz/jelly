@@ -1,0 +1,22 @@
+[package]
+name = "zybo_z7_rtcl_p3s7_mnist_seg"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+jelly-mem_access = "0.2.7"
+jelly-lib = "0.2.2"
+jelly-pac = "0.1.2"
+jelly-fpgautil = {git="https://github.com/ryuz/jelly-fpgautil-rs.git", tag="v0.0.2"}
+rtcl-lib = { path = "../../../../../rust/lib" }
+rtcl_p3s7_shared = { path = "../../../../shared/rust/rtcl_p3s7_shared", default-features = false, features = ["std", "opencv"] }
+
+opencv = "0.93.5"
+chrono = { version = "0.4", features = ["clock", "std"] }
+ctrlc = "3.5.0"
+clap = { version = "4.0", features = ["derive"] }
+
+
+[features]
+default = ["std"]
+std = []

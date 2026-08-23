@@ -106,6 +106,11 @@ module jelly3_mat_buf_col
         logic   [BUFS-1:0]          st0_valid       , next0_valid    ;
         always_comb begin
             automatic int pos = int'(st0_last_pos);
+            // Use only the required right-margin span for border synthesis.
+            // This avoids out-of-range reflected indexing on some tools/devices.
+            if ( pos > (R-1) ) begin
+                pos = R-1;
+            end
             next0_border    = st0_border;
             next0_last_pos  = st0_last_pos;
             next0_rows      = $bits(next0_rows     )'({s_mat_rows       ,   st0_rows     } >> $bits(s_mat_rows     ));
@@ -174,11 +179,13 @@ module jelly3_mat_buf_col
                     end
                 end
             end
-            next0_last_pos = next0_last_pos + 1;
+            if ( st0_border && next0_last_pos < pos_t'(R-1) ) begin
+                next0_last_pos = pos_t'(next0_last_pos + pos_t'(1));
+            end
 
             if ( s_mat_valid && s_mat_col_last ) begin
                 next0_border   = 1'b1;
-                next0_last_pos = 0;
+                next0_last_pos = '0;
             end
         end
 

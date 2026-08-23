@@ -5,6 +5,32 @@
 
 TOOL_DIR=../../../tools
 
+# all
+.PHONY : all
+all: color/Mandrill_512x512.ppm \
+    color/Mandrill_320x240.ppm \
+    color/Mandrill_256x256.pgm \
+    color/Mandrill_128x128.ppm \
+    color/Mandrill_128x128.pgm \
+    color/Mandrill_256x256_bayer10.pgm \
+    mono/BOAT_256x256.pgm \
+    mono/BOAT_128x128.pgm
+
+# clean
+.PHONY : clean
+clean:
+	rm -f color/*.ppm
+	rm -f color/*.pgm
+	rm -f mono/*.ppm
+	rm -f mono/*.pgm
+
+.PHONY : distclean
+distclean: clean
+	rm -fr color
+	rm -fr mono
+	rm -f *.zip
+
+
 
 # 標準画像／サンプルデータ (http://www.ess.ic.kanagawa-it.ac.jp/app_images_j.html)
 color.zip:
@@ -74,19 +100,4 @@ mono/BOAT_256x256.pgm: mono/BOAT.bmp
 
 mono/BOAT_128x128.pgm: mono/BOAT.bmp     
 	${TOOL_DIR}/img2pgm.py $< $@ --width 128 --height 128
-
-
-# clean
-.PHONY : clean
-clean:
-	rm -f color/*.ppm
-	rm -f color/*.pgm
-	rm -f mono/*.ppm
-	rm -f mono/*.pgm
-
-.PHONY : distclean
-distclean: clean
-	rm -fr color
-	rm -fr mono
-	rm -f *.zip
 

@@ -51,6 +51,24 @@ if {[info exists ::env(VERILOG_STD)]} {
 }
 set_option -verilog_std $verilog_std
 
+# place_option
+if {[info exists ::env(PLACE_OPTION)]} {
+    set place_option $::env(PLACE_OPTION)
+    set_option -place_option $place_option
+}
+
+# route_option
+if {[info exists ::env(ROUTE_OPTION)]} {
+    set route_option $::env(ROUTE_OPTION)
+    set_option -route_option $route_option
+}
+
+# co-place_io_registers
+if {[info exists ::env(CO_PLACE_IO_REGISTERS)]} {
+    set co_place_io_registers $::env(CO_PLACE_IO_REGISTERS)
+    set_option -co-place_io_registers $co_place_io_registers
+}
+
 # use_done_as_gpio
 if {[info exists ::env(USE_DONE_AS_GPIO)]} {
     set use_done_as_gpio $::env(USE_DONE_AS_GPIO)

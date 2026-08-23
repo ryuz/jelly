@@ -165,15 +165,15 @@ module tb_main
         assign mat_dst[y].col_last  = mat_dst_col_last ;
         assign mat_dst[y].de        = mat_dst_de       ;
         assign mat_dst[y].user      = mat_dst_user     ;
-        assign mat_dst[y].valid     = mat_dst_valid    ;           
+        assign mat_dst[y].valid     = mat_dst_valid    ;
 
         for ( genvar i = 0; i < TAPS; i++ ) begin
             assign mat_dst[y].data[i] = mat_dst_data[i][y];
         end
     end
 
-//  localparam DST_FILE_EXT = ".pgm";
-    localparam DST_FILE_EXT = "_log.txt";
+    localparam DST_FILE_EXT = ".pgm";
+//  localparam DST_FILE_EXT = "_log.txt";
 
     logic  [31:0]    frame_num   ;
     jelly3_model_img_dump
