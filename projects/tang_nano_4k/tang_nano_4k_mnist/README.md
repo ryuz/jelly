@@ -7,6 +7,12 @@
 
 [BinaryBrain](https://github.com/ryuz/BinaryBrain)の[こちら](https://github.com/ryuz/BinaryBrain/blob/master/samples/python/mnist/MnistDifferentiableLut4Simple.ipynb)のサンプルを使って学習させた LUT-Network を動かすデモです。
 
+[Interface 2024年12月号の付録雑誌](https://fpga.tokyo/gowin_vol4_news/)に記事を書かせて頂いたものです。
+
+![撮影風景](doc/photo1.png)
+
+![認識画面](doc/photo2.png)
+
 
 ## 環境
 
