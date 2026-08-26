@@ -12,22 +12,28 @@
 
 module jelly3_axi4s_packet_smoother
         #(
-            parameter   bit     ASYNC          = 1                  ,
-            parameter   int     FIFO_PTR_BITS  = 9                  ,
-            parameter           FIFO_RAM_TYPE  = "block"            ,
-            parameter   int     FIFO_S_SYNC_FF = 2                  ,
-            parameter   int     FIFO_M_SYNC_FF = 2                  ,
-            parameter   bit     FIFO_DOUT_REG  = 1                  ,
-            parameter   bit     FIFO_S_REG     = 1                  ,
-            parameter   bit     FIFO_M_REG     = 1                  ,
-            parameter   int     LIMIT_SIZE     = 2 ** FIFO_PTR_BITS ,
-            parameter           DEVICE         = "RTL"              ,
-            parameter           SIMULATION     = "false"            ,
-            parameter           DEBUG          = "false"            
+            parameter   bit     ASYNC          = 1                      ,
+            parameter   int     FIFO_PTR_BITS  = 9                      ,
+            localparam  int     FIFO_SIZE      = 2 ** FIFO_PTR_BITS     ,
+            parameter   int     SIZE_BITS      = $clog2(FIFO_SIZE + 1)  ,
+            parameter   type    size_t         = logic [SIZE_BITS-1:0]  ,
+            parameter           FIFO_RAM_TYPE  = "block"                ,
+            parameter   int     FIFO_S_SYNC_FF = 2                      ,
+            parameter   int     FIFO_M_SYNC_FF = 2                      ,
+            parameter   bit     FIFO_DOUT_REG  = 1                      ,
+            parameter   bit     FIFO_S_REG     = 1                      ,
+            parameter   bit     FIFO_M_REG     = 1                      ,
+            parameter   int     LIMIT_SIZE     = 2 ** FIFO_PTR_BITS     ,
+            parameter           DEVICE         = "RTL"                  ,
+            parameter           SIMULATION     = "false"                ,
+            parameter           DEBUG          = "false"                
         )
         (
             jelly3_axi4s_if.s   s_axi4s     ,
-            jelly3_axi4s_if.m   m_axi4s     
+            output  var size_t  s_free_size ,
+
+            jelly3_axi4s_if.m   m_axi4s     ,
+            output  var size_t  m_data_size 
         );
     
     localparam int      COUNT_BITS = FIFO_PTR_BITS + 1      ;
@@ -82,8 +88,8 @@ module jelly3_axi4s_packet_smoother
             (
                 .s_axi4s        (s_axi4s        ),
                 .m_axi4s        (axi4s_fifo.m   ),
-                .s_free_size    (               ),
-                .m_data_size    (               )
+                .s_free_size    (s_free_size    ),
+                .m_data_size    (m_data_size    )
             );
 
     // --------------------------------
