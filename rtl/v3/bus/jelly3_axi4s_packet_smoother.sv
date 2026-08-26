@@ -89,7 +89,7 @@ module jelly3_axi4s_packet_smoother
                 .s_axi4s        (s_axi4s        ),
                 .m_axi4s        (axi4s_fifo.m   ),
                 .s_free_size    (s_free_size    ),
-                .m_data_size    (m_data_size    )
+                .m_data_size    (               )
             );
 
     // --------------------------------
@@ -184,6 +184,7 @@ module jelly3_axi4s_packet_smoother
     assign m_axi4s.tdata  = axi4s_fifo.tdata                ;
     assign m_axi4s.tstrb  = axi4s_fifo.tstrb                ;
     assign m_axi4s.tvalid = axi4s_fifo.tvalid & reg_enable  ;
+    assign m_data_size    = size_t'(reg_count)              ;
 
     assign axi4s_fifo.tready = m_axi4s.tready & reg_enable  ;
 
