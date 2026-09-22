@@ -16,8 +16,8 @@
 module jelly2_integer_divider
         #(
             parameter   int     USER_WIDTH          = 0,
-            parameter   int     S_DIVIDEND_WIDTH    = 16,
-            parameter   int     S_DIVISOR_WIDTH     = 16,
+            parameter   int     S_DIVIDEND_WIDTH    = 32,
+            parameter   int     S_DIVISOR_WIDTH     = 32,
             parameter   int     M_QUOTIENT_WIDTH    = S_DIVIDEND_WIDTH,
             parameter   int     M_REMAINDER_WIDTH   = S_DIVISOR_WIDTH,
             parameter   bit     MASTER_IN_REGS      = 1,
