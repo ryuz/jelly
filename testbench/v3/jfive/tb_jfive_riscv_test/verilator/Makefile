@@ -5,6 +5,7 @@ JELLY_TOP_DIR = ../../../../..
 
 # setting
 TOP_MODULE = tb_top
+TCM_READMEM_FILE ?= ../hex/rv32ui-p-and.hex
 
 SIM_LIB_DIRS += ..
 
@@ -12,6 +13,7 @@ FLAGS  = --binary -j 0
 FLAGS += --assert
 FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
 FLAGS += -D__VERILATOR__ -D__SIMULATION__
+FLAGS += -DTCM_READMEM_FILE=\"$(TCM_READMEM_FILE)\"
 FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
 #FLAGS += -Wno-SIDEEFFECT
 FLAGS += -Wno-fatal
@@ -40,8 +42,9 @@ distclean: clean
 
 .PHONY : run
 run:
-	make -C ../rust_app
+	rm -f result_ok.txt
 	./obj_dir/V$(TOP_MODULE)
+	test -f result_ok.txt || { echo "ERROR: result_ok.txt was not generated"; exit 1; }
 
 .PHONY: diff
 diff:

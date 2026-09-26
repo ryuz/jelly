@@ -1,4 +1,3 @@
-
 # jelly
 JELLY_TOP_DIR = ../../../../..
 -include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
@@ -13,11 +12,9 @@ FLAGS += --assert
 FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
 FLAGS += -D__VERILATOR__ -D__SIMULATION__
 FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
-#FLAGS += -Wno-SIDEEFFECT
-FLAGS += -Wno-fatal
+FLAGS += -Wno-SIDEEFFECT
 
 SRCS  = ../$(TOP_MODULE).sv
-SRCS += $(JELLY_TOP_DIR)/rtl/v3/jfive/jelly3_jfive32_pkg.sv
 
 all: build run
 
@@ -40,17 +37,8 @@ distclean: clean
 
 .PHONY : run
 run:
-	make -C ../rust_app
 	./obj_dir/V$(TOP_MODULE)
-
-.PHONY: diff
-diff:
-	diff expected_exe_log.txt exe_log.txt
-	diff expected_exe_log.txt exe_log.txt
-
 
 .PHONY : coverage
 coverage:
 	verilator_coverage --annotate annotated coverage.dat
-
-

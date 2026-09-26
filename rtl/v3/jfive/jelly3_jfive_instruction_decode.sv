@@ -454,15 +454,15 @@ module jelly3_jfive_instruction_decode
         for ( int i = 0; i < BUSY_RDS; i++ ) begin
             if ( RAW_HAZARD && st0_rs1_en && busy_rd_en[i] && {st0_id, st0_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
             if ( RAW_HAZARD && st0_rs2_en && busy_rd_en[i] && {st0_id, st0_rs2_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
-            if ( WAW_HAZARD && st0_rd_en  && busy_rd_en[i] && {st0_id, st0_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
+            if ( WAW_HAZARD && st0_rd_en  && busy_rd_en[i] && {st0_id, st0_rd_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
         end
         if ( RAW_HAZARD && st0_rs1_en && st1_rd_en && {st0_id, st0_rs1_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
         if ( RAW_HAZARD && st0_rs2_en && st1_rd_en && {st0_id, st0_rs2_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
-        if ( WAW_HAZARD && st0_rd_en  && st1_rd_en && {st0_id, st0_rs1_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
+        if ( WAW_HAZARD && st0_rd_en  && st1_rd_en && {st0_id, st0_rd_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
 
         if ( RAW_HAZARD && st0_rs1_en && st2_rd_en && {st0_id, st0_rs1_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
         if ( RAW_HAZARD && st0_rs2_en && st2_rd_en && {st0_id, st0_rs2_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
-        if ( WAW_HAZARD && st0_rd_en  && st2_rd_en && {st0_id, st0_rs1_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
+        if ( WAW_HAZARD && st0_rd_en  && st2_rd_en && {st0_id, st0_rd_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
     end
 
     always_ff @(posedge clk) begin
@@ -561,7 +561,7 @@ module jelly3_jfive_instruction_decode
         for ( int i = 0; i < BUSY_RDS; i++ ) begin
             if ( RAW_HAZARD && st2_rs1_en && busy_rd_en[i] && {st2_id, st2_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
             if ( RAW_HAZARD && st2_rs2_en && busy_rd_en[i] && {st2_id, st2_rs2_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
-            if ( WAW_HAZARD && st2_rd_en  && busy_rd_en[i] && {st2_id, st2_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( WAW_HAZARD && st2_rd_en  && busy_rd_en[i] && {st2_id, st2_rd_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
         end
     end
 
@@ -684,9 +684,8 @@ module jelly3_jfive_instruction_decode
                             || st1_opcode[6:2] == OPCODE_ALUI[6:2]                   // ADDI/SLTI/SLTIU/XORI/ORI/ANDI
                             || st1_opcode[6:2] == OPCODE_LOAD[6:2]                   // LB/LH/LW/LBU/LHU
                             || st1_opcode[6:2] == OPCODE_STORE[6:2];                 // SB/SH/SW
-            st2_adder_imm_val <= st1_store                 ? rval_t'($signed(st1_imm_s))   :
-                                 st1_funct3 == FUNCT3_SLTU ? rval_t'($unsigned(st1_imm_i)) :
-                                                             rval_t'($signed(st1_imm_i))   ;
+            st2_adder_imm_val <= st1_store ? rval_t'($signed(st1_imm_s)) :
+                                             rval_t'($signed(st1_imm_i));
 
             // shifter
             st2_shifter_arithmetic <= st1_funct7[5] ;
