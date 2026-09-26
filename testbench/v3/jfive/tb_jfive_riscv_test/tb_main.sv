@@ -30,8 +30,8 @@ module tb_main
     localparam  int                         M_AXI4L_PORTS     = 1                                   ;
     localparam  int                         M_AXI4L_ADDR_BITS = 32                                  ;
     localparam  type                        m_axi4l_data_t    = logic   [M_AXI4L_ADDR_BITS-1:0]     ;
-    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'h0001_0000}                    ;
-    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'h0001_ffff}                    ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'h8000_1000}                    ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'h8000_1fff}                    ;
     localparam  bit     [THREADS-1:0]       INIT_RUN          = 1                                   ;
     localparam  id_t                        INIT_ID           = '0                                  ;
     localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'h8000_0000}                    ;
@@ -155,8 +155,21 @@ module tb_main
 
     always_ff @(posedge m_axi4l[0].aclk) begin
         if (  m_axi4l[0].aresetn == 1'b1 ) begin
-            if ( m_axi4l[0].wvalid && m_axi4l[0].wready ) begin
-                $display("write %x %x", m_axi4l[0].awaddr, m_axi4l[0].wdata);
+            if ( m_axi4l[0].awvalid && m_axi4l[0].awready && m_axi4l[0].wvalid && m_axi4l[0].wready ) begin
+//              $display("write %x %x", m_axi4l[0].awaddr, m_axi4l[0].wdata);
+                if ( m_axi4l[0].awaddr == 32'h8000_1000 ) begin
+                    if ( m_axi4l[0].wdata == 32'h0000_0001 ) begin
+                        int fp;
+                        fp = $fopen("result_ok.txt", "w");
+                        $fwrite(fp, "%x\n", m_axi4l[0].wdata);
+                        $fclose(fp);
+                        $display("OK");
+                    end
+                    else begin
+                        $display("!!!!NG!!!!");
+                    end
+                    $finish;
+                end
             end
         end
     end
