@@ -12,6 +12,7 @@ JELLY_TOP_DIR = ../../../../..
 
 # setting
 TOP_MODULE = tb_top
+TCM_READMEM_FILE ?= ../hex/rv32ui-p-and.hex
 
 SIM_LIB_DIRS += ..
 
@@ -19,6 +20,7 @@ VLOGFLAGS  = -sv
 VLOGFLAGS += --sourcelibext .v
 VLOGFLAGS += --sourcelibext .sv
 VLOGFLAGS += $(addprefix --sourcelibdir ,$(SIM_LIB_DIRS))
+VLOGFLAGS += --define TCM_READMEM_FILE=\"$(TCM_READMEM_FILE)\"
 
 ELABFLAGS  = -debug wave
  
