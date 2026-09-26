@@ -454,15 +454,15 @@ module jelly3_jfive_instruction_decode
         for ( int i = 0; i < BUSY_RDS; i++ ) begin
             if ( RAW_HAZARD && st0_rs1_en && busy_rd_en[i] && {st0_id, st0_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
             if ( RAW_HAZARD && st0_rs2_en && busy_rd_en[i] && {st0_id, st0_rs2_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
-            if ( WAW_HAZARD && st0_rd_en  && busy_rd_en[i] && {st0_id, st0_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
+            if ( WAW_HAZARD && st0_rd_en  && busy_rd_en[i] && {st0_id, st0_rd_idx} == {busy_id[i], busy_rd_idx[i]} ) sig1_pre_stall = 1'b1;
         end
         if ( RAW_HAZARD && st0_rs1_en && st1_rd_en && {st0_id, st0_rs1_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
         if ( RAW_HAZARD && st0_rs2_en && st1_rd_en && {st0_id, st0_rs2_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
-        if ( WAW_HAZARD && st0_rd_en  && st1_rd_en && {st0_id, st0_rs1_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
+        if ( WAW_HAZARD && st0_rd_en  && st1_rd_en && {st0_id, st0_rd_idx} == {st1_id, st1_rd_idx} ) sig1_pre_stall = 1'b1;
 
         if ( RAW_HAZARD && st0_rs1_en && st2_rd_en && {st0_id, st0_rs1_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
         if ( RAW_HAZARD && st0_rs2_en && st2_rd_en && {st0_id, st0_rs2_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
-        if ( WAW_HAZARD && st0_rd_en  && st2_rd_en && {st0_id, st0_rs1_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
+        if ( WAW_HAZARD && st0_rd_en  && st2_rd_en && {st0_id, st0_rd_idx} == {st2_id, st2_rd_idx} ) sig1_pre_stall = 1'b1;
     end
 
     always_ff @(posedge clk) begin
@@ -561,7 +561,7 @@ module jelly3_jfive_instruction_decode
         for ( int i = 0; i < BUSY_RDS; i++ ) begin
             if ( RAW_HAZARD && st2_rs1_en && busy_rd_en[i] && {st2_id, st2_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
             if ( RAW_HAZARD && st2_rs2_en && busy_rd_en[i] && {st2_id, st2_rs2_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
-            if ( WAW_HAZARD && st2_rd_en  && busy_rd_en[i] && {st2_id, st2_rs1_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
+            if ( WAW_HAZARD && st2_rd_en  && busy_rd_en[i] && {st2_id, st2_rd_idx} == {busy_id[i], busy_rd_idx[i]} ) sig2_stall = 1'b1;
         end
     end
 
