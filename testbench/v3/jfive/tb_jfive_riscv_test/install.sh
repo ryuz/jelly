@@ -1,18 +1,17 @@
 
 CORE_DIR=$(pwd)/_core
 
+rm -rf $CORE_DIR
+#rm -rf riscv-tests
+
 git clone https://github.com/riscv-software-src/riscv-tests
 cd riscv-tests
+git checkout bcffa2b
 git submodule update --init --recursive
 
 autoconf
 prefix=$CORE_DIR
-riscv_prefix=riscv64-unknown-elf-
-
-./configure --prefix=$prefix --with-xlen=64
-make
-make install
-make clean
+riscv_prefix=${RISCV_PREFIX:-riscv32-unknown-elf-}
 
 ./configure --prefix=$prefix --with-xlen=32
 make isa RISCV_PREFIX=$riscv_prefix
