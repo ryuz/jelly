@@ -1,0 +1,59 @@
+
+# jelly
+JELLY_TOP_DIR = ../../../../..
+-include $(JELLY_TOP_DIR)/include/make/def_simulation.inc
+
+# setting
+TOP_MODULE = tb_top
+TCM_READMEM_FILE ?= ../hex/rv32ui-p-and.hex
+
+SIM_LIB_DIRS += ..
+
+FLAGS  = --binary -j 0
+FLAGS += --assert
+FLAGS += --trace-fst --trace-params --trace-structs --trace-underscore
+FLAGS += -D__VERILATOR__ -D__SIMULATION__
+FLAGS += -DTCM_READMEM_FILE=\"$(TCM_READMEM_FILE)\"
+FLAGS += $(addprefix -y ,$(SIM_LIB_DIRS))
+#FLAGS += -Wno-SIDEEFFECT
+FLAGS += -Wno-fatal
+
+SRCS  = ../$(TOP_MODULE).sv
+SRCS += $(JELLY_TOP_DIR)/rtl/v3/jfive/jelly3_jfive32_pkg.sv
+
+all: build run
+
+.PHONY : build
+build: $(SRCS)
+	verilator $(FLAGS) --top $(TOP_MODULE) $(SRCS)
+
+.PHONY : clean
+clean:
+	rm -rf obj_dir
+
+.PHONY : distclean
+distclean: clean
+	rm -f *.fst *.vcd
+	rm -f *.ppm *.pgm
+	rm -f axi*.txt
+	rm -f coverage.dat
+	rm -fr annotated
+
+
+.PHONY : run
+run:
+	rm -f result*.txt
+	./obj_dir/V$(TOP_MODULE)
+	test -f result_ok.txt || { echo "ERROR: result_ok.txt was not generated"; exit 1; }
+
+.PHONY: diff
+diff:
+	diff expected_exe_log.txt exe_log.txt
+	diff expected_exe_log.txt exe_log.txt
+
+
+.PHONY : coverage
+coverage:
+	verilator_coverage --annotate annotated coverage.dat
+
+
