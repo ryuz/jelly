@@ -42,7 +42,7 @@ distclean: clean
 
 .PHONY : run
 run:
-	rm -f result*.txt
+	rm -f result_ok.txt
 	./obj_dir/V$(TOP_MODULE)
 	test -f result_ok.txt || { echo "ERROR: result_ok.txt was not generated"; exit 1; }
 

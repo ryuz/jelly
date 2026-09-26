@@ -42,7 +42,7 @@ build:
 
 .PHONY: run
 run:
-	rm -f result*.txt
+	rm -f result_ok.txt
 	xsim $(TOP_MODULE) --R
 	test -f result_ok.txt || { echo "ERROR: result_ok.txt was not generated"; exit 1; }
 
@@ -70,3 +70,4 @@ distclean: clean
 	-rm -f *.wdb
 	-rm -f *_log.txt
 	-rm -f axi4_*.txt
+	-rm -f result*.txt
