@@ -1,1 +1,0 @@
-OK   rv32ui-p-sub.hex
