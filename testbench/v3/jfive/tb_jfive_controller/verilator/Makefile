@@ -40,6 +40,7 @@ distclean: clean
 
 .PHONY : run
 run:
+	make -C ../rust_app
 	./obj_dir/V$(TOP_MODULE)
 
 .PHONY: diff
