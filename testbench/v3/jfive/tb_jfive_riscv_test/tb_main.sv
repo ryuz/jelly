@@ -20,9 +20,9 @@ module tb_main
     localparam  pc_t                        PC_MASK          = '0                                   ;
     localparam  type                        rval_t           = logic signed  [XLEN-1:0]             ;
     localparam  int                         LOAD_QUES        = 2                                    ;
-    localparam  int                         TCM_MEM_SIZE     = 16 * 1024                            ;
+    localparam  int                         TCM_MEM_SIZE     = 64 * 1024                            ;
     localparam  rval_t                      TCM_ADDR_LO      = 32'h8000_0000                        ;
-    localparam  rval_t                      TCM_ADDR_HI      = 32'h8000_3fff                        ;
+    localparam  rval_t                      TCM_ADDR_HI      = 32'h8000_ffff                        ;
     localparam                              TCM_RAM_TYPE     = "block"                              ;
     localparam  bit                         TCM_READMEMB     = 1'b0                                 ;
     localparam  bit                         TCM_READMEMH     = 1'b1                                 ;
@@ -33,8 +33,8 @@ module tb_main
     localparam  int                         M_AXI4L_PORTS     = 1                                   ;
     localparam  int                         M_AXI4L_ADDR_BITS = 32                                  ;
     localparam  type                        m_axi4l_data_t    = logic   [M_AXI4L_ADDR_BITS-1:0]     ;
-    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'h8000_1000}                    ;
-    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'h8000_100f}                    ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_LO  = '{32'h8001_0000}                    ;
+    localparam  rval_t  [M_AXI4L_PORTS-1:0] M_AXI4L_ADDRS_HI  = '{32'h8001_000f}                    ;
     localparam  bit     [THREADS-1:0]       INIT_RUN          = 1                                   ;
     localparam  id_t                        INIT_ID           = '0                                  ;
     localparam  pc_t    [THREADS-1:0]       INIT_PC           = '{32'h8000_0000}                    ;
@@ -160,7 +160,7 @@ module tb_main
         if (  m_axi4l[0].aresetn == 1'b1 ) begin
             if ( m_axi4l[0].awvalid && m_axi4l[0].awready && m_axi4l[0].wvalid && m_axi4l[0].wready ) begin
 //              $display("write %x %x", m_axi4l[0].awaddr, m_axi4l[0].wdata);
-                if ( m_axi4l[0].awaddr == 32'h8000_1000 ) begin
+                if ( m_axi4l[0].awaddr == 32'h8001_0000 ) begin
                     if ( m_axi4l[0].wdata == 32'h0000_0001 ) begin
                         int fp;
                         fp = $fopen("result_ok.txt", "w");

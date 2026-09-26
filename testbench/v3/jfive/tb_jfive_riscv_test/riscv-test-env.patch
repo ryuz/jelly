@@ -1,3 +1,21 @@
+diff --git a/p/link.ld b/p/link.ld
+index b3e315e..7969ee4 100644
+--- a/p/link.ld
++++ b/p/link.ld
+@@ -6,12 +6,11 @@ SECTIONS
+   . = 0x80000000;
+   .text.init : { *(.text.init) }
+   . = ALIGN(0x1000);
+-  .tohost : { *(.tohost) }
+-  . = ALIGN(0x1000);
+   .text : { *(.text) }
+   . = ALIGN(0x1000);
+   .data : { *(.data) }
+   .bss : { *(.bss) }
++  .tohost 0x80010000 : { *(.tohost) }
+   _end = .;
+ }
+ 
 diff --git a/p/riscv_test.h b/p/riscv_test.h
 index 3d4637a..0abca51 100644
 --- a/p/riscv_test.h

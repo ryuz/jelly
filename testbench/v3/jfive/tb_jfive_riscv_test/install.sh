@@ -25,4 +25,4 @@ cp riscv-tests/isa/rv32ui-p-* hex/
 
 cd hex
 find . -type f ! -name "*.*" -exec riscv64-unknown-elf-objcopy -O binary {} {}.bin \;
-find . -type f -name "*.bin" -exec sh -c 'python3 ../bin2hex.py 4096 "$1" > "${1%.bin}.hex"' sh {} \;
+find . -type f -name "*.bin" -exec sh -c 'python3 ../bin2hex.py 16384 "$1" > "${1%.bin}.hex"' sh {} \;
