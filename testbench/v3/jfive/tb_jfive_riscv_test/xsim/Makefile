@@ -40,7 +40,9 @@ build:
 
 .PHONY: run
 run:
+	rm -f result*.txt
 	xsim $(TOP_MODULE) --R
+	test -f result_ok.txt || { echo "ERROR: result_ok.txt was not generated"; exit 1; }
 
 
 .PHONY: vcd2fst
