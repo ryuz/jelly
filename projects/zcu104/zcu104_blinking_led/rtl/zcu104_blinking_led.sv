@@ -31,18 +31,6 @@ module zcu104_blinking_led
             );
 
 
-    // PS
-    /*
-    logic           reset   ;    // sync reset
-    design_1
-        u_design_1
-            (
-                .fan_en     (fan_en ),
-                .reset      (reset  ),
-                .clk        (clk    )
-            );
-    */
-
     // counter
     (* MARK_DEBUG = "true" *)   logic   [26:0]     counter;
     always_ff @(posedge clk) begin
@@ -61,6 +49,8 @@ module zcu104_blinking_led
 
 endmodule
 
+
 `default_nettype wire
+
 
 // end of file

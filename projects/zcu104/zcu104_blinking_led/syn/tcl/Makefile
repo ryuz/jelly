@@ -35,7 +35,7 @@ HLS_IP =
 export HLS_IP
 
 # sources
-SOURCES  = $(PRJ_DIR)/rtl/zcu104_blinking_led.v
+SOURCES  = $(PRJ_DIR)/rtl/zcu104_blinking_led.sv
 export SOURCES
 
 # IP cores
@@ -43,7 +43,7 @@ IP_CORES  =
 export IP_CORES
 
 # block design
-BD_SCRIPTS = ../vivado$(VIVADO_VERSION)/design_1.tcl
+BD_SCRIPTS =
 export BD_SCRIPTS
 
 # constrains
