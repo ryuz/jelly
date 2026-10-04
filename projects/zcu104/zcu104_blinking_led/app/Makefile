@@ -1,7 +1,7 @@
 
 
-DT_NAME   = kv260_blinking_led
-BIT_NAME  = kv260_blinking_led
+DT_NAME   = zcu104_blinking_led
+BIT_NAME  = zcu104_blinking_led
 
 DTS_FILE  = $(DT_NAME).dts
 DTBO_FILE = $(DT_NAME).dtbo
