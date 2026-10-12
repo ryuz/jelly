@@ -193,7 +193,7 @@ module test_dma
                 .AXI4_ARQOS         (AXI4_ARQOS     ),
                 .AXI4_ARREGION      (AXI4_ARREGION  )
             )
-        i_test_dma_core
+        u_test_dma_core
             (
                 .aresetn            (~reset),
                 .aclk               (clk),

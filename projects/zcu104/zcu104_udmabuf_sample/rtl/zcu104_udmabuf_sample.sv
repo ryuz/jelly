@@ -392,7 +392,7 @@ module zcu104_udmabuf_sample
                 .AXI4_ADDR_WIDTH    (49),
                 .AXI4_DATA_SIZE     (4)   // 0:8bit, 1:16bit, 2:32bit ...
             )
-        i_test_dma1
+        u_test_dma1
             (
                 .reset              (~resetn),
                 .clk                (clk),
@@ -503,7 +503,7 @@ module zcu104_udmabuf_sample
                 .WB_DAT_WIDTH       (WB_DAT_WIDTH),
                 .IRQ_LEVEL          (1)
             )
-        i_interval_timer
+        u_interval_timer
             (
                 .reset              (~resetn),
                 .clk                (clk),
