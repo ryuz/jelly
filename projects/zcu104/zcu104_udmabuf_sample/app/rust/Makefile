@@ -11,8 +11,8 @@ HOST_ARCH      := $(shell uname -m)
 TARGET_ARCH    := aarch64
 TARGET_TRIPLET := aarch64-unknown-linux-gnu
 
-KV260_SERVER_ADDRESS ?= 127.0.0.1:8051
-KV260_SSH_ADDRESS    ?= kria
+ZCU104_SERVER_ADDRESS ?= 127.0.0.1:8051
+ZCU104_SSH_ADDRESS    ?= zcu104
 
 
 .PHONY: all
@@ -36,11 +36,11 @@ cross_build:
 .PHONY: load
 load:
 	make -C ..
-	jelly-fpga-loader unload --ip $(KV260_SERVER_ADDRESS)
-	jelly-fpga-loader register-accel $(ACCEL_NAME) $(DTBO_FILE) $(BIN_FILE) --ip $(KV260_SERVER_ADDRESS)
-	jelly-fpga-loader load $(ACCEL_NAME) --ip $(KV260_SERVER_ADDRESS)
+	jelly-fpga-loader unload --ip $(ZCU104_SERVER_ADDRESS)
+	jelly-fpga-loader register-accel $(ACCEL_NAME) $(DTBO_FILE) $(BIN_FILE) --ip $(ZCU104_SERVER_ADDRESS)
+	jelly-fpga-loader load $(ACCEL_NAME) --ip $(ZCU104_SERVER_ADDRESS)
 
 .PHONY: remote_run
 remote_run: cross_build load
-	scp target/$(TARGET_TRIPLET)/release/$(ELF_NAME) $(KV260_SSH_ADDRESS):/tmp/
-	ssh -Y -t $(KV260_SSH_ADDRESS) /tmp/$(ELF_NAME) $(RUN_OPT)
+	scp target/$(TARGET_TRIPLET)/release/$(ELF_NAME) $(ZCU104_SSH_ADDRESS):/tmp/
+	ssh -Y -t $(ZCU104_SSH_ADDRESS) /tmp/$(ELF_NAME) $(RUN_OPT)
