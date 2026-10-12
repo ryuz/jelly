@@ -32,7 +32,8 @@
                                 <14 0x0500>,// M_AXI_HPM0_FPD[9:8], M_AXI_HPM0_FPD[11:10] : 0:32bit, 1:64bit, 2:128bit
                                 <15 0x100>; // M_AXI_HPM0_LPD        : 0x000:32bit, 0x100:64bit, 0x200:128bit
             };
-        
+
+            /*
             fclk0  {
                 compatible    = "ikwzm,fclkcfg-0.10.a";
                 clocks        = <&zynqmp_clk 71 &zynqmp_clk 0>;
@@ -41,6 +42,7 @@
                 remove-rate   = "1000000";
                 remove-enable = <0>;
             };
+            */
         };
     };
     

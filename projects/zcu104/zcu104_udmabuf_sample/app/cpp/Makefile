@@ -43,7 +43,6 @@ clean:
 
 .PHONY: run
 run: $(TARGET)
-	mkdir -p rec
 	./$(TARGET) $(RUN_OPT)
 
 $(TARGET): $(OBJS)
