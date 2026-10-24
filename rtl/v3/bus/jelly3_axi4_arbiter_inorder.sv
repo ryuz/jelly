@@ -28,6 +28,7 @@ module jelly3_axi4_arbiter_inorder
     localparam  type    sel_t    = logic [SEL_BITS-1:0];
 
     localparam  type    id_t     = logic [m_axi4.ID_BITS    -1:0];
+    localparam  type    s_id_t   = logic [s_axi4[0].ID_BITS -1:0];
     localparam  type    addr_t   = logic [m_axi4.ADDR_BITS  -1:0];
     localparam  type    len_t    = logic [m_axi4.LEN_BITS   -1:0];
     localparam  type    size_t   = logic [m_axi4.SIZE_BITS  -1:0];
@@ -48,7 +49,7 @@ module jelly3_axi4_arbiter_inorder
 
 
     // assign for packed array
-    id_t      [NUM-1:0] s_axi4_awid      ;
+    s_id_t    [NUM-1:0] s_axi4_awid      ;
     addr_t    [NUM-1:0] s_axi4_awaddr    ;
     len_t     [NUM-1:0] s_axi4_awlen     ;
     size_t    [NUM-1:0] s_axi4_awsize    ;
@@ -67,12 +68,12 @@ module jelly3_axi4_arbiter_inorder
     wuser_t   [NUM-1:0] s_axi4_wuser     ;
     logic     [NUM-1:0] s_axi4_wvalid    ;
     logic     [NUM-1:0] s_axi4_wready    ;
-    id_t      [NUM-1:0] s_axi4_bid       ;
+    s_id_t    [NUM-1:0] s_axi4_bid       ;
     resp_t    [NUM-1:0] s_axi4_bresp     ;
     buser_t   [NUM-1:0] s_axi4_buser     ;
     logic     [NUM-1:0] s_axi4_bvalid    ;
     logic     [NUM-1:0] s_axi4_bready    ;
-    id_t      [NUM-1:0] s_axi4_arid      ;
+    s_id_t    [NUM-1:0] s_axi4_arid      ;
     addr_t    [NUM-1:0] s_axi4_araddr    ;
     len_t     [NUM-1:0] s_axi4_arlen     ;
     size_t    [NUM-1:0] s_axi4_arsize    ;
@@ -85,7 +86,7 @@ module jelly3_axi4_arbiter_inorder
     aruser_t  [NUM-1:0] s_axi4_aruser    ;
     logic     [NUM-1:0] s_axi4_arvalid   ;
     logic     [NUM-1:0] s_axi4_arready   ;
-    id_t      [NUM-1:0] s_axi4_rid       ;
+    s_id_t    [NUM-1:0] s_axi4_rid       ;
     data_t    [NUM-1:0] s_axi4_rdata     ;
     resp_t    [NUM-1:0] s_axi4_rresp     ;
     logic     [NUM-1:0] s_axi4_rlast     ;
@@ -144,7 +145,7 @@ module jelly3_axi4_arbiter_inorder
     // Structure to carry both selector and original ID information
     typedef struct packed {
         sel_t   sel;
-        id_t    id;
+        s_id_t  id;
     } sel_id_t;
 
     // response destination queues

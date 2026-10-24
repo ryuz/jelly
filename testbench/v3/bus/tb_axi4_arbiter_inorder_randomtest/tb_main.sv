@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 //  Jelly  -- The platform for real-time computing
 //
-//  Random test for jelly3_axi4_arbiter
+//  Random test for jelly3_axi4_arbiter_inorder
 //  - NUM=4 masters, each accessing its own non-overlapping 256-byte region
 //  - Master-side and slave-side mem checkers verify read/write consistency
 // ---------------------------------------------------------------------------
@@ -9,7 +9,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-`include "../../../../rtl/v3/bus/jelly3_axi4_arbiter.sv"
+`include "../../../../rtl/v3/bus/jelly3_axi4_arbiter_inorder.sv"
 
 
 module tb_main
@@ -23,8 +23,8 @@ module tb_main
     // -----------------------------------------------------------------------
 
     localparam  int     NUM         = 4         ;   // number of masters
-    localparam  int     S_ID_BITS   = 2         ;   // slave-side ID bits
-    localparam  int     M_ID_BITS   = S_ID_BITS ;//+ $clog2(NUM);  // = 4
+    localparam  int     S_ID_BITS   = 8         ;   // source-side ID bits
+    localparam  int     M_ID_BITS   = 2         ;   // fixed downstream ID bits
     localparam  int     ADDR_BITS   = 32        ;
     localparam  int     DATA_BITS   = 32        ;
 
@@ -142,7 +142,7 @@ module tb_main
 
     // -----------------------------------------------------------------------
     //  Slave-side memory checker
-    //  Monitors all merged traffic on m_axi4; full ID + data + response check
+    //  Monitors merged traffic on m_axi4 and checks data and response protocol
     // -----------------------------------------------------------------------
 
     jelly3_model_axi4_mem_check
@@ -163,11 +163,8 @@ module tb_main
     // -----------------------------------------------------------------------
     //  Per-master : traffic model + master-side checker
     //
-    //  The arbiter embeds the slave-port index into the lower SEL_BITS of the
-    //  master-side ID: m_id = (s_id << SEL_BITS) | port_index
-    //  Therefore s_axi4[i].bid / rid differ from what the master originally
-    //  sent as awid / arid.  We disable BID/RID checks on the master side and
-    //  let the slave-side checker handle ID correctness.
+    //  The arbiter replaces downstream IDs with fixed values and queues each
+    //  source ID for restoration when the response returns.
     // -----------------------------------------------------------------------
 
     logic [NUM-1:0]     enable      ;
@@ -197,9 +194,8 @@ module tb_main
                     .m_axi4             (s_axi4[i].m        )
                 );
 
-        // Master-side checker:
-        //   BID/RID check disabled because the arbiter transforms IDs.
-        //   Data correctness and LAST/RESP protocol are still verified.
+        // Master-side memory checker verifies data and LAST/RESP protocol.
+        // The source-ID scoreboard below separately checks BID/RID restoration.
         jelly3_model_axi4_mem_check
                 #(
                     .SHOW_MATCH         (0                  ),
@@ -232,6 +228,10 @@ module tb_main
     logic   [NUM-1:0]   mon_rvalid  ;
     logic   [NUM-1:0]   mon_rready  ;
     logic   [NUM-1:0]   mon_rlast   ;
+    logic   [S_ID_BITS-1:0] mon_awid [NUM];
+    logic   [S_ID_BITS-1:0] mon_bid  [NUM];
+    logic   [S_ID_BITS-1:0] mon_arid [NUM];
+    logic   [S_ID_BITS-1:0] mon_rid  [NUM];
 
     for (genvar i = 0; i < NUM; i++) begin : g_mon_wires
         assign mon_awvalid[i] = s_axi4[i].awvalid;
@@ -243,7 +243,15 @@ module tb_main
         assign mon_rvalid [i] = s_axi4[i].rvalid ;
         assign mon_rready [i] = s_axi4[i].rready ;
         assign mon_rlast  [i] = s_axi4[i].rlast  ;
+        assign mon_awid   [i] = s_axi4[i].awid   ;
+        assign mon_bid    [i] = s_axi4[i].bid    ;
+        assign mon_arid   [i] = s_axi4[i].arid   ;
+        assign mon_rid    [i] = s_axi4[i].rid    ;
     end : g_mon_wires
+
+    typedef logic [S_ID_BITS-1:0] s_id_t;
+    s_id_t expected_bid [NUM][$];
+    s_id_t expected_rid [NUM][$];
 
     int     cycle_count                 ;
     int     write_burst_count   [NUM]   ;
@@ -280,6 +288,39 @@ module tb_main
         end
     end
 
+    always @(posedge aclk) begin
+        if ( !aresetn ) begin
+            for ( int i = 0; i < NUM; i++ ) begin
+                expected_bid[i].delete();
+                expected_rid[i].delete();
+            end
+        end
+        else if ( aclken ) begin
+            for ( int i = 0; i < NUM; i++ ) begin
+                if ( mon_awvalid[i] && mon_awready[i] ) begin
+                    expected_bid[i].push_back(mon_awid[i]);
+                end
+                if ( mon_bvalid[i] && mon_bready[i] ) begin
+                    if ( expected_bid[i].size() == 0 || mon_bid[i] !== expected_bid[i][0] ) begin
+                        $fatal(1, "BID mismatch on master %0d: got %h expected %h", i, mon_bid[i], expected_bid[i].size() ? expected_bid[i][0] : 'x);
+                    end
+                    expected_bid[i].pop_front();
+                end
+                if ( mon_arvalid[i] && mon_arready[i] ) begin
+                    expected_rid[i].push_back(mon_arid[i]);
+                end
+                if ( mon_rvalid[i] && mon_rready[i] ) begin
+                    if ( expected_rid[i].size() == 0 || mon_rid[i] !== expected_rid[i][0] ) begin
+                        $fatal(1, "RID mismatch on master %0d: got %h expected %h", i, mon_rid[i], expected_rid[i].size() ? expected_rid[i][0] : 'x);
+                    end
+                    if ( mon_rlast[i] ) begin
+                        expected_rid[i].pop_front();
+                    end
+                end
+            end
+        end
+    end
+
 
     // -----------------------------------------------------------------------
     //  Test sequence
@@ -292,6 +333,15 @@ module tb_main
         #1000000;
         enable = '0;
         #1000;
+
+        for ( int i = 0; i < NUM; i++ ) begin
+            if ( write_burst_count[i] == 0 || read_burst_count[i] == 0 ) begin
+                $fatal(1, "No traffic observed on master %0d", i);
+            end
+            if ( write_burst_count[i] != write_resp_count[i] || read_burst_count[i] != read_resp_count[i] ) begin
+                $fatal(1, "Outstanding transactions on master %0d: AW/B=%0d/%0d AR/RLAST=%0d/%0d", i, write_burst_count[i], write_resp_count[i], read_burst_count[i], read_resp_count[i]);
+            end
+        end
 
         $finish;
     end
