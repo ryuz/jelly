@@ -83,7 +83,7 @@ module jelly3_stream_gate_core
         if ( reset ) begin
             reg_auto_first <= {N{1'b1}};
         end
-        else begin
+        else if ( cke ) begin
             if ( s_valid && s_ready ) begin
                 reg_auto_first <= (s_last & param_detect_last) & AUTO_FIRST;
             end
