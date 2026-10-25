@@ -127,7 +127,7 @@ module tb_main
                 .W_BUSY_RATE        (15                     ),
                 .B_BUSY_RATE        (15                     ),
                 .AR_BUSY_RATE       (15                     ),
-                .R_BUSY_RATE        (15                     ),  // must be 0: arbiter R-buf does not clear on non-last beats
+                .R_BUSY_RATE        (15                     ),
                 .AW_RAND_SEED       (600                    ),
                 .W_RAND_SEED        (601                    ),
                 .B_RAND_SEED        (602                    ),
@@ -142,7 +142,7 @@ module tb_main
 
     // -----------------------------------------------------------------------
     //  Slave-side memory checker
-    //  Monitors all merged traffic on m_axi4; full ID + data + response check
+    //  Monitors merged traffic on m_axi4 and checks data and response protocol
     // -----------------------------------------------------------------------
 
     jelly3_model_axi4_mem_check
@@ -164,10 +164,8 @@ module tb_main
     //  Per-master : traffic model + master-side checker
     //
     //  The arbiter embeds the slave-port index into the lower SEL_BITS of the
-    //  master-side ID: m_id = (s_id << SEL_BITS) | port_index
-    //  Therefore s_axi4[i].bid / rid differ from what the master originally
-    //  sent as awid / arid.  We disable BID/RID checks on the master side and
-    //  let the slave-side checker handle ID correctness.
+    //  master-side ID: m_id = (s_id << SEL_BITS) | port_index. Responses must
+    //  restore the source ID and route back to the matching master.
     // -----------------------------------------------------------------------
 
     logic [NUM-1:0]     enable      ;
@@ -198,8 +196,8 @@ module tb_main
                 );
 
         // Master-side checker:
-        //   BID/RID check disabled because the arbiter transforms IDs.
-        //   Data correctness and LAST/RESP protocol are still verified.
+        //   Data correctness and LAST/RESP protocol are checked here; ID
+        //   restoration is checked by the scoreboard below.
         jelly3_model_axi4_mem_check
                 #(
                     .SHOW_MATCH         (0                  ),
@@ -225,6 +223,7 @@ module tb_main
     // (Verilator rejects s_axi4[i].signal when 'i' is not a genvar.)
     logic   [NUM-1:0]   mon_awvalid ;
     logic   [NUM-1:0]   mon_awready ;
+    logic   [NUM-1:0]   mon_wvalid  ;
     logic   [NUM-1:0]   mon_bvalid  ;
     logic   [NUM-1:0]   mon_bready  ;
     logic   [NUM-1:0]   mon_arvalid ;
@@ -232,10 +231,15 @@ module tb_main
     logic   [NUM-1:0]   mon_rvalid  ;
     logic   [NUM-1:0]   mon_rready  ;
     logic   [NUM-1:0]   mon_rlast   ;
+    logic   [S_ID_BITS-1:0] mon_awid [NUM];
+    logic   [S_ID_BITS-1:0] mon_bid  [NUM];
+    logic   [S_ID_BITS-1:0] mon_arid [NUM];
+    logic   [S_ID_BITS-1:0] mon_rid  [NUM];
 
     for (genvar i = 0; i < NUM; i++) begin : g_mon_wires
         assign mon_awvalid[i] = s_axi4[i].awvalid;
         assign mon_awready[i] = s_axi4[i].awready;
+        assign mon_wvalid [i] = s_axi4[i].wvalid ;
         assign mon_bvalid [i] = s_axi4[i].bvalid ;
         assign mon_bready [i] = s_axi4[i].bready ;
         assign mon_arvalid[i] = s_axi4[i].arvalid;
@@ -243,13 +247,20 @@ module tb_main
         assign mon_rvalid [i] = s_axi4[i].rvalid ;
         assign mon_rready [i] = s_axi4[i].rready ;
         assign mon_rlast  [i] = s_axi4[i].rlast  ;
+        assign mon_awid   [i] = s_axi4[i].awid   ;
+        assign mon_bid    [i] = s_axi4[i].bid    ;
+        assign mon_arid   [i] = s_axi4[i].arid   ;
+        assign mon_rid    [i] = s_axi4[i].rid    ;
     end : g_mon_wires
+    int expected_bid_count [NUM][2**S_ID_BITS];
+    int expected_rid_count [NUM][2**S_ID_BITS];
 
     int     cycle_count                 ;
     int     write_burst_count   [NUM]   ;
     int     write_resp_count    [NUM]   ;
     int     read_burst_count    [NUM]   ;
     int     read_resp_count     [NUM]   ;
+    int     aw_without_wvalid_count [NUM];
 
     always_ff @(posedge aclk) begin
         if ( !aresetn ) begin
@@ -259,6 +270,7 @@ module tb_main
                 write_resp_count [i] <= 0;
                 read_burst_count [i] <= 0;
                 read_resp_count  [i] <= 0;
+                aw_without_wvalid_count[i] <= 0;
             end
         end
         else if ( aclken ) begin
@@ -266,6 +278,9 @@ module tb_main
             for ( int i = 0; i < NUM; i++ ) begin
                 if ( mon_awvalid[i] && mon_awready[i] ) begin
                     write_burst_count[i] <= write_burst_count[i] + 1;
+                    if ( !mon_wvalid[i] ) begin
+                        aw_without_wvalid_count[i] <= aw_without_wvalid_count[i] + 1;
+                    end
                 end
                 if ( mon_bvalid[i] && mon_bready[i] ) begin
                     write_resp_count[i] <= write_resp_count[i] + 1;
@@ -282,6 +297,48 @@ module tb_main
 
 
     // -----------------------------------------------------------------------
+    //  ID scoreboarding
+    // -----------------------------------------------------------------------
+
+    always @(posedge aclk) begin
+        if ( !aresetn ) begin
+            for ( int i = 0; i < NUM; i++ ) begin
+                for ( int id = 0; id < 2**S_ID_BITS; id++ ) begin
+                    expected_bid_count[i][id] = 0;
+                    expected_rid_count[i][id] = 0;
+                end
+            end
+        end
+        else if ( aclken ) begin
+            for ( int i = 0; i < NUM; i++ ) begin
+                if ( mon_awvalid[i] && mon_awready[i] ) begin
+                    expected_bid_count[i][mon_awid[i]] = expected_bid_count[i][mon_awid[i]] + 1;
+                end
+                if ( mon_bvalid[i] && mon_bready[i] ) begin
+                    if ( expected_bid_count[i][mon_bid[i]] == 0 ) begin
+                        $fatal(1, "BID mismatch on master %0d: got %h", i, mon_bid[i]);
+                    end
+                    else begin
+                        expected_bid_count[i][mon_bid[i]] = expected_bid_count[i][mon_bid[i]] - 1;
+                    end
+                end
+                if ( mon_arvalid[i] && mon_arready[i] ) begin
+                    expected_rid_count[i][mon_arid[i]] = expected_rid_count[i][mon_arid[i]] + 1;
+                end
+                if ( mon_rvalid[i] && mon_rready[i] ) begin
+                    if ( expected_rid_count[i][mon_rid[i]] == 0 ) begin
+                        $fatal(1, "RID mismatch on master %0d: got %h", i, mon_rid[i]);
+                    end
+                    else if ( mon_rlast[i] ) begin
+                        expected_rid_count[i][mon_rid[i]] = expected_rid_count[i][mon_rid[i]] - 1;
+                    end
+                end
+            end
+        end
+    end
+
+
+    // -----------------------------------------------------------------------
     //  Test sequence
     // -----------------------------------------------------------------------
 
@@ -291,7 +348,24 @@ module tb_main
         enable = '1;
         #1000000;
         enable = '0;
-        #1000;
+        #10000;
+
+        for ( int i = 0; i < NUM; i++ ) begin
+            if ( write_burst_count[i] == 0 || read_burst_count[i] == 0 ) begin
+                $fatal(1, "No traffic observed on master %0d", i);
+            end
+            if ( aw_without_wvalid_count[i] == 0 ) begin
+                $fatal(1, "No AW accepted before WVALID on master %0d", i);
+            end
+            if ( write_burst_count[i] != write_resp_count[i] || read_burst_count[i] != read_resp_count[i] ) begin
+                $fatal(1, "Outstanding transactions on master %0d: AW/B=%0d/%0d AR/RLAST=%0d/%0d", i, write_burst_count[i], write_resp_count[i], read_burst_count[i], read_resp_count[i]);
+            end
+            for ( int id = 0; id < 2**S_ID_BITS; id++ ) begin
+                if ( expected_bid_count[i][id] != 0 || expected_rid_count[i][id] != 0 ) begin
+                    $fatal(1, "ID scoreboard not empty on master %0d ID %0d: B=%0d R=%0d", i, id, expected_bid_count[i][id], expected_rid_count[i][id]);
+                end
+            end
+        end
 
         $finish;
     end
