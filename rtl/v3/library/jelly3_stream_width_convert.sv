@@ -222,8 +222,9 @@ module jelly3_stream_width_convert
             end
         end
     end
-    logic    auto_first = (AUTO_FIRST && USE_LAST && reg_auto_first);
-    
+
+    wire    auto_first = (AUTO_FIRST && USE_LAST && reg_auto_first);
+
     typedef struct packed {
         unit_t   [S_NUM-1:0]    data    ;
         logic    [S_NUM-1:0]    strb    ;
@@ -242,7 +243,7 @@ module jelly3_stream_width_convert
     assign s_packet.keep    = USE_KEEP ? s_keep : '1                        ;
     assign s_packet.user_f  = s_user_f                                      ;
     assign s_packet.user_l  = s_user_l                                      ;
-    assign s_packet.first   = (USE_FIRST  ? s_first   : 1'b0) | auto_first  ;
+    assign s_packet.first   = (USE_FIRST ? s_first : 1'b0) | auto_first     ;
     assign s_packet.last    = USE_LAST    ? s_last    : 1'b0                ;
     assign s_packet.align_s = USE_ALIGN_S ? s_align_s : '0                  ;
     assign s_packet.align_m = USE_ALIGN_M ? s_align_m : '0                  ;
