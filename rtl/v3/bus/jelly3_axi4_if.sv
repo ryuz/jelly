@@ -673,13 +673,13 @@ end
     int         issue_rlast;
     int         issue_awlen;
     int         issue_arlen;
-    assign issue_aw    = awvalid && awready         ? 1 : 0;
-    assign issue_w     = wvalid  && wready          ? 1 : 0;
-    assign issue_wlast = wvalid  && wready && wlast ? 1 : 0;
-    assign issue_b     = bvalid  && bready          ? 1 : 0;
-    assign issue_ar    = arvalid && arready         ? 1 : 0;
-    assign issue_r     = rvalid  && rready          ? 1 : 0;
-    assign issue_rlast = rvalid  && rready && rlast ? 1 : 0;
+    assign issue_aw    = aclken && awvalid && awready         ? 1 : 0;
+    assign issue_w     = aclken && wvalid  && wready          ? 1 : 0;
+    assign issue_wlast = aclken && wvalid  && wready && wlast ? 1 : 0;
+    assign issue_b     = aclken && bvalid  && bready          ? 1 : 0;
+    assign issue_ar    = aclken && arvalid && arready         ? 1 : 0;
+    assign issue_r     = aclken && rvalid  && rready          ? 1 : 0;
+    assign issue_rlast = aclken && rvalid  && rready && rlast ? 1 : 0;
     assign issue_awlen = issue_aw != 0 ? int'(awlen) + 1 : 0;
     assign issue_arlen = issue_ar != 0 ? int'(arlen) + 1 : 0;
 
