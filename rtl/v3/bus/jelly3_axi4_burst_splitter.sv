@@ -100,8 +100,10 @@ module jelly3_axi4_burst_splitter
 
 
     // Write path: only one source burst and one downstream segment are active.
-    typedef enum logic [2:0] {WR_IDLE, WR_AW, WR_W, WR_B, WR_RESP} wr_state_t;
+    typedef enum logic [1:0] {WR_IDLE, WR_XFER, WR_B, WR_RESP} wr_state_t;
     wr_state_t  wr_state;
+    logic       wr_aw_done;
+    logic       wr_w_done;
     aw_t        wr_aw;
     addr_t      wr_addr;
     beat_count_t wr_beats_remaining;
@@ -136,14 +138,14 @@ module jelly3_axi4_burst_splitter
     assign m_axi4.awqos    = wr_aw.qos;
     assign m_axi4.awregion = wr_aw.region;
     assign m_axi4.awuser   = wr_aw.user;
-    assign m_axi4.awvalid  = (wr_state == WR_AW) && s_axi4.aclken;
+    assign m_axi4.awvalid  = (wr_state == WR_XFER) && !wr_aw_done && s_axi4.aclken;
 
-    assign s_axi4.wready   = (wr_state == WR_W) && m_axi4.wready && s_axi4.aclken;
+    assign s_axi4.wready   = (wr_state == WR_XFER) && !wr_w_done && m_axi4.wready && s_axi4.aclken;
     assign m_axi4.wdata    = s_axi4.wdata;
     assign m_axi4.wstrb    = s_axi4.wstrb;
     assign m_axi4.wlast    = (wr_chunk_remaining == beat_count_t'(1));
     assign m_axi4.wuser    = s_axi4.wuser;
-    assign m_axi4.wvalid   = (wr_state == WR_W) && s_axi4.wvalid && s_axi4.aclken;
+    assign m_axi4.wvalid   = (wr_state == WR_XFER) && !wr_w_done && s_axi4.wvalid && s_axi4.aclken;
 
     assign m_axi4.bready   = (wr_state == WR_B) && s_axi4.aclken;
     assign s_axi4.bid      = wr_aw.id;
@@ -154,6 +156,8 @@ module jelly3_axi4_burst_splitter
     always_ff @(posedge s_axi4.aclk) begin
         if ( ~s_axi4.aresetn ) begin
             wr_state           <= WR_IDLE;
+            wr_aw_done         <= 1'b0;
+            wr_w_done          <= 1'b0;
             wr_aw              <= 'x;
             wr_addr            <= 'x;
             wr_beats_remaining <= 'x;
@@ -189,24 +193,28 @@ module jelly3_axi4_burst_splitter
                                                 s_axi4.awsize,
                                                 s_axi4.awburst);
                         wr_resp_accum <= '0;
-                        wr_state <= WR_AW;
+                        wr_aw_done <= 1'b0;
+                        wr_w_done <= 1'b0;
+                        wr_state <= WR_XFER;
                     end
                 end
 
-                WR_AW: begin
+                WR_XFER: begin
                     if ( m_axi4.awvalid && m_axi4.awready ) begin
-                        wr_state <= WR_W;
+                        wr_aw_done <= 1'b1;
                     end
-                end
-
-                WR_W: begin
                     if ( s_axi4.wvalid && s_axi4.wready ) begin
                         if ( wr_chunk_remaining == beat_count_t'(1) ) begin
-                            wr_state <= WR_B;
+                            wr_w_done <= 1'b1;
                         end
                         else begin
                             wr_chunk_remaining <= wr_chunk_remaining - beat_count_t'(1);
                         end
+                    end
+                    if ( (wr_aw_done || (m_axi4.awvalid && m_axi4.awready)) &&
+                         (wr_w_done || (s_axi4.wvalid && s_axi4.wready &&
+                                        wr_chunk_remaining == beat_count_t'(1))) ) begin
+                        wr_state <= WR_B;
                     end
                 end
 
@@ -223,7 +231,9 @@ module jelly3_axi4_burst_splitter
                             wr_chunk_beats     <= wr_next_chunk_beats;
                             wr_chunk_remaining <= wr_next_chunk_beats;
                             wr_resp_accum <= (m_axi4.bresp > wr_resp_accum) ? m_axi4.bresp : wr_resp_accum;
-                            wr_state <= WR_AW;
+                            wr_aw_done <= 1'b0;
+                            wr_w_done <= 1'b0;
+                            wr_state <= WR_XFER;
                         end
                     end
                 end
