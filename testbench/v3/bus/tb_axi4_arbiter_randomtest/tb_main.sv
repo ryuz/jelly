@@ -119,11 +119,11 @@ module tb_main
                 .AW_DELAY           (0                      ),
                 .AR_DELAY           (0                      ),
                 .AW_FIFO_PTR_BITS   (0                      ),
-                .W_FIFO_PTR_BITS    (0                      ),
+                .W_FIFO_PTR_BITS    (4                      ),  // accept W ahead of AW
                 .B_FIFO_PTR_BITS    (0                      ),
                 .AR_FIFO_PTR_BITS   (0                      ),
                 .R_FIFO_PTR_BITS    (0                      ),
-                .AW_BUSY_RATE       (15                     ),
+                .AW_BUSY_RATE       (50                     ),
                 .W_BUSY_RATE        (15                     ),
                 .B_BUSY_RATE        (15                     ),
                 .AR_BUSY_RATE       (15                     ),
