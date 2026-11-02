@@ -1,0 +1,8 @@
+[package]
+name = "zcu104_udmabuf_sample"
+version = "0.1.1"
+edition = "2024"
+
+[dependencies]
+jelly-mem_access = "0.2.3"
+#jelly-mem_access = { path = "../../../../../rust/mem_access" }

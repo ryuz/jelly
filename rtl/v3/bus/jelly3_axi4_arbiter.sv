@@ -150,17 +150,17 @@ module jelly3_axi4_arbiter
         s_axi4_awready = '0;
         s_axi4_wready  = '0;
 
-        if ( (!m_axi4.awvalid || m_axi4.awready) && (!wbusy || (m_axi4.wlast && m_axi4.wready)) ) begin
+        if ( (!m_axi4.awvalid || m_axi4.awready) && (!wbusy || (m_axi4.wvalid && m_axi4.wlast && m_axi4.wready)) ) begin
             for ( int i = 0; i < NUM; i++ ) begin
-                if ( s_axi4_awvalid[i] && s_axi4_wvalid[i] ) begin
+                if ( s_axi4_awvalid[i] ) begin
                     s_axi4_awready[i] = 1'b1;
-                    s_axi4_wready [i] = 1'b1;
+                    s_axi4_wready [i] = s_axi4_wvalid[i];
                     break;
                 end
             end
         end
         else if ( wbusy ) begin
-            s_axi4_wready[wsel] = !m_axi4.wvalid || m_axi4.wready;
+            s_axi4_wready[wsel] = !m_axi4.wvalid || (m_axi4.wready && !m_axi4.wlast);
         end
     end
 

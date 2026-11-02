@@ -24,8 +24,8 @@ module tb_main
             #(
                 .DATA_BITS      (DATA_BITS  ),
                 .data_t         (data_t     ),
-                .S_REGS         (1          ),
-                .M_REGS         (1          )
+                .S_REG          (1          ),
+                .M_REG          (1          )
             )
         u_stream_ff
             (

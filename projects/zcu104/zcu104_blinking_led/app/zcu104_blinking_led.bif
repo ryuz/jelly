@@ -1,0 +1,5 @@
+all:
+{
+    zcu104_blinking_led.bit
+}
+

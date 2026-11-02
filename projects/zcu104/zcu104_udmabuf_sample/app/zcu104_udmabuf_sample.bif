@@ -1,0 +1,5 @@
+all:
+{
+    zcu104_udmabuf_sample.bit
+}
+

@@ -26,7 +26,7 @@ build: $(SRCS)
 
 .PHONY : clean
 clean:
-	rm -rf obj_dir
+	rm -rf obj_dir obj_cov
 
 .PHONY : distclean
 distclean: clean

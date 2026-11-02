@@ -52,7 +52,7 @@ module jelly3_stream_ff
             next_buf_data  = reg_buf_data;
             next_buf_valid = reg_buf_valid;
             
-            if ( !reg_buf_valid && s_valid && !internal_ready ) begin
+            if ( !reg_buf_valid && s_valid && reg_s_ready && !internal_ready ) begin
                 // 次のステージに送れない状況でバッファリング
                 next_s_ready   = 1'b0;
                 next_buf_data  = s_data;
