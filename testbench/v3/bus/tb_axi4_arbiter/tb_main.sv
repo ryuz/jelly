@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
-`include "../../../../rtl/v3/bus/jelly3_axi4_arbiter_inorder.sv"
+`include "../../../../rtl/v3/bus/jelly3_axi4_arbiter.sv"
 
 
 module tb_main
@@ -16,6 +16,7 @@ module tb_main
 
     localparam  int     NUM       = 3;
     localparam  int     ID_BITS   = 4;
+    localparam  int     M_ID_BITS = ID_BITS + $clog2(NUM);
     localparam  int     ADDR_BITS = 32;
     localparam  int     DATA_BITS = 32;
     localparam  int     STRB_BITS = DATA_BITS / 8;
@@ -50,7 +51,7 @@ module tb_main
 
     jelly3_axi4_if
             #(
-                .ID_BITS    (ID_BITS    ),
+                .ID_BITS    (M_ID_BITS  ),
                 .ADDR_BITS  (ADDR_BITS  ),
                 .DATA_BITS  (DATA_BITS  ),
                 .SIMULATION ("true"     )
@@ -62,7 +63,7 @@ module tb_main
                 .aclken     (aclken     )
             );
 
-    jelly3_axi4_arbiter_inorder
+    jelly3_axi4_arbiter
             #(
                 .NUM        (NUM        )
             )

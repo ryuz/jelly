@@ -213,15 +213,27 @@ module tb_main
             m_ready                <= 1'b0;
         end
         else begin
+            if ( m_valid !== m2_valid ) begin
+                $fatal(1, "m_valid mismatch: %0b != %0b", m_valid, m2_valid);
+            end
             if ( m_valid && m_ready ) begin
-                if ( m_data != m2_data ) begin
-                    $display("m_data mismatch: %0h != %0h", m_data, m2_data);
+                if ( m_data !== m2_data ) begin
+                    $fatal(1, "m_data mismatch: %0h != %0h", m_data, m2_data);
                 end
-                if ( m_strb != m2_strb ) begin
-                    $display("m_strb mismatch: %0h != %0h", m_data, m2_data);
+                if ( m_strb !== m2_strb ) begin
+                    $fatal(1, "m_strb mismatch: %0h != %0h", m_strb, m2_strb);
                 end
-                if ( m_keep != m2_keep ) begin
-                    $display("m_keep mismatch: %0h != %0h", m_data, m2_data);
+                if ( m_keep !== m2_keep ) begin
+                    $fatal(1, "m_keep mismatch: %0h != %0h", m_keep, m2_keep);
+                end
+                if ( m_first !== m2_first ) begin
+                    $fatal(1, "m_first mismatch: %0b != %0b", m_first, m2_first);
+                end
+                if ( m_last !== m2_last ) begin
+                    $fatal(1, "m_last mismatch: %0b != %0b", m_last, m2_last);
+                end
+                if ( m_user_f !== m2_user_f || m_user_l !== m2_user_l ) begin
+                    $fatal(1, "m_user mismatch");
                 end
             end
             m_ready <= 1'($random);
