@@ -207,6 +207,7 @@ axi4_mem*.txt
 
 *_/
 obj_dir/
+obj_cov/
 logs/
 annotated/
 build/
